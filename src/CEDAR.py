@@ -221,26 +221,17 @@ class CntrMaster(object):
         """
         
         # Calculate the estimators' values based on the EStep accuracy parameter, as detailed in the paper ICE_buckets.
-        print ('b4')
-        self.printCntrs(outputFile=None) #$$
-        self.printEstimators(outputFile=None) #$$$        
         self.prevEpsilon    = self.epsilon 
         self.epsilon       += self.EStep
         self.calcAllEstimatorsByEpsilon () 
         for ell in range (self.numCntrs):
             # LocalUpscale procedure
             sqEpsilon = self.epsilon**2
-            gamad = self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell)
-            nomin = math.log(1 + (2*sqEpsilon*self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell))/(1+sqEpsilon))#$$
-            denom = math.log(1 + 2*sqEpsilon) #$$
             ellTag = math.floor (math.log(1 + (2*sqEpsilon*self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell))/(1+sqEpsilon))/math.log(1 + 2*sqEpsilon))
             if random.random() < (self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag))/ (self.calcEstimatorGivenEpsilon(self.epsilon, ellTag+1) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag)):
                 self.cntrs[ell] = ellTag + 1
             else:
                 self.cntrs[ell] = ellTag
-        print ('after')
-        self.printCntrs(outputFile=None) #$$
-        self.printEstimators(outputFile=None)      
         
         
     def incCntrBy1GetVal (self, cntrIdx=0):
@@ -250,6 +241,7 @@ class CntrMaster(object):
         cntrVal = self.cntrs[cntrIdx]
         if cntrVal==(1 << self.cntrSize) - 1: # the largest possible estimated value w/o up-scaling
             self.upscale ()
+            cntrVal = self.cntrs[cntrIdx] 
         if random.random () < 1/(self.estimators[cntrVal+1] - self.estimators[cntrVal]): 
             self.cntrs[cntrIdx] += 1
         return self.estimators[self.cntrs[cntrIdx]]
