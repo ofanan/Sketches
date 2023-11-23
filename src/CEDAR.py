@@ -128,7 +128,7 @@ class CntrMaster(object):
         if epsilon<0 or ell<0: 
             settings.error (f'in CEDAR:calcEstimatorGivenEpsilon(). epsilon={epsilon}, ell={ell}')
         elif epsilon==0: # perfect estimator - identity function
-            return ell
+            return self.cntrs[ell]
         return int ((((1+2*epsilon**2)**ell -1)/(2*epsilon**2)) * (1 + epsilon**2))
     
 
@@ -230,7 +230,10 @@ class CntrMaster(object):
         for ell in range (self.numCntrs):
             # LocalUpscale procedure
             sqEpsilon = self.epsilon**2
-            ellTag = math.floor (math.log((1 + (2*sqEpsilon*self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell))/(1+sqEpsilon)))/math.log(1 + 2*sqEpsilon))
+            gamad = self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell)
+            nomin = math.log(1 + (2*sqEpsilon*self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell))/(1+sqEpsilon))#$$
+            denom = math.log(1 + 2*sqEpsilon) #$$
+            ellTag = math.floor (math.log(1 + (2*sqEpsilon*self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell))/(1+sqEpsilon))/math.log(1 + 2*sqEpsilon))
             if random.random() < (self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag))/ (self.calcEstimatorGivenEpsilon(self.epsilon, ellTag+1) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag)):
                 self.cntrs[ell] = ellTag + 1
             else:
@@ -238,7 +241,6 @@ class CntrMaster(object):
         print ('after')
         self.printCntrs(outputFile=None) #$$
         self.printEstimators(outputFile=None)      
-        exit () #$$  
         
         
     def incCntrBy1GetVal (self, cntrIdx=0):
