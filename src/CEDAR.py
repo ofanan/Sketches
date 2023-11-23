@@ -212,10 +212,11 @@ class CntrMaster(object):
         """
         
         # Calculate the estimators' values based on the EStep accuracy parameter, as detailed in the paper ICE_buckets.
-        self.epsilon += self.EStep
-        self.calcAllEstimatorsByEpsilon ()
-        self.printCntrs(outputFile=None)
-        self.printEstimators(outputFile=None)        
+        self.prevEpsilon    = self.epsilon 
+        self.epsilon       += self.EStep
+        self.calcAllEstimatorsByEpsilon () 
+        self.printCntrs(outputFile=None) #$$
+        self.printEstimators(outputFile=None) #$$$        
         
         for ell in range (self.numCntrs):
             # LocalUpscale procedure
@@ -225,7 +226,8 @@ class CntrMaster(object):
                 self.cntrs[ell] = ellTag + 1
             else:
                 self.cntrs[ell] = ellTag
-        self.printEstimators(outputFile=None)        
+        self.printEstimators(outputFile=None)      
+        exit () #$$  
         
         
     def incCntrBy1GetVal (self, cntrIdx=0):
@@ -344,9 +346,7 @@ class CntrMaster(object):
         Format-print all the counters as a single the array, to the given file.
         """
         if outputFile==None:
-            print (f'Printing all cntrs.')
-            for cntr in self.cntrs:
-                print ('{} ' .format(self.cntrInt2num(cntr)))
+            print ('cntrs={} ' .format([self.cntrInt2num(cntr) for cntr in self.cntrs]))
         else:
             for cntr in self.cntrs:
                 printf (outputFile, '{:.0f} ' .format(self.cntrInt2num(cntr)))
@@ -356,7 +356,6 @@ class CntrMaster(object):
         Format-print all the counters as a single the array, to the given file.
         """
         if outputFile==None:
-            print (f'Printing all Estimators.')
             print ('eps={:.3f}, estimators={}' .format (self.epsilon, self.estimators))            
         else:
             for cntr in self.cntrs:
