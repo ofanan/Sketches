@@ -53,9 +53,6 @@ class CntrMaster(object):
 
     calcCntrMaxValGivenEpsilon = lambda self, epsilon : self.calcEstimatorGivenEpsilon (epsilon=epsilon, ell=(1 << self.cntrSize) - 1) 
 
-    # Calculate the estimators' values based on the EStep accuracy parameter, as detailed in the paper ICE_buckets.
-    calcAllEstimatorsByEpsilon = lambda self : [self.calcEstimatorGivenEpsilon(self.epsilon, ell) for ell in range(self.numEstimators)]
-        
     def __init__(self, 
                  cntrSize       = 8, # num of bits in each counter.
                  delta          = None, # Delta - the max relative error, as detailed in the paper CEDAR. 
@@ -99,6 +96,19 @@ class CntrMaster(object):
             self.EStep      = self.findPreComputedDatum ()['EStep']
         
         
+    
+    def calcAllEstimatorsByEpsilon (self):
+        """
+        Calculate the estimators' values based on the EStep accuracy parameter, as detailed in the paper ICE_buckets.
+        """
+        if epsilon<0 or ell<0: 
+            settings.error (f'in CEDAR:calcAllEstimatorsByEpsilon(). epsilon={epsilon}, ell={ell}')
+        elif epsilon==0: # perfect estimator - identity function
+            self.estimators = [int(ell) for ell in range (self.numEstimators)]
+            return
+        else:
+            self.estimators = [int ((((1+2*epsilon**2)**ell -1)/(2*epsilon**2)) * (1 + epsilon**2)) for ell in range (self.numEstimators)] 
+        
     def findPreComputedDatum (self):
         """
         Returns the precomputed datum with the requested cntrSize.
@@ -121,7 +131,6 @@ class CntrMaster(object):
             return ell
         return int ((((1+2*epsilon**2)**ell -1)/(2*epsilon**2)) * (1 + epsilon**2))
     
-
 
     def rst (self):
         """
@@ -212,9 +221,13 @@ class CntrMaster(object):
         """
         
         # Calculate the estimators' values based on the EStep accuracy parameter, as detailed in the paper ICE_buckets.
+        print ('b4')
+        self.printCntrs(outputFile=None) #$$
+        self.printEstimators(outputFile=None) #$$$        
         self.prevEpsilon    = self.epsilon 
         self.epsilon       += self.EStep
         self.calcAllEstimatorsByEpsilon () 
+        print ('after')
         self.printCntrs(outputFile=None) #$$
         self.printEstimators(outputFile=None) #$$$        
         
