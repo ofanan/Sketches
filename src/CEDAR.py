@@ -54,7 +54,7 @@ class CntrMaster(object):
 
     calcCntrMaxValGivenEpsilon = lambda self, epsilon : self.calcEstimatorGivenEpsilon (epsilon=epsilon, ell=(1 << self.cntrSize) - 1) 
 
-    # Calculate the values of the shared estimators and the diffs between them based on the EStep accuracy parameter, as detailed in the paper ICE_buckets.
+    # Calculate the estimators' values based on the EStep accuracy parameter, as detailed in the paper ICE_buckets.
     calcAllEstimatorsByEpsilon = lambda self : [self.calcEstimatorGivenEpsilon(self.epsilon, ell) for ell in range(self.numEstimators)]
         
     def __init__(self, 
@@ -198,18 +198,31 @@ class CntrMaster(object):
         """
         self.cntrs[cntrIdx] = 0
 
-    def symbolUpscale (self, 
-                       ell) -> int: # current index of the counter to be up-scaled.
+
+    def scaleAllEstimators (self):
+        """
+        """
+        return
+    
+    def upscale (self):
         """
         The "symbol upsclae" procedure, defined in [ICE_buckets]. 
         This procedure scales-up a single counter after the "epsilon" variable was increased.
         increasing the "epsilon" variable allows reaching larger counted value (at the cost of a lower accuracy).
         """
-        sqEpsilon = self.epsilon**2
-        ellTag = math.log(1) + 2*sqEpsilon*(1 + (2*sqEpsilon*self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell))/(1+sqEpsilon))
-        if random.random() < (self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag))/ (self.calcEstimatorGivenEpsilon(self.epsilon, ellTag+1) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag)):
-            return ellTag + 1
-        return ellTag
+        
+        # Calculate the estimators' values based on the EStep accuracy parameter, as detailed in the paper ICE_buckets.
+        self.epsilon += self.EStep
+        self.calcAllEstimatorsByEpsilon ()        
+        
+        for ell in range (self.numCntrs):
+            # LocalUpscale procedure
+            sqEpsilon = self.epsilon**2
+            ellTag = math.log(1) + 2*sqEpsilon*(1 + (2*sqEpsilon*self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell))/(1+sqEpsilon))
+            if random.random() < (self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag))/ (self.calcEstimatorGivenEpsilon(self.epsilon, ellTag+1) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag)):
+                self.cntrs[ell] = ellTag + 1
+            else:
+                self.cntrs[ell] = ellTag
         
     def incCntrBy1GetVal (self, cntrIdx=0):
         """
