@@ -101,13 +101,13 @@ class CntrMaster(object):
         """
         Calculate the estimators' values based on the EStep accuracy parameter, as detailed in the paper ICE_buckets.
         """
-        if epsilon<0 or ell<0: 
-            settings.error (f'in CEDAR:calcAllEstimatorsByEpsilon(). epsilon={epsilon}, ell={ell}')
-        elif epsilon==0: # perfect estimator - identity function
+        if self.epsilon<0: 
+            settings.error (f'in CEDAR:calcAllEstimatorsByEpsilon(). epsilon={self.epsilon}')
+        elif self.epsilon==0: # perfect estimator - identity function
             self.estimators = [int(ell) for ell in range (self.numEstimators)]
             return
         else:
-            self.estimators = [int ((((1+2*epsilon**2)**ell -1)/(2*epsilon**2)) * (1 + epsilon**2)) for ell in range (self.numEstimators)] 
+            self.estimators = [int ((((1+2*self.epsilon**2)**ell -1)/(2*self.epsilon**2)) * (1 + self.epsilon**2)) for ell in range (self.numEstimators)] 
         
     def findPreComputedDatum (self):
         """
@@ -227,18 +227,16 @@ class CntrMaster(object):
         self.prevEpsilon    = self.epsilon 
         self.epsilon       += self.EStep
         self.calcAllEstimatorsByEpsilon () 
-        print ('after')
-        self.printCntrs(outputFile=None) #$$
-        self.printEstimators(outputFile=None) #$$$        
-        
         for ell in range (self.numCntrs):
             # LocalUpscale procedure
             sqEpsilon = self.epsilon**2
-            ellTag = math.log(1) + 2*sqEpsilon*(1 + (2*sqEpsilon*self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell))/(1+sqEpsilon))
+            ellTag = math.floor (math.log((1 + (2*sqEpsilon*self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell))/(1+sqEpsilon)))/math.log(1 + 2*sqEpsilon))
             if random.random() < (self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag))/ (self.calcEstimatorGivenEpsilon(self.epsilon, ellTag+1) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag)):
                 self.cntrs[ell] = ellTag + 1
             else:
                 self.cntrs[ell] = ellTag
+        print ('after')
+        self.printCntrs(outputFile=None) #$$
         self.printEstimators(outputFile=None)      
         exit () #$$  
         
