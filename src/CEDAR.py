@@ -1,8 +1,7 @@
 # This class implements a single CEDAR ICEbucket.
 # CEDAR is described in the paper: "Estimators also need shared values to grow together", Tsidon, Erez and Hanniel, Iddo and Keslassy, Isaac, Infocom'15.
 # ICE_buckets are detailed in the paper: "Independent counter estimation buckets", Einziger, Gil and Fellman, Benny and Kassner, Yaron, Infocom'12.
-import random
-import numpy as np
+import random, math, numpy as np
 from printf import printf
 import settings
 # import commonFuncs 
@@ -217,7 +216,6 @@ class CntrMaster(object):
         self.calcAllEstimatorsByEpsilon ()
         self.printCntrs(outputFile=None)
         self.printEstimators(outputFile=None)        
-        exit () #$$$
         
         for ell in range (self.numCntrs):
             # LocalUpscale procedure
@@ -227,6 +225,8 @@ class CntrMaster(object):
                 self.cntrs[ell] = ellTag + 1
             else:
                 self.cntrs[ell] = ellTag
+        self.printEstimators(outputFile=None)        
+        
         
     def incCntrBy1GetVal (self, cntrIdx=0):
         """
