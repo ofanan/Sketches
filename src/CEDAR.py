@@ -97,8 +97,9 @@ class CntrMaster(object):
             self.cntrMaxVal = (1 << self.cntrSize) - 1
             self.estimators = ([ell for ell in range (self.cntrMaxVal+1)]) # initially, use perfect estimators (the identity func').
             self.epsilon    = 0
-            self.EStep      = self.findPreComputedDatum ()['EStep'] 
-    
+            self.EStep      = self.findPreComputedDatum ()['EStep']
+        
+        
     def findPreComputedDatum (self):
         """
         Returns the precomputed datum with the requested cntrSize.
@@ -213,7 +214,10 @@ class CntrMaster(object):
         
         # Calculate the estimators' values based on the EStep accuracy parameter, as detailed in the paper ICE_buckets.
         self.epsilon += self.EStep
-        self.calcAllEstimatorsByEpsilon ()        
+        self.calcAllEstimatorsByEpsilon ()
+        self.printCntrs(outputFile=None)
+        self.printEstimators(outputFile=None)        
+        exit () #$$$
         
         for ell in range (self.numCntrs):
             # LocalUpscale procedure
@@ -230,7 +234,7 @@ class CntrMaster(object):
         """
         cntrVal = self.cntrs[cntrIdx]
         if cntrVal==(1 << self.cntrSize) - 1: # the largest possible estimated value w/o up-scaling
-            settings.error ('need to upscale. Hoowever, upscale is not supported yet.')
+            self.upscale ()
         if random.random () < 1/(self.estimators[cntrVal+1] - self.estimators[cntrVal]): 
             self.cntrs[cntrIdx] += 1
         return self.estimators[self.cntrs[cntrIdx]]
@@ -342,7 +346,7 @@ class CntrMaster(object):
         if outputFile==None:
             print (f'Printing all cntrs.')
             for cntr in self.cntrs:
-                print ('{:.0f} ' .format(self.cntr2num(cntr)))
+                print ('{} ' .format(self.cntrInt2num(cntr)))
         else:
             for cntr in self.cntrs:
                 printf (outputFile, '{:.0f} ' .format(self.cntrInt2num(cntr)))
@@ -352,6 +356,7 @@ class CntrMaster(object):
         Format-print all the counters as a single the array, to the given file.
         """
         if outputFile==None:
+            print (f'Printing all Estimators.')
             print ('eps={:.3f}, estimators={}' .format (self.epsilon, self.estimators))            
         else:
             for cntr in self.cntrs:
