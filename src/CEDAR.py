@@ -122,13 +122,14 @@ class CntrMaster(object):
                
     def calcEstimatorGivenEpsilon (self, epsilon, ell):
         """
-        calculate the ell-th estimator, given epsilon. The corresponding .tex code is:
+        calculate the ell-th estimator, given epsilon, using (1) from [ICE_buckets]. 
+        The corresponding .tex code is:
         \frac{\left(\left(1+2\cdot \:\:x^2\right)^\ell-1\right)}{2x^2}\left(1+x^2\right) 
         """
         if epsilon<0 or ell<0: 
             settings.error (f'in CEDAR:calcEstimatorGivenEpsilon(). epsilon={epsilon}, ell={ell}')
         elif epsilon==0: # perfect estimator - identity function
-            return self.cntrs[ell]
+            return ell
         return int ((((1+2*epsilon**2)**ell -1)/(2*epsilon**2)) * (1 + epsilon**2))
     
 
@@ -215,23 +216,26 @@ class CntrMaster(object):
     
     def upscale (self):
         """
-        The "symbol upsclae" procedure, defined in [ICE_buckets]. 
-        This procedure scales-up a single counter after the "epsilon" variable was increased.
-        increasing the "epsilon" variable allows reaching larger counted value (at the cost of a lower accuracy).
-        """
-        
-        # Calculate the estimators' values based on the EStep accuracy parameter, as detailed in the paper ICE_buckets.
-        self.prevEpsilon    = self.epsilon 
+        Up-scale for reaching a largest maximal value. In particular:
+        - Increase the self.epsilon, which determines the error, by self.EStep. Increasing self.epsilon allows reaching larger counted value (at the cost of a larger relative error).
+        - calculate the estimators' values using the updated self.epsilon. (localUpscale procedure, defined in [ICE_buckets]).   
+        - For each counter ("symbol"), run the "symbol upsclae" procedure, defined in [ICE_buckets].
+          This procedure scales-up a single counter after the "epsilon" variable was increased.
+        """        
+        # Update self.epsilon and update the estimators' values accordingly.
+        self.prevEpsilon    = self.epsilon  
         self.epsilon       += self.EStep
         self.calcAllEstimatorsByEpsilon () 
-        for ell in range (self.numCntrs):
-            # LocalUpscale procedure
+
+        # run the localUpscale procedure, defined in [ICE_buckets].
+        for cntrIdx in range (self.numCntrs):
             sqEpsilon = self.epsilon**2
-            ellTag = math.floor (math.log(1 + (2*sqEpsilon*self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell))/(1+sqEpsilon))/math.log(1 + 2*sqEpsilon))
-            if random.random() < (self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag))/ (self.calcEstimatorGivenEpsilon(self.epsilon, ellTag+1) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag)):
-                self.cntrs[ell] = ellTag + 1
+            # if self.epsilon==0.3: #$$$
+            ellTag = math.floor (math.log(1 + (2*sqEpsilon*self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell=self.cntrs[cntrIdx]))/(1+sqEpsilon))/math.log(1 + 2*sqEpsilon))            
+            if random.random() < (self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell=self.cntrs[cntrIdx]) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag))/ (self.calcEstimatorGivenEpsilon(self.epsilon, ellTag+1) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag)):
+                self.cntrs[cntrIdx] = ellTag + 1
             else:
-                self.cntrs[ell] = ellTag
+                self.cntrs[cntrIdx] = ellTag
         
         
     def incCntrBy1GetVal (self, cntrIdx=0):

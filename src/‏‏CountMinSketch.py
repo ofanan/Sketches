@@ -222,7 +222,7 @@ class CountMinSketch:
 def main():
     """
     """
-    for mode in ['SecBuckets']: #, 'PerfectCounter', 'SecBuckets', 'IceBuckets']: 
+    for mode in ['IceBuckets']: #, 'PerfectCounter', 'SecBuckets', 'IceBuckets']: 
         cms = CountMinSketch (
                 numCntrsPerBkt  = 4, 
                 mode            = mode,
@@ -231,5 +231,4 @@ def main():
         cms.sim ()
     
 if __name__ == '__main__':
-    # Call the main function
     main()
