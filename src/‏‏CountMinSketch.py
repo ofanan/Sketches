@@ -56,14 +56,14 @@ class CountMinSketch:
                                     cntrSize    = self.cntrSize, 
                                     numCntrs    = self.numCntrs, 
                                     verbose     = self.verbose)
-        elif self.mode=='SECBuckets':
+        elif self.mode=='SecBuckets':
              self.cntrMaster = Buckets.Buckets (
                                     cntrSize        = self.cntrSize, 
                                     numCntrs        = self.numCntrs, 
                                     numCntrsPerBkt  = self.numCntrsPerBkt, 
                                     mode            = 'SEC', 
                                     verbose         = self.verbose)
-        elif self.mode=='ICEBuckets':
+        elif self.mode=='IceBuckets':
             initialEpsilon  = 0.15
             EStep           = initialEpsilon
             self.cntrMaster = Buckets.Buckets (
@@ -222,7 +222,7 @@ class CountMinSketch:
 def main():
     """
     """
-    for mode in ['SECBuckets']: #, 'PerfectCounter', 'SECBuckets', 'ICEBuckets']: 
+    for mode in ['SecBuckets']: #, 'PerfectCounter', 'SecBuckets', 'IceBuckets']: 
         cms = CountMinSketch (
                 numCntrsPerBkt  = 4, 
                 mode            = mode,
