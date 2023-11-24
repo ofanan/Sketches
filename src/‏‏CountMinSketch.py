@@ -225,7 +225,6 @@ def main():
     width, depth = 16, 2
     cntrSize     = 8
     numIncs      = width * depth * 2**(cntrSize*3) * 0.25
-    settings.error (numIncs) 
     numOfExps    = numOfExps
     verbose      = [settings.VERBOSE_RES, settings.VERBOSE_PCL]
     
