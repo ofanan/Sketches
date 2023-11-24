@@ -222,15 +222,19 @@ class CountMinSketch:
 def main():
     """
     """
-    for mode in ['IceBuckets', 'SecBuckets']: #, 'PerfectCounter', 'SecBuckets', 'IceBuckets']: 
-        cms = CountMinSketch (
-                width           = 8,
-                depth           = 2,
-                numCntrsPerBkt  = 4 if mode=='IceBuckets' else 2, 
-                mode            = mode,
-                cntrSize        = 4, 
-                verbose         =[settings.VERBOSE_RES]) # settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_LOG, settings.VERBOSE_PROGRESS
-        cms.sim (numOfExps=50)
+    width, depth = 16, 2
+    cntrSize     = 4
+    numOfExps    = numOfExps
+    verbose      = [settings.VERBOSE_RES, settings.VERBOSE_PCL]
+    
+    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, verbose=verbose, 
+                          mode='IceBuckets',
+                          numCntrsPerBkt = 4)
+    cms.sim (numOfExps=numOfExps)
+    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, verbose=verbose, 
+                          mode='SecBuckets',
+                          numCntrsPerBkt = 2)
+    cms.sim (numOfExps=numOfExps)
     
 if __name__ == '__main__':
     main()
