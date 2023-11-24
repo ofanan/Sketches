@@ -170,7 +170,7 @@ class CountMinSketch:
             self.pclOutputFile = open(f'../res/pcl_files/sim.pcl', 'ab+')
 
         if (settings.VERBOSE_RES in self.verbose):
-            self.resFile = open (f'../res/sim.res', 'a+')
+            self.resFile = open (f'../res/cms.res', 'a+')
             
         if (settings.VERBOSE_LOG in self.verbose or settings.VERBOSE_PROGRESS in self.verbose):
             infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
@@ -222,12 +222,12 @@ class CountMinSketch:
 def main():
     """
     """
-    for mode in ['ICEBuckets']: #, 'PerfectCounter', 'SECBuckets', 'ICEBuckets']: 
+    for mode in ['SECBuckets']: #, 'PerfectCounter', 'SECBuckets', 'ICEBuckets']: 
         cms = CountMinSketch (
                 numCntrsPerBkt  = 4, 
                 mode            = mode,
                 cntrSize        = 4, 
-                verbose         =[settings.VERBOSE_LOG]) # settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_LOG, settings.VERBOSE_PROGRESS
+                verbose         =[settings.VERBOSE_LOG, settings.VERBOSE_RES]) # settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_LOG, settings.VERBOSE_PROGRESS
         cms.sim ()
     
 if __name__ == '__main__':

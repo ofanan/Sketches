@@ -88,7 +88,7 @@ class CntrMaster (object):
         Increment the exponent by 1 and divide all the counters by 2.
         """
         self.exp        += 1
-        self.sampleProb /= 2 #1/(2**self.exp)
+        self.sampleProb /= 2 
         if self.useOnlyFloorDivision:
             self.cntrs = [cntr//2 for cntr in self.cntrs]
         else:

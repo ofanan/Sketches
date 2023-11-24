@@ -239,9 +239,11 @@ class CntrMaster(object):
         Increase a counter cntrIdx by a 1 and return the updated value.
         """
         cntrVal = self.cntrs[cntrIdx]
-        if cntrVal==(1 << self.cntrSize) - 1: # the largest possible estimated value w/o up-scaling
-            self.upscale ()
-            cntrVal = self.cntrs[cntrIdx] 
+        if cntrVal==(1 << self.cntrSize) - 1: # reached the largest possible estimated value w/o up-scaling?
+            if settings.VERBOSE_LOG in self.verbose:
+                printf (self.logFile, 'up-scaling\n')
+            self.upscale () 
+            cntrVal = self.cntrs[cntrIdx]# cntrVal is the value in the counter after up-scaling, before incrementing  
         if random.random () < 1/(self.estimators[cntrVal+1] - self.estimators[cntrVal]): 
             self.cntrs[cntrIdx] += 1
         return self.estimators[self.cntrs[cntrIdx]]
