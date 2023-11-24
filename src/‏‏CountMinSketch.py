@@ -223,18 +223,20 @@ def main():
     """
     """
     width, depth = 16, 2
-    cntrSize     = 4
+    cntrSize     = 8
+    numIncs      = width * depth * 2**(cntrSize*3) * 0.25
+    settings.error (numIncs) 
     numOfExps    = numOfExps
     verbose      = [settings.VERBOSE_RES, settings.VERBOSE_PCL]
     
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, verbose=verbose, 
                           mode='IceBuckets',
                           numCntrsPerBkt = 4)
-    cms.sim (numOfExps=numOfExps)
+    cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, verbose=verbose, 
                           mode='SecBuckets',
                           numCntrsPerBkt = 2)
-    cms.sim (numOfExps=numOfExps)
+    cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     
 if __name__ == '__main__':
     main()
