@@ -177,7 +177,7 @@ class CountMinSketch:
             self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
             self.cntrMaster.setLogFile(self.logFile)
         
-    def sim (self, numIncs=100, numOfExps=1):
+    def sim (self, numIncs=5000, numOfExps=1):
         """
         Simulate the count min sketch
         """
@@ -222,13 +222,15 @@ class CountMinSketch:
 def main():
     """
     """
-    for mode in ['IceBuckets']: #, 'PerfectCounter', 'SecBuckets', 'IceBuckets']: 
+    for mode in ['IceBuckets', 'SecBuckets']: #, 'PerfectCounter', 'SecBuckets', 'IceBuckets']: 
         cms = CountMinSketch (
-                numCntrsPerBkt  = 4, 
+                width           = 8,
+                depth           = 2,
+                numCntrsPerBkt  = 4 if mode=='IceBuckets' else 2, 
                 mode            = mode,
                 cntrSize        = 4, 
-                verbose         =[settings.VERBOSE_LOG, settings.VERBOSE_RES]) # settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_LOG, settings.VERBOSE_PROGRESS
-        cms.sim ()
+                verbose         =[settings.VERBOSE_RES]) # settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_LOG, settings.VERBOSE_PROGRESS
+        cms.sim (numOfExps=50)
     
 if __name__ == '__main__':
     main()
