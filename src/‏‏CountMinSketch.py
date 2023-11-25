@@ -222,19 +222,20 @@ class CountMinSketch:
 def main():
     """
     """
-    width, depth = 16, 2
-    cntrSize     = 8
-    numIncs      = int (width * depth * 2**(cntrSize*3) * 0.25)
-    numOfExps    = 20
+    width, depth = 64, 4
+    # cntrSize     = 4
+    numIncs      = 128000
+    numOfExps    = 10
     verbose      = [settings.VERBOSE_RES, settings.VERBOSE_PCL]
     
-    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, verbose=verbose, 
-                          mode='IceBuckets',
-                          numCntrsPerBkt = 4)
-    cms.sim (numOfExps=numOfExps, numIncs=numIncs)
-    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, verbose=verbose, 
+    # cms = CountMinSketch (width=width, depth=depth, cntrSize=4, verbose=verbose, 
+    #                       mode='IceBuckets',
+    #                       numCntrsPerBkt = 16)
+    # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
+    
+    cms = CountMinSketch (width=width, depth=depth, cntrSize=13, verbose=verbose, 
                           mode='SecBuckets',
-                          numCntrsPerBkt = 2)
+                          numCntrsPerBkt = 16)
     cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     
 if __name__ == '__main__':
