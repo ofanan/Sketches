@@ -3,7 +3,7 @@ import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
 
-import settings, SEC, CEDAR
+import settings, SEC, ICE_bucket
 from printf import printf, printarFp
 
 class Buckets (object):
@@ -46,8 +46,8 @@ class Buckets (object):
         self.mode       = mode
         if mode=='SEC':
             self.buckets = [SEC.CntrMaster(cntrSize=self.cntrSize, numCntrs=self.numCntrsPerBkt, verbose=self.verbose) for _ in range (self.numBuckets)]
-        elif mode=='CEDAR':
-            self.buckets = [CEDAR.CntrMaster(
+        elif mode=='ICE':
+            self.buckets = [ICE_bucket.CntrMaster(
                                             cntrSize        = self.cntrSize, 
                                             numCntrs        = self.numCntrsPerBkt,
                                             cntrMaxVal      = cntrMaxVal, 

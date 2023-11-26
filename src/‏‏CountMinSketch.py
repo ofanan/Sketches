@@ -70,7 +70,7 @@ class CountMinSketch:
                                     cntrSize        = self.cntrSize, 
                                     numCntrs        = self.numCntrs, 
                                     numCntrsPerBkt  = self.numCntrsPerBkt, 
-                                    mode            = 'CEDAR',
+                                    mode            = 'ICE',
                                     numESteps       = 8,
                                     cntrMaxVal      = (1 << self.cntrSize) - 1,
                                     # initialEpsilon  = initialEpsilon,  # initial value of the epsilon accuracy parameter, defined at the paper ICE_buckets.
@@ -228,15 +228,15 @@ def main():
     numOfExps    = 10
     verbose      = [settings.VERBOSE_RES, settings.VERBOSE_PCL]
     
-    # cms = CountMinSketch (width=width, depth=depth, cntrSize=4, verbose=verbose, 
-    #                       mode='IceBuckets',
-    #                       numCntrsPerBkt = 16)
-    # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
-    
-    cms = CountMinSketch (width=width, depth=depth, cntrSize=13, verbose=verbose, 
-                          mode='SecBuckets',
+    cms = CountMinSketch (width=width, depth=depth, cntrSize=4, verbose=verbose, 
+                          mode='IceBuckets',
                           numCntrsPerBkt = 16)
     cms.sim (numOfExps=numOfExps, numIncs=numIncs)
+    
+    # cms = CountMinSketch (width=width, depth=depth, cntrSize=13, verbose=verbose, 
+    #                       mode='SecBuckets',
+    #                       numCntrsPerBkt = 16)
+    # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     
 if __name__ == '__main__':
     main()

@@ -65,10 +65,9 @@ class CntrMaster(object):
         if self.epsilon<0: 
             settings.error (f'in CEDAR:calcAllEstimatorsByEpsilon(). epsilon={self.epsilon}')
         elif self.epsilon==0: # perfect estimator - identity function
-            self.estimators = [int(ell) for ell in range (self.numEstimators)]
-            return
+            return [int(ell) for ell in range (self.numEstimators)]
         else:
-            self.estimators = [int ((((1+2*self.epsilon**2)**ell -1)/(2*self.epsilon**2)) * (1 + self.epsilon**2)) for ell in range (self.numEstimators)] 
+            return [int ((((1+2*self.epsilon**2)**ell -1)/(2*self.epsilon**2)) * (1 + self.epsilon**2)) for ell in range (self.numEstimators)] 
         
     def findPreComputedDatum (self):
         """
@@ -191,10 +190,13 @@ class CntrMaster(object):
             if settings.VERBOSE_LOG in self.verbose:
                 printf (self.logFile, 'up-scaling\n')
             self.upscale () 
-            cntrVal = self.cntrs[cntrIdx]# cntrVal is the value in the counter after up-scaling, before incrementing  
-        if random.random () < 1/(self.estimators[cntrVal+1] - self.estimators[cntrVal]): 
+            cntrVal = self.cntrs[cntrIdx]# cntrVal is the value in the counter after up-scaling, before incrementing
+        curEstimate = self.calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal)
+        incEstimate = self.calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal+1)
+        if random.random () < 1/(incEstimate - curEstimate): 
             self.cntrs[cntrIdx] += 1
-        return self.estimators[self.cntrs[cntrIdx]]
+            return incEstimate
+        return curEstimate
 
     def incCntr(self, cntrIdx=0, factor=1, mult=False):
         """
@@ -246,10 +248,11 @@ class CntrMaster(object):
     
     def printEstimators (self, outputFile=None) -> None:
         """
-        Format-print all the counters as a single the array, to the given file.
+        Generate and format-print all the counters as a single the array, to the given file.
         """
+        estimators = self.calcAllEstimatorsByEpsilon()
         if outputFile==None:
-            print ('eps={:.3f}, estimators={}' .format (self.epsilon, self.estimators))            
+            print ('eps={:.3f}, estimators={}' .format (self.epsilon, estimators))            
         else:
             for cntr in self.cntrs:
                 printf (outputFile, '{:.0f} ' .format(self.cntrInt2num(cntr)))
