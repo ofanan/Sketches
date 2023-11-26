@@ -225,16 +225,17 @@ def main():
     width, depth, cntrSize  = 64, 4, 4
     numFlows                = width*depth*4
     numCntrsPerBkt          = 16
-    numIncs                 = 128000
+    numIncs                 = 1000000 #(width * depth * cntrSize**3)/2
+    cntrMaxVal              = 300000
     numOfExps               = 10
     verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL]
-    
-    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
+     
+    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
                           numCntrsPerBkt = numCntrsPerBkt, 
                           mode='IceBuckets')
     cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     
-    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
+    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
                           numCntrsPerBkt = numCntrsPerBkt, 
                           mode='SecBuckets')
     cms.sim (numOfExps=numOfExps, numIncs=numIncs)
