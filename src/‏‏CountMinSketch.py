@@ -26,6 +26,7 @@ class CountMinSketch:
                  numFlows       = 10, # the total number of flows to be estimated.
                  mode           = 'PerfectCounter', # the counter mode (e.g., SEC, AEE, realCounter).
                  cntrSize       = 2, # num of bits in each counter
+                 cntrMaxVal     = 1000,
                  verbose        = [],
                  seed           = 42,
                  ):
@@ -71,10 +72,9 @@ class CountMinSketch:
                                     numCntrs        = self.numCntrs, 
                                     numCntrsPerBkt  = self.numCntrsPerBkt, 
                                     mode            = 'ICE',
-                                    numepsionSteps       = 8,
-                                    cntrMaxVal      = (1 << self.cntrSize) - 1,
+                                    numEpsilonSteps = 8,
+                                    cntrMaxVal      = cntrMaxVal,
                                     # initialEpsilon  = initialEpsilon,  # initial value of the epsilon accuracy parameter, defined at the paper ICE_buckets.
-                                    # epsionStep           = epsionStep,
                                     verbose         = self.verbose)
         else:
             print(f'Sorry, the mode {self.mode} that you requested is not supported')
@@ -193,7 +193,8 @@ class CountMinSketch:
         for self.expNum in range (self.numOfExps):
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
             for incNum in range(self.numIncs):
-                flowId = incNum%self.numFlows  #np.random.randint(self.numFlows)
+                flowId = min (math.floor(np.random.exponential(scale = math.sqrt(self.numFlows))), self.numFlows-1)
+                #flowId = incNum%self.numFlows  #np.random.randint(self.numFlows)
                 flowRealVal[flowId]     += 1
                 flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
                 self.sumSqEr[self.expNum] += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)
@@ -230,10 +231,10 @@ def main():
     numOfExps               = 10
     verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL]
      
-    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
-                          numCntrsPerBkt = numCntrsPerBkt, 
-                          mode='IceBuckets')
-    cms.sim (numOfExps=numOfExps, numIncs=numIncs)
+    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
+    #                       numCntrsPerBkt = numCntrsPerBkt, 
+    #                       mode='IceBuckets')
+    # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
                           numCntrsPerBkt = numCntrsPerBkt, 

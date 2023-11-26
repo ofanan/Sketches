@@ -37,7 +37,7 @@ class CntrMaster(object):
                  cntrSize       = 8, # num of bits in each counter.
                  numCntrs       = 1, # number of counters in the array.
                  epsilonStep          = None, # the difference between consecutive estimation errors in an ICE_bucket.
-                 numepsilonSteps      = None,    # number of different possible estimation scales - a power of two.
+                 numEpsilonSteps      = None,    # number of different possible estimation scales - a power of two.
                  initialEpsilon = 0.1,  # initial value of the epsilon accuracy parameter, defined at the paper ICE_buckets.
                  cntrMaxVal     = None, # Max value to be reached by a counter. 
                  verbose        = [], 
@@ -49,14 +49,14 @@ class CntrMaster(object):
         self.numEstimators = 2**self.cntrSize
         self.verbose       = verbose
         self.rst () # reset all the counters
-        self.numepsilonSteps  = numepsilonSteps
+        self.numEpsilonSteps  = numEpsilonSteps
  
         if self.cntrMaxVal==None:       
             self.epsilon    = 0
             self.epsilonStep      = self.findPreComputedDatum ()['epsilonStep']
         else:
             self.calcEpsilonM() 
-            self.epsilonStep = self.epsilonM / (self.numepsilonSteps-1) # Proof of Theorem 4 in [ICE_buckets].
+            self.epsilonStep = self.epsilonM / (self.numEpsilonSteps-1) # Proof of Theorem 4 in [ICE_buckets].
             self.epsilon     = self.epsilonStep 
     
     def calcAllEstimatorsByEpsilon (self):

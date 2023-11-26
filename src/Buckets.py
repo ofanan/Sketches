@@ -31,8 +31,8 @@ class Buckets (object):
                   cntrMaxVal        = 10, 
                   numCntrsPerBkt    = 1, # number of cntrs at each bucket.
                   mode              = 'SEC',
-                  EStep             = 0.1,
-                  numESteps         = 8,
+                  epsilonStep       = 0.1,
+                  numEpsilonSteps   = 8,
                   initialEpsilon    = 0.1,  # initial value of the epsilon accuracy parameter, defined at the paper ICE_buckets.
                   verbose           = [], # determines which outputs would be written to .log/.res/.pcl/debug files, as detailed in settings.py.
                   ):
@@ -51,8 +51,8 @@ class Buckets (object):
                                             cntrSize        = self.cntrSize, 
                                             numCntrs        = self.numCntrsPerBkt,
                                             cntrMaxVal      = cntrMaxVal, 
-                                            EStep           = EStep,
-                                            numESteps       = numESteps,
+                                            epsilonStep     = epsilonStep,
+                                            numEpsilonSteps = numEpsilonSteps,
                                             initialEpsilon  = initialEpsilon,  # initial value of the epsilon accuracy parameter, defined at the paper ICE_buckets.
                                             verbose=self.verbose) for _ in range (self.numBuckets)]
         else:
