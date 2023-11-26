@@ -7,21 +7,21 @@ import settings
 
 # To prevent overflows, the search range for some parameters should be limited corresponding to the counter's size. 
 # This is done using the list of dicts below.
-# The data below is used also to determine the 'EStep' used in ICE_buckets. 
+# The data below is used also to determine the 'epsilonStep' used in ICE_buckets. 
 preComputedData = [
-                 {'cntrSize' : 4,    'EStep' : 0.15},
-                 {'cntrSize' : 5,    'EStep' : 0.09},
-                 {'cntrSize' : 6,    'EStep' : 0.055},
-                 {'cntrSize' : 7,    'EStep' : 0.035},
-                 {'cntrSize' : 8,    'EStep' : 0.027},
-                 {'cntrSize' : 9,    'EStep' : 0.016},
-                 {'cntrSize' : 10,   'EStep' : 0.014},
-                 {'cntrSize' : 11,   'EStep' : 0.012},
-                 {'cntrSize' : 12,   'EStep' : 0.0065},
-                 {'cntrSize' : 13,   'EStep' : 0.0035},
-                 {'cntrSize' : 14,   'EStep' : 0.0024},
-                 {'cntrSize' : 15,   'EStep' : 0.0016},
-                 {'cntrSize' : 16,   'EStep' : 0.0011},
+                 {'cntrSize' : 4,    'epsilonStep' : 0.15},
+                 {'cntrSize' : 5,    'epsilonStep' : 0.09},
+                 {'cntrSize' : 6,    'epsilonStep' : 0.055},
+                 {'cntrSize' : 7,    'epsilonStep' : 0.035},
+                 {'cntrSize' : 8,    'epsilonStep' : 0.027},
+                 {'cntrSize' : 9,    'epsilonStep' : 0.016},
+                 {'cntrSize' : 10,   'epsilonStep' : 0.014},
+                 {'cntrSize' : 11,   'epsilonStep' : 0.012},
+                 {'cntrSize' : 12,   'epsilonStep' : 0.0065},
+                 {'cntrSize' : 13,   'epsilonStep' : 0.0035},
+                 {'cntrSize' : 14,   'epsilonStep' : 0.0024},
+                 {'cntrSize' : 15,   'epsilonStep' : 0.0016},
+                 {'cntrSize' : 16,   'epsilonStep' : 0.0011},
                  ]
 
 class CntrMaster(object):
@@ -36,8 +36,8 @@ class CntrMaster(object):
     def __init__(self, 
                  cntrSize       = 8, # num of bits in each counter.
                  numCntrs       = 1, # number of counters in the array.
-                 EStep          = None, # the difference between consecutive estimation errors in an ICE_bucket.
-                 numESteps      = None,    # number of different possible estimation scales - a power of two.
+                 epsilonStep          = None, # the difference between consecutive estimation errors in an ICE_bucket.
+                 numepsilonSteps      = None,    # number of different possible estimation scales - a power of two.
                  initialEpsilon = 0.1,  # initial value of the epsilon accuracy parameter, defined at the paper ICE_buckets.
                  cntrMaxVal     = None, # Max value to be reached by a counter. 
                  verbose        = [], 
@@ -49,17 +49,19 @@ class CntrMaster(object):
         self.numEstimators = 2**self.cntrSize
         self.verbose       = verbose
         self.rst () # reset all the counters
-        self.numESteps  = numESteps
-        
-        self.cntrMaxVal = (1 << self.cntrSize) - 1
-        # self.estimators = ([ell for ell in range (self.cntrMaxVal+1)]) # initially, use perfect estimators (the identity func').
-        self.epsilon    = 0
-        self.EStep      = self.findPreComputedDatum ()['EStep']
-        
+        self.numepsilonSteps  = numepsilonSteps
+ 
+        if self.cntrMaxVal==None:       
+            self.epsilon    = 0
+            self.epsilonStep      = self.findPreComputedDatum ()['epsilonStep']
+        else:
+            self.calcEpsilonM() 
+            self.epsilonStep = self.epsilonM / (self.numepsilonSteps-1) # Proof of Theorem 4 in [ICE_buckets].
+            self.epsilon     = self.epsilonStep 
     
     def calcAllEstimatorsByEpsilon (self):
         """
-        Calculate the estimators' values based on the EStep accuracy parameter, as detailed in the paper ICE_buckets.
+        Calculate the estimators' values based on the epsilonStep accuracy parameter, as detailed in the paper ICE_buckets.
         """
         if self.epsilon<0: 
             settings.error (f'in CEDAR:calcAllEstimatorsByEpsilon(). epsilon={self.epsilon}')
@@ -105,10 +107,11 @@ class CntrMaster(object):
         else:
             settings.error ('in CEDAR.rst() : sorry, cntrSize>32 is not supported yet.')
 
-    def calcEpsilonByMaxCntrVal (self):
+    def calcEpsilonM (self):
         """
-        Given the requested max counter val, calculate Epsilon resulting in this max counter val.
+        Given the requested max counter val (M), calculate Epsilon resulting in this max counter val.
         The calculation is done using binary search.
+        The resulted value is assigned to self.epsilonM (see Sec. III.C. in [ICE_buckets]
         """
         if self.cntrSize <= 8: 
             epsilonLo, epsilonHi, binSearhResolution = 0.01, 1, 0.001
@@ -119,35 +122,35 @@ class CntrMaster(object):
         elif self.cntrSize <= 16: 
             epsilonLo, epsilonHi, binSearhResolution = 0.000001, 0.001, 0.000001
         else:
-            settings.error ('in CEDAR.calcEpsilonByMaxCntrVal() : sorry, cntrSize>16 is not supported yet in ICE buckets.')
+            settings.error ('in CEDAR.calcEpsilonM() : sorry, cntrSize>16 is not supported yet in ICE buckets.')
         
         if self.calcCntrMaxValGivenEpsilon (epsilonHi) < self.cntrMaxVal:
-            setting.serror (f'in CEDAR.calcEpsilonByMaxCntrVal. Could not reach cntrMaxVal={self.cntrMaxVal} with cntrSize={self.cntrSize} even with the highest suggested Epsilon={epsilonHi}.')
+            setting.serror (f'in CEDAR.calcEpsilonM. Could not reach cntrMaxVal={self.cntrMaxVal} with cntrSize={self.cntrSize} even with the highest suggested Epsilon={epsilonHi}.')
             return
         
-        self.epsilon        = epsilonHi
+        self.epsilonM        = epsilonHi
         
         while (True):
             if (epsilonHi - epsilonLo < binSearhResolution): # converged. Still, need to check whether this epsilon is high enough.
-                if self.calcCntrMaxValGivenEpsilon (self.epsilon) >= self.cntrMaxVal: # can reach maxVal with this epsilon --> Good
+                if self.calcCntrMaxValGivenEpsilon (self.epsilonM) >= self.cntrMaxVal: # can reach maxVal with this epsilon --> Good
                     return
                 # now we know that cannot reach targetMaxVal with the current epsilon
-                self.epsilon += binSearhResolution
-                if self.calcCntrMaxValGivenEpsilon (self.epsilon) < self.cntrMaxVal: 
-                    settings.error ('in CEDAR.calcEpsilonByMaxCntrVal. problem at binary search')
+                self.epsilonM += binSearhResolution
+                if self.calcCntrMaxValGivenEpsilon (self.epsilonM) < self.cntrMaxVal: 
+                    settings.error ('in CEDAR.calcEpsilonM. problem at binary search')
                 return
                 
-            self.epsilon = (epsilonLo + epsilonHi)/2
-            maxValOfThisEpsilon = self.calcCntrMaxValGivenEpsilon (self.epsilon)
+            self.epsilonM = (epsilonLo + epsilonHi)/2
+            maxValOfThisEpsilon = self.calcCntrMaxValGivenEpsilon (self.epsilonM)
             if (settings.VERBOSE_DETAILS in self.verbose):
-                printf (self.detailFile, 'epsilon={}\n' .format (self.epsilon))
+                printf (self.detailFile, 'epsilon={}\n' .format (self.epsilonM))
             
             if maxValOfThisEpsilon==self.cntrMaxVal: # found exact match 
                 break
             if maxValOfThisEpsilon < self.cntrMaxVal: # can't reach maxVal with this epsilon --> need larger epsilon value
-                epsilonLo = self.epsilon
+                epsilonLo = self.epsilonM
             else: # maxVal > targetMaxVal --> reached the maximum value - try to decrease epsilon, to find a tighter value.
-                epsilonHi = self.epsilon
+                epsilonHi = self.epsilonM
 
         
     def rstCntr (self, cntrIdx=0):
@@ -159,14 +162,14 @@ class CntrMaster(object):
     def upscale (self):
         """
         Up-scale for reaching a largest maximal value. In particular:
-        - Increase the self.epsilon, which determines the error, by self.EStep. Increasing self.epsilon allows reaching larger counted value (at the cost of a larger relative error).
+        - Increase the self.epsilon, which determines the error, by self.epsilonStep. Increasing self.epsilon allows reaching larger counted value (at the cost of a larger relative error).
         - calculate the estimators' values using the updated self.epsilon. (localUpscale procedure, defined in [ICE_buckets]).   
         - For each counter ("symbol"), run the "symbol upsclae" procedure, defined in [ICE_buckets].
           This procedure scales-up a single counter after the "epsilon" variable was increased.
         """        
         # Update self.epsilon and update the estimators' values accordingly.
         self.prevEpsilon    = self.epsilon  
-        self.epsilon       += self.EStep
+        self.epsilon       += self.epsilonStep
         self.calcAllEstimatorsByEpsilon () 
 
         # run the localUpscale procedure, defined in [ICE_buckets].
