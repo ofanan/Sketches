@@ -29,7 +29,7 @@ class CntrMaster(object):
     Generate, check and parse counters
     """
     # Generates a string that details the counter's settings (param vals).
-    genSettingsStr = lambda self : 'Cedar_n{}_d{:.6f}'.format(self.cntrSize)
+    genSettingsStr = lambda self : 'Ice_n{}'.format(self.cntrSize)
     
     calcCntrMaxValGivenEpsilon = lambda self, epsilon : self.calcEstimatorGivenEpsilon (epsilon=epsilon, ell=(1 << self.cntrSize) - 1) 
 
@@ -39,7 +39,7 @@ class CntrMaster(object):
                  EStep          = None, # the difference between consecutive estimation errors in an ICE_bucket.
                  numESteps      = None,    # number of different possible estimation scales - a power of two.
                  initialEpsilon = 0.1,  # initial value of the epsilon accuracy parameter, defined at the paper ICE_buckets.
-                 cntrMaxVal     = None, # Max value to be reached by a counter. When Delta==None and EStep==None, the initiator uses this value, and calculates (using binary search) the minimum delta that allows reaching this maximum value.
+                 cntrMaxVal     = None, # Max value to be reached by a counter. 
                  verbose        = [], 
                  ):
         """
@@ -55,7 +55,6 @@ class CntrMaster(object):
         # self.estimators = ([ell for ell in range (self.cntrMaxVal+1)]) # initially, use perfect estimators (the identity func').
         self.epsilon    = 0
         self.EStep      = self.findPreComputedDatum ()['EStep']
-        
         
     
     def calcAllEstimatorsByEpsilon (self):
@@ -147,7 +146,7 @@ class CntrMaster(object):
                 break
             if maxValOfThisEpsilon < self.cntrMaxVal: # can't reach maxVal with this epsilon --> need larger epsilon value
                 epsilonLo = self.epsilon
-            else: # maxVal > targetMaxVal --> reached the maximum value - try to decrease delta, to find a tighter value.
+            else: # maxVal > targetMaxVal --> reached the maximum value - try to decrease epsilon, to find a tighter value.
                 epsilonHi = self.epsilon
 
         
@@ -257,24 +256,3 @@ class CntrMaster(object):
             for cntr in self.cntrs:
                 printf (outputFile, '{:.0f} ' .format(self.cntrInt2num(cntr)))
     
-
-
-# def printAllVals(cntrSize=8, delta=None, cntrMaxVal=None, verbose=[]):
-#     """
-#     Loop over all the binary combinations of the given counter size.
-#     For each combination, print to file the respective counter, and its value.
-#     The prints are sorted in an increasing order of values.
-#     """
-#     listOfVals = []
-#     myCntrMaster = CntrMaster(cntrSize=cntrSize, delta=delta, cntrMaxVal=cntrMaxVal, numCntrs=1)
-#     for num in range(2 ** cntrSize):
-#         val = myCntrMaster.cntrInt2num(num)
-#         listOfVals.append ({'cntrVec' : np.binary_repr(num, cntrSize), 'val' : val})
-#
-#
-#     if settings.VERBOSE_RES in verbose:
-#         outputFile = open('../res/{}.res'.format(myCntrMaster.genSettingsStr()), 'w')
-#         for item in listOfVals:
-#             printf(outputFile, '{}={:.1f}\n'.format(item['cntrVec'], item['val']))
-
-# \frac{\left(\left(1+2\cdot \:\:x^2\right)^L-1\right)}{2x^2}\left(1+x^2\right)
