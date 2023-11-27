@@ -196,8 +196,8 @@ class CountMinSketch:
                 flowId = min (math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))), self.numFlows-1)
                 #flowId = incNum%self.numFlows  #np.random.randint(self.numFlows)
                 flowRealVal[flowId]     += 1
-                # flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
-                # self.sumSqEr[self.expNum] += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)
+                flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
+                self.sumSqEr[self.expNum] += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)
                 
                 if settings.VERBOSE_LOG in self.verbose:
                     self.cntrMaster.printAllCntrs (self.logFile)
@@ -234,7 +234,7 @@ def main():
     numIncs                 = 1000000 #(width * depth * cntrSize**3)/2
     cntrMaxVal              = 300000
     numOfExps               = 10
-    verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS]
+    verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] #, settings.VERBOSE_DETAILS
      
     # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
     #                       numCntrsPerBkt = numCntrsPerBkt, 
@@ -247,4 +247,5 @@ def main():
     cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     
 if __name__ == '__main__':
+    settings.error (np.binary_repr(0, 4))
     main()

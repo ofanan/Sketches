@@ -3,7 +3,7 @@ import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
 
-import settings, SEC, ICE_bucket
+import settings, SEC, ICE_bucket, F2P_bucket 
 from printf import printf, printarFp
 
 class Buckets (object):
@@ -45,9 +45,20 @@ class Buckets (object):
         self.verbose    = verbose
         self.mode       = mode
         if mode=='SEC':
-            self.buckets = [SEC.CntrMaster(cntrSize=self.cntrSize, numCntrs=self.numCntrsPerBkt, verbose=self.verbose) for _ in range (self.numBuckets)]
+            self.buckets = [SEC.CntrMaster(cntrSize         = self.cntrSize, 
+                                           numCntrs         = self.numCntrsPerBkt, 
+                                           verbose          = self.verbose) for _ in range (self.numBuckets)]
         elif mode=='ICE':
             self.buckets = [ICE_bucket.CntrMaster(
+                                            cntrSize        = self.cntrSize, 
+                                            numCntrs        = self.numCntrsPerBkt,
+                                            cntrMaxVal      = cntrMaxVal, 
+                                            epsilonStep     = epsilonStep,
+                                            numEpsilonSteps = numEpsilonSteps,
+                                            initialEpsilon  = initialEpsilon,  # initial value of the epsilon accuracy parameter, defined at the paper ICE_buckets.
+                                            verbose=self.verbose) for _ in range (self.numBuckets)]
+        elif mode=='F2P':
+            self.buckets = [F2P_bucket.CntrMaster(
                                             cntrSize        = self.cntrSize, 
                                             numCntrs        = self.numCntrsPerBkt,
                                             cntrMaxVal      = cntrMaxVal, 
