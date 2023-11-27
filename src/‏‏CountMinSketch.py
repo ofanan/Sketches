@@ -65,8 +65,6 @@ class CountMinSketch:
                                     mode            = 'SEC', 
                                     verbose         = self.verbose)
         elif self.mode=='IceBuckets':
-            initialEpsilon  = 0.15
-            epsionStep           = initialEpsilon
             self.cntrMaster = Buckets.Buckets (
                                     cntrSize        = self.cntrSize, 
                                     numCntrs        = self.numCntrs, 
@@ -74,7 +72,13 @@ class CountMinSketch:
                                     mode            = 'ICE',
                                     numEpsilonSteps = 8,
                                     cntrMaxVal      = cntrMaxVal,
-                                    # initialEpsilon  = initialEpsilon,  # initial value of the epsilon accuracy parameter, defined at the paper ICE_buckets.
+                                    verbose         = self.verbose)
+        elif self.mode=='F2PBuckets':
+            self.cntrMaster = Buckets.Buckets (
+                                    cntrSize        = self.cntrSize, 
+                                    numCntrs        = self.numCntrs, 
+                                    numCntrsPerBkt  = self.numCntrsPerBkt, 
+                                    mode            = 'F2P',
                                     verbose         = self.verbose)
         else:
             print(f'Sorry, the mode {self.mode} that you requested is not supported')
@@ -235,18 +239,20 @@ def main():
     cntrMaxVal              = 300000
     numOfExps               = 10
     verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] #, settings.VERBOSE_DETAILS
+    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
+                          numCntrsPerBkt = numCntrsPerBkt, 
+                          mode='F2PBuckets')
+    cms.sim (numOfExps=numOfExps, numIncs=numIncs)
      
     # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
     #                       numCntrsPerBkt = numCntrsPerBkt, 
     #                       mode='IceBuckets')
     # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     
-    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
-                          numCntrsPerBkt = numCntrsPerBkt, 
-                          mode='SecBuckets')
-    cms.sim (numOfExps=numOfExps, numIncs=numIncs)
+    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
+    #                       numCntrsPerBkt = numCntrsPerBkt, 
+    #                       mode='SecBuckets')
+    # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     
 if __name__ == '__main__':
-    settings.error ([int(0)]* 3)
-    # settings.error (f'zerVec={np.binary_repr(0, 4)}, maxVec={np.binary_repr((1 << self.cntrSize) - 1, 4)}')
     main()

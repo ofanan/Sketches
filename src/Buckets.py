@@ -61,10 +61,7 @@ class Buckets (object):
             self.buckets = [F2P_bucket.CntrMaster(
                                             cntrSize        = self.cntrSize, 
                                             numCntrs        = self.numCntrsPerBkt,
-                                            cntrMaxVal      = cntrMaxVal, 
-                                            epsilonStep     = epsilonStep,
-                                            numEpsilonSteps = numEpsilonSteps,
-                                            initialEpsilon  = initialEpsilon,  # initial value of the epsilon accuracy parameter, defined at the paper ICE_buckets.
+                                            hyperSize       = 0,
                                             verbose=self.verbose) for _ in range (self.numBuckets)]
         else:
             settings.error ('Sorry. Mode {self.mode} that you chose is not supported yet by Buckets.py.')
