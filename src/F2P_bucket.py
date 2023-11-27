@@ -223,6 +223,8 @@ class CntrMaster (object):
         Inputs:
         cntr - the counter, given as a binary vector. E.g., "0011"
         """
+        if self.hyperSize==0:
+            return cntr
         self.hyperVec = cntr [0:self.hyperSize] 
         expSize     = int(self.hyperVec,base=2) 
         expVec      = cntr[self.hyperSize:self.hyperSize+expSize] 
