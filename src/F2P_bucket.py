@@ -13,7 +13,7 @@ class CntrMaster (object):
     """
 
     # Generates a strings that details the counter's settings (param vals).    
-    genSettingsStr = lambda self : '{}_n{}_h{}' .format (self.mode, self.cntrSize, self.hyperSize)
+    genSettingsStr = lambda self : 'F2P_n{}_h{}' .format (self.cntrSize, self.hyperSize)
     
     # returns the value of a number given its offset, exp and mant
     valOf = lambda self, offset, mantVal, expVal : offset + mantVal*2**expVal
@@ -79,7 +79,7 @@ class CntrMaster (object):
 
     def mantNexpVals2cntr (self, mantVal, expVal):
         """
-        Given the values of the mantissa and the exponent, returns the binary cntr representing them - when the mode is F2P.
+        Given the values of the mantissa and the exponent, returns the binary cntr representing them.
         """
 
         mantSize = self.mantSizeOfExpVal[expVal]
@@ -126,7 +126,7 @@ class CntrMaster (object):
     def __init__ (self, cntrSize=8, hyperSize=1, numCntrs=1, verbose=[]):
         
         """
-        Initialize an array of cntrSize counters at the given mode. The cntrs are initialized to 0.
+        Initialize an array of cntrSize F2P counters. The cntrs are initialized to 0.
         Inputs:
         cntrSize  - num of bits in each counter.
         hyperSize - size of the hyper-exp field, in bits.  
@@ -262,6 +262,7 @@ class CntrMaster (object):
         if self.hyperSize==0: # case where this is merely a standard integer counter
             if self.cntrs[cntrIdx]==self.cntrMaxVal:
                 self.incHyperExpSize()
+                exit ()
             self.cntrs[cntrIdx] += 1
             return self.cntrs[cntrIdx]
         # If the cntr reached its max val, or the randomization decides not to inc, merely return the cur cntr.
@@ -312,7 +313,6 @@ class CntrMaster (object):
           - cntrDict['val']  - the counter's value.
         """
         settings.error ('F2P_bucket.incCntr() is currently unsupported.')
-        settings.checkCntrIdx (cntrIdx=cntrIdx, numCntrs=self.numCntrs, cntrType=self.mode)
         self.verbose = verbose
         if not(mult) and factor==1:
             return self.incCntrBy1(cntrIdx=cntrIdx)     
@@ -382,16 +382,16 @@ class CntrMaster (object):
 
         self.cntrZeroVec = np.binary_repr   (2**self.cntrSize - 2**(self.cntrSize-self.hyperSize-self.expMaxSize), self.cntrSize) # the cntr that reaches the lowest value (zero)
         self.cntrMaxVec  = np.binary_repr   (2**(self.cntrSize-self.hyperSize)-1, self.cntrSize) # the cntr that reaches the highest value
-        self.cntrMaxVal  = self.cntr2num (self.cntrMaxVec, hyperSize=self.hyperSize) 
+        self.cntrMaxVal  = self.cntr2num (self.cntrMaxVec) 
         
-def printAllVals (cntrSize=8, hyperSize=2, hyperMaxSize=2, verbose=[]):
+def printAllVals (cntrSize=8, hyperSize=2, verbose=[]):
     """
     Loop over all the binary combinations of the given counter size. 
     For each combination, print to file the respective counter, and its value. 
     The prints are sorted in an increasing order of values.
     """
     print ('running printAllVals.')
-    myCntrMaster = CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, hyperMaxSize=hyperMaxSize, mode=mode)
+    myCntrMaster = CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize)
     listOfVals = []
     for i in range (2**cntrSize):
         cntr = np.binary_repr(i, cntrSize) 
@@ -409,7 +409,7 @@ def printAllVals (cntrSize=8, hyperSize=2, hyperMaxSize=2, verbose=[]):
             pickle.dump(listOfVals, pclOutputFile) 
       
 
-def printAllCntrMaxVals (hyperSizeRange=None, hyperMaxSizeRange=None, cntrSizeRange=[], verbose=[settings.VERBOSE_RES]):
+def printAllCntrMaxVals (hyperSizeRange=None, cntrSizeRange=[], verbose=[settings.VERBOSE_RES]):
     """
     print the maximum value a cntr reach for several "configurations" -- namely, all combinations of cntrSize and hyperSize. 
     """
@@ -418,7 +418,7 @@ def printAllCntrMaxVals (hyperSizeRange=None, hyperMaxSizeRange=None, cntrSizeRa
         outputFile    = open ('../res/cntrMaxVals.txt', 'a')
     for cntrSize in cntrSizeRange:
         for hyperSize in range (1,cntrSize-2) if hyperSizeRange==None else hyperSizeRange:
-            myCntrMaster = CntrMaster(mode=mode, cntrSize=cntrSize, hyperSize=hyperSize)
+            myCntrMaster = CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize)
             if (myCntrMaster.isFeasible==False):
                 continue
             if (myCntrMaster.cntrMaxVal < 10**8):
@@ -426,4 +426,3 @@ def printAllCntrMaxVals (hyperSizeRange=None, hyperMaxSizeRange=None, cntrSizeRa
             else:
                 printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), myCntrMaster.cntrMaxVal))
 
-# printAllVals (cntrSize=6, hyperSize=1, mode='F2P', verbose=[settings.VERBOSE_RES])
