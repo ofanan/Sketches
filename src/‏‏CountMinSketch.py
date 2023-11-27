@@ -247,5 +247,6 @@ def main():
     cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     
 if __name__ == '__main__':
-    settings.error (np.binary_repr(0, 4))
+    settings.error ([int(0)]* 3)
+    # settings.error (f'zerVec={np.binary_repr(0, 4)}, maxVec={np.binary_repr((1 << self.cntrSize) - 1, 4)}')
     main()
