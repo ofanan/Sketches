@@ -186,15 +186,11 @@ class CntrMaster (object):
         self.calcParams     () # parameters couldn't be calculated, e.g. due to wrong given combination of cntrSize and hyperExpSize
         self.calcCntrMaxVal ()
         self.calcProbOfInc1 ()
-        # print (self.cntrs) #$$$
-        # print (self.num2cntr(targetVal=self.cntrs[0])['cntrVec'])
-        # exit ()
         self.newCntrs = [self.cntrZeroVec for _ in range (self.numCntrs)]
         for cntrIdx in range(self.numCntrs):
             self.newCntrs[cntrIdx] = self.num2cntr(targetVal=self.cntrs[cntrIdx])['cntrVec']
         self.cntrs = self.newCntrs
-        self.printCntrs() #$$$
-        exit () #$$
+        self.printCntrs() 
         
     def rstAllCntrs (self):
         """
@@ -233,7 +229,6 @@ class CntrMaster (object):
         """
         if self.hyperExpSize==0:
             return cntr
-        print (f'cntr={cntr}, self.hyperExpSize={self.hyperExpSize}') #$$$        
         self.hyperVec = cntr [0:self.hyperExpSize] 
         expSize     = int(self.hyperVec,base=2) 
         expVec      = cntr[self.hyperExpSize:self.hyperExpSize+expSize] 
@@ -393,14 +388,18 @@ class CntrMaster (object):
         self.cntrMaxVec  = np.binary_repr   (2**(self.cntrSize-self.hyperExpSize)-1, self.cntrSize) # the cntr that reaches the highest value
         self.cntrMaxVal  = self.cntr2num (self.cntrMaxVec) 
         
-    def printCntrs (self, outputFile=None) -> None:
+    def printCntrs (self, outputFile=None, printAlsoVec=False) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
         """
         if outputFile==None:
             print (f'Printing all cntrs.')
-            for cntr in self.cntrs:
-                print (f'cntrVec={cntr}, cntrVal={self.cntr2num(cntr)} ')
+            if printAlsoVec:
+                for cntr in self.cntrs:
+                    print (f'cntrVec={cntr}, cntrVal={self.cntr2num(cntr)} ')
+            else:
+                for cntr in self.cntrs:
+                    print (f'{self.cntr2num(cntr)} ')
         else:
             for cntr in self.cntrs:
                 printf (outputFile, f'{self.cntr2num(cntr)} ')
