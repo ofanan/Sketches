@@ -192,7 +192,6 @@ class CntrMaster (object):
         for cntrIdx in range(self.numCntrs):
             newCntrs[cntrIdx] = self.num2cntr(targetVal=self.cntrs[cntrIdx])['cntrVec']
         self.cntrs = newCntrs
-        self.printCntrs() 
         
     def rstAllCntrs (self):
         """
