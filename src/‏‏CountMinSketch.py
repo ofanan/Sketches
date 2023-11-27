@@ -232,18 +232,24 @@ class CountMinSketch:
 def main():
     """
     """
-    width, depth, cntrSize  = 64, 4, 4
+    width, depth, cntrSize  = 2, 2, 4
     numFlows                = width*depth*4
-    numCntrsPerBkt          = 16
-    numIncs                 = 1000000 #(width * depth * cntrSize**3)/2
-    cntrMaxVal              = 300000
-    numOfExps               = 10
-    verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] #, settings.VERBOSE_DETAILS
+    numCntrsPerBkt          = 4
+    numIncs                 = 50 #(width * depth * cntrSize**3)/2
+    numOfExps               = 1
+    verbose                 = [] #, settings.VERBOSE_DETAILS
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
                           numCntrsPerBkt = numCntrsPerBkt, 
                           mode='F2PBuckets')
     cms.sim (numOfExps=numOfExps, numIncs=numIncs)
      
+    # width, depth, cntrSize  = 64, 4, 4
+    # numFlows                = width*depth*4
+    # numCntrsPerBkt          = 16
+    # numIncs                 = 1000000 #(width * depth * cntrSize**3)/2
+    # cntrMaxVal              = 300000
+    # numOfExps               = 10
+    # verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] #, settings.VERBOSE_DETAILS
     # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
     #                       numCntrsPerBkt = numCntrsPerBkt, 
     #                       mode='IceBuckets')
