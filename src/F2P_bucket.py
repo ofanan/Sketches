@@ -183,10 +183,18 @@ class CntrMaster (object):
             print ('Requested hyperExpSize {} is not feasible for counter size {}' .format (hyperExpSize, self.cntrSize))
             return False
         
-        self.calcParams() # parameters couldn't be calculated, e.g. due to wrong given combination of cntrSize and hyperExpSize
+        self.calcParams     () # parameters couldn't be calculated, e.g. due to wrong given combination of cntrSize and hyperExpSize
         self.calcCntrMaxVal ()
         self.calcProbOfInc1 ()
-        self.cntrs = [self.cntrZeroVec for _ in range (self.numCntrs)]
+        # print (self.cntrs) #$$$
+        # print (self.num2cntr(targetVal=self.cntrs[0])['cntrVec'])
+        # exit ()
+        self.newCntrs = [self.cntrZeroVec for _ in range (self.numCntrs)]
+        for cntrIdx in range(self.numCntrs):
+            self.newCntrs[cntrIdx] = self.num2cntr(targetVal=self.cntrs[cntrIdx])['cntrVec']
+        self.cntrs = self.newCntrs
+        self.printCntrs() #$$$
+        exit () #$$
         
     def rstAllCntrs (self):
         """
@@ -225,6 +233,7 @@ class CntrMaster (object):
         """
         if self.hyperExpSize==0:
             return cntr
+        print (f'cntr={cntr}, self.hyperExpSize={self.hyperExpSize}') #$$$        
         self.hyperVec = cntr [0:self.hyperExpSize] 
         expSize     = int(self.hyperVec,base=2) 
         expVec      = cntr[self.hyperExpSize:self.hyperExpSize+expSize] 
@@ -328,28 +337,27 @@ class CntrMaster (object):
         return {'cntrVec' : self.cntrs[cntrIdx], 'val' : self.cntr2num(self.cntrs[cntrIdx])}    
             
             
-    def num2cntr (self, targetVal, verbose=None):
+    def num2cntr (self, targetVal, verbose=None) -> dict:
         """
         given a target value, find the closest counters to this targetVal from below and from above.
         Output:
-        - A list of dictionaries, where, at each entry, 'cntrVec' is the binary counter, 'val' is its integer value.
-        - If an exact match was found (the exact targetVal can be represented), the list contains a single dict entry: the cntr representing this targetVal. 
+        - A dictionary where 'cntrVec' is the binary counter, 'val' is its integer value.
+        - If an exact match was found (the exact targetVal can be represented), the dict is the cntr representing this targetVal. 
         - If targetVal <= 0, the list has a single dict entry: the cntr representing 0 
-        - If targetVal > maxVal that this cntr can represent, the list has a single dict entry: the cntr repesenting maxVal
+        - If targetVal > maxVal that this cntr can represent, the dict is the cntr repesenting maxVal
         - Else, 
-            The first entry in the list is the dict of the max cntr value that is < targetVal.
-            The second entry is the dict of min cntr val that is > targetVal.
+            The cosrresponding counter's value, after performing a probabilistic increment. 
         """
         if (verbose!=None): #if a new verbose was given, it overrides the current verbose
             self.verbose = verbose
         if (targetVal > self.cntrMaxVal):
             if (settings.VERBOSE_NOTE in self.verbose):
-                print ('Note: the requested cntr value {} is above the max feasible cntr for this configuration' .format(targetVal))
-            return [{'cntrVec' : self.cntrMaxVec, 'val' : self.cntrMaxVal}]
+                print (f'Note: the requested cntr value {targetVal} is above the max feasible cntr for this configuration')
+            return {'cntrVec' : self.cntrMaxVec, 'val' : self.cntrMaxVal}
         if (targetVal < 0):
             if (settings.VERBOSE_NOTE in self.verbose):
                 print ('Note: the requested cntr value {} is negative' .format (targetVal))
-            return [{'cntrVec' : self.cntrZeroVec, 'val' : 0}]
+            return {'cntrVec' : self.cntrZeroVec, 'val' : 0}
         
         offset  = max ([offset for offset in self.offsetOfExpVal if offset<=targetVal])
         expVal  = list(self.offsetOfExpVal).index(offset)
@@ -362,7 +370,7 @@ class CntrMaster (object):
                 print ('error in num2cntr: cntrVal={}, but the val of the generated cntr={}' .format (cntrVal, self.cntr2num(cntr)))
                 exit ()
         if (cntrVal==targetVal): # found a cntr that accurately represents the target value
-            return [{'cntrVec' : cntr, 'val' : cntrVal}]
+            return {'cntrVec' : cntr, 'val' : cntrVal}
 
         # now we know that the counter found is < the target value
         if (mantVal < (1 << self.mantSizeOfExpVal[expVal]) -1): 
@@ -371,7 +379,9 @@ class CntrMaster (object):
         else: 
             cntrpp    = self.mantNexpVals2cntr (mantVal=0, expVal=expVal+1)
             cntrppVal = self.valOf(offset=self.offsetOfExpVal[expVal+1], mantVal=0, expVal=expVal+1)
-        return [{'cntrVec' : cntr, 'val' : cntrVal}, {'cntrVec' : cntrpp, 'val' : cntrppVal}]        
+        if random.random() < (targetVal - cntrVal)/(cntrppVal - cntrVal): # probabilistic increment
+            return {'cntrVec' : cntrpp, 'val' : cntrppVal}  
+        return {'cntrVec' : cntr, 'val' : cntrVal}        
         
 
     def calcCntrMaxVal (self):
@@ -390,7 +400,7 @@ class CntrMaster (object):
         if outputFile==None:
             print (f'Printing all cntrs.')
             for cntr in self.cntrs:
-                print (f'{self.cntr2num(cntr)} ')
+                print (f'cntrVec={cntr}, cntrVal={self.cntr2num(cntr)} ')
         else:
             for cntr in self.cntrs:
                 printf (outputFile, f'{self.cntr2num(cntr)} ')
