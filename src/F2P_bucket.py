@@ -173,6 +173,8 @@ class CntrMaster (object):
         In particular:
         - Edit all counters according to the new format.  
         """
+        if settings.VERBOSE_LOG in self.verbose:
+            printf (self.logFile, 'inc hyperExpSize\n')
         self.cntrSize  += 1
         self.hyperExpSize += 1
         if self.hyperExpSize>self.cntrSize-2:
@@ -186,10 +188,10 @@ class CntrMaster (object):
         self.calcParams     () # parameters couldn't be calculated, e.g. due to wrong given combination of cntrSize and hyperExpSize
         self.calcCntrMaxVal ()
         self.calcProbOfInc1 ()
-        self.newCntrs = [self.cntrZeroVec for _ in range (self.numCntrs)]
+        newCntrs = [self.cntrZeroVec for _ in range (self.numCntrs)]
         for cntrIdx in range(self.numCntrs):
-            self.newCntrs[cntrIdx] = self.num2cntr(targetVal=self.cntrs[cntrIdx])['cntrVec']
-        self.cntrs = self.newCntrs
+            newCntrs[cntrIdx] = self.num2cntr(targetVal=self.cntrs[cntrIdx])['cntrVec']
+        self.cntrs = newCntrs
         self.printCntrs() 
         
     def rstAllCntrs (self):
