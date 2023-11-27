@@ -265,7 +265,6 @@ class CntrMaster (object):
                 exit ()
             self.cntrs[cntrIdx] += 1
             return self.cntrs[cntrIdx]
-        # If the cntr reached its max val, or the randomization decides not to inc, merely return the cur cntr.
         cntr            = self.cntrs[cntrIdx]
         self.hyperVec   = cntr [0:self.hyperSize] 
         expSize         = int(self.hyperVec, base=2)
@@ -384,6 +383,18 @@ class CntrMaster (object):
         self.cntrMaxVec  = np.binary_repr   (2**(self.cntrSize-self.hyperSize)-1, self.cntrSize) # the cntr that reaches the highest value
         self.cntrMaxVal  = self.cntr2num (self.cntrMaxVec) 
         
+    def printCntrs (self, outputFile) -> None:
+        """
+        Format-print all the counters as a single the array, to the given file.
+        """
+        if outputFile==None:
+            print (f'Printing all cntrs.')
+            for cntr in self.cntrs:
+                print (f'{self.cntr2num(cntr)} ')
+        else:
+            for cntr in self.cntrs:
+                printf (outputFile, f'{self.cntr2num(cntr)} ')
+    
 def printAllVals (cntrSize=8, hyperSize=2, verbose=[]):
     """
     Loop over all the binary combinations of the given counter size. 

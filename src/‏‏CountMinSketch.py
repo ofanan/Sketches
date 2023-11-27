@@ -237,7 +237,7 @@ def main():
     numCntrsPerBkt          = 4
     numIncs                 = 50 #(width * depth * cntrSize**3)/2
     numOfExps               = 1
-    verbose                 = [] #, settings.VERBOSE_DETAILS
+    verbose                 = [settings.VERBOSE_LOG] #, settings.VERBOSE_DETAILS
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
                           numCntrsPerBkt = numCntrsPerBkt, 
                           mode='F2PBuckets')
