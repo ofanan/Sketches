@@ -13,7 +13,7 @@ class CntrMaster (object):
     """
 
     # Generates a strings that details the counter's settings (param vals).    
-    genSettingsStr = lambda self : 'F2P_n{}_h{}' .format (self.cntrSize, self.hyperSize)
+    genSettingsStr = lambda self : 'F2P_n{}_h{}' .format (self.cntrSize, self.hyperExpSize)
     
     # returns the value of a number given its offset, exp and mant
     valOf = lambda self, offset, mantVal, expVal : offset + mantVal*2**expVal
@@ -26,7 +26,7 @@ class CntrMaster (object):
 
     # print the details of the counter in a convenient way
     printCntrLine       = lambda self, cntr, expVec, expVal, mantVec, mantVal, cntrVal : print ('hyperVec={}, expVec={}, bias={}, expVec={}, mantVec={}, mantVal={} \nmantMinSize={}, offset={}, val={}'
-                                                                                       .format (cntr[0:self.hyperSize], expVec, self.bias, mantVec, mantVal, self.mantMinSize, self.offsetOfExpVal[expVal], cntrVal))
+                                                                                       .format (cntr[0:self.hyperExpSize], expVec, self.bias, mantVec, mantVal, self.mantMinSize, self.offsetOfExpVal[expVal], cntrVal))
     # Given the vector of the exponent, calculate the value it represents 
     expVec2expVal       = lambda self, expVec, expSize : self.biasOfExpSize[expSize] - (int (expVec, base=2) if expSize>0 else 0)   
     
@@ -47,10 +47,10 @@ class CntrMaster (object):
 
         for i in range (2**self.cntrSize):
             cntr            = np.binary_repr(i, self.cntrSize) 
-            self.hyperVec   = cntr [0:self.hyperSize] 
+            self.hyperVec   = cntr [0:self.hyperExpSize] 
             expSize         = int(self.hyperVec,base=2) 
-            expVal          = int (self.expVec2expVal (expVec=cntr[self.hyperSize:self.hyperSize+expSize], expSize=expSize))
-            mantVal         = int (cntr[self.hyperSize+expSize:], base=2)
+            expVal          = int (self.expVec2expVal (expVec=cntr[self.hyperExpSize:self.hyperExpSize+expSize], expSize=expSize))
+            mantVal         = int (cntr[self.hyperExpSize+expSize:], base=2)
             offset          = self.offsetOfExpVal[int(expVal)]
             cntrVal         = self.valOf (offset, mantVal, expVal)
             if (cntrVal==self.cntrMaxVal):
@@ -83,8 +83,8 @@ class CntrMaster (object):
         """
 
         mantSize = self.mantSizeOfExpVal[expVal]
-        expSize  = self.cntrSize - self.hyperSize - mantSize
-        return np.binary_repr (num=expSize, width=self.hyperSize) + self.expVal2expVec(expVal=expVal, expSize=expSize) + np.binary_repr (num=mantVal, width=mantSize)
+        expSize  = self.cntrSize - self.hyperExpSize - mantSize
+        return np.binary_repr (num=expSize, width=self.hyperExpSize) + self.expVal2expVec(expVal=expVal, expSize=expSize) + np.binary_repr (num=mantVal, width=mantSize)
     
     def calcOffsets (self):
         """
@@ -93,7 +93,7 @@ class CntrMaster (object):
         """
         self.calcExpRanges        ()
         self.calcMantSizeOfExpVal ()
-        self.offsetOfExpVal = np.zeros (self.bias+1) #self.offsetOfExpVal[j] will hold the value to be added to the counter when the exponent is j
+        self.offsetOfExpVal = np.zeros (self.bias+1, dtype='int') #self.offsetOfExpVal[j] will hold the value to be added to the counter when the exponent is j
         for expVal in range (self.bias): # for each potential exponent value
             self.offsetOfExpVal[expVal+1] = self.offsetOfExpVal[expVal] + 2**(expVal+self.mantSizeOfExpVal[expVal])
 
@@ -112,9 +112,9 @@ class CntrMaster (object):
         """
         Calc the basics param, which are depended upon the counter size, and the hyper-exp' size.
         """
-        self.mantMinSize = self.cntrSize - self.hyperSize - self.expMaxSize 
+        self.mantMinSize = self.cntrSize - self.hyperExpSize - self.expMaxSize 
         if (self.mantMinSize<1):
-            print (f'cntrSize={self.cntrSize} and hyperSize={self.hyperSize} implies min mantissa size={self.mantMinSize}. Mantissa size should be at least 1. Please use a smaller hyperSize')
+            print (f'cntrSize={self.cntrSize} and hyperExpSize={self.hyperExpSize} implies min mantissa size={self.mantMinSize}. Mantissa size should be at least 1. Please use a smaller hyperExpSize')
             return False
         self.bias        = sum ([2**i for i in range (1, self.expMaxSize+1)])
         self.biasOfExpSize = np.ones (self.expMaxSize+1) #self.biasOfExpSize[j] will hold the bias to be added when the exp size is j
@@ -123,13 +123,13 @@ class CntrMaster (object):
         self.calcOffsets ()
         return True
    
-    def __init__ (self, cntrSize=8, hyperSize=1, numCntrs=1, verbose=[]):
+    def __init__ (self, cntrSize=8, hyperExpSize=1, numCntrs=1, verbose=[]):
         
         """
         Initialize an array of cntrSize F2P counters. The cntrs are initialized to 0.
         Inputs:
         cntrSize  - num of bits in each counter.
-        hyperSize - size of the hyper-exp field, in bits.  
+        hyperExpSize - size of the hyper-exp field, in bits.  
         numCntrs - number of counters in the array.
         verbose - can be either:
             settings.VERBOSE_COUT_CNTRLINE - print to stdout details about the concrete counter and its fields.
@@ -146,8 +146,8 @@ class CntrMaster (object):
         self.cntrSize   = int(cntrSize)
         self.numCntrs   = int(numCntrs)
         self.verbose    = verbose
-        if hyperSize==0:
-            self.hyperSize = 0
+        if hyperExpSize==0:
+            self.hyperExpSize = 0
             self.cntrMaxVal  = (1 << self.cntrSize) - 1 
             if self.cntrSize<=8:
                 self.cntrs      = np.zeros(self.numCntrs, dtype='uint8') 
@@ -156,14 +156,14 @@ class CntrMaster (object):
             else:
                 self.cntrs      = np.zeros(self.numCntrs, dtype='uint32')             
             return            
-        if (not (self.setHyperSize (hyperSize))):
+        if (not (self.setHyperSize (hyperExpSize))):
             self.isFeasible = False  
             return                
-        if (not self.calcParams()): # parameters couldn't be calculated, e.g. due to wrong given combination of cntrSize and hyperSize
+        if (not self.calcParams()): # parameters couldn't be calculated, e.g. due to wrong given combination of cntrSize and hyperExpSize
             self.isFeasible = False  
             return
         self.calcCntrMaxVal ()
-        if self.hyperSize>0:
+        if self.hyperExpSize>0:
             self.calcProbOfInc1 ()
         self.rstAllCntrs ()
     
@@ -174,16 +174,16 @@ class CntrMaster (object):
         - Edit all counters according to the new format.  
         """
         self.cntrSize  += 1
-        self.hyperSize += 1
-        if self.hyperSize>self.cntrSize-2:
-            settings.error (f'Requested hyperSize {self.hyperSize} is not feasible for counter size {self.cntrSize}')
+        self.hyperExpSize += 1
+        if self.hyperExpSize>self.cntrSize-2:
+            settings.error (f'Requested hyperExpSize {self.hyperExpSize} is not feasible for counter size {self.cntrSize}')
             return False
-        self.expMaxSize    = 2**(self.hyperSize)-1 # the maximum value that can be represented by self.hyperSize bits, using standard binary representation. 
-        if (self.hyperSize + self.expMaxSize > self.cntrSize-1):
-            print ('Requested hyperSize {} is not feasible for counter size {}' .format (hyperSize, self.cntrSize))
+        self.expMaxSize    = 2**(self.hyperExpSize)-1 # the maximum value that can be represented by self.hyperExpSize bits, using standard binary representation. 
+        if (self.hyperExpSize + self.expMaxSize > self.cntrSize-1):
+            print ('Requested hyperExpSize {} is not feasible for counter size {}' .format (hyperExpSize, self.cntrSize))
             return False
         
-        self.calcParams() # parameters couldn't be calculated, e.g. due to wrong given combination of cntrSize and hyperSize
+        self.calcParams() # parameters couldn't be calculated, e.g. due to wrong given combination of cntrSize and hyperExpSize
         self.calcCntrMaxVal ()
         self.calcProbOfInc1 ()
         self.cntrs = [self.cntrZeroVec for _ in range (self.numCntrs)]
@@ -200,20 +200,20 @@ class CntrMaster (object):
         
         
     
-    def setHyperSize (self, hyperSize):
+    def setHyperSize (self, hyperExpSize):
         """
         Sets the size of the hyper-exponent field in F2P counters as follows.
         - Check whether the hyper-exponent field size is feasible.
         - If yes - assign the relevant "self" fields (exponent's field max-size). return True
         - If not - print an error msg and return False
         """
-        if (hyperSize<0 or hyperSize>self.cntrSize-2):
-            print ('Requested hyperSize {} is not feasible for counter size {}' .format (hyperSize, self.cntrSize))
+        if (hyperExpSize<0 or hyperExpSize>self.cntrSize-2):
+            print ('Requested hyperExpSize {} is not feasible for counter size {}' .format (hyperExpSize, self.cntrSize))
             return False
-        self.hyperSize     = hyperSize
-        self.expMaxSize    = 2**(self.hyperSize)-1 # the maximum value that can be represented by self.hyperSize bits, using standard binary representation. 
-        if (self.hyperSize + self.expMaxSize > self.cntrSize-1):
-            print ('Requested hyperSize {} is not feasible for counter size {}' .format (hyperSize, self.cntrSize))
+        self.hyperExpSize     = hyperExpSize
+        self.expMaxSize    = 2**(self.hyperExpSize)-1 # the maximum value that can be represented by self.hyperExpSize bits, using standard binary representation. 
+        if (self.hyperExpSize + self.expMaxSize > self.cntrSize-1):
+            print ('Requested hyperExpSize {} is not feasible for counter size {}' .format (hyperExpSize, self.cntrSize))
             return False
         return True
 
@@ -223,19 +223,18 @@ class CntrMaster (object):
         Inputs:
         cntr - the counter, given as a binary vector. E.g., "0011"
         """
-        if self.hyperSize==0:
+        if self.hyperExpSize==0:
             return cntr
-        self.hyperVec = cntr [0:self.hyperSize] 
+        self.hyperVec = cntr [0:self.hyperExpSize] 
         expSize     = int(self.hyperVec,base=2) 
-        expVec      = cntr[self.hyperSize:self.hyperSize+expSize] 
-        mantVec     = cntr[self.hyperSize+expSize:]
+        expVec      = cntr[self.hyperExpSize:self.hyperExpSize+expSize] 
+        mantVec     = cntr[self.hyperExpSize+expSize:]
         expVal      = self.expVec2expVal(expVec, expSize) 
         if (settings.VERBOSE_DEBUG in self.verbose):
             if (expVec != self.expVal2expVec(expVal, expSize=expSize)):   
-                print ('error: expVec={}, expVal={}, expSize={}, Back to expVec={}' .format (expVec, expVal, expSize, self.expVal2expVec(expVal, expSize)))
-                exit ()
+                settings.error (f'error: expVec={expVec}, expVal={expVal}, expSize={expSize}, Back to expVec={self.expVal2expVec(expVal, expSize)}')
         mantVal  = int (mantVec, base=2)
-        cntrVal  = self.offsetOfExpVal[int(expVal)] + mantVal * (2**expVal)
+        cntrVal  = int (self.offsetOfExpVal[int(expVal)] + mantVal * (2**expVal))
         if (settings.VERBOSE_COUT_CNTRLINE in self.verbose):
             self.printCntrLine (cntr=cntr, expVec=expVec, expVal=expVal, mantVal=mantVal, cntrVal=cntrVal)
         return cntrVal
@@ -261,18 +260,17 @@ class CntrMaster (object):
         - the value after increment.
         """
 
-        if self.hyperSize==0: # case where this is merely a standard integer counter
-            if self.cntrs[cntrIdx]==self.cntrMaxVal:
-                self.incHyperExpSize()
-                exit ()
-            self.cntrs[cntrIdx] += 1
-            return self.cntrs[cntrIdx]
+        if self.hyperExpSize==0: # case where this is merely a standard integer counter
+            if self.cntrs[cntrIdx]<self.cntrMaxVal:
+                self.cntrs[cntrIdx] += 1
+                return self.cntrs[cntrIdx]
+            self.incHyperExpSize()
         cntr            = self.cntrs[cntrIdx]
-        self.hyperVec   = cntr [0:self.hyperSize] 
+        self.hyperVec   = cntr [0:self.hyperExpSize] 
         expSize         = int(self.hyperVec, base=2)
-        expVec          = cntr[self.hyperSize:self.hyperSize+expSize]
+        expVec          = cntr[self.hyperExpSize:self.hyperExpSize+expSize]
         expVal          = int (self.expVec2expVal(expVec, expSize))
-        mantVal         = int (cntr[self.hyperSize+expSize:], base=2)
+        mantVal         = int (cntr[self.hyperExpSize+expSize:], base=2)
         cntrCurVal      = self.offsetOfExpVal[expVal] + mantVal * (2**expVal)
 
         if (self.cntrs[cntrIdx]==self.cntrMaxVec or random.random() > self.probOfInc1[int (self.cntrs[cntrIdx], base=2)]): 
@@ -359,7 +357,7 @@ class CntrMaster (object):
         cntr    = self.mantNexpVals2cntr (mantVal, expVal)
         cntrVal = self.valOf(offset, mantVal, expVal)
         if (settings.VERBOSE_DEBUG in self.verbose):
-            numVal  = self.cntr2num(cntr=cntr, hyperSize=self.hyperSize)
+            numVal  = self.cntr2num(cntr=cntr, hyperExpSize=self.hyperExpSize)
             if (cntrVal != numVal):
                 print ('error in num2cntr: cntrVal={}, but the val of the generated cntr={}' .format (cntrVal, self.cntr2num(cntr)))
                 exit ()
@@ -381,11 +379,11 @@ class CntrMaster (object):
         sets self.cntrMaxVal to the maximum value that may be represented by this F2P cntr. 
         """
 
-        self.cntrZeroVec = np.binary_repr   (2**self.cntrSize - 2**(self.cntrSize-self.hyperSize-self.expMaxSize), self.cntrSize) # the cntr that reaches the lowest value (zero)
-        self.cntrMaxVec  = np.binary_repr   (2**(self.cntrSize-self.hyperSize)-1, self.cntrSize) # the cntr that reaches the highest value
+        self.cntrZeroVec = np.binary_repr   (2**self.cntrSize - 2**(self.cntrSize-self.hyperExpSize-self.expMaxSize), self.cntrSize) # the cntr that reaches the lowest value (zero)
+        self.cntrMaxVec  = np.binary_repr   (2**(self.cntrSize-self.hyperExpSize)-1, self.cntrSize) # the cntr that reaches the highest value
         self.cntrMaxVal  = self.cntr2num (self.cntrMaxVec) 
         
-    def printCntrs (self, outputFile) -> None:
+    def printCntrs (self, outputFile=None) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
         """
@@ -397,18 +395,18 @@ class CntrMaster (object):
             for cntr in self.cntrs:
                 printf (outputFile, f'{self.cntr2num(cntr)} ')
     
-def printAllVals (cntrSize=8, hyperSize=2, verbose=[]):
+def printAllVals (cntrSize=8, hyperExpSize=2, verbose=[]):
     """
     Loop over all the binary combinations of the given counter size. 
     For each combination, print to file the respective counter, and its value. 
     The prints are sorted in an increasing order of values.
     """
     print ('running printAllVals.')
-    myCntrMaster = CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize)
+    myCntrMaster = CntrMaster(cntrSize=cntrSize, hyperExpSize=hyperExpSize)
     listOfVals = []
     for i in range (2**cntrSize):
         cntr = np.binary_repr(i, cntrSize) 
-        val = myCntrMaster.cntr2num(cntr, hyperSize=hyperSize)
+        val = myCntrMaster.cntr2num(cntr, hyperExpSize=hyperExpSize)
         listOfVals.append ({'cntrVec' : cntr, 'val' : val})
     listOfVals = sorted (listOfVals, key=lambda item : item['val'])
     
@@ -422,16 +420,16 @@ def printAllVals (cntrSize=8, hyperSize=2, verbose=[]):
             pickle.dump(listOfVals, pclOutputFile) 
       
 
-def printAllCntrMaxVals (hyperSizeRange=None, cntrSizeRange=[], verbose=[settings.VERBOSE_RES]):
+def printAllCntrMaxVals (hyperExpSizeRange=None, cntrSizeRange=[], verbose=[settings.VERBOSE_RES]):
     """
-    print the maximum value a cntr reach for several "configurations" -- namely, all combinations of cntrSize and hyperSize. 
+    print the maximum value a cntr reach for several "configurations" -- namely, all combinations of cntrSize and hyperExpSize. 
     """
 
     if (settings.VERBOSE_RES in verbose):
         outputFile    = open ('../res/cntrMaxVals.txt', 'a')
     for cntrSize in cntrSizeRange:
-        for hyperSize in range (1,cntrSize-2) if hyperSizeRange==None else hyperSizeRange:
-            myCntrMaster = CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize)
+        for hyperExpSize in range (1,cntrSize-2) if hyperExpSizeRange==None else hyperExpSizeRange:
+            myCntrMaster = CntrMaster(cntrSize=cntrSize, hyperExpSize=hyperExpSize)
             if (myCntrMaster.isFeasible==False):
                 continue
             if (myCntrMaster.cntrMaxVal < 10**8):

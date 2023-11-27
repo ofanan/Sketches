@@ -61,7 +61,7 @@ class Buckets (object):
             self.buckets = [F2P_bucket.CntrMaster(
                                             cntrSize        = self.cntrSize, 
                                             numCntrs        = self.numCntrsPerBkt,
-                                            hyperSize       = 0,
+                                            hyperExpSize    = 0,
                                             verbose=self.verbose) for _ in range (self.numBuckets)]
         else:
             settings.error ('Sorry. Mode {self.mode} that you chose is not supported yet by Buckets.py.')
