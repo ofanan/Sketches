@@ -238,7 +238,7 @@ class CountMinSketch:
     
 def main():
     """
-    """
+    """   
     width, depth, cntrSize  = 1, 1, 4
     numFlows                = width*depth*1
     numCntrsPerBkt          = 1

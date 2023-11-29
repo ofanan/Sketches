@@ -47,15 +47,12 @@ class CntrMaster (object):
             settings.error (f'MecBucket was called with cntrSize={cntrSize}. However, cntrSize should be at least 3.')
         self.cntrSize   = int(cntrSize)
         self.numCntrs   = int(numCntrs)
-        self.cntrMaxVal = (1 << self.cntrSize) - 1
+        self.cntrMaxVal = int ((1 << self.cntrSize) - 1)
         self.verbose    = verbose
         self.stage      = 0
-        self.stageMax   = (1 << stageSize) - 1
-        self.expRanges  = [0, self.cntrMaxVal+1]
+        self.stageMax   = int ((1 << stageSize) - 1)
+        self.expRanges  = [int(0), self.cntrMaxVal+1]
         self.rstAllCntrs ()
-        for _ in range (15): #$$$
-            self.scaleUp ()
-
         
     def rstAllCntrs (self):
         """
@@ -137,8 +134,14 @@ class CntrMaster (object):
         pivot = int((2*(self.stage - 2**(math.floor(math.log2(self.stage))))+1)/(2**(math.ceil(math.log2(self.stage+1))))*(self.cntrMaxVal+1))
         self.expRanges.append (pivot)
         self.expRanges.sort()
-        # print (f'stage={self.stage}, j={j}, frac={nom}/{denom}, frac={frac}, expRanges={self.expRanges}')
-        print (f'stage={self.stage}, expRanges={self.expRanges}')
+        relevantExpRanges = [item for item in self.expRanges[:-1] if item>=pivot]
+        for cntr in [cntr for cntr in self.cntrs if cntr>pivot]:
+            point = max ([item for item in relevantExpRanges if item < cntr])
+            if random.random() < 0.5:
+                cntr = point + math.floor(cntr-point)/2
+            else:  
+                cntr = point + math.ceil(cntr-point)/2
+        # print (f'stage={self.stage}, pivot={pivot}, expRanges={self.expRanges}, relevantExpRanges={relevantExpRanges}')
         
     def incCntr (self, cntrIdx=0, mult=False, factor=1, verbose=[]):
         """
