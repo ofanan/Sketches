@@ -52,6 +52,7 @@ class CntrMaster (object):
         self.stage      = 0
         # self.stageSize  = stageSize
         self.stageMax   = (1 << stageSize) - 1
+        self.expRanges  = [self.cntrMaxVal]
         self.rstAllCntrs ()
         
     def rstAllCntrs (self):
@@ -99,10 +100,10 @@ class CntrMaster (object):
         Return:
         - the value after increment.
         """
-        gamad = 7
-        if self.cntrs[cntrIdx]<gamad: # is the counter within a range of incrementing by 1?
+        if self.cntrs[cntrIdx]<self.expRanges[0]: # is the counter within a range of exponent==0?
             self.cntrs[cntrIdx] += 1 # yep --> increment by 1 and return the updated value
-            return self.cntr2val(self.cntrs[cntrIdx])
+            return self.cntrs[cntrIdx]
+        settings.error ('continue of MecBucket.By1GetVal() not implemented yet.')
         if self.cntrs[cntrIdx] < self.cntrMaxVal: # No OF
             cntrVal = self.cntr2val(self.cntrs[cntrIdx])
             cntrValpp = self.cntr2val(self.cntrs[cntrIdx] + 1)
@@ -191,7 +192,7 @@ class CntrMaster (object):
         #         printf (outputFile, f'{self.cntr2val(cntr)} ')
     
 
-def printAllCntrMaxVals (hyperExpSizeRange=None, cntrSizeRange=[], verbose=[settings.VERBOSE_RES]):
+def printAllCntrMaxVals (hyperExpSizeRange=None, cntrSizeRange=[], verbose=[settings.VERBOSE_LOG]):
     """
     print the maximum value a cntr reach for several "configurations" -- namely, all combinations of cntrSize and hyperExpSize. 
     """
