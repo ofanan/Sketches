@@ -246,10 +246,10 @@ def main():
     cntrMaxVal              = 300000
     numOfExps               = 10
     verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] #, settings.VERBOSE_DETAILS
-    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
-    #                       numCntrsPerBkt = numCntrsPerBkt, 
-    #                       mode='F2pBuckets')
-    # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
+    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
+                          numCntrsPerBkt = numCntrsPerBkt, 
+                          mode='MecBuckets')
+    cms.sim (numOfExps=numOfExps, numIncs=numIncs)
      
     # verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] #, settings.VERBOSE_DETAILS
     # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
@@ -257,10 +257,10 @@ def main():
     #                       mode='IceBuckets')
     # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     
-    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
-                          numCntrsPerBkt = numCntrsPerBkt, 
-                          mode='SecBuckets')
-    cms.sim (numOfExps=numOfExps, numIncs=numIncs)
+    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
+    #                       numCntrsPerBkt = numCntrsPerBkt, 
+    #                       mode='SecBuckets')
+    # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     
 if __name__ == '__main__':
     main()

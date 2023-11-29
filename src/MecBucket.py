@@ -47,9 +47,12 @@ class CntrMaster (object):
             settings.error (f'MecBucket was called with cntrSize={cntrSize}. However, cntrSize should be at least 3.')
         self.cntrSize   = int(cntrSize)
         self.numCntrs   = int(numCntrs)
+        self.cntrMaxVal = (1 << self.cntrSize) - 1
         self.verbose    = verbose
+        self.stage      = 0
+        # self.stageSize  = stageSize
+        self.stageMax   = (1 << stageSize) - 1
         self.rstAllCntrs ()
-    
         
     def rstAllCntrs (self):
         """
@@ -68,13 +71,13 @@ class CntrMaster (object):
         self.cntrs[cntrIdx] = 0
         
 
-    def cntr2num (self, cntr):
+    def cntr2val (self, cntr):
         """
         Convert an F2P counter, given as a binary vector (e.g., "11110"), to an integer num.
         Inputs:
         cntr - the counter, given as a binary vector. E.g., "0011"
         """
-        return
+        return 9
 
     def queryCntrGetVal (self, cntrIdx=0):
         """
@@ -85,7 +88,7 @@ class CntrMaster (object):
         cntrDic: a dictionary, where: 
             - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.        
         """
-        return self.cntr2num(self.cntrs[cntrIdx])    
+        return self.cntr2val(self.cntrs[cntrIdx])    
 
     def incCntrBy1GetVal (self, 
                     cntrIdx  = 0): # idx of the concrete counter to increment in the array
@@ -96,7 +99,26 @@ class CntrMaster (object):
         Return:
         - the value after increment.
         """
-        return
+        gamad = 7
+        if self.cntrs[cntrIdx]<gamad: # is the counter within a range of incrementing by 1?
+            self.cntrs[cntrIdx] += 1 # yep --> increment by 1 and return the updated value
+            return self.cntr2val(self.cntrs[cntrIdx])
+        if self.cntrs[cntrIdx] < self.cntrMaxVal: # No OF
+            cntrVal = self.cntr2val(self.cntrs[cntrIdx])
+            cntrValpp = self.cntr2val(self.cntrs[cntrIdx] + 1)
+            if random.random() < 1/(cntrValpp-cntrVal): # Prob' Increment
+                self.cntrs[cntrIdx] += 1
+                return cntrValpp
+            return cntrVal # don't increment --> return the current value, w/o increment
+        else:
+            self.scaleUp ()
+            self.cntrs[cntrIdx] += 1
+            return self.cntr2val(self.cntrs[cntrIdx])
+            
+    def scaleUp (self):
+        """
+        """
+        settings.error ('MecBucket.scaleUp() is not implemented yet.')
         
     def incCntr (self, cntrIdx=0, mult=False, factor=1, verbose=[]):
         """
@@ -149,7 +171,7 @@ class CntrMaster (object):
 
         self.cntrZeroVec = np.binary_repr   (2**self.cntrSize - 2**(self.cntrSize-self.hyperExpSize-self.expMaxSize), self.cntrSize) # the cntr that reaches the lowest value (zero)
         self.cntrMaxVec  = np.binary_repr   (2**(self.cntrSize-self.hyperExpSize)-1, self.cntrSize) # the cntr that reaches the highest value
-        self.cntrMaxVal  = self.cntr2num (self.cntrMaxVec) 
+        self.cntrMaxVal  = self.cntr2val (self.cntrMaxVec) 
         
     def printCntrs (self, outputFile=None, printAlsoVec=False) -> None:
         """
@@ -160,13 +182,13 @@ class CntrMaster (object):
         #     print (f'Printing all cntrs.')
         #     if printAlsoVec:
         #         for cntr in self.cntrs:
-        #             print (f'cntrVec={cntr}, cntrVal={self.cntr2num(cntr)} ')
+        #             print (f'cntrVec={cntr}, cntrVal={self.cntr2val(cntr)} ')
         #     else:
         #         for cntr in self.cntrs:
-        #             print (f'{self.cntr2num(cntr)} ')
+        #             print (f'{self.cntr2val(cntr)} ')
         # else:
         #     for cntr in self.cntrs:
-        #         printf (outputFile, f'{self.cntr2num(cntr)} ')
+        #         printf (outputFile, f'{self.cntr2val(cntr)} ')
     
 
 def printAllCntrMaxVals (hyperExpSizeRange=None, cntrSizeRange=[], verbose=[settings.VERBOSE_RES]):
