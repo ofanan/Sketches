@@ -3,7 +3,7 @@ import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
 
-import settings, SEC, IecBucket, F2pBucket, MecBucket 
+import settings, SEC, IceBucket, F2pBucket, MecBucket 
 from printf import printf, printarFp
 
 class Buckets (object):
@@ -49,7 +49,7 @@ class Buckets (object):
                                            numCntrs         = self.numCntrsPerBkt, 
                                            verbose          = self.verbose) for _ in range (self.numBuckets)]
         elif mode=='ICE':
-            self.buckets = [ICE_bucket.CntrMaster(
+            self.buckets = [IceBucket.CntrMaster(
                                             cntrSize        = self.cntrSize, 
                                             numCntrs        = self.numCntrsPerBkt,
                                             cntrMaxVal      = cntrMaxVal, 
@@ -58,7 +58,7 @@ class Buckets (object):
                                             initialEpsilon  = initialEpsilon,  # initial value of the epsilon accuracy parameter, defined at the paper ICE_buckets.
                                             verbose=self.verbose) for _ in range (self.numBuckets)]
         elif mode=='F2P':
-            self.buckets = [F2P_bucket.CntrMaster(
+            self.buckets = [F2pBucket.CntrMaster(
                                             cntrSize        = self.cntrSize, 
                                             numCntrs        = self.numCntrsPerBkt,
                                             hyperExpSize    = 0,
