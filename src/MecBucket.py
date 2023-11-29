@@ -34,7 +34,7 @@ class CntrMaster (object):
    
     def __init__ (self, 
                   cntrSize  = 8, # bits per counter 
-                  stageSize = 2, # bits of the "stage" field in each bucket 
+                  stageSize = 4, # bits of the "stage" field in each bucket 
                   numCntrs  = 1, # number of counters in the bucket 
                   verbose   =[], # verbose (output) definitions, defined in settings.py.
                   ):
@@ -50,10 +50,12 @@ class CntrMaster (object):
         self.cntrMaxVal = (1 << self.cntrSize) - 1
         self.verbose    = verbose
         self.stage      = 0
-        # self.stageSize  = stageSize
         self.stageMax   = (1 << stageSize) - 1
-        self.expRanges  = [self.cntrMaxVal]
+        self.expRanges  = [0, self.cntrMaxVal+1]
         self.rstAllCntrs ()
+        for _ in range (15): #$$$
+            self.scaleUp ()
+
         
     def rstAllCntrs (self):
         """
@@ -76,10 +78,15 @@ class CntrMaster (object):
         """
         Convert a MEC, given as an integer, to the value it represents.
         """
-        if cntr<self.expRanges[0]: # cntr < the smallest expRange, and therefore corresponds to exponent 0. 
-            return cntr 
-        exponent = max ([item for item in self.expRanges if item<cntr])
-        return cntr * (2**(exponent+1))
+        # if cntr<self.expRanges[1]:
+        #     return cntr
+        val = 0
+        for expRangeIdx in range(1, len(self.expRanges)):
+            if self.expRanges[expRangeIdx] >= cntr:
+                val += (cntr - self.expRanges[expRangeIdx-1])*(2**(expRangeIdx-1))
+                break
+            val += (self.expRanges[expRangeIdx]-self.expRanges[expRangeIdx-1])*(2**(expRangeIdx-1))
+        return val
 
     def queryCntrGetVal (self, cntrIdx=0):
         """
@@ -117,8 +124,20 @@ class CntrMaster (object):
             
     def scaleUp (self):
         """
+        scale-up all the counters in the bucket, by updating the exponent ranges and halving counters.
         """
-        settings.error ('MecBucket.scaleUp() is not implemented yet.')
+        if self.stage==self.stageMax:
+            settings.error ('MecBucket: cannot upScale above the maximum stage.')
+        self.stage += 1
+        j = self.stage - 2**(math.floor(math.log2(self.stage)))
+        nom = 2*j+1
+        denom = 2**(math.ceil(math.log2(self.stage+1)))
+        # frac = nom/denom
+        # frac = (2*(self.stage - 2**(math.floor(math.log2(self.stage))))+1)/(2**(math.ceil(math.log2(self.stage+1))))
+        self.expRanges.append (int((2*(self.stage - 2**(math.floor(math.log2(self.stage))))+1)/(2**(math.ceil(math.log2(self.stage+1))))*(self.cntrMaxVal+1)))
+        self.expRanges.sort()
+        # print (f'stage={self.stage}, j={j}, frac={nom}/{denom}, frac={frac}, expRanges={self.expRanges}')
+        print (f'stage={self.stage}, expRanges={self.expRanges}')
         
     def incCntr (self, cntrIdx=0, mult=False, factor=1, verbose=[]):
         """
