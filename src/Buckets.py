@@ -3,7 +3,7 @@ import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
 
-import settings, SEC, ICE_bucket, F2P_bucket 
+import settings, SEC, ICE_bucket, F2P_bucket, MecBucket 
 from printf import printf, printarFp
 
 class Buckets (object):
@@ -62,6 +62,11 @@ class Buckets (object):
                                             cntrSize        = self.cntrSize, 
                                             numCntrs        = self.numCntrsPerBkt,
                                             hyperExpSize    = 0,
+                                            verbose=self.verbose) for _ in range (self.numBuckets)]
+        elif mode=='MEC':
+            self.buckets = [MecBucket.CntrMaster(
+                                            cntrSize        = self.cntrSize, 
+                                            numCntrs        = self.numCntrsPerBkt,
                                             verbose=self.verbose) for _ in range (self.numBuckets)]
         else:
             settings.error ('Sorry. Mode {self.mode} that you chose is not supported yet by Buckets.py.')

@@ -1,3 +1,6 @@
+# Buckets of F2P counters.
+# The buckets are not totally implemented yet: the hyper-exponenet are not shared,
+# and instead, the hyper-exp field in each counter is larger. 
 #import itertools
 # import time, random, sys, os
 # from   pathlib import Path

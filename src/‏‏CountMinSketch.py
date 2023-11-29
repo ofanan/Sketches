@@ -80,6 +80,13 @@ class CountMinSketch:
                                     numCntrsPerBkt  = self.numCntrsPerBkt, 
                                     mode            = 'F2P',
                                     verbose         = self.verbose)
+        elif self.mode=='MecBuckets':
+            self.cntrMaster = Buckets.Buckets (
+                                    cntrSize        = self.cntrSize, 
+                                    numCntrs        = self.numCntrs, 
+                                    numCntrsPerBkt  = self.numCntrsPerBkt, 
+                                    mode            = 'MEC',
+                                    verbose         = self.verbose)
         else:
             print(f'Sorry, the mode {self.mode} that you requested is not supported')
 
@@ -238,11 +245,11 @@ def main():
     numIncs                 = 1000000 #(width * depth * cntrSize**3)/2
     cntrMaxVal              = 300000
     numOfExps               = 10
-    verbose                 = [settings.VERBOSE_LOG] #, settings.VERBOSE_DETAILS
+    verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] #, settings.VERBOSE_DETAILS
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
                           numCntrsPerBkt = numCntrsPerBkt, 
-                          mode='F2PBuckets')
-    cms.sim (numOfExps=numOfExps, numIncs=numIncs)
+                          mode='MecBuckets')
+    # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
      
     # width, depth, cntrSize  = 64, 4, 4
     # numFlows                = width*depth*4
