@@ -74,11 +74,12 @@ class CntrMaster (object):
 
     def cntr2val (self, cntr):
         """
-        Convert an F2P counter, given as a binary vector (e.g., "11110"), to an integer num.
-        Inputs:
-        cntr - the counter, given as a binary vector. E.g., "0011"
+        Convert a MEC, given as an integer, to the value it represents.
         """
-        return 9
+        if cntr<self.expRanges[0]: # cntr < the smallest expRange, and therefore corresponds to exponent 0. 
+            return cntr 
+        exponent = max ([item for item in self.expRanges if item<cntr])
+        return cntr * (2**(exponent+1))
 
     def queryCntrGetVal (self, cntrIdx=0):
         """
@@ -103,7 +104,6 @@ class CntrMaster (object):
         if self.cntrs[cntrIdx]<self.expRanges[0]: # is the counter within a range of exponent==0?
             self.cntrs[cntrIdx] += 1 # yep --> increment by 1 and return the updated value
             return self.cntrs[cntrIdx]
-        settings.error ('continue of MecBucket.By1GetVal() not implemented yet.')
         if self.cntrs[cntrIdx] < self.cntrMaxVal: # No OF
             cntrVal = self.cntr2val(self.cntrs[cntrIdx])
             cntrValpp = self.cntr2val(self.cntrs[cntrIdx] + 1)
@@ -111,10 +111,9 @@ class CntrMaster (object):
                 self.cntrs[cntrIdx] += 1
                 return cntrValpp
             return cntrVal # don't increment --> return the current value, w/o increment
-        else:
-            self.scaleUp ()
-            self.cntrs[cntrIdx] += 1
-            return self.cntr2val(self.cntrs[cntrIdx])
+        self.scaleUp ()
+        self.cntrs[cntrIdx] += 1
+        return self.cntr2val(self.cntrs[cntrIdx])
             
     def scaleUp (self):
         """
