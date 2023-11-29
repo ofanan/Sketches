@@ -129,12 +129,13 @@ class CntrMaster (object):
         if self.stage==self.stageMax:
             settings.error ('MecBucket: cannot upScale above the maximum stage.')
         self.stage += 1
-        j = self.stage - 2**(math.floor(math.log2(self.stage)))
-        nom = 2*j+1
-        denom = 2**(math.ceil(math.log2(self.stage+1)))
+        # j = self.stage - 2**(math.floor(math.log2(self.stage)))
+        # nom = 2*j+1
+        # denom = 2**(math.ceil(math.log2(self.stage+1)))
         # frac = nom/denom
         # frac = (2*(self.stage - 2**(math.floor(math.log2(self.stage))))+1)/(2**(math.ceil(math.log2(self.stage+1))))
-        self.expRanges.append (int((2*(self.stage - 2**(math.floor(math.log2(self.stage))))+1)/(2**(math.ceil(math.log2(self.stage+1))))*(self.cntrMaxVal+1)))
+        pivot = int((2*(self.stage - 2**(math.floor(math.log2(self.stage))))+1)/(2**(math.ceil(math.log2(self.stage+1))))*(self.cntrMaxVal+1))
+        self.expRanges.append (pivot)
         self.expRanges.sort()
         # print (f'stage={self.stage}, j={j}, frac={nom}/{denom}, frac={frac}, expRanges={self.expRanges}')
         print (f'stage={self.stage}, expRanges={self.expRanges}')
