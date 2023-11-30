@@ -63,11 +63,13 @@ class CntrMaster (object):
         self.stage      = 0
         self.stageMax   = int ((1 << stageSize) - 1)
         self.rstAllCntrs    ()
-        for cntr in [cntr for cntr in range(self.cntrMaxVal)]: #$$$
+        for cntr in [cntr for cntr in range(self.cntrMaxVal+1)]: #$$$
             print (f'cntr={cntr}, val={self.cntr2val(cntr)}') #$$$
+        for _ in range (5): #$$
+            self.upScale ()
+            for cntr in [cntr for cntr in range(self.cntrMaxVal+1)]: #$$$
+                print (f'cntr={cntr}, val={self.cntr2val(cntr)}') #$$$
         exit () #$$$
-        # for _ in range (5): #$$
-        #     self.upScale ()
             
     def rstAllCntrs (self):
         """
@@ -96,6 +98,7 @@ class CntrMaster (object):
         if stage==None:
             stage = self.stage
         val = int(0)
+        print (f'stageMax={self.stageMax}, stage={stage}')
         for expRangeIdx in range(1, len(CntrMaster.expRanges[stage])):
             if CntrMaster.expRanges[stage][expRangeIdx] >= cntr:
                 val += (cntr - CntrMaster.expRanges[stage][expRangeIdx-1])*(2**(expRangeIdx-1))

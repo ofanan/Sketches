@@ -64,10 +64,12 @@ class Buckets (object):
                                             hyperExpSize    = 0,
                                             verbose=self.verbose) for _ in range (self.numBuckets)]
         elif mode=='MEC':
-            MecBucket.CntrMaster.expRanges, MecBucket.CntrMaster.offsets = MecBucket.precomputeExpRangesAndOffsets (cntrSize=self.cntrSize, numStages=5)
+            stageSize = 4
+            MecBucket.CntrMaster.expRanges, MecBucket.CntrMaster.offsets = MecBucket.precomputeExpRangesAndOffsets (cntrSize=self.cntrSize, numStages=(1<<stageSize)-1)
             self.buckets = [MecBucket.CntrMaster(
                                             cntrSize        = self.cntrSize, 
                                             numCntrs        = self.numCntrsPerBkt,
+                                            stageSize       = stageSize,
                                             verbose=self.verbose) for _ in range (self.numBuckets)]
         else:
             settings.error ('Sorry. Mode {self.mode} that you chose is not supported yet by Buckets.py.')
