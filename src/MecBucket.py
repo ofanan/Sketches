@@ -8,20 +8,39 @@ def precomputeExpRangesAndOffsets (cntrSize, numStages):
 
     cntrMaxVal = int ((1 << cntrSize) - 1)
 
-    expRanges, offsets = [None]*numStages, [None]*numStages
-    
-    if cntrSize<=8:
-        expRanges[0]    = np.zeros(2, dtype='uint8')
-        offsets[0]      = np.zeros(2, dtype='uint64')
-    elif cntrSize<=16:
-        expRanges[0]    = np.zeros(2, dtype='uint16')
-        offsets[0]      = np.zeros(2, dtype='uint64')
-    else:
-        expRanges[0]    = np.zeros(2, dtype='uint32')
-        offsets[0]      = np.zeros(2, dtype='uint64')
-    return expRanges
+    expRanges, offsets = [[]]*numStages, [[]]*numStages #[[None]]*numStages, [[None]]*numStages
+    # print (expRanges)
+    expRanges[0] = [int(0), int(cntrMaxVal+1)]
+    offsets  [0] = expRanges[0].copy () 
+    # settings.error (expRanges)
 
-    # for stage in range (1, self.numStages)
+    # expRanges.append ([int(0), int(cntrMaxVal+1)])
+    # offsets.  append ([int(0), int(cntrMaxVal+1)])
+    # expRanges.append ([int(0), int(cntrMaxVal+1)])
+    # , offsets[0] = [int(0), int(cntrMaxVal+1)] 
+    # settings.error (expRanges)
+    # if cntrSize<=8:
+    #     expRanges[0]    = np.zeros(2, dtype='uint8')
+    #     offsets[0]      = np.zeros(2, dtype='uint64')
+    # elif cntrSize<=16:
+    #     expRanges[0]    = np.zeros(2, dtype='uint16')
+    #     offsets[0]      = np.zeros(2, dtype='uint64')
+    # else:
+    #     expRanges[0]    = np.zeros(2, dtype='uint32')
+    #     offsets[0]      = np.zeros(2, dtype='uint64')
+
+    for stage in range (1, numStages):
+        pivot = int((2*(stage - 2**(math.floor(math.log2(stage))))+1)/(2**(math.ceil(math.log2(stage+1))))*(cntrMaxVal+1))
+        # prevOffsets = self.offsets.copy()
+        # settings.error (expRanges[stage-1])
+        # settings.error  (f'stage={stage}, expRanges[stage-1]={expRanges[stage-1]}, expRanges={expRanges}')
+        expRanges[stage] = expRanges[stage-1].copy ()
+        expRanges[stage].append   (pivot)
+        expRanges[stage].sort     ()
+    print (f'expRanges={expRanges}')
+    return expRanges
+        # self.updateOffsets      ()
+        
         
     # expRanges[0] = [int(0), cntrMaxVal+1]
     #
