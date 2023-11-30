@@ -56,8 +56,6 @@ class CntrMaster (object):
         """
         Initialize an array of MEC counters. The cntrs are initialized to 0.
         """
-        settings.error (CntrMaster.expRanges) #$$
-        exit () #$$
         if (cntrSize<3):
             settings.error (f'MecBucket was called with cntrSize={cntrSize}. However, cntrSize should be at least 3.')
         self.cntrSize   = int(cntrSize)
@@ -67,8 +65,10 @@ class CntrMaster (object):
         self.stage      = 0
         self.stageMax   = int ((1 << stageSize) - 1)
         self.rstAllCntrs    ()
-        for _ in range (5): #$$
-            self.upScale ()
+        ar = [i for i in range(self.cntrMaxVal)]
+        exit () #$$$
+        # for _ in range (5): #$$
+        #     self.upScale ()
             
     def rstAllCntrs (self):
         """

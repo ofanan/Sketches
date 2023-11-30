@@ -97,8 +97,8 @@ class CountMinSketch:
         """      
         if settings.VERBOSE_DETAILED_RES in self.verbose:
             self.verbose.append (settings.VERBOSE_RES)
-        if not (settings.VERBOSE_PCL in self.verbose):
-            print ('Note: verbose does not include .pcl')  
+        # if not (settings.VERBOSE_PCL in self.verbose):
+        #     print ('Note: verbose does not include .pcl')  
         
         pwdStr = os.getcwd()
         if (pwdStr.find ('itamarc')>-1): # the string 'HPC' appears in the path only in HPC runs
