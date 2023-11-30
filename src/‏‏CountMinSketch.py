@@ -12,7 +12,6 @@ class CountMinSketch:
 
     # given the flowId, return the list of cntrs hashed to this flow Id.   
     hashedCntrsOfFlow = lambda self, flowId : [self.mat2aridx(row, mmh3.hash(str(flowId), seed=self.seed + row) % self.width) for row in range(self.depth)] 
-#self.mat2aridx
 
     # given the row and col. in a matrix, return the corresponding index if the mat is flattened into a 1D array.
     mat2aridx  = lambda self, row, col       : self.width*row + col 

@@ -5,58 +5,25 @@ import settings
 import numpy as np
 
 def precomputeExpRangesAndOffsets (cntrSize, numStages):
+    """
+    Pre-compute the expRanges (ranges corresponding to required exponent value) and the offset of each stage.
+    self.offsetOfExpVal[e] will hold the offset to be added to the counter's val when the exponent's value is e.
+    """
 
     cntrMaxVal = int ((1 << cntrSize) - 1)
-
     expRanges, offsets = [[]]*numStages, [[]]*numStages #[[None]]*numStages, [[None]]*numStages
-    # print (expRanges)
     expRanges[0] = [int(0), int(cntrMaxVal+1)]
     offsets  [0] = expRanges[0].copy () 
-    # settings.error (expRanges)
-
-    # expRanges.append ([int(0), int(cntrMaxVal+1)])
-    # offsets.  append ([int(0), int(cntrMaxVal+1)])
-    # expRanges.append ([int(0), int(cntrMaxVal+1)])
-    # , offsets[0] = [int(0), int(cntrMaxVal+1)] 
-    # settings.error (expRanges)
-    # if cntrSize<=8:
-    #     expRanges[0]    = np.zeros(2, dtype='uint8')
-    #     offsets[0]      = np.zeros(2, dtype='uint64')
-    # elif cntrSize<=16:
-    #     expRanges[0]    = np.zeros(2, dtype='uint16')
-    #     offsets[0]      = np.zeros(2, dtype='uint64')
-    # else:
-    #     expRanges[0]    = np.zeros(2, dtype='uint32')
-    #     offsets[0]      = np.zeros(2, dtype='uint64')
 
     for stage in range (1, numStages):
-        pivot = int((2*(stage - 2**(math.floor(math.log2(stage))))+1)/(2**(math.ceil(math.log2(stage+1))))*(cntrMaxVal+1))
-        # prevOffsets = self.offsets.copy()
-        # settings.error (expRanges[stage-1])
-        # settings.error  (f'stage={stage}, expRanges[stage-1]={expRanges[stage-1]}, expRanges={expRanges}')
         expRanges[stage] = expRanges[stage-1].copy ()
-        expRanges[stage].append   (pivot)
+        expRanges[stage].append   (int((2*(stage - 2**(math.floor(math.log2(stage))))+1)/(2**(math.ceil(math.log2(stage+1))))*(cntrMaxVal+1)))
         expRanges[stage].sort     ()
         offsets[stage] = [int(0)]*len(expRanges[stage])
         for i in range(1, len(expRanges[stage])):
             offsets[stage][i] = offsets[stage][i-1] + (expRanges[stage][i] - expRanges[stage][i-1])*(2**(i-1))
 
-    print (f'expRanges={expRanges}, offsets={offsets}')
-    exit ()
-    return expRanges
-        # self.updateOffsets      ()
-        
-        
-    # expRanges[0] = [int(0), cntrMaxVal+1]
-    #
-    # self.updateOffsets  ()
-    # self.rstAllCntrs    ()
-    #
-    # offsets = [int(0)]*len(self.expRanges)
-    # for i in range(1, len(self.expRanges)):
-    #     self.offsets[i] = self.offsets[i-1] + (self.expRanges[i] - self.expRanges[i-1])*(2**(i-1))
-    # print (f'expRanges={self.expRanges}, offsets={self.offsets}') #$$$
-
+    return expRanges, offsets
 
 class CntrMaster (object):
     """
@@ -99,13 +66,10 @@ class CntrMaster (object):
         self.verbose    = verbose
         self.stage      = 0
         self.stageMax   = int ((1 << stageSize) - 1)
-        self.expRanges  = [int(0), self.cntrMaxVal+1]
-        self.updateOffsets  ()
         self.rstAllCntrs    ()
         for _ in range (5): #$$
             self.upScale ()
             
-        
     def rstAllCntrs (self):
         """
         """
@@ -125,35 +89,21 @@ class CntrMaster (object):
 
     def cntr2val (self, 
                   cntr, # integer representation of the counter's vec
-                  expRanges = None # expRanges to use during the calculation
+                  stage = None
+                  # expRanges = None # expRanges to use during the calculation
                   # offsets = None # offsets to use during the calculation
                   ):
         """
         Convert a MEC to the value it represents.
         """
-        # if offsets==None:
-        #     offsets = self.offsets
-        if expRanges==None:
-            expRanges = self.expRanges
-        for expRangeIdx in range(1, len(expRanges)):
+        if stage==None:
+            stage = self.stage
+        for expRangeIdx in range(1, len(CntrMaster.expRanges[stage])):
             if expRanges[expRangeIdx] >= cntr:
-                val += (cntr - expRanges[expRangeIdx-1])*(2**(expRangeIdx-1))
+                val += (cntr - expRanges[stage][expRangeIdx-1])*(2**(expRangeIdx-1))
                 break
-            val += (expRanges[expRangeIdx]-expRanges[expRangeIdx-1])*(2**(expRangeIdx-1))
+            val += (expRanges[stage][expRangeIdx] - expRanges[stage][expRangeIdx-1])*(2**(expRangeIdx-1))
         return val
-
-    def updateOffsets (self):
-        """
-        Calculate the offset corresponding to each expRange
-        """
-        """
-        Pre-calculate all the offsets to be added to a counter, according to its exponent value.
-        self.offsetOfExpVal[e] will hold the offset to be added to the counter's val when the exponent's value is e.
-        """
-        self.offsets = [int(0)]*len(self.expRanges)
-        for i in range(1, len(self.expRanges)):
-            self.offsets[i] = self.offsets[i-1] + (self.expRanges[i] - self.expRanges[i-1])*(2**(i-1))
-        print (f'expRanges={self.expRanges}, offsets={self.offsets}') #$$$
 
     def queryCntrGetVal (self, cntrIdx=0):
         """
@@ -175,7 +125,7 @@ class CntrMaster (object):
         Return:
         - the value after increment.
         """
-        if self.cntrs[cntrIdx]<self.expRanges[0]: # is the counter within a range of exponent==0?
+        if self.cntrs[cntrIdx]<expRanges[self.stage][0]: # is the counter within a range of exponent==0?
             self.cntrs[cntrIdx] += 1 # yep --> increment by 1 and return the updated value
             return self.cntrs[cntrIdx]
         upScaled = False #$$$
@@ -202,12 +152,6 @@ class CntrMaster (object):
         if settings.VERBOSE_LOG in self.verbose:
             printf (self.logFile, f'upScsale. stage={self.stage}\n')
         self.stage += 1
-        pivot = int((2*(self.stage - 2**(math.floor(math.log2(self.stage))))+1)/(2**(math.ceil(math.log2(self.stage+1))))*(self.cntrMaxVal+1))
-        # prevOffsets = self.offsets.copy()
-        prevExpRanges = self.expRanges.copy()
-        self.expRanges.append   (pivot)
-        self.expRanges.sort     ()
-        self.updateOffsets      ()
         return #$$$
 
         for cntrIdx in range(self.numCntrs):
@@ -222,8 +166,6 @@ class CntrMaster (object):
                 self.cntrs[cntrIdx] = cntrs[0]
             else:
                 self.cntrs[cntrIdx] = cntrs[1]
-        # self.printAllPossibleVals () #$$$$
-        # print (f'stage={self.stage}, pivot={pivot}, expRanges={self.expRanges}, relevantExpRanges={relevantExpRanges}')
         
     def printAllPossibleVals (self):
         
@@ -258,17 +200,7 @@ class CntrMaster (object):
           - cntrDict['val']  - the counter's value.
         """
         settings.error ('F2P_bucket.incCntr() is currently unsupported.')
-            
-            
-    # def cntr2val (self, 
-    #               cntr, # integer representation of the counter's vec
-    #               offsets = None # offsets to use during the calculation
-    #               ):
-    #     """
-    #     Convert a MEC to the value it represents.
-    #     """
-    #     if offsets==None:
-    #         offsets = self.offsets
+
     def val2cntr (self, targetVal) -> dict:
         """
         given a target value, find the closest counters to this targetVal from below and from above.
@@ -280,17 +212,16 @@ class CntrMaster (object):
         - Else, 
             The cosrresponding counter's value, after performing a probabilistic increment. 
         """
-        settings.error ('val2cntr is not implemented yet')
         # as the list is of offset values is sorted, need to loop only until the max relevant offset is found
-        for i in range(1, len(self.offsets)):
-            if self.offsets[i]<targetVal: # did not reach yet the largest relevant offset
+        for i in range(1, len(offsets[self.stage])):
+            if offsets[self.stage][i]<targetVal: # did not reach yet the largest relevant offset
                 continue
-            if self.offsets[i]==targetVal: # Bingo
-                return [{'cntr' : self.expRanges[i], 'val' : targetVal}] # expRanges[i] holds the counter corresponding to this offset
+            if offsets[self.stage][i]==targetVal: # Bingo
+                return [{'cntr' : expRanges[self.stage][i], 'val' : targetVal}] # expRanges[i] holds the counter corresponding to this offset
             
-            # now we know that self.offset[i]>val. Therefore the max relevant offset is the previous one, namely, self.offsets[i-1]
-            cntr = self.expRanges[i-1] + (targetVal-self.offsets[i-1])*(2**(i-1))
-            cntrVal = self.offsets[i-1] + (cntr-self.expRanges[i-1])*(2**(i-1)) 
+            # now we know that self.offset[i]>val. Therefore the max relevant offset is the previous one, namely, offsets[self.stage][i-1]
+            cntr = expRanges[self.stage][i-1] + (targetVal-offsets[self.stage][i-1])*(2**(i-1))
+            cntrVal = offsets[self.stage][i-1] + (cntr-expRanges[self.stage][i-1])*(2**(i-1)) 
             if cntrVal==targetVal:
                 return [{'cntr' : cntr, 'val' : targetVal}]
             return [{'cntr' : cntr, 'val' : cntrVal}, {'cntr' : cntr+1, 'val' : cantrVal + 2**(i-1)}]
