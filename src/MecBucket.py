@@ -63,12 +63,18 @@ class CntrMaster (object):
         self.stage      = 0
         self.stageMax   = int ((1 << stageSize) - 1)
         self.rstAllCntrs    ()
-        for cntr in [cntr for cntr in range(self.cntrMaxVal+1)]: #$$$
-            print (f'cntr={cntr}, val={self.cntr2val(cntr)}') #$$$
         for _ in range (5): #$$
             self.upScale ()
             for cntr in [cntr for cntr in range(self.cntrMaxVal+1)]: #$$$
-                print (f'cntr={cntr}, val={self.cntr2val(cntr)}') #$$$
+                val = self.cntr2val(cntr)
+                res = self.val2cntr(targetVal=val) #[0]['cntr']
+                if cntr!=res[0]['cntr']:
+                    settings.error ('stage={}, cntr={}, val={}, cntrCheck={}' .format (self.stage, cntr, val, res[0]['cntr']))
+                # print (f'cntr={cntr}, val={val}, res={res}') #$$$
+        print (f'expRanges={CntrMaster.expRanges[self.stage]}, offsets={CntrMaster.offsets[self.stage]}')
+        for val in range (190):
+            res = self.val2cntr(targetVal=val) #[0]['cntr']
+            print (f'val={val}, res={res}') #$$$
         exit () #$$$
             
     def rstAllCntrs (self):
@@ -98,7 +104,7 @@ class CntrMaster (object):
         if stage==None:
             stage = self.stage
         val = int(0)
-        print (f'stageMax={self.stageMax}, stage={stage}')
+        # print (f'stageMax={self.stageMax}, stage={stage}') #$$
         for expRangeIdx in range(1, len(CntrMaster.expRanges[stage])):
             if CntrMaster.expRanges[stage][expRangeIdx] >= cntr:
                 val += (cntr - CntrMaster.expRanges[stage][expRangeIdx-1])*(2**(expRangeIdx-1))
@@ -202,7 +208,7 @@ class CntrMaster (object):
         """
         settings.error ('F2P_bucket.incCntr() is currently unsupported.')
 
-    def val2cntr (self, targetVal) -> dict:
+    def val2cntr (self, targetVal) -> list:
         """
         given a target value, find the closest counters to this targetVal from below and from above.
         Output:
@@ -221,11 +227,12 @@ class CntrMaster (object):
                 return [{'cntr' : CntrMaster.expRanges[self.stage][i], 'val' : targetVal}] # CntrMaster.expRanges[i] holds the counter corresponding to this offset
             
             # now we know that self.offset[i]>val. Therefore the max relevant offset is the previous one, namely, CntrMaster.offsets[self.stage][i-1]
-            cntr = CntrMaster.expRanges[self.stage][i-1] + (targetVal-CntrMaster.offsets[self.stage][i-1])*(2**(i-1))
-            cntrVal = CntrMaster.offsets[self.stage][i-1] + (cntr-CntrMaster.expRanges[self.stage][i-1])*(2**(i-1)) 
+            shift = (targetVal-CntrMaster.offsets[self.stage][i-1])//(2**(i-1))
+            cntr = CntrMaster.expRanges[self.stage][i-1] + shift
+            cntrVal = CntrMaster.offsets[self.stage][i-1] + shift*(2**(i-1)) 
             if cntrVal==targetVal:
                 return [{'cntr' : cntr, 'val' : targetVal}]
-            return [{'cntr' : cntr, 'val' : cntrVal}, {'cntr' : cntr+1, 'val' : cantrVal + 2**(i-1)}]
+            return [{'cntr' : cntr, 'val' : cntrVal}, {'cntr' : cntr+1, 'val' : cntrVal + 2**(i-1)}]
         
 
     def calcCntrMaxVal (self):
