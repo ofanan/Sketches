@@ -64,6 +64,7 @@ class Buckets (object):
                                             hyperExpSize    = 0,
                                             verbose=self.verbose) for _ in range (self.numBuckets)]
         elif mode=='MEC':
+            MecBucket.CntrMaster.expRanges = MecBucket.precomputeExpRangesAndOffsets (cntrSize=self.cntrSize, numStages=2)
             self.buckets = [MecBucket.CntrMaster(
                                             cntrSize        = self.cntrSize, 
                                             numCntrs        = self.numCntrsPerBkt,

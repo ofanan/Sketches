@@ -4,10 +4,41 @@ from printf import printf
 import settings
 import numpy as np
 
+def precomputeExpRangesAndOffsets (cntrSize, numStages):
+
+    cntrMaxVal = int ((1 << cntrSize) - 1)
+
+    expRanges, offsets = [None]*numStages, [None]*numStages
+    
+    if cntrSize<=8:
+        expRanges[0]    = np.zeros(2, dtype='uint8')
+        offsets[0]      = np.zeros(2, dtype='uint64')
+    elif cntrSize<=16:
+        expRanges[0]    = np.zeros(2, dtype='uint16')
+        offsets[0]      = np.zeros(2, dtype='uint64')
+    else:
+        expRanges[0]    = np.zeros(2, dtype='uint32')
+        offsets[0]      = np.zeros(2, dtype='uint64')
+    return expRanges
+
+    # for stage in range (1, self.numStages)
+        
+    # expRanges[0] = [int(0), cntrMaxVal+1]
+    #
+    # self.updateOffsets  ()
+    # self.rstAllCntrs    ()
+    #
+    # offsets = [int(0)]*len(self.expRanges)
+    # for i in range(1, len(self.expRanges)):
+    #     self.offsets[i] = self.offsets[i-1] + (self.expRanges[i] - self.expRanges[i-1])*(2**(i-1))
+    # print (f'expRanges={self.expRanges}, offsets={self.offsets}') #$$$
+
+
 class CntrMaster (object):
     """
     Generate, check and parse counters
     """
+    expRanges = None
 
     # Generates a strings that details the counter's settings (param vals).    
     genSettingsStr = lambda self : 'MEC_n{}_s{}' .format (self.cntrSize, self.stage)
@@ -24,14 +55,6 @@ class CntrMaster (object):
         """
         return
     
-    def calcOffsets (self):
-        """
-        Pre-calculate all the offsets to be added to a counter, according to its exponent value.
-        self.offsetOfExpVal[e] will hold the offset to be added to the counter's val when the exponent's value is e.
-        """
-        return
-
-   
     def __init__ (self, 
                   cntrSize  = 8, # bits per counter 
                   stageSize = 4, # bits of the "stage" field in each bucket 
@@ -42,7 +65,8 @@ class CntrMaster (object):
         """
         Initialize an array of MEC counters. The cntrs are initialized to 0.
         """
-        
+        settings.error (CntrMaster.expRanges) #$$
+        exit () #$$
         if (cntrSize<3):
             settings.error (f'MecBucket was called with cntrSize={cntrSize}. However, cntrSize should be at least 3.')
         self.cntrSize   = int(cntrSize)
@@ -52,7 +76,11 @@ class CntrMaster (object):
         self.stage      = 0
         self.stageMax   = int ((1 << stageSize) - 1)
         self.expRanges  = [int(0), self.cntrMaxVal+1]
-        self.rstAllCntrs ()
+        self.updateOffsets  ()
+        self.rstAllCntrs    ()
+        for _ in range (5): #$$
+            self.upScale ()
+            
         
     def rstAllCntrs (self):
         """
@@ -71,19 +99,37 @@ class CntrMaster (object):
         self.cntrs[cntrIdx] = 0
         
 
-    def cntr2val (self, cntr):
+    def cntr2val (self, 
+                  cntr, # integer representation of the counter's vec
+                  expRanges = None # expRanges to use during the calculation
+                  # offsets = None # offsets to use during the calculation
+                  ):
         """
-        Convert a MEC, given as an integer, to the value it represents.
+        Convert a MEC to the value it represents.
         """
-        # if cntr<self.expRanges[1]:
-        #     return cntr
-        val = 0
-        for expRangeIdx in range(1, len(self.expRanges)):
-            if self.expRanges[expRangeIdx] >= cntr:
-                val += (cntr - self.expRanges[expRangeIdx-1])*(2**(expRangeIdx-1))
+        # if offsets==None:
+        #     offsets = self.offsets
+        if expRanges==None:
+            expRanges = self.expRanges
+        for expRangeIdx in range(1, len(expRanges)):
+            if expRanges[expRangeIdx] >= cntr:
+                val += (cntr - expRanges[expRangeIdx-1])*(2**(expRangeIdx-1))
                 break
-            val += (self.expRanges[expRangeIdx]-self.expRanges[expRangeIdx-1])*(2**(expRangeIdx-1))
+            val += (expRanges[expRangeIdx]-expRanges[expRangeIdx-1])*(2**(expRangeIdx-1))
         return val
+
+    def updateOffsets (self):
+        """
+        Calculate the offset corresponding to each expRange
+        """
+        """
+        Pre-calculate all the offsets to be added to a counter, according to its exponent value.
+        self.offsetOfExpVal[e] will hold the offset to be added to the counter's val when the exponent's value is e.
+        """
+        self.offsets = [int(0)]*len(self.expRanges)
+        for i in range(1, len(self.expRanges)):
+            self.offsets[i] = self.offsets[i-1] + (self.expRanges[i] - self.expRanges[i-1])*(2**(i-1))
+        print (f'expRanges={self.expRanges}, offsets={self.offsets}') #$$$
 
     def queryCntrGetVal (self, cntrIdx=0):
         """
@@ -108,40 +154,57 @@ class CntrMaster (object):
         if self.cntrs[cntrIdx]<self.expRanges[0]: # is the counter within a range of exponent==0?
             self.cntrs[cntrIdx] += 1 # yep --> increment by 1 and return the updated value
             return self.cntrs[cntrIdx]
-        if self.cntrs[cntrIdx] < self.cntrMaxVal: # No OF
-            cntrVal = self.cntr2val(self.cntrs[cntrIdx])
-            cntrValpp = self.cntr2val(self.cntrs[cntrIdx] + 1)
-            if random.random() < 1/(cntrValpp-cntrVal): # Prob' Increment
-                self.cntrs[cntrIdx] += 1
-                return cntrValpp
-            return cntrVal # don't increment --> return the current value, w/o increment
-        self.scaleUp ()
-        self.cntrs[cntrIdx] += 1
-        return self.cntr2val(self.cntrs[cntrIdx])
+        upScaled = False #$$$
+        if self.cntrs[cntrIdx]==self.cntrMaxVal: # OF
+            vecb4upScale = self.cntrs[cntrIdx]
+            valb4upScale = self.cntr2val(self.cntrs[cntrIdx])
+            self.upScale ()
+            upScaled = True #$$
+        cntrVal = self.cntr2val(self.cntrs[cntrIdx])
+        cntrValpp = self.cntr2val(self.cntrs[cntrIdx] + 1)
+        if upScaled: #$$$
+            print (f'b4upScale: vec={vecb4upScale} val={valb4upScale}. After: vec={self.cntrs[cntrIdx]}, cntrVal={cntrVal}, cntrValpp={cntrValpp}')
+        if random.random() < 1/(cntrValpp-cntrVal): # Prob' Increment
+            self.cntrs[cntrIdx] += 1
+            return cntrValpp
+        return cntrVal # don't increment --> return the current value, w/o increment
             
-    def scaleUp (self):
+    def upScale (self):
         """
         scale-up all the counters in the bucket, by updating the exponent ranges and halving counters.
         """
         if self.stage==self.stageMax:
             settings.error ('MecBucket: cannot upScale above the maximum stage.')
+        if settings.VERBOSE_LOG in self.verbose:
+            printf (self.logFile, f'upScsale. stage={self.stage}\n')
         self.stage += 1
-        # j = self.stage - 2**(math.floor(math.log2(self.stage)))
-        # nom = 2*j+1
-        # denom = 2**(math.ceil(math.log2(self.stage+1)))
-        # frac = nom/denom
-        # frac = (2*(self.stage - 2**(math.floor(math.log2(self.stage))))+1)/(2**(math.ceil(math.log2(self.stage+1))))
         pivot = int((2*(self.stage - 2**(math.floor(math.log2(self.stage))))+1)/(2**(math.ceil(math.log2(self.stage+1))))*(self.cntrMaxVal+1))
-        self.expRanges.append (pivot)
-        self.expRanges.sort()
-        relevantExpRanges = [item for item in self.expRanges[:-1] if item>=pivot]
-        for cntr in [cntr for cntr in self.cntrs if cntr>pivot]:
-            point = max ([item for item in relevantExpRanges if item < cntr])
-            if random.random() < 0.5:
-                cntr = point + math.floor(cntr-point)/2
-            else:  
-                cntr = point + math.ceil(cntr-point)/2
+        # prevOffsets = self.offsets.copy()
+        prevExpRanges = self.expRanges.copy()
+        self.expRanges.append   (pivot)
+        self.expRanges.sort     ()
+        self.updateOffsets      ()
+        return #$$$
+
+        for cntrIdx in range(self.numCntrs):
+            prevVal = self.cntr2val(self.cntrs[cntrIdx], prevExpRanges)
+            cntrs = self.val2cntr (prevVal)
+            if len(cntrs)==1: # could accurately represent the new counter; is that possible at all?
+                settings.error ('found exact match after upScsaling') #$$$
+                self.cntrs[cntrIdx] = cntrs[0]
+                continue
+            print (f'prevVal={prevVal}, newVal={self.cntr2val(cntrs[0])}, newValPp={self.cntr2val(cntrs[1])}') #$$$
+            if random.random()<0.5:
+                self.cntrs[cntrIdx] = cntrs[0]
+            else:
+                self.cntrs[cntrIdx] = cntrs[1]
+        # self.printAllPossibleVals () #$$$$
         # print (f'stage={self.stage}, pivot={pivot}, expRanges={self.expRanges}, relevantExpRanges={relevantExpRanges}')
+        
+    def printAllPossibleVals (self):
+        
+        print (f'stage={self.stage}')
+        print ([self.cntr2val(i) for i in range(self.cntrMaxVal+1)])
         
     def incCntr (self, cntrIdx=0, mult=False, factor=1, verbose=[]):
         """
@@ -173,7 +236,16 @@ class CntrMaster (object):
         settings.error ('F2P_bucket.incCntr() is currently unsupported.')
             
             
-    def num2cntr (self, targetVal) -> dict:
+    # def cntr2val (self, 
+    #               cntr, # integer representation of the counter's vec
+    #               offsets = None # offsets to use during the calculation
+    #               ):
+    #     """
+    #     Convert a MEC to the value it represents.
+    #     """
+    #     if offsets==None:
+    #         offsets = self.offsets
+    def val2cntr (self, targetVal) -> dict:
         """
         given a target value, find the closest counters to this targetVal from below and from above.
         Output:
@@ -184,7 +256,20 @@ class CntrMaster (object):
         - Else, 
             The cosrresponding counter's value, after performing a probabilistic increment. 
         """
-        return
+        settings.error ('val2cntr is not implemented yet')
+        # as the list is of offset values is sorted, need to loop only until the max relevant offset is found
+        for i in range(1, len(self.offsets)):
+            if self.offsets[i]<targetVal: # did not reach yet the largest relevant offset
+                continue
+            if self.offsets[i]==targetVal: # Bingo
+                return [{'cntr' : self.expRanges[i], 'val' : targetVal}] # expRanges[i] holds the counter corresponding to this offset
+            
+            # now we know that self.offset[i]>val. Therefore the max relevant offset is the previous one, namely, self.offsets[i-1]
+            cntr = self.expRanges[i-1] + (targetVal-self.offsets[i-1])*(2**(i-1))
+            cntrVal = self.offsets[i-1] + (cntr-self.expRanges[i-1])*(2**(i-1)) 
+            if cntrVal==targetVal:
+                return [{'cntr' : cntr, 'val' : targetVal}]
+            return [{'cntr' : cntr, 'val' : cntrVal}, {'cntr' : cntr+1, 'val' : cantrVal + 2**(i-1)}]
         
 
     def calcCntrMaxVal (self):

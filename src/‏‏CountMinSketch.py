@@ -37,7 +37,7 @@ class CountMinSketch:
         if depth<1 or width<1 or cntrSize<1:
             settings.error (f'CountMinSketch was called with depth={depth}, width={width}, cntrSize={cntrSize}. All these parameters should be at least 1.')
         if depth<2 or width<2:
-            print (f'CountMinSketch was called with depth={depth} and width={width}.')            
+            print (f'Note: CountMinSketch was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
         
         self.mode, self.seed,  = mode, seed
@@ -244,11 +244,11 @@ def main():
     numCntrsPerBkt          = 1
     numIncs                 = 1000 #(width * depth * cntrSize**3)/2
     numOfExps               = 1
-    verbose                 = [settings.VERBOSE_LOG] #, settings.VERBOSE_DETAILS
+    verbose                 = [] #settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
                           numCntrsPerBkt = numCntrsPerBkt, 
                           mode='MecBuckets')
-    cms.sim (numOfExps=numOfExps, numIncs=numIncs)
+    # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
      
     # width, depth, cntrSize  = 64, 4, 4
     # numFlows                = width*depth*4
