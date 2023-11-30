@@ -1,4 +1,4 @@
-# Mixed Exponent COunters
+# Mixed Exponent Counters
 import math, random, pickle
 from printf import printf
 import settings
@@ -63,19 +63,19 @@ class CntrMaster (object):
         self.stage      = 0
         self.stageMax   = int ((1 << stageSize) - 1)
         self.rstAllCntrs    ()
-        for _ in range (5): #$$
-            self.upScale ()
-            for cntr in [cntr for cntr in range(self.cntrMaxVal+1)]: #$$$
-                val = self.cntr2val(cntr)
-                res = self.val2cntr(targetVal=val) #[0]['cntr']
-                if cntr!=res[0]['cntr']:
-                    settings.error ('stage={}, cntr={}, val={}, cntrCheck={}' .format (self.stage, cntr, val, res[0]['cntr']))
-                # print (f'cntr={cntr}, val={val}, res={res}') #$$$
-        print (f'expRanges={CntrMaster.expRanges[self.stage]}, offsets={CntrMaster.offsets[self.stage]}')
-        for val in range (190):
-            res = self.val2cntr(targetVal=val) #[0]['cntr']
-            print (f'val={val}, res={res}') #$$$
-        exit () #$$$
+        # for _ in range (5): #$$
+        #     self.upScale ()
+        #     for cntr in [cntr for cntr in range(self.cntrMaxVal+1)]: #$$$
+        #         val = self.cntr2val(cntr)
+        #         res = self.val2cntr(targetVal=val) #[0]['cntr']
+        #         if cntr!=res[0]['cntr']:
+        #             settings.error ('stage={}, cntr={}, val={}, cntrCheck={}' .format (self.stage, cntr, val, res[0]['cntr']))
+        #         # print (f'cntr={cntr}, val={val}, res={res}') #$$$
+        # print (f'expRanges={CntrMaster.expRanges[self.stage]}, offsets={CntrMaster.offsets[self.stage]}')
+        # for val in range (190):
+        #     res = self.val2cntr(targetVal=val) #[0]['cntr']
+        #     print (f'val={val}, res={res}') #$$$
+        # exit () #$$$
             
     def rstAllCntrs (self):
         """
@@ -96,21 +96,19 @@ class CntrMaster (object):
 
     def cntr2val (self, 
                   cntr, # integer representation of the counter's vec
-                  stage = None
+                  stage = self.stage # stage to be used when calculating the value
                   ):
         """
-        Convert a MEC to the value it represents.
+        Given a MEC , return the value it represents and the first expRange >= this cntr. 
+        Outputs: 
+        - The value represented by this MEC, at this stage. 
+        - The minimal expRangesIdx satisfying CntrMaster.expRanges[stage][expRangeIdx]>=cntr.
         """
         if stage==None:
             stage = self.stage
-        val = int(0)
-        # print (f'stageMax={self.stageMax}, stage={stage}') #$$
         for expRangeIdx in range(1, len(CntrMaster.expRanges[stage])):
             if CntrMaster.expRanges[stage][expRangeIdx] >= cntr:
-                val += (cntr - CntrMaster.expRanges[stage][expRangeIdx-1])*(2**(expRangeIdx-1))
-                break
-            val += (CntrMaster.expRanges[stage][expRangeIdx] - CntrMaster.expRanges[stage][expRangeIdx-1])*(2**(expRangeIdx-1))
-        return val
+                return CntrMaster.offsets[stage][expRangeIdx-1] + (cntr - CntrMaster.expRanges[stage][expRangeIdx-1])*(2**(expRangeIdx-1)), expRangeIdx
 
     def queryCntrGetVal (self, cntrIdx=0):
         """
@@ -135,20 +133,22 @@ class CntrMaster (object):
         if self.cntrs[cntrIdx]<CntrMaster.expRanges[self.stage][0]: # is the counter within a range of exponent==0?
             self.cntrs[cntrIdx] += 1 # yep --> increment by 1 and return the updated value
             return self.cntrs[cntrIdx]
-        upScaled = False #$$$
+        # upScaled = False #$$$
         if self.cntrs[cntrIdx]==self.cntrMaxVal: # OF
-            vecb4upScale = self.cntrs[cntrIdx]
-            valb4upScale = self.cntr2val(self.cntrs[cntrIdx])
+            # vecb4upScale = self.cntrs[cntrIdx]
+            # valb4upScale = self.cntr2val(self.cntrs[cntrIdx])
             self.upScale ()
-            upScaled = True #$$
-        cntrVal = self.cntr2val(self.cntrs[cntrIdx])
-        cntrValpp = self.cntr2val(self.cntrs[cntrIdx] + 1)
-        if upScaled: #$$$
-            print (f'b4upScale: vec={vecb4upScale} val={valb4upScale}. After: vec={self.cntrs[cntrIdx]}, cntrVal={cntrVal}, cntrValpp={cntrValpp}')
-        if random.random() < 1/(cntrValpp-cntrVal): # Prob' Increment
-            self.cntrs[cntrIdx] += 1
-            return cntrValpp
-        return cntrVal # don't increment --> return the current value, w/o increment
+            # upScaled = True #$$
+        val, expRangeIdx = self.cntr2val (cntr)
+        if cntr == CntrMaster.expRanges[self.stage][expRangeIdx]: # the cntr is exactly at the beginning (lowest value) of an expRange
+            valpp = val + 2**expRangeIdx
+        else:
+            valpp = val + 2**(expRangeIdx-1)
+            
+        if random.random() < 1/(valpp-val):
+            self.cntrs[cntrIdx] += 1 # yep --> increment by 1 and return the updated value
+            return valpp
+        return val
             
     def upScale (self):
         """
