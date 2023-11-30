@@ -37,7 +37,12 @@ def precomputeExpRangesAndOffsets (cntrSize, numStages):
         expRanges[stage] = expRanges[stage-1].copy ()
         expRanges[stage].append   (pivot)
         expRanges[stage].sort     ()
-    print (f'expRanges={expRanges}')
+        offsets[stage] = [int(0)]*len(expRanges[stage])
+        for i in range(1, len(expRanges[stage])):
+            offsets[stage][i] = offsets[stage][i-1] + (expRanges[stage][i] - expRanges[stage][i-1])*(2**(i-1))
+
+    print (f'expRanges={expRanges}, offsets={offsets}')
+    exit ()
     return expRanges
         # self.updateOffsets      ()
         
