@@ -29,8 +29,6 @@ class CntrMaster (object):
     """
     Generate, check and parse counters
     """
-    expRanges = None
-
     # Generates a strings that details the counter's settings (param vals).    
     genSettingsStr = lambda self : 'MEC_n{}_s{}' .format (self.cntrSize, self.stage)
     
@@ -65,7 +63,8 @@ class CntrMaster (object):
         self.stage      = 0
         self.stageMax   = int ((1 << stageSize) - 1)
         self.rstAllCntrs    ()
-        ar = [i for i in range(self.cntrMaxVal)]
+        for cntr in [cntr for cntr in range(self.cntrMaxVal)]: #$$$
+            print (f'cntr={cntr}, val={self.cntr2val(cntr)}') #$$$
         exit () #$$$
         # for _ in range (5): #$$
         #     self.upScale ()
@@ -90,19 +89,18 @@ class CntrMaster (object):
     def cntr2val (self, 
                   cntr, # integer representation of the counter's vec
                   stage = None
-                  # expRanges = None # expRanges to use during the calculation
-                  # offsets = None # offsets to use during the calculation
                   ):
         """
         Convert a MEC to the value it represents.
         """
         if stage==None:
             stage = self.stage
+        val = int(0)
         for expRangeIdx in range(1, len(CntrMaster.expRanges[stage])):
-            if expRanges[expRangeIdx] >= cntr:
-                val += (cntr - expRanges[stage][expRangeIdx-1])*(2**(expRangeIdx-1))
+            if CntrMaster.expRanges[stage][expRangeIdx] >= cntr:
+                val += (cntr - CntrMaster.expRanges[stage][expRangeIdx-1])*(2**(expRangeIdx-1))
                 break
-            val += (expRanges[stage][expRangeIdx] - expRanges[stage][expRangeIdx-1])*(2**(expRangeIdx-1))
+            val += (CntrMaster.expRanges[stage][expRangeIdx] - CntrMaster.expRanges[stage][expRangeIdx-1])*(2**(expRangeIdx-1))
         return val
 
     def queryCntrGetVal (self, cntrIdx=0):
@@ -125,7 +123,7 @@ class CntrMaster (object):
         Return:
         - the value after increment.
         """
-        if self.cntrs[cntrIdx]<expRanges[self.stage][0]: # is the counter within a range of exponent==0?
+        if self.cntrs[cntrIdx]<CntrMaster.expRanges[self.stage][0]: # is the counter within a range of exponent==0?
             self.cntrs[cntrIdx] += 1 # yep --> increment by 1 and return the updated value
             return self.cntrs[cntrIdx]
         upScaled = False #$$$
@@ -213,15 +211,15 @@ class CntrMaster (object):
             The cosrresponding counter's value, after performing a probabilistic increment. 
         """
         # as the list is of offset values is sorted, need to loop only until the max relevant offset is found
-        for i in range(1, len(offsets[self.stage])):
-            if offsets[self.stage][i]<targetVal: # did not reach yet the largest relevant offset
+        for i in range(1, len(CntrMaster.offsets[self.stage])):
+            if CntrMaster.offsets[self.stage][i]<targetVal: # did not reach yet the largest relevant offset
                 continue
-            if offsets[self.stage][i]==targetVal: # Bingo
-                return [{'cntr' : expRanges[self.stage][i], 'val' : targetVal}] # expRanges[i] holds the counter corresponding to this offset
+            if CntrMaster.offsets[self.stage][i]==targetVal: # Bingo
+                return [{'cntr' : CntrMaster.expRanges[self.stage][i], 'val' : targetVal}] # CntrMaster.expRanges[i] holds the counter corresponding to this offset
             
-            # now we know that self.offset[i]>val. Therefore the max relevant offset is the previous one, namely, offsets[self.stage][i-1]
-            cntr = expRanges[self.stage][i-1] + (targetVal-offsets[self.stage][i-1])*(2**(i-1))
-            cntrVal = offsets[self.stage][i-1] + (cntr-expRanges[self.stage][i-1])*(2**(i-1)) 
+            # now we know that self.offset[i]>val. Therefore the max relevant offset is the previous one, namely, CntrMaster.offsets[self.stage][i-1]
+            cntr = CntrMaster.expRanges[self.stage][i-1] + (targetVal-CntrMaster.offsets[self.stage][i-1])*(2**(i-1))
+            cntrVal = CntrMaster.offsets[self.stage][i-1] + (cntr-CntrMaster.expRanges[self.stage][i-1])*(2**(i-1)) 
             if cntrVal==targetVal:
                 return [{'cntr' : cntr, 'val' : targetVal}]
             return [{'cntr' : cntr, 'val' : cntrVal}, {'cntr' : cntr+1, 'val' : cantrVal + 2**(i-1)}]
