@@ -12,18 +12,27 @@ def precomputeExpRangesAndOffsets (cntrSize, numStages):
 
     cntrMaxVal = int ((1 << cntrSize) - 1)
     expRanges, offsets = [[]]*numStages, [[]]*numStages #[[None]]*numStages, [[None]]*numStages
+    if cntrSize<=8:
+        pivots = np.zeros(self.numCntrs, dtype='uint8') 
+    elif cntrSize<=16:
+        pivots      = np.zeros(self.numCntrs, dtype='uint16') 
+    else:
+        pivots      = np.zeros(self.numCntrs, dtype='uint32')             
+    return            
     expRanges[0] = [int(0), int(cntrMaxVal+1)]
-    offsets  [0] = expRanges[0].copy () 
+    offsets  [0] = expRanges[0].copy ()
 
     for stage in range (1, numStages):
-        expRanges[stage] = expRanges[stage-1].copy ()
-        expRanges[stage].append   (int((2*(stage - 2**(math.floor(math.log2(stage))))+1)/(2**(math.ceil(math.log2(stage+1))))*(cntrMaxVal+1)))
+        expRanges[stage]    = expRanges[stage-1].copy ()
+        # pivots [stage] will hold the new expRange added at this stage
+        pivots [stage]       = int((2*(stage - 2**(math.floor(math.log2(stage))))+1)/(2**(math.ceil(math.log2(stage+1))))*(cntrMaxVal+1))
+        expRanges[stage].append   (pivot [stage])
         expRanges[stage].sort     ()
         offsets[stage] = [int(0)]*len(expRanges[stage])
         for i in range(1, len(expRanges[stage])):
             offsets[stage][i] = offsets[stage][i-1] + (expRanges[stage][i] - expRanges[stage][i-1])*(2**(i-1))
 
-    return expRanges, offsets
+    return expRanges, offsets, pivots
 
 class CntrMaster (object):
     """
@@ -95,8 +104,8 @@ class CntrMaster (object):
         
 
     def cntr2val (self, 
-                  cntr, # integer representation of the counter's vec
-                  stage = self.stage # stage to be used when calculating the value
+                  cntr,         # integer representation of the counter's vec
+                  stage = None  # stage to be used when calculating the value
                   ):
         """
         Given a MEC , return the value it represents and the first expRange >= this cntr. 
@@ -124,23 +133,19 @@ class CntrMaster (object):
     def incCntrBy1GetVal (self, 
                     cntrIdx  = 0): # idx of the concrete counter to increment in the array
         """
-        Increment the counter to the closest higher value.
-        If the counter is already the maximal value, do nothing.
-        Else, increment the counter with prob' 1/(newValue-curValue).
+        Perform probabilistic increment of 1 to the counter to the closest higher value including upscale, if needed.
+        Probabilistic increment is done with prob' 1/(newValue-curValue).
         Return:
         - the value after increment.
         """
         if self.cntrs[cntrIdx]<CntrMaster.expRanges[self.stage][0]: # is the counter within a range of exponent==0?
             self.cntrs[cntrIdx] += 1 # yep --> increment by 1 and return the updated value
             return self.cntrs[cntrIdx]
-        # upScaled = False #$$$
         if self.cntrs[cntrIdx]==self.cntrMaxVal: # OF
-            # vecb4upScale = self.cntrs[cntrIdx]
-            # valb4upScale = self.cntr2val(self.cntrs[cntrIdx])
             self.upScale ()
-            # upScaled = True #$$
-        val, expRangeIdx = self.cntr2val (cntr)
-        if cntr == CntrMaster.expRanges[self.stage][expRangeIdx]: # the cntr is exactly at the beginning (lowest value) of an expRange
+        val, expRangeIdx = self.cntr2val (self.cntrs[cntrIdx])
+        print (f'b4 inc: cntr={self.cntrs[cntrIdx]}, val={val}')
+        if self.cntrs[cntrIdx] == CntrMaster.expRanges[self.stage][expRangeIdx]: # the cntr is exactly at the beginning (lowest value) of an expRange
             valpp = val + 2**expRangeIdx
         else:
             valpp = val + 2**(expRangeIdx-1)
@@ -152,27 +157,38 @@ class CntrMaster (object):
             
     def upScale (self):
         """
-        scale-up all the counters in the bucket, by updating the exponent ranges and halving counters.
+        scale-up all the counters in the bucket, by updating the exponent ranges and modifying all the cntrs accordingly.
         """
+        settings.error ('upScale is not implemented yet.')
         if self.stage==self.stageMax:
             settings.error ('MecBucket: cannot upScale above the maximum stage.')
         if settings.VERBOSE_LOG in self.verbose:
             printf (self.logFile, f'upScsale. stage={self.stage}\n')
         self.stage += 1
-        return #$$$
 
         for cntrIdx in range(self.numCntrs):
-            prevVal = self.cntr2val(self.cntrs[cntrIdx], prevExpRanges)
-            cntrs = self.val2cntr (prevVal)
-            if len(cntrs)==1: # could accurately represent the new counter; is that possible at all?
-                settings.error ('found exact match after upScsaling') #$$$
-                self.cntrs[cntrIdx] = cntrs[0]
+            
+            if self.cntrs[cntrIdx]<=MecBucket.CntrMaster.pivots[self.stage]: # need not change any counter below the pivot
                 continue
-            print (f'prevVal={prevVal}, newVal={self.cntr2val(cntrs[0])}, newValPp={self.cntr2val(cntrs[1])}') #$$$
-            if random.random()<0.5:
-                self.cntrs[cntrIdx] = cntrs[0]
-            else:
-                self.cntrs[cntrIdx] = cntrs[1]
+            # val, expRangeIdx will hold the value and range of cntr in the pre-upScaled array.
+            val, expRangeIdx = self.cntr2val(self.cntrs[cntrIdx], self.stage-1)
+            
+            # Calculate the representation corresponding to val in the upScaled
+
+            # loop on the list of offsets downwards, from expRangeIdx until reaching an offset <= val 
+            for i in range(1, expRangeIdx, -1):
+                if CntrMaster.offsets[self.stage][i] > val: # did not reach yet an offset lower than val
+                    continue
+                if CntrMaster.offsets[self.stage][i]==val: # Bingo
+                    self.cntrs[cntrIdx] = CntrMaster.expRanges[self.stage][i]
+                
+                # reached an offset<val.
+                shift = (val-CntrMaster.offsets[self.stage][i])//(2**i)
+                cntrVal = CntrMaster.offsets[self.stage][i] + shift*(2**i) 
+                self.cntrs[cntrIdx] = CntrMaster.expRanges[self.stage][i] + shift
+                if cntrVal!=val and random.random() > 0.5: # did not find exact match and need to inc 
+                    self.cntrs[cntrIdx] += 1 
+
         
     def printAllPossibleVals (self):
         

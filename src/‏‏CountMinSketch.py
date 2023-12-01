@@ -247,7 +247,7 @@ def main():
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
                           numCntrsPerBkt = numCntrsPerBkt, 
                           mode='MecBuckets')
-    # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
+    cms.sim (numOfExps=numOfExps, numIncs=numIncs)
      
     # width, depth, cntrSize  = 64, 4, 4
     # numFlows                = width*depth*4

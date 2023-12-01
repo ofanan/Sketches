@@ -65,7 +65,8 @@ class Buckets (object):
                                             verbose=self.verbose) for _ in range (self.numBuckets)]
         elif mode=='MEC':
             stageSize = 4
-            MecBucket.CntrMaster.expRanges, MecBucket.CntrMaster.offsets = MecBucket.precomputeExpRangesAndOffsets (cntrSize=self.cntrSize, numStages=(1<<stageSize)-1)
+            MecBucket.CntrMaster.expRanges, MecBucket.CntrMaster.offsets, MecBucket.CntrMaster.pivots = \
+                MecBucket.precomputeExpRangesAndOffsets (cntrSize=self.cntrSize, numStages=(1<<stageSize)-1)
             self.buckets = [MecBucket.CntrMaster(
                                             cntrSize        = self.cntrSize, 
                                             numCntrs        = self.numCntrsPerBkt,
