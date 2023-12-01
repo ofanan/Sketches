@@ -138,7 +138,6 @@ class CntrMaster (object):
         """
         if self.cntrs[cntrIdx]<CntrMaster.expRanges[self.stage][0]: # is the counter within a range of exponent==0?
             self.cntrs[cntrIdx] += 1 # yep --> increment by 1 and return the updated value
-            print (f'after inc A cntr={self.cntrs[cntrIdx]}')
             return self.cntrs[cntrIdx]
         if self.cntrs[cntrIdx]==CntrMaster.expRanges[self.stage][-1]-1: # OF
             self.upScale ()
@@ -151,7 +150,6 @@ class CntrMaster (object):
             
         if random.random() < 1/(valpp-val):
             self.cntrs[cntrIdx] += 1 # yep --> increment by 1 and return the updated value
-            print (f'after inc B cntr={self.cntrs[cntrIdx]}')
             return valpp
         return val
             
@@ -163,6 +161,7 @@ class CntrMaster (object):
         if self.stage==CntrMaster.stageMax-1:
             settings.error ('requested to upScale above the highest stage.')
         
+        print (f'stage={self.stage}. b4 upscale:')
         self.printCntrVals () #$$$
         if self.stage==CntrMaster.stageMax:
             settings.error ('MecBucket: cannot upScale above the maximum stage.')
@@ -198,13 +197,11 @@ class CntrMaster (object):
         
     def printAllPossibleVals (self):
         
-        print (f'stage={self.stage}')
-        print ([self.cntr2val(i) for i in range(CntrMaster.expRanges[self.stage][-1]+1)])
+        print ([self.cntr2val(i)[0] for i in range(CntrMaster.expRanges[self.stage][-1]+1)])
         
     def printCntrVals (self):
         
-        print (f'stage={self.stage}')
-        print ([self.cntr2val(cntr) for cntr in self.cntrs])
+        print ([self.cntr2val(cntr)[0] for cntr in self.cntrs])
         
     def incCntr (self, cntrIdx=0, mult=False, factor=1, verbose=[]):
         """
