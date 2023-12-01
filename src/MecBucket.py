@@ -179,18 +179,20 @@ class CntrMaster (object):
             
             # Calculate the representation corresponding to val in the upScaled
             # loop on the list of offsets downwards, from expRangeIdx until reaching an offset <= val 
-            for i in range(1, expRangeIdx, -1):
+            for i in range(expRangeIdx+1, 0, -1):
                 if CntrMaster.offsets[self.stage][i] > val: # did not reach yet an offset lower than val
                     continue
                 if CntrMaster.offsets[self.stage][i]==val: # Bingo
                     self.cntrs[cntrIdx] = CntrMaster.expRanges[self.stage][i]
+                    break
                 
                 # reached an offset<val.
                 shift = (val-CntrMaster.offsets[self.stage][i])//(2**i)
                 cntrVal = CntrMaster.offsets[self.stage][i] + shift*(2**i) # value of the suggested modified cntr 
                 self.cntrs[cntrIdx] = CntrMaster.expRanges[self.stage][i] + shift
                 if cntrVal!=val and random.random() > 0.5: # did not find exact match and need to inc 
-                    self.cntrs[cntrIdx] += 1 
+                    self.cntrs[cntrIdx] += 1
+                break 
         print (f'after upScale:')
         self.printCntrVals () #$$$
         
