@@ -184,13 +184,6 @@ class CntrMaster (object):
         """
         print ([self.cntr2val(i)[0] for i in range(CntrMaster.expRanges[self.stage][-1]+1)])
         
-    def printCntrVals (self):
-        """
-        print the values corresponding to all the counters in self.cntrs.
-        Used for debugging/logging.
-        """        
-        print ([self.cntr2val(cntr)[0] for cntr in self.cntrs])
-        
     def incCntr (self, cntrIdx=0, mult=False, factor=1, verbose=[]):
         """
         Increase a counter by a given factor.
@@ -255,22 +248,23 @@ class CntrMaster (object):
         self.cntrZeroVec = np.binary_repr   (2**self.cntrSize - 2**(self.cntrSize-self.hyperExpSize-self.expMaxSize), self.cntrSize) # the cntr that reaches the lowest value (zero)
         # self.cntrMaxVec  = np.binary_repr   (2**(self.cntrSize-self.hyperExpSize)-1, self.cntrSize) # the cntr that reaches the highest value
         
-    def printCntrs (self, outputFile=None, printAlsoVec=False) -> None:
+        
+    def printAllCntrVals (self, outputFile=None, printAlsoVec=False) -> None:
         """
-        Format-print all the counters as a single the array, to the given file.
-        """
-        return
-        # if outputFile==None:
-        #     print (f'Printing all cntrs.')
-        #     if printAlsoVec:
-        #         for cntr in self.cntrs:
-        #             print (f'cntrVec={cntr}, cntrVal={self.cntr2val(cntr)} ')
-        #     else:
-        #         for cntr in self.cntrs:
-        #             print (f'{self.cntr2val(cntr)} ')
-        # else:
-        #     for cntr in self.cntrs:
-        #         printf (outputFile, f'{self.cntr2val(cntr)} ')
+        Format print the values corresponding to all the counters in self.cntrs.
+        Used for debugging/logging.
+        """        
+        if outputFile==None:
+            print (f'Printing all cntrs.')
+            if printAlsoVec:
+                for cntr in self.cntrs:
+                    print (f'cntrVec={cntr}, cntrVal={self.cntr2val(cntr)[0]} ')
+            else:
+                for cntr in self.cntrs:
+                    print (f'{self.cntr2val(cntr)[0]} ')
+        else:
+            for cntr in self.cntrs:
+                printf (outputFile, f'{self.cntr2val(cntr)[0]} ')
     
 
 def printAllCntrMaxVals (hyperExpSizeRange=None, cntrSizeRange=[], verbose=[settings.VERBOSE_LOG]):

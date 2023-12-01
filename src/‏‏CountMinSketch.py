@@ -242,7 +242,7 @@ def main():
     numCntrsPerBkt          = 1
     numIncs                 = 1000 #(width * depth * cntrSize**3)/2
     numOfExps               = 1
-    verbose                 = [settings.VERBOSE_DEBUG] #settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
+    verbose                 = [settings.VERBOSE_LOG] #settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
                           numCntrsPerBkt = numCntrsPerBkt, 
                           mode='MecBuckets')

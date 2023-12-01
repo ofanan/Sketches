@@ -83,7 +83,7 @@ class Buckets (object):
         """
         printf (outputFile, '[')
         for bkt in self.buckets:
-            bkt.printCntrs(outputFile)
+            bkt.printAllCntrVals(outputFile)
         printf (outputFile, ']')
     
     def rstCntr (self, cntrIdx=0) -> None:

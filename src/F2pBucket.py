@@ -392,7 +392,7 @@ class CntrMaster (object):
         self.cntrMaxVec  = np.binary_repr   (2**(self.cntrSize-self.hyperExpSize)-1, self.cntrSize) # the cntr that reaches the highest value
         self.cntrMaxVal  = self.cntr2num (self.cntrMaxVec) 
         
-    def printCntrs (self, outputFile=None, printAlsoVec=False) -> None:
+    def printAllCntrVals (self, outputFile=None, printAlsoVec=False) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
         """

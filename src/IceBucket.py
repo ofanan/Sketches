@@ -238,7 +238,7 @@ class CntrMaster(object):
         print ('Sorry, but ICE_bucket.queryCntr() is not implemented yet.')
 
 
-    def printCntrs (self, outputFile=None) -> None:
+    def printAllCntrVals (self, outputFile=None) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
         """
