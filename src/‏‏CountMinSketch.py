@@ -247,7 +247,7 @@ def main():
     width, depth, cntrSize  = 64, 4, 8
     numFlows                = width*depth*4
     numCntrsPerBkt          = 16
-    numIncs                 = 10000000 #(width * depth * cntrSize**3)/2
+    numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
     cntrMaxVal              = 300000
     numOfExps               = 10
     verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOGת settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
