@@ -116,7 +116,7 @@ class CntrMaster (object):
         return self.cntr2val(self.cntrs[cntrIdx])    
 
     def incCntrBy1GetVal (self, 
-                    cntrIdx  = 0): # idx of the concrete counter to increment in the array
+                    cntrIdx  = 0) ->int: # idx of the concrete counter to increment in the array
         """
         Perform probabilistic increment of 1 to the counter to the closest higher value including upscale, if needed.
         Probabilistic increment is done with prob' 1/(newValue-curValue).
