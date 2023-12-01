@@ -160,7 +160,7 @@ class CntrMaster (object):
         scale-up all the counters in the bucket, by updating the exponent ranges and modifying all the cntrs accordingly.
         """
         
-        if self.stage==CntrMaster.stageMax:
+        if self.stage==CntrMaster.stageMax-1:
             settings.error ('requested to upScale above the highest stage.')
         
         self.printCntrVals () #$$$
