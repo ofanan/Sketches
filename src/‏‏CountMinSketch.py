@@ -216,8 +216,7 @@ class CountMinSketch:
         if settings.VERBOSE_DETAILS in self.verbose:
             non_zeros   = len ([item for item in flowRealVal if item>0])
             zeros       = len ([item for item in flowRealVal if item==0])
-            print (f'num zeros={zeros}, num non-zeros={non_zeros}, flowRealVal={flowRealVal}') #$$$
-            exit ()
+            settings.error (f'in CountMinSketch.sim(). num zeros={zeros}, num non-zeros={non_zeros}, flowRealVal={flowRealVal}') 
         dict = self.calcRmseStat    ()
         if settings.VERBOSE_PCL in self.verbose:
             self.dumpDictToPcl    (dict)
