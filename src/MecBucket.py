@@ -65,10 +65,8 @@ class CntrMaster (object):
             settings.error (f'MecBucket was called with cntrSize={cntrSize}. However, cntrSize should be at least 3.')
         self.cntrSize   = int(cntrSize)
         self.numCntrs   = int(numCntrs)
-        self.cntrMaxVal = int ((1 << self.cntrSize) - 1)
         self.verbose    = verbose
         self.stage      = 0
-        self.stageMax   = int ((1 << stageSize) - 1)
         self.rstAllCntrs    ()
         # for _ in range (5): #$$
         #     self.upScale ()
@@ -116,7 +114,9 @@ class CntrMaster (object):
         for expRangeIdx in range(1, len(CntrMaster.expRanges[stage])):
             if CntrMaster.expRanges[stage][expRangeIdx] >= cntr:
                 return CntrMaster.offsets[stage][expRangeIdx-1] + (cntr - CntrMaster.expRanges[stage][expRangeIdx-1])*(2**(expRangeIdx-1)), expRangeIdx
-
+        settings.error (f'in cntr2val. cntr={cntr}, self.cntrMaxVal={CntrMaster.expRanges[stage][-1]-1}, max expRanges={CntrMaster.expRanges[stage][-1]}')
+        
+        
     def queryCntrGetVal (self, cntrIdx=0):
         """
         Query a cntr.
@@ -138,11 +138,12 @@ class CntrMaster (object):
         """
         if self.cntrs[cntrIdx]<CntrMaster.expRanges[self.stage][0]: # is the counter within a range of exponent==0?
             self.cntrs[cntrIdx] += 1 # yep --> increment by 1 and return the updated value
+            print (f'after inc A cntr={self.cntrs[cntrIdx]}')
             return self.cntrs[cntrIdx]
-        if self.cntrs[cntrIdx]==self.cntrMaxVal: # OF
+        if self.cntrs[cntrIdx]==CntrMaster.expRanges[self.stage][-1]-1: # OF
             self.upScale ()
         val, expRangeIdx = self.cntr2val (self.cntrs[cntrIdx])
-        print (f'b4 inc: cntr={self.cntrs[cntrIdx]}, val={val}')
+        # print (f'b4 inc: cntr={self.cntrs[cntrIdx]}, val={val}') #$$$
         if self.cntrs[cntrIdx] == CntrMaster.expRanges[self.stage][expRangeIdx]: # the cntr is exactly at the beginning (lowest value) of an expRange
             valpp = val + 2**expRangeIdx
         else:
@@ -150,6 +151,7 @@ class CntrMaster (object):
             
         if random.random() < 1/(valpp-val):
             self.cntrs[cntrIdx] += 1 # yep --> increment by 1 and return the updated value
+            print (f'after inc B cntr={self.cntrs[cntrIdx]}')
             return valpp
         return val
             
@@ -157,7 +159,12 @@ class CntrMaster (object):
         """
         scale-up all the counters in the bucket, by updating the exponent ranges and modifying all the cntrs accordingly.
         """
-        if self.stage==self.stageMax:
+        
+        if self.stage==CntrMaster.stageMax:
+            settings.error ('requested to upScale above the highest stage.')
+        
+        self.printCntrVals () #$$$
+        if self.stage==CntrMaster.stageMax:
             settings.error ('MecBucket: cannot upScale above the maximum stage.')
         if settings.VERBOSE_LOG in self.verbose:
             printf (self.logFile, f'upScsale. stage={self.stage}\n')
@@ -171,7 +178,6 @@ class CntrMaster (object):
             val, expRangeIdx = self.cntr2val(self.cntrs[cntrIdx], self.stage-1)
             
             # Calculate the representation corresponding to val in the upScaled
-
             # loop on the list of offsets downwards, from expRangeIdx until reaching an offset <= val 
             for i in range(1, expRangeIdx, -1):
                 if CntrMaster.offsets[self.stage][i] > val: # did not reach yet an offset lower than val
@@ -185,12 +191,18 @@ class CntrMaster (object):
                 self.cntrs[cntrIdx] = CntrMaster.expRanges[self.stage][i] + shift
                 if cntrVal!=val and random.random() > 0.5: # did not find exact match and need to inc 
                     self.cntrs[cntrIdx] += 1 
-        settings.error ('finished upScale')
+        print (f'after upScale:')
+        self.printCntrVals () #$$$
         
     def printAllPossibleVals (self):
         
         print (f'stage={self.stage}')
-        print ([self.cntr2val(i) for i in range(self.cntrMaxVal+1)])
+        print ([self.cntr2val(i) for i in range(CntrMaster.expRanges[self.stage][-1]+1)])
+        
+    def printCntrVals (self):
+        
+        print (f'stage={self.stage}')
+        print ([self.cntr2val(cntr) for cntr in self.cntrs])
         
     def incCntr (self, cntrIdx=0, mult=False, factor=1, verbose=[]):
         """
@@ -254,8 +266,7 @@ class CntrMaster (object):
         """
 
         self.cntrZeroVec = np.binary_repr   (2**self.cntrSize - 2**(self.cntrSize-self.hyperExpSize-self.expMaxSize), self.cntrSize) # the cntr that reaches the lowest value (zero)
-        self.cntrMaxVec  = np.binary_repr   (2**(self.cntrSize-self.hyperExpSize)-1, self.cntrSize) # the cntr that reaches the highest value
-        self.cntrMaxVal  = self.cntr2val (self.cntrMaxVec) 
+        # self.cntrMaxVec  = np.binary_repr   (2**(self.cntrSize-self.hyperExpSize)-1, self.cntrSize) # the cntr that reaches the highest value
         
     def printCntrs (self, outputFile=None, printAlsoVec=False) -> None:
         """

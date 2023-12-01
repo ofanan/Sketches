@@ -67,6 +67,7 @@ class Buckets (object):
             stageSize = 4
             MecBucket.CntrMaster.expRanges, MecBucket.CntrMaster.offsets, MecBucket.CntrMaster.pivots = \
                 MecBucket.precomputeExpRangesAndOffsets (cntrSize=self.cntrSize, numStages=(1<<stageSize)-1)
+            MecBucket.CntrMaster.stageMax   = int ((1 << stageSize) - 1)
             self.buckets = [MecBucket.CntrMaster(
                                             cntrSize        = self.cntrSize, 
                                             numCntrs        = self.numCntrsPerBkt,
