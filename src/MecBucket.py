@@ -68,19 +68,6 @@ class CntrMaster (object):
         self.verbose    = verbose
         self.stage      = 0
         self.rstAllCntrs    ()
-        # for _ in range (5): #$$
-        #     self.upScale ()
-        #     for cntr in [cntr for cntr in range(self.cntrMaxVal+1)]: #$$$
-        #         val = self.cntr2val(cntr)
-        #         res = self.val2cntr(targetVal=val) #[0]['cntr']
-        #         if cntr!=res[0]['cntr']:
-        #             settings.error ('stage={}, cntr={}, val={}, cntrCheck={}' .format (self.stage, cntr, val, res[0]['cntr']))
-        #         # print (f'cntr={cntr}, val={val}, res={res}') #$$$
-        # print (f'expRanges={CntrMaster.expRanges[self.stage]}, offsets={CntrMaster.offsets[self.stage]}')
-        # for val in range (190):
-        #     res = self.val2cntr(targetVal=val) #[0]['cntr']
-        #     print (f'val={val}, res={res}') #$$$
-        # exit () #$$$
             
     def rstAllCntrs (self):
         """
@@ -142,7 +129,6 @@ class CntrMaster (object):
         if self.cntrs[cntrIdx]==CntrMaster.expRanges[self.stage][-1]-1: # OF
             self.upScale ()
         val, expRangeIdx = self.cntr2val (self.cntrs[cntrIdx])
-        # print (f'b4 inc: cntr={self.cntrs[cntrIdx]}, val={val}') #$$$
         if self.cntrs[cntrIdx] == CntrMaster.expRanges[self.stage][expRangeIdx]: # the cntr is exactly at the beginning (lowest value) of an expRange
             valpp = val + 2**expRangeIdx
         else:
@@ -161,8 +147,6 @@ class CntrMaster (object):
         if self.stage==CntrMaster.stageMax-1:
             settings.error ('requested to upScale above the highest stage.')
         
-        print (f'stage={self.stage}. b4 upscale:')
-        self.printCntrVals () #$$$
         if self.stage==CntrMaster.stageMax:
             settings.error ('MecBucket: cannot upScale above the maximum stage.')
         if settings.VERBOSE_LOG in self.verbose:
@@ -192,15 +176,19 @@ class CntrMaster (object):
                 if cntrVal!=val and random.random() > 0.5: # did not find exact match and need to inc 
                     self.cntrs[cntrIdx] += 1
                 break 
-        print (f'after upScale:')
-        self.printCntrVals () #$$$
         
     def printAllPossibleVals (self):
-        
+        """
+        print all the values that can be represented at this stage.
+        Used for debugging/logging.
+        """
         print ([self.cntr2val(i)[0] for i in range(CntrMaster.expRanges[self.stage][-1]+1)])
         
     def printCntrVals (self):
-        
+        """
+        print the values corresponding to all the counters in self.cntrs.
+        Used for debugging/logging.
+        """        
         print ([self.cntr2val(cntr)[0] for cntr in self.cntrs])
         
     def incCntr (self, cntrIdx=0, mult=False, factor=1, verbose=[]):
