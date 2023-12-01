@@ -9,16 +9,14 @@ def precomputeExpRangesAndOffsets (cntrSize, numStages):
     Pre-compute the expRanges (ranges corresponding to required exponent value) and the offset of each stage.
     self.offsetOfExpVal[e] will hold the offset to be added to the counter's val when the exponent's value is e.
     """
-
     cntrMaxVal = int ((1 << cntrSize) - 1)
     expRanges, offsets = [[]]*numStages, [[]]*numStages #[[None]]*numStages, [[None]]*numStages
     if cntrSize<=8:
-        pivots = np.zeros(self.numCntrs, dtype='uint8') 
+        pivots = np.zeros(numStages, dtype='uint8') 
     elif cntrSize<=16:
-        pivots      = np.zeros(self.numCntrs, dtype='uint16') 
+        pivots = np.zeros(numStages, dtype='uint16') 
     else:
-        pivots      = np.zeros(self.numCntrs, dtype='uint32')             
-    return            
+        pivots = np.zeros(numStages, dtype='uint32')             
     expRanges[0] = [int(0), int(cntrMaxVal+1)]
     offsets  [0] = expRanges[0].copy ()
 
@@ -26,7 +24,7 @@ def precomputeExpRangesAndOffsets (cntrSize, numStages):
         expRanges[stage]    = expRanges[stage-1].copy ()
         # pivots [stage] will hold the new expRange added at this stage
         pivots [stage]       = int((2*(stage - 2**(math.floor(math.log2(stage))))+1)/(2**(math.ceil(math.log2(stage+1))))*(cntrMaxVal+1))
-        expRanges[stage].append   (pivot [stage])
+        expRanges[stage].append   (pivots[stage])
         expRanges[stage].sort     ()
         offsets[stage] = [int(0)]*len(expRanges[stage])
         for i in range(1, len(expRanges[stage])):
@@ -184,11 +182,11 @@ class CntrMaster (object):
                 
                 # reached an offset<val.
                 shift = (val-CntrMaster.offsets[self.stage][i])//(2**i)
-                cntrVal = CntrMaster.offsets[self.stage][i] + shift*(2**i) 
+                cntrVal = CntrMaster.offsets[self.stage][i] + shift*(2**i) # value of the suggested modified cntr 
                 self.cntrs[cntrIdx] = CntrMaster.expRanges[self.stage][i] + shift
                 if cntrVal!=val and random.random() > 0.5: # did not find exact match and need to inc 
                     self.cntrs[cntrIdx] += 1 
-
+        settings.error ('finished upScale')
         
     def printAllPossibleVals (self):
         
