@@ -157,7 +157,6 @@ class CntrMaster (object):
         """
         scale-up all the counters in the bucket, by updating the exponent ranges and modifying all the cntrs accordingly.
         """
-        settings.error ('upScale is not implemented yet.')
         if self.stage==self.stageMax:
             settings.error ('MecBucket: cannot upScale above the maximum stage.')
         if settings.VERBOSE_LOG in self.verbose:
@@ -166,7 +165,7 @@ class CntrMaster (object):
 
         for cntrIdx in range(self.numCntrs):
             
-            if self.cntrs[cntrIdx]<=MecBucket.CntrMaster.pivots[self.stage]: # need not change any counter below the pivot
+            if self.cntrs[cntrIdx]<=CntrMaster.pivots[self.stage]: # need not change any counter below the pivot
                 continue
             # val, expRangeIdx will hold the value and range of cntr in the pre-upScaled array.
             val, expRangeIdx = self.cntr2val(self.cntrs[cntrIdx], self.stage-1)
