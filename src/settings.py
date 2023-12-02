@@ -8,12 +8,13 @@ VERBOSE_COUT_CNTRLINE   = 1 # print to stdout details about the concrete counter
 VERBOSE_DEBUG           = 2 # perform checks and debug operations during the run.
 VERBOSE_RES             = 3 # print output to a .res file in the directory ../res
 VERBOSE_DETAILED_RES    = 4
-VERBOSE_PCL             = 5 # print output to a .pcl file in the directory ../res/pcl_files
-VERBOSE_DETAILS         = 6 # print to stdout details about the counter
-VERBOSE_NOTE            = 7 # print to stdout notes, e.g. when the target cntr value is above its max or below its min.
-VERBOSE_LOG             = 8
-VERBOSE_DETAILED_LOG    = 9
-VERBOSE_PROGRESS        = 10 # Print periodical output notifying the progress. Used to control long runs. 
+VERBOSE_FULL_RES        = 5
+VERBOSE_PCL             = 6 # print output to a .pcl file in the directory ../res/pcl_files
+VERBOSE_DETAILS         = 7 # print to stdout details about the counter
+VERBOSE_NOTE            = 8 # print to stdout notes, e.g. when the target cntr value is above its max or below its min.
+VERBOSE_LOG             = 9
+VERBOSE_DETAILED_LOG    = 10
+VERBOSE_PROGRESS        = 11 # Print periodical output notifying the progress. Used to control long runs. 
 # Configurations to be run. 
 # For cntrSize<8, the conf' the values are unrealistically small, and used only for checks and debugging.
 # For cntrSize>=8, cntrMaxVal is calculated by that reached by F2P stat, and hyperSize is the corresponding hyper-exponent field size in F2P stat.

@@ -38,7 +38,7 @@ class SimController (object):
                   verbose=[]): # defines which outputs would be written to .res / .pcl output files. See the VERBOSE macros as settings.py. 
         
         self.verbose = verbose
-        if settings.VERBOSE_DETAILED_RES in self.verbose:
+        if settings.VERBOSE_DETAILED_RES in self.verbose or settings.VERBOSE_FULL_RES in self.verbose:
             self.verbose.append (settings.VERBOSE_RES)
         if not (settings.VERBOSE_PCL in self.verbose):
             print ('Note: verbose does not include .pcl')  

@@ -95,7 +95,7 @@ class CountMinSketch:
         - Generate directories for the output files if not exist
         - Verify the verbose level requested.
         """      
-        if settings.VERBOSE_DETAILED_RES in self.verbose:
+        if settings.VERBOSE_DETAILED_RES in self.verbose or settings.VERBOSE_FULL_RES in self.verbose:
             self.verbose.append (settings.VERBOSE_RES)
         # if not (settings.VERBOSE_PCL in self.verbose):
         #     print ('Note: verbose does not include .pcl')  
@@ -145,6 +145,8 @@ class CountMinSketch:
         """
         if (settings.VERBOSE_RES in self.verbose):
             printf (self.resFile, f'{dict}\n\n') 
+        if (settings.VERBOSE_FULL_RES in self.verbose):
+            printf (self.fullResFile, f'{dict}\n\n') 
     
     def calcRmseStat (self) -> dict: 
         """
@@ -152,6 +154,7 @@ class CountMinSketch:
         Return a dict of the calculated data.  
         """
         
+        self.numOfExps = self.expNum + 1 # Allow writing intermmediate results. Assume we began with expNum=0.
         Rmse     = [math.sqrt (self.sumSqEr[expNum]/self.numIncs) for expNum in range(self.numOfExps)]
         normRmse = [Rmse[expNum]/self.numIncs  for expNum in range(self.numOfExps)]
         if (settings.VERBOSE_LOG in self.verbose):
@@ -182,6 +185,9 @@ class CountMinSketch:
         if (settings.VERBOSE_RES in self.verbose):
             self.resFile = open (f'../res/cms.res', 'a+')
             
+        if (settings.VERBOSE_FULL_RES in self.verbose):
+            self.fullResFile = open (f'../res/cms_full.res', 'a+')
+            
         if (settings.VERBOSE_LOG in self.verbose or settings.VERBOSE_PROGRESS in self.verbose):
             infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
             self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
@@ -207,11 +213,14 @@ class CountMinSketch:
                 #flowId = incNum%self.numFlows  #np.random.randint(self.numFlows)
                 flowRealVal[flowId]     += 1
                 flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
-                self.sumSqEr[self.expNum] += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)
-                
+                self.sumSqEr[self.expNum] += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)                
                 if settings.VERBOSE_LOG in self.verbose:
                     self.cntrMaster.printAllCntrs (self.logFile)
                     printf (self.logFile, ' hahses={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
+            if settings.VERBOSE_FULL_RES in self.verbose:
+                dict = self.calcRmseStat    ()
+                if settings.VERBOSE_RES in self.verbose:
+                    self.writeDictToResFile   (dict)
 
         if settings.VERBOSE_DETAILS in self.verbose:
             non_zeros   = len ([item for item in flowRealVal if item>0])
@@ -244,13 +253,13 @@ def main():
     # numOfExps               = 1
     # verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] #settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     
-    width, depth, cntrSize  = 64, 4, 8
+    width, depth, cntrSize  = 2, 2, 4# 64, 4, 8
     numFlows                = width*depth*4
-    numCntrsPerBkt          = 16
-    numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
+    numCntrsPerBkt          = 2 # 16
+    numIncs                 = 1000 #00000 #(width * depth * cntrSize**3)/2
     cntrMaxVal              = 300000
     numOfExps               = 10
-    verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOGת settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
+    verbose                 = [settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOGת settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
                           numCntrsPerBkt = numCntrsPerBkt, 
