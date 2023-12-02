@@ -259,7 +259,7 @@ def main():
     numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
     cntrMaxVal              = 300000
     numOfExps               = 10
-    verbose                 = [settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOGת settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
+    verbose                 = [settings.VERBOSE_FULL_RES, settings.VERBOSE_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOGת settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
                           numCntrsPerBkt = numCntrsPerBkt, 
