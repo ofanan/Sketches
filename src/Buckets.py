@@ -64,7 +64,7 @@ class Buckets (object):
                                             hyperExpSize    = 0,
                                             verbose=self.verbose) for _ in range (self.numBuckets)]
         elif mode=='MEC':
-            stageSize = 6
+            stageSize = 5
             MecBucket.CntrMaster.expRanges, MecBucket.CntrMaster.offsets, MecBucket.CntrMaster.pivots = \
                 MecBucket.precomputeExpRangesAndOffsets (cntrSize=self.cntrSize, numStages=(1<<stageSize)-1)
             MecBucket.CntrMaster.stageMax   = int ((1 << stageSize) - 1)
