@@ -253,10 +253,10 @@ def main():
     # numOfExps               = 1
     # verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] #settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     
-    width, depth, cntrSize  = 2, 2, 4# 64, 4, 8
+    width, depth, cntrSize  = 64, 4, 8
     numFlows                = width*depth*4
-    numCntrsPerBkt          = 2 # 16
-    numIncs                 = 1000 #00000 #(width * depth * cntrSize**3)/2
+    numCntrsPerBkt          = 16
+    numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
     cntrMaxVal              = 300000
     numOfExps               = 10
     verbose                 = [settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOGת settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
