@@ -229,9 +229,7 @@ class CountMinSketch:
                     self.cntrMaster.printAllCntrs (self.logFile)
                     printf (self.logFile, ' hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
             if settings.VERBOSE_FULL_RES in self.verbose:
-                dict = self.calcRmseStat    ()
-                if settings.VERBOSE_RES in self.verbose:
-                    self.writeDictToResFile   (dict)
+                printf (self.fullResFile, f'{self.calcRmseStat()}\n\n') 
             if settings.VERBOSE_TRACE in self.verbose:
                 non_zeros   = len ([item for item in flowRealVal if item>0])
                 zeros       = len ([item for item in flowRealVal if item==0])
@@ -241,7 +239,7 @@ class CountMinSketch:
         if settings.VERBOSE_PCL in self.verbose:
             self.dumpDictToPcl    (dict)
         if settings.VERBOSE_RES in self.verbose:
-            self.writeDictToResFile   (dict)
+            printf (self.resFile, f'{dict}\n\n') 
                 
     def writeProgress (self, infoStr=None):
         """
@@ -267,10 +265,10 @@ def main():
     width, depth, cntrSize  = 64, 4, 8
     numFlows                = width*depth*4
     numCntrsPerBkt          = 16
-    numIncs                 = 1000000 #(width * depth * cntrSize**3)/2
+    numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
     cntrMaxVal              = 300000
-    numOfExps               = 1
-    verbose                 = [settings.VERBOSE_TRACE] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
+    numOfExps               = 10
+    verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_FULL_RES] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
                           numCntrsPerBkt = numCntrsPerBkt, 
