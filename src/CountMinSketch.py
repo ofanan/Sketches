@@ -178,6 +178,7 @@ class CountMinSketch:
                 'numFlows'      : self.numFlows,
                 'seed'          : self.seed,
                 'Avg'           : normRmseAvg,
+                'normRmse'      : normRmse,
                 'Lo'            : normRmseConfInterval[0],
                 'Hi'            : normRmseConfInterval[1]}
 
@@ -189,7 +190,7 @@ class CountMinSketch:
             self.pclOutputFile = open(f'../res/pcl_files/sim.pcl', 'ab+')
 
         if (settings.VERBOSE_RES in self.verbose):
-            self.resFile = open (f'../res/cms.res', 'a+')
+            self.resFile = open (f'../res/cms_.res', 'a+')
             
         if (settings.VERBOSE_FULL_RES in self.verbose):
             self.fullResFile = open (f'../res/cms_full.res', 'a+')
