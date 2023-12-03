@@ -52,7 +52,6 @@ class CntrMaster (object):
     
     def __init__ (self, 
                   cntrSize  = 8, # bits per counter 
-                  numStages = 16, # bits of the "stage" field in each bucket 
                   numCntrs  = 1, # number of counters in the bucket 
                   verbose   =[], # verbose (output) definitions, defined in settings.py.
                   ):
@@ -143,11 +142,9 @@ class CntrMaster (object):
         scale-up all the counters in the bucket, by updating the exponent ranges and modifying all the cntrs accordingly.
         """
         
-        if self.stage==CntrMaster.stageMax-1:
-            settings.error ('requested to upScale above the highest stage.')
+        if self.stage==CntrMaster.numStages-1:
+            settings.error ('MecBucket: requested to upScale above the highest stage.')
         
-        if self.stage==CntrMaster.stageMax:
-            settings.error ('MecBucket: cannot upScale above the maximum stage.')
         if settings.VERBOSE_LOG in self.verbose:
             printf (self.logFile, f'upScsale. stage={self.stage}\n')
         self.stage += 1
