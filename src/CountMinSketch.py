@@ -75,7 +75,7 @@ class CountMinSketch:
                                     numCntrsPerBkt  = self.numCntrsPerBkt, 
                                     mode            = 'ICE',
                                     numEpsilonSteps = 8,
-                                    cntrMaxVal      = cntrMaxVal,
+                                    cntrMaxVal      = (1 << self.cntrSize) - 1,
                                     verbose         = self.verbose)
         elif self.mode=='F2pBuckets':
             self.cntrMaster = Buckets.Buckets (
@@ -270,15 +270,15 @@ def main():
     numOfExps               = 10
     verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_FULL_RES] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
-    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
-                          numCntrsPerBkt = numCntrsPerBkt, 
-                          mode='MecBuckets')
-    cms.sim (numOfExps=numOfExps, numIncs=numIncs)
-     
-    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
+    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
     #                       numCntrsPerBkt = numCntrsPerBkt, 
-    #                       mode='IceBuckets')
+    #                       mode='MecBuckets')
     # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
+     
+    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
+                          numCntrsPerBkt = numCntrsPerBkt, 
+                          mode='IceBuckets')
+    cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     
     # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
     #                       numCntrsPerBkt = numCntrsPerBkt, 
