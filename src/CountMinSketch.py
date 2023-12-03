@@ -195,11 +195,6 @@ class CountMinSketch:
         if (settings.VERBOSE_FULL_RES in self.verbose):
             self.fullResFile = open (f'../res/cms_full.res', 'a+')
             
-        if (settings.VERBOSE_LOG in self.verbose or settings.VERBOSE_PROGRESS in self.verbose):
-            infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
-            self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
-            self.cntrMaster.setLogFile(self.logFile)
-        
     def sim (self, numIncs=5000, numOfExps=1):
         """
         Simulate the count min sketch
@@ -216,6 +211,12 @@ class CountMinSketch:
         for self.expNum in range (self.numOfExps):
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
             self.genCntrMaster ()
+
+            if (settings.VERBOSE_LOG in self.verbose or settings.VERBOSE_PROGRESS in self.verbose):
+                infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
+                self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
+                self.cntrMaster.setLogFile(self.logFile)
+            
             for incNum in range(self.numIncs):
                 flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
                 flowId = mmh3.hash(str(flowId)) % self.numFlows
@@ -263,13 +264,13 @@ def main():
     # numOfExps               = 1
     # verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] #settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     
-    width, depth, cntrSize  = 64, 4, 8
+    width, depth, cntrSize  = 2, 2, 4 #64, 4, 8
     numFlows                = width*depth*4
-    numCntrsPerBkt          = 16
-    numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
+    numCntrsPerBkt          = 2 #16
+    numIncs                 = 100#000000 #(width * depth * cntrSize**3)/2
     cntrMaxVal              = 300000
-    numOfExps               = 10
-    verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_FULL_RES] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
+    numOfExps               = 2
+    verbose                 = [settings.VERBOSE_LOG] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
     #                       numCntrsPerBkt = numCntrsPerBkt, 

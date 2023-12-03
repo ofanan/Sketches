@@ -243,10 +243,10 @@ class CntrMaster(object):
         Format-print all the counters as a single the array, to the given file.
         """
         if outputFile==None:
-            print ('cntrs={} ' .format([self.cntrInt2num(cntr) for cntr in self.cntrs]))
+            print ('cntrs={} ' .format([self.calcEstimatorGivenEpsilon (self.epsilon, cntr) for cntr in self.cntrs]))
         else:
             for cntr in self.cntrs:
-                printf (outputFile, '{:.0f} ' .format(self.cntrInt2num(cntr)))
+                printf (outputFile, '{:.0f} ' .format(self.calcEstimatorGivenEpsilon(self.epsilon, cntr)))
     
     def printEstimators (self, outputFile=None) -> None:
         """
@@ -257,5 +257,5 @@ class CntrMaster(object):
             print ('eps={:.3f}, estimators={}' .format (self.epsilon, estimators))            
         else:
             for cntr in self.cntrs:
-                printf (outputFile, '{:.0f} ' .format(self.cntrInt2num(cntr)))
+                printf (outputFile, '{:.0f} ' .format(self.calcCntrMaxValGivenEpsilon(self.epsilon, cntr)))
     
