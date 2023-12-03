@@ -64,17 +64,16 @@ class Buckets (object):
                                             hyperExpSize    = 0,
                                             verbose=self.verbose) for _ in range (self.numBuckets)]
         elif mode=='MEC':
-            stageSize = 5
+            numStages = 25
             MecBucket.CntrMaster.expRanges, MecBucket.CntrMaster.offsets, MecBucket.CntrMaster.pivots = \
-                MecBucket.precomputeExpRangesAndOffsets (cntrSize=self.cntrSize, numStages=(1<<stageSize)-1)
-            MecBucket.CntrMaster.stageMax   = int ((1 << stageSize) - 1)
+                MecBucket.precomputeExpRangesAndOffsets (cntrSize=self.cntrSize, numStages=numStages)
             self.buckets = [MecBucket.CntrMaster(
                                             cntrSize        = self.cntrSize, 
                                             numCntrs        = self.numCntrsPerBkt,
-                                            stageSize       = stageSize,
+                                            numStages       = numStages,
                                             verbose=self.verbose) for _ in range (self.numBuckets)]
         else:
-            settings.error ('Sorry. Mode {self.mode} that you chose is not supported yet by Buckets.py.')
+            settings.error ('Sorry. Mode {self.mode} which you chose is not supported yet by Buckets.py.')
         
         
     def printAllCntrs (self, outputFile) -> None:

@@ -51,6 +51,11 @@ class CountMinSketch:
         self.conf       = settings.getConfByCntrSize (cntrSize=self.cntrSize)
         self.verbose = verbose
         self.genOutputDirectories ()
+
+    def genCntrMaster (self):
+        """
+        Generate self.cntrMaster according to the mode requested
+        """
         if self.mode=='PerfectCounter':
              self.cntrMaster = PerfectCounter.CntrMaster (
                                     cntrSize    = self.cntrSize, 
@@ -89,6 +94,7 @@ class CountMinSketch:
         else:
             print(f'Sorry, the mode {self.mode} that you requested is not supported')
 
+    
     def genOutputDirectories (self):
         """
         Generate and open the directories for output (results, logs, etc.):
@@ -208,24 +214,29 @@ class CountMinSketch:
 
         for self.expNum in range (self.numOfExps):
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
+            self.genCntrMaster ()
             for incNum in range(self.numIncs):
-                flowId = min (math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))), self.numFlows-1)
+                flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
+                flowId = mmh3.hash(str(flowId)) % self.numFlows
+                # flowId = min (math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))), self.numFlows-1)
                 #flowId = incNum%self.numFlows  #np.random.randint(self.numFlows)
                 flowRealVal[flowId]     += 1
+                if settings.VERBOSE_TRACE in self.verbose:
+                    continue
                 flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
                 self.sumSqEr[self.expNum] += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)                
                 if settings.VERBOSE_LOG in self.verbose:
                     self.cntrMaster.printAllCntrs (self.logFile)
-                    printf (self.logFile, ' hahses={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
+                    printf (self.logFile, ' hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
             if settings.VERBOSE_FULL_RES in self.verbose:
                 dict = self.calcRmseStat    ()
                 if settings.VERBOSE_RES in self.verbose:
                     self.writeDictToResFile   (dict)
+            if settings.VERBOSE_TRACE in self.verbose:
+                non_zeros   = len ([item for item in flowRealVal if item>0])
+                zeros       = len ([item for item in flowRealVal if item==0])
+                settings.error (f'in CountMinSketch.sim(). num zeros={zeros}, num non-zeros={non_zeros}, flowRealVal={flowRealVal}') 
 
-        if settings.VERBOSE_DETAILS in self.verbose:
-            non_zeros   = len ([item for item in flowRealVal if item>0])
-            zeros       = len ([item for item in flowRealVal if item==0])
-            settings.error (f'in CountMinSketch.sim(). num zeros={zeros}, num non-zeros={non_zeros}, flowRealVal={flowRealVal}') 
         dict = self.calcRmseStat    ()
         if settings.VERBOSE_PCL in self.verbose:
             self.dumpDictToPcl    (dict)
@@ -256,10 +267,10 @@ def main():
     width, depth, cntrSize  = 64, 4, 8
     numFlows                = width*depth*4
     numCntrsPerBkt          = 16
-    numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
+    numIncs                 = 1000000 #(width * depth * cntrSize**3)/2
     cntrMaxVal              = 300000
-    numOfExps               = 10
-    verbose                 = [settings.VERBOSE_FULL_RES, settings.VERBOSE_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOGת settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
+    numOfExps               = 1
+    verbose                 = [settings.VERBOSE_TRACE] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
                           numCntrsPerBkt = numCntrsPerBkt, 

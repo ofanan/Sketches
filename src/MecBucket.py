@@ -29,7 +29,6 @@ def precomputeExpRangesAndOffsets (cntrSize, numStages):
         offsets[stage] = [int(0)]*len(expRanges[stage])
         for i in range(1, len(expRanges[stage])):
             offsets[stage][i] = offsets[stage][i-1] + (expRanges[stage][i] - expRanges[stage][i-1])*(2**(i-1))
-
     return expRanges, offsets, pivots
 
 class CntrMaster (object):
@@ -53,7 +52,7 @@ class CntrMaster (object):
     
     def __init__ (self, 
                   cntrSize  = 8, # bits per counter 
-                  stageSize = 4, # bits of the "stage" field in each bucket 
+                  numStages = 16, # bits of the "stage" field in each bucket 
                   numCntrs  = 1, # number of counters in the bucket 
                   verbose   =[], # verbose (output) definitions, defined in settings.py.
                   ):
