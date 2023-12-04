@@ -2,7 +2,8 @@
 # import math, random, os, pandas as pd
 import os, math, numpy as np, scipy.stats as st 
 from printf import printf
-# import commonFuncs 
+
+INF_INT = 999999999
 
 VERBOSE_COUT_CNTRLINE   = 1 # print to stdout details about the concrete counter and its fields.
 VERBOSE_DEBUG           = 2 # perform checks and debug operations during the run.
@@ -122,16 +123,23 @@ def error (str2print):
     print (f'Error: {str2print}')
     exit  ()
 
-def check_if_input_file_exists (relative_path_to_input_file):
+def checkIfInputFileExists (relativePathToInputFile):
     """
     Check whether an input file, given by its relative path, exists.
     If the file doesn't exist - exit with a proper error msg.
     """
-    if not (os.path.isfile (relative_path_to_input_file)):
-        error (f'the input file {relative_path_to_input_file} does not exist')
+    if not (os.path.isfile (relativePathToInputFile)):
+        error (f'the input file {relativePathToInputFile} does not exist')
 
 def getMachineStr ():
     if (os.getcwd().find ('itamarc')>-1): # the string 'HPC' appears in the path only in HPC runs
         return 'HPC' # indicates that this sim runs on my PC
     else:
         return 'PC' # indicates that this sim runs on an HPC       
+
+def getTracesPath():
+    """
+    returns the path in which the traces files are found at this machine.
+    Currently, traces files should be placed merely in the "/../traces/" subdir
+    """
+    return '../../traces/'
