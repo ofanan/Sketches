@@ -5,6 +5,7 @@ from printf import printf
 
 SEED    = 42
 INF_INT = 999999999
+MAX_NUM_OF_FLOWS = 2**32
 
 VERBOSE_COUT_CNTRLINE   = 1 # print to stdout details about the concrete counter and its fields.
 VERBOSE_DEBUG           = 2 # perform checks and debug operations during the run.

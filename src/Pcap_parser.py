@@ -29,13 +29,12 @@ def parse_pcap_file (traceFileName     = 'equinix-nyc.dirB.20181220-140100.UTC.a
         if IP not in pkt:
             continue
         if TCP in pkt:
-            key = mmh3.hash (pkt[IP].src)
-            # print ('TCP')
+            key = mmh3.hash (pkt[IP].src + pkt[IP].dst + str(pkt[TCP].sport) + str(pkt[TCP].sport) + '0') % settings.MAX_NUM_OF_FLOWS
         elif UDP in pkt:
-            print ('UDP')
+            key = mmh3.hash (pkt[IP].src + pkt[IP].dst + str(pkt[UDP].sport) + str(pkt[UDP].sport) + '1') % settings.MAX_NUM_OF_FLOWS
         else:
             continue
-        
+        print (key)
         # print (pkt.summary())
         # if TCP in pkt:
         #     print ('TCP')
