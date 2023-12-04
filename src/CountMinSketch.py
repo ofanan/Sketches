@@ -1,4 +1,4 @@
-import math, random, os, pickle, mmh3, time
+import math, random, os, pickle, mmh3, time, csv
 import numpy as np
 from datetime import datetime
 import settings, PerfectCounter, Buckets
@@ -195,7 +195,11 @@ class CountMinSketch:
         if (settings.VERBOSE_FULL_RES in self.verbose):
             self.fullResFile = open (f'../res/cms_full.res', 'a+')
             
-    def sim (self, numIncs=5000, numOfExps=1):
+    def sim (self, 
+             numIncs        = 5000, # overall number of increments (# of pkts in the trace) 
+             numOfExps      = 1,  # number of repeated experiments. Relevant only for randomly-generated traces.
+             traceFileName  = None
+             ):
         """
         Simulate the count min sketch
         """
@@ -205,37 +209,72 @@ class CountMinSketch:
         self.sumSqEr    = [0] * self.numOfExps # self.sumSqEr[j] will hold the sum of the square errors collected at experiment j. 
         self.openOutputFiles ()
         
+        if traceFileName==None:
+            for self.expNum in range (self.numOfExps):
+                self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
+                self.genCntrMaster ()
+    
+                if (settings.VERBOSE_LOG in self.verbose or settings.VERBOSE_PROGRESS in self.verbose):
+                    infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
+                    self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
+                    self.cntrMaster.setLogFile(self.logFile)
+                
+                for incNum in range(self.numIncs):
+                    flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
+                    flowId = mmh3.hash(str(flowId)) % self.numFlows
+                    # flowId = min (math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))), self.numFlows-1)
+                    #flowId = incNum%self.numFlows  #np.random.randint(self.numFlows)
+                    flowRealVal[flowId]     += 1
+                    if settings.VERBOSE_TRACE in self.verbose:
+                        continue
+                    flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
+                    self.sumSqEr[self.expNum] += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)                
+                    if settings.VERBOSE_LOG in self.verbose:
+                        self.cntrMaster.printAllCntrs (self.logFile)
+                        printf (self.logFile, ' hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
+                if settings.VERBOSE_FULL_RES in self.verbose:
+                    printf (self.fullResFile, f'{self.calcRmseStat()}\n\n') 
+                if settings.VERBOSE_TRACE in self.verbose:
+                    non_zeros   = len ([item for item in flowRealVal if item>0])
+                    zeros       = len ([item for item in flowRealVal if item==0])
+                    settings.error (f'in CountMinSketch.sim(). num zeros={zeros}, num non-zeros={non_zeros}, flowRealVal={flowRealVal}') 
+        else:
+            relativePathToInputFile = f'{settings.getTracesPath()}Caida/{traceFileName}'
+            settings.checkIfInputFileExists (relativePathToInputFile)
+            csvFile = open (relativePathToInputFile, 'r')
+            csvReader = csv.reader(csvFile) #, delimiter=' ', quotechar='|')
+            for row in csvReader:
+                settings.error (row) #$$$
+            for self.expNum in range (self.numOfExps):
+                self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
+                self.genCntrMaster ()
+    
+                if (settings.VERBOSE_LOG in self.verbose or settings.VERBOSE_PROGRESS in self.verbose):
+                    infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
+                    self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
+                    self.cntrMaster.setLogFile(self.logFile)
+                
+                for incNum in range(self.numIncs):
+                    # flowId = 
+                    flowRealVal[flowId]     += 1
+                    if settings.VERBOSE_TRACE in self.verbose:
+                        continue
+                    flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
+                    self.sumSqEr[self.expNum] += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)                
+                    if settings.VERBOSE_LOG in self.verbose:
+                        self.cntrMaster.printAllCntrs (self.logFile)
+                        printf (self.logFile, ' hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
+                if settings.VERBOSE_FULL_RES in self.verbose:
+                    printf (self.fullResFile, f'{self.calcRmseStat()}\n\n') 
+                if settings.VERBOSE_TRACE in self.verbose:
+                    non_zeros   = len ([item for item in flowRealVal if item>0])
+                    zeros       = len ([item for item in flowRealVal if item==0])
+                    settings.error (f'in CountMinSketch.sim(). num zeros={zeros}, num non-zeros={non_zeros}, flowRealVal={flowRealVal}') 
+
+        
         print ('Started running at t={}. mode={}, cntrSize={}, depth={}, width={}, numFlows={}' .format (
                 datetime.now().strftime('%H:%M:%S'), self.mode, self.cntrSize, self.depth, self.width, self.numFlows))
 
-        for self.expNum in range (self.numOfExps):
-            self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
-            self.genCntrMaster ()
-
-            if (settings.VERBOSE_LOG in self.verbose or settings.VERBOSE_PROGRESS in self.verbose):
-                infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
-                self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
-                self.cntrMaster.setLogFile(self.logFile)
-            
-            for incNum in range(self.numIncs):
-                flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
-                flowId = mmh3.hash(str(flowId)) % self.numFlows
-                # flowId = min (math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))), self.numFlows-1)
-                #flowId = incNum%self.numFlows  #np.random.randint(self.numFlows)
-                flowRealVal[flowId]     += 1
-                if settings.VERBOSE_TRACE in self.verbose:
-                    continue
-                flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
-                self.sumSqEr[self.expNum] += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)                
-                if settings.VERBOSE_LOG in self.verbose:
-                    self.cntrMaster.printAllCntrs (self.logFile)
-                    printf (self.logFile, ' hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
-            if settings.VERBOSE_FULL_RES in self.verbose:
-                printf (self.fullResFile, f'{self.calcRmseStat()}\n\n') 
-            if settings.VERBOSE_TRACE in self.verbose:
-                non_zeros   = len ([item for item in flowRealVal if item>0])
-                zeros       = len ([item for item in flowRealVal if item==0])
-                settings.error (f'in CountMinSketch.sim(). num zeros={zeros}, num non-zeros={non_zeros}, flowRealVal={flowRealVal}') 
 
         dict = self.calcRmseStat    ()
         if settings.VERBOSE_PCL in self.verbose:
@@ -280,7 +319,7 @@ def main():
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
                           numCntrsPerBkt = numCntrsPerBkt, 
                           mode='IceBuckets')
-    cms.sim (numOfExps=numOfExps, numIncs=numIncs)
+    cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName='equinix-nyc.dirB.20181220-140100.UTC.anon.pcap.csv')
     
     # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
     #                       numCntrsPerBkt = numCntrsPerBkt, 
