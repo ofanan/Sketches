@@ -3,6 +3,7 @@
 import os, math, numpy as np, scipy.stats as st 
 from printf import printf
 
+SEED    = 42
 INF_INT = 999999999
 
 VERBOSE_COUT_CNTRLINE   = 1 # print to stdout details about the concrete counter and its fields.

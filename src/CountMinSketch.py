@@ -27,7 +27,7 @@ class CountMinSketch:
                  cntrSize       = 2, # num of bits in each counter
                  cntrMaxVal     = 1000,
                  verbose        = [],
-                 seed           = 42,
+                 seed           = settings.SEED,
                  ):
         
         """

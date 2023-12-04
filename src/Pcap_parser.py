@@ -6,36 +6,58 @@ Output: a csv file, where:
         - the rest of the cols. are the locations ("k_loc") to which a central controller would enter this req. upon a miss. 
 """
 from scapy.all import *
-import numpy as np
+import numpy as np, mmh3
 # from numpy import infty
-import pandas as pd
+# import pandas as pd
 import datetime as dt
 
 import settings
 
 def parse_pcap_file (traceFileName     = 'equinix-nyc.dirB.20181220-140100.UTC.anon.pcap',      
-                      maxNumOfPkts       = 3, #MyConfig.INF_INT, # maximum number of pkts to be parsed, starting from the beginning of the trace
-                      max_trace_len_in_sec = settings.INF_INT, # maximum time length to be parsed, starting from the beginning of the trace 
+                      maxNumOfPkts     = 300000, #MyConfig.INF_INT, # maximum number of pkts to be parsed, starting from the beginning of the trace
+                      maxTraceLenInSec = settings.INF_INT, # maximum time length to be parsed, starting from the beginning of the trace 
                       ):
 
     relativePathToInputFile = settings.getTracesPath() + 'Caida/' + traceFileName       
     settings.checkIfInputFileExists (relativePathToInputFile)    
 
-    for packet in PcapReader(relativePathToInputFile):
-        try:
-            print(packet[IPv6].src)
-        except:
-            pass
+    pktNum = 0
+    for pkt in PcapReader(relativePathToInputFile):
+        pktNum += 1
+        if pktNum >= maxNumOfPkts:
+            break
+        if IP not in pkt:
+            continue
+        if TCP in pkt:
+            key = mmh3.hash (pkt[IP].src)
+            # print ('TCP')
+        elif UDP in pkt:
+            print ('UDP')
+        else:
+            continue
+        
+        # print (pkt.summary())
+        # if TCP in pkt:
+        #     print ('TCP')
+        # elif UDP in pkt:
+        #     print ('UDP')
+        # else:
+        #     settings.error ('else')
+        # try:
+        #     # flowId = mmh3.hash (pkt[IP].src)
+        #     print(pkt[UDP].dport)
+        #     # print (flowId)
+        #     # print(pkt[TCP].dport)
+        #     # print(pkt[IP].src)
+        #     # print(pkt[IP].dst)
+        # except:
+        #     pass
         
     # shark_cap = rdpcap(relativePathToInputFile)
     # print ('1')
-    # pktNum = 0
     #
     # for pkt in shark_cap:
     #     print ('2')
-    #     pktNum += 1
-    #     if pktNum >= maxNumOfPkts:
-    #         break
     #     print (packet.ipv4.src)
     #     # print packet[IPv6].src
 
