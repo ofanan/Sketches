@@ -331,17 +331,18 @@ def main():
     numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
     cntrMaxVal              = 4000000
     numOfExps               = 1
+    traceFileName           = 'equinix-nyc.dirB.20181220-140100.UTC.anon.pcap.csv'
     verbose                 = [settings.VERBOSE_LOG] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
-    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
-    #                       numCntrsPerBkt = numCntrsPerBkt, 
-    #                       mode='MecBuckets')
-    # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
-     
-    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
+    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
                           numCntrsPerBkt = numCntrsPerBkt, 
-                          mode='IceBuckets')
-    cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName='equinix-nyc.dirB.20181220-140100.UTC.anon.pcap.csv')
+                          mode='MecBuckets')
+    cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
+     
+    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
+    #                       numCntrsPerBkt = numCntrsPerBkt, 
+    #                       mode='IceBuckets')
+    # cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
     
     # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
     #                       numCntrsPerBkt = numCntrsPerBkt, 
