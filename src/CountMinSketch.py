@@ -205,9 +205,9 @@ class CountMinSketch:
         """
         
         self.openOutputFiles ()
+        self.numIncs, self.numOfExps = numIncs, numOfExps
         
         if traceFileName==None:
-            self.numIncs, self.numOfExps = numIncs, numOfExps
             flowRealVal     = [0] * self.numFlows
             self.sumSqEr    = [0] * self.numOfExps # self.sumSqEr[j] will hold the sum of the square errors collected at experiment j. 
 
@@ -225,12 +225,8 @@ class CountMinSketch:
                 
                 for incNum in range(self.numIncs):
                     flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
-                    flowId = mmh3.hash(str(flowId)) % self.numFlows
-                    # flowId = min (math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))), self.numFlows-1)
-                    #flowId = incNum%self.numFlows  #np.random.randint(self.numFlows)
+                    # flowId = mmh3.hash(str(flowId)) % self.numFlows
                     flowRealVal[flowId]     += 1
-                    if settings.VERBOSE_TRACE in self.verbose:
-                        continue
                     flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
                     self.sumSqEr[self.expNum] += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)                
                     if settings.VERBOSE_LOG in self.verbose:
@@ -238,10 +234,6 @@ class CountMinSketch:
                         printf (self.logFile, ' hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
                 if settings.VERBOSE_FULL_RES in self.verbose:
                     printf (self.fullResFile, f'{self.calcRmseStat()}\n\n') 
-                if settings.VERBOSE_TRACE in self.verbose:
-                    non_zeros   = len ([item for item in flowRealVal if item>0])
-                    zeros       = len ([item for item in flowRealVal if item==0])
-                    settings.error (f'in CountMinSketch.sim(). num zeros={zeros}, num non-zeros={non_zeros}, flowRealVal={flowRealVal}') 
             dict = self.calcRmseStat    ()
             if settings.VERBOSE_PCL in self.verbose:
                 self.dumpDictToPcl    (dict)
@@ -250,7 +242,6 @@ class CountMinSketch:
 
         else: # read trace from a file
             incNum          = 0
-            self.numIncs    = numIncs
             flowRealVal     = [0] * self.numFlows
             self.sumSqEr    = 0 # self.sumSqEr will hold the sum of the square errors.  
             relativePathToInputFile = f'{settings.getTracesPath()}Caida/{traceFileName}'
@@ -270,8 +261,6 @@ class CountMinSketch:
                 if incNum==self.numIncs:
                     break
                 flowRealVal[flowId]     += 1
-                if settings.VERBOSE_TRACE in self.verbose:
-                    continue
                 flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
                 self.sumSqEr += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)
                 incNum  += 1                
@@ -280,10 +269,6 @@ class CountMinSketch:
                     printf (self.logFile, ' hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
                 if settings.VERBOSE_FULL_RES in self.verbose:
                     printf (self.fullResFile, f'{self.calcRmseStat()}\n\n') 
-                if settings.VERBOSE_TRACE in self.verbose:
-                    non_zeros   = len ([item for item in flowRealVal if item>0])
-                    zeros       = len ([item for item in flowRealVal if item==0])
-                    settings.error (f'in CountMinSketch.sim(). num zeros={zeros}, num non-zeros={non_zeros}, flowRealVal={flowRealVal}') 
 
             Rmse     = math.sqrt (self.sumSqEr/self.numIncs)
             normRmse = Rmse/self.numIncs
@@ -303,6 +288,40 @@ class CountMinSketch:
                 self.dumpDictToPcl    (dict)
             if settings.VERBOSE_RES in self.verbose:
                 printf (self.resFile, f'{dict}\n\n') 
+                
+    def collectStatOfTrace (self, 
+             numIncs        = 5000, # overall number of increments (# of pkts in the trace) 
+             traceFileName  = None
+             ):
+        """
+        Collect statistics about a trace
+        """
+        
+        self.numIncs    = numIncs
+        
+        if traceFileName==None:
+            flowRealVal     = [0] * self.numFlows
+
+            for incNum in range(self.numIncs):
+                flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
+                # flowId = mmh3.hash(str(flowId)) % self.numFlows
+                flowRealVal[flowId]     += 1
+        else: # read trace from a file
+            incNum          = 0
+            flowRealVal     = [0] * self.numFlows
+            relativePathToInputFile = f'{settings.getTracesPath()}Caida/{traceFileName}'
+            settings.checkIfInputFileExists (relativePathToInputFile)
+            csvFile = open (relativePathToInputFile, 'r')
+            csvReader = csv.reader(csvFile) #, delimiter=' ', quotechar='|')
+            for row in csvReader:
+                flowId = int(row[0]) % self.numFlows
+                if incNum==self.numIncs:
+                    break
+                flowRealVal[flowId]     += 1
+        non_zeros   = len ([item for item in flowRealVal if item>0])
+        zeros       = len ([item for item in flowRealVal if item==0])
+        settings.error (f'in CountMinSketch.sim(). num zeros={zeros}, num non-zeros={non_zeros}, flowRealVal={flowRealVal}') 
+
                 
     def writeProgress (self, infoStr=None):
         """

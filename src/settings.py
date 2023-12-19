@@ -18,7 +18,6 @@ VERBOSE_NOTE            = 8 # print to stdout notes, e.g. when the target cntr v
 VERBOSE_LOG             = 9
 VERBOSE_DETAILED_LOG    = 10
 VERBOSE_PROGRESS        = 11 # Print periodical output notifying the progress. Used to control long runs.
-VERBOSE_TRACE           = 12 # Run only to make statistics about the trace 
 # Configurations to be run. 
 # For cntrSize<8, the conf' the values are unrealistically small, and used only for checks and debugging.
 # For cntrSize>=8, cntrMaxVal is calculated by that reached by F2P stat, and hyperSize is the corresponding hyper-exponent field size in F2P stat.
