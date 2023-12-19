@@ -290,7 +290,7 @@ class CountMinSketch:
                 printf (self.resFile, f'{dict}\n\n') 
                 
     def collectStatOfTrace (self, 
-             numIncs        = 5000, # overall number of increments (# of pkts in the trace) 
+             numIncs        = float('inf'), # overall number of increments (# of pkts in the trace) 
              traceFileName  = None
              ):
         """
@@ -320,7 +320,7 @@ class CountMinSketch:
                 if incNum==self.numIncs:
                     break
         
-        outputFileName = 'rand' if traceFileName==None else traceFileName + f'_{self.numIncs}incs.txt'
+        outputFileName = 'rand' if traceFileName==None else traceFileName + f'_{incNum}incs.txt'
         outputFile = open (f'../res/{outputFileName}', 'w')
         printf (outputFile, f'numFlows={self.numFlows}, num zero flows={len ([item for item in flowRealVal if item==0])}, num non-zeros flows={len ([item for item in flowRealVal if item>0])}')
         printf (outputFile, f'\nflowSizes={flowRealVal}')
@@ -329,7 +329,9 @@ class CountMinSketch:
         binVal  = [None] * numBins 
         for bin in range(numBins):
             binVal[bin] = len ([flowId for flowId in range(self.numFlows) if (flowRealVal[flowId]//binSize)==bin])
-                
+        print (f'binVal={binVal}')
+        printf (outputFile, f'\nbinVal={binVal}')
+        
     def writeProgress (self, infoStr=None):
         """
         If the verbose requires that, report the progress to self.logFile
@@ -374,7 +376,7 @@ def main():
                           numCntrsPerBkt = numCntrsPerBkt, 
                           mode='SecBuckets')
     # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
-    cms.collectStatOfTrace(numIncs=10000, traceFileName=traceFileName)
+    cms.collectStatOfTrace(traceFileName=traceFileName)
     
 if __name__ == '__main__':
     main()
