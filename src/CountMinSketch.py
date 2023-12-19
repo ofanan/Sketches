@@ -315,13 +315,20 @@ class CountMinSketch:
             csvReader = csv.reader(csvFile) #, delimiter=' ', quotechar='|')
             for row in csvReader:
                 flowId = int(row[0]) % self.numFlows
+                flowRealVal[flowId]     += 1
+                incNum          += 1
                 if incNum==self.numIncs:
                     break
-                flowRealVal[flowId]     += 1
-        non_zeros   = len ([item for item in flowRealVal if item>0])
-        zeros       = len ([item for item in flowRealVal if item==0])
-        settings.error (f'in CountMinSketch.sim(). num zeros={zeros}, num non-zeros={non_zeros}, flowRealVal={flowRealVal}') 
-
+        
+        outputFileName = 'rand' if traceFileName==None else traceFileName + f'_{self.numIncs}incs.txt'
+        outputFile = open (f'../res/{outputFileName}', 'w')
+        printf (outputFile, f'numFlows={self.numFlows}, num zero flows={len ([item for item in flowRealVal if item==0])}, num non-zeros flows={len ([item for item in flowRealVal if item>0])}')
+        printf (outputFile, f'\nflowSizes={flowRealVal}')
+        numBins = min (100, max (flowRealVal)+1)
+        binSize = max (flowRealVal) // (numBins-1)
+        binVal  = [None] * numBins 
+        for bin in range(numBins):
+            binVal[bin] = len ([flowId for flowId in range(self.numFlows) if (flowRealVal[flowId]//binSize)==bin])
                 
     def writeProgress (self, infoStr=None):
         """
@@ -366,7 +373,8 @@ def main():
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
                           numCntrsPerBkt = numCntrsPerBkt, 
                           mode='SecBuckets')
-    cms.sim (numOfExps=numOfExps, numIncs=numIncs)
+    # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
+    cms.collectStatOfTrace(numIncs=10000, traceFileName=traceFileName)
     
 if __name__ == '__main__':
     main()
