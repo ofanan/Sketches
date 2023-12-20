@@ -13,13 +13,16 @@ class CntrMaster (Buckets.Buckets):
 
     genSettingsStr = lambda self : 'Nice_n{}'.format(self.cntrSize)
 
+    # Given the index in the Buckets, get the bucket number 
+    idx2RegBktNum = lambda self, idx : idx//self.numCntrsPerRegBkt
+
     def queryCntrVal (self, cntrIdx=0):
         """
         Query a cntr. 
         Input: cntrIdx - the counter's index. 
         Output: The value that the counter represents (as int/FP).
         """
-        val = self.regBkts[self.idx2BucketNum(cntrIdx)].queryCntrVal(cntrIdx=cntrIdx%self.numCntrsPerBkt)
+        val = self.regBkts[self.idx2RegBktNum(cntrIdx)].queryCntrVal(cntrIdx=cntrIdx%self.numCntrsPerRegBkt)
         if val==self.minValOfXlBkt:
             settings.error ('Sorry, querying values above minValOfXlBkt is not implemented yet')
         return val
@@ -27,8 +30,9 @@ class CntrMaster (Buckets.Buckets):
     def __init__ (self, 
                   cntrSize          = 4, # num of bits in each counter. 
                   numCntrs          = 9, # number of counters in the array.
-                  numCntrsPerBkt    = 1, # number of cntrs at each bucket.
-                  numCntrsInXlBkt   = 1,
+                  numCntrsPerRegBkt = 1, # number of cntrs at each bucket.
+                  numCntrsPerXlBkt  = 1,
+                  numXlBkts         = 1,
                   numEpsilonSteps   = 4,
                   numEpsilonStepsInXlBkt = 4,
                   verbose           = [], # determines which outputs would be written to .log/.res/.pcl/debug files, as detailed in settings.py.
@@ -37,24 +41,26 @@ class CntrMaster (Buckets.Buckets):
         if cntrSize<1 or numCntrs<1:
             settings.error (f'in Buckets: you requested cntrSize={cntrSize}, numCntrs={numCntrs}. However, you should choose cntrSize>=1, numCntrs>=1.')
             
-        self.cntrSize, self.numCntrs, self.numCntrsPerBkt = int(cntrSize), int(numCntrs), int(numCntrsPerBkt)
+        self.cntrSize, self.numCntrs, self.numCntrsPerRegBkt = int(cntrSize), int(numCntrs), int(numCntrsPerRegBkt)
         self.numEpsilonSteps = numEpsilonSteps
-        self.numCntrsInXlBkt = numCntrsInXlBkt
-        self.numRegularBuckets = self.numCntrs // self.numCntrsPerBkt
+        self.numCntrsPerXlBkt = numCntrsPerXlBkt
+        self.numRegularBuckets = self.numCntrs // self.numCntrsPerRegBkt
         self.verbose    = verbose
+        self.numXlBkts  = numXlBkts
         self.minValOfXlBkt = IceBucket.calcCntrMaxValsByCntrSizes (numEpsilonSteps=self.numEpsilonSteps, cntrSize=self.cntrSize)[self.numEpsilonSteps-1] 
         self.regBkts = [NiceBucket.CntrMaster(
                             cntrSize        = self.cntrSize, 
-                            numCntrs        = self.numCntrsPerBkt,
+                            numCntrs        = self.numCntrsPerRegBkt,
                             numEpsilonSteps = self.numEpsilonSteps,
                             verbose         = self.verbose,
                             id              = i)
                             for i in range (self.numRegularBuckets)]        
-        self.xlBkt = IceBucket.CntrMaster(
+        self.xlBkts = [IceBucket.CntrMaster(
                             cntrSize        = self.cntrSize, 
-                            numCntrs        = self.numCntrsInXlBkt,
+                            numCntrs        = self.numCntrsPerXlBkt,
                             numEpsilonSteps = numEpsilonStepsInXlBkt,
                             verbose         = self.verbose)
+                            for _ in range (self.numXlBkts)]
         
     def printAllCntrs (self, outputFile) -> None:
         """
@@ -69,8 +75,8 @@ class CntrMaster (Buckets.Buckets):
         """
         Reset a single counter.
         """
-        self.regBkts[self.idx2BucketNum(cntrIdx)].rstCntr(idx%self.numCntrsPerBkt)
-        # self.xlBkt.rstCntr(idx%self.numCntrsPerBkt)
+        self.regBkts[self.idx2RegBktNum(cntrIdx)].rstCntr(idx%self.numCntrsPerRegBkt)
+        # self.xlBkt.rstCntr(idx%self.numCntrsPerRegBkt)
     
     def queryCntr (self, cntrIdx=0) -> dict:
         """
@@ -82,7 +88,7 @@ class CntrMaster (Buckets.Buckets):
             - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.        
         """
         settings.error ('Sorry. NiceBuckets.queryCntr() is not implemented yet.')
-        val = self.regBkts[self.idx2BucketNum(cntrIdx)].cntr2cntrDict(cntrIdx%self.numCntrsPerBkt)
+        val = self.regBkts[self.idx2RegBktNum(cntrIdx)].cntr2cntrDict(cntrIdx%self.numCntrsPerRegBkt)
         if val==self.minValOfXlBkt:
             settings.error ('reached the max val of regular bkts')
         return val
@@ -96,7 +102,7 @@ class CntrMaster (Buckets.Buckets):
         cntrDict: a dictionary representing the modified counter where: 
             - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.
         """
-        isSaturated, valAfterInc = self.regBkts[self.idx2BucketNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerBkt)
+        isSaturated, valAfterInc = self.regBkts[self.idx2RegBktNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerRegBkt)
         if isSaturated:
             settings.error ('reached max val of regular bkts')
         return valAfterInc 

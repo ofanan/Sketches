@@ -68,11 +68,13 @@ class CountMinSketch:
                                     verbose     = self.verbose)
         elif self.mode=='NiceBuckets':
             self.cntrMaster = NiceBuckets.CntrMaster (
-                                    cntrSize        = self.cntrSize, 
-                                    numCntrs        = self.numCntrs, 
-                                    numCntrsPerBkt  = self.numCntrsPerBkt, 
-                                    numEpsilonSteps = 2,
-                                    verbose         = self.verbose)
+                                    cntrSize            = self.cntrSize, 
+                                    numCntrs            = self.numCntrs, 
+                                    numCntrsPerRegBkt   = self.numCntrsPerBkt,
+                                    numCntrsPerXlBkt    = 2,  
+                                    numEpsilonSteps     = 2,
+                                    numXlBkts           = self.width,
+                                    verbose             = self.verbose)
         elif self.mode=='SecBuckets':
              self.cntrMaster = Buckets.Buckets (
                                     cntrSize        = self.cntrSize, 
