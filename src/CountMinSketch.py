@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time, csv
 import numpy as np
 from datetime import datetime
-import settings, PerfectCounter, Buckets
+import settings, PerfectCounter, Buckets, NiceBuckets
 
 from printf import printf, printarFp
 
@@ -66,6 +66,13 @@ class CountMinSketch:
                                     cntrSize    = self.cntrSize, 
                                     numCntrs    = self.numCntrs, 
                                     verbose     = self.verbose)
+        elif self.mode=='NiceBuckets':
+            self.cntrMaster = NiceBuckets.CntrMaster (
+                                    cntrSize        = self.cntrSize, 
+                                    numCntrs        = self.numCntrs, 
+                                    numCntrsPerBkt  = self.numCntrsPerBkt, 
+                                    numEpsilonSteps = 8,
+                                    verbose         = self.verbose)
         elif self.mode=='SecBuckets':
              self.cntrMaster = Buckets.Buckets (
                                     cntrSize        = self.cntrSize, 
@@ -375,21 +382,26 @@ def main():
     traceFileName           = 'equinix-nyc.dirB.20181220-140100.UTC.anon.pcap.csv'
     verbose                 = [settings.VERBOSE_RES] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
-    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
-                          numCntrsPerBkt = numCntrsPerBkt, 
-                          mode='MecBuckets')
-    cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
-     
-    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
+    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
     #                       numCntrsPerBkt = numCntrsPerBkt, 
-    #                       mode='IceBuckets')
+    #                       mode='MecBuckets')
     # cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
-    
+     
     # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
     #                       numCntrsPerBkt = numCntrsPerBkt, 
     #                       mode='SecBuckets')
     # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     # cms.collectStatOfTrace(traceFileName=traceFileName) #, numIncs=100)
+    
+    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
+    #                       numCntrsPerBkt = numCntrsPerBkt, 
+    #                       mode='IceBuckets')
+    # cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
+    
+    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
+                          numCntrsPerBkt = numCntrsPerBkt, 
+                          mode='NiceBuckets')
+    cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
     
 if __name__ == '__main__':
     main()

@@ -3,10 +3,10 @@ import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
 
-import settings, SEC, IceBucket, F2pBucket, MecBucket 
+import settings, Buckets 
 from printf import printf, printarFp
 
-class NiceBuckets (Buckets):
+class CntrMaster (Buckets.Buckets):
     """
     New (improved) IceBuckets.
     """
@@ -23,7 +23,6 @@ class NiceBuckets (Buckets):
     def __init__ (self, 
                   cntrSize          = 4, # num of bits in each counter. 
                   numCntrs          = 9, # number of counters in the array.
-                  cntrMaxVal        = 10, 
                   numCntrsPerBkt    = 1, # number of cntrs at each bucket.
                   numCntrsInXlBkt   = 1,
                   numEpsilonSteps   = 8,
