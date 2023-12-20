@@ -95,8 +95,8 @@ class CntrMaster (Buckets.Buckets):
         cntrDict: a dictionary representing the modified counter where: 
             - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.
         """
-        valAfterInc = self.regBkts[self.idx2BucketNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerBkt)
-        if valAfterInc==self.minValOfXlBkt:
+        isSaturated, valAfterInc = self.regBkts[self.idx2BucketNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerBkt)
+        if isSaturated:
             settings.error ('reached max val of regular bkts')
         return valAfterInc 
  

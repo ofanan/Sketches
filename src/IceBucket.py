@@ -102,7 +102,7 @@ class CntrMaster(object):
         Calculate the estimators' values based on the epsilonStep accuracy parameter, as detailed in the paper ICE_buckets.
         """
         if self.epsilon<0: 
-            settings.error (f'in CEDAR:calcAllEstimatorsByEpsilon(). epsilon={self.epsilon}')
+            settings.error (f'in IceBucket:calcAllEstimatorsByEpsilon(). epsilon={self.epsilon}')
         elif self.epsilon==0: # perfect estimator - identity function
             return [int(ell) for ell in range (self.numEstimators)]
         else:
@@ -182,6 +182,9 @@ class CntrMaster(object):
         - For each counter ("symbol"), run the "symbol upsclae" procedure, defined in [ICE_buckets].
           This procedure scales-up a single counter after the "epsilon" variable was increased.
         """        
+        if self.epsilon==self.numEpsilonSteps * self.epsilonStep:
+            settings.error ('IceBucket.upscale() called when epsilon is already maximal. Cannot further increase epsilon.')
+
         # Update self.epsilon and then update all the estimators' values accordingly.
         self.prevEpsilon    = self.epsilon  
         self.epsilon       += self.epsilonStep

@@ -3,6 +3,7 @@ import random, math, numpy as np
 from printf import printf
 import settings, IceBucket
 from IceBucket import calcEstimatorGivenEpsilon, findPreComputedDatum, calcEstimatorGivenEpsilon
+from ctypes.wintypes import BOOLEAN
 # To prevent overflows, the search range for some parameters should be limited corresponding to the counter's size. 
 # This is done using the list of dicts below.
 # The data below is used also to determine the 'epsilonStep' used in ICE_buckets. 
@@ -126,7 +127,6 @@ class CntrMaster(IceBucket.CntrMaster):
         # Update self.epsilon and then update all the estimators' values accordingly.
         self.prevEpsilon    = self.epsilon  
         self.epsilon       += self.epsilonStep
-        self.calcAllEstimatorsByEpsilon () 
 
         # run the localUpscale procedure, defined in [ICE_buckets].
         for cntrIdx in range (self.numCntrs):
@@ -140,10 +140,18 @@ class CntrMaster(IceBucket.CntrMaster):
         
     def incCntrBy1GetVal (self, cntrIdx=0):
         """
-        Increase a counter cntrIdx by a 1 and return the updated value.
+        Increase a counter cntrIdx by 1ץ
+        Return:
+        wasSaturated, valAfterInc, 
+        where:
+        wasSaturated is True iff the counter was saturated already before incrementing (in this case, no increment is done).
+        valAfterInc: if wasSaturated==False, then this is the updated counter's value.
         """
         cntrVal = self.cntrs[cntrIdx]
         if cntrVal==(1 << self.cntrSize) - 1: # reached the largest possible estimated value w/o up-scaling?
+            if self.epsilon==self.numEpsilonSteps * self.epsilonStep: # already up-scaled as high as possible.
+                print ('NiceBucket.incCntrBy1GetVal() encountered a saturated cntr')
+                return True, None
             if settings.VERBOSE_LOG in self.verbose:
                 printf (self.logFile, 'up-scaling\n')
             self.upscale () 
@@ -152,8 +160,8 @@ class CntrMaster(IceBucket.CntrMaster):
         incEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal+1)
         if random.random () < 1/(incEstimate - curEstimate): 
             self.cntrs[cntrIdx] += 1
-            return incEstimate
-        return curEstimate
+            return False, incEstimate
+        return False, curEstimate
 
     def incCntr(self, cntrIdx=0, factor=1, mult=False):
         """
@@ -179,7 +187,7 @@ class CntrMaster(IceBucket.CntrMaster):
           - cntrDict['cntrVec'] - the binary counter.
           - cntrDict['val']  - the counter's value.
         """
-        print ('Sorry, but ICE_bucket.incCntr() is not implemented yet.')
+        print ('Sorry, but NiceBucket.incCntr() is not implemented yet.')
 
     def queryCntr(self, cntrIdx=0) -> dict:
         """
