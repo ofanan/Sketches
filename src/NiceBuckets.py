@@ -3,7 +3,7 @@ import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
 
-import settings, Buckets 
+import settings, Buckets, IceBucket
 from printf import printf, printarFp
 
 class CntrMaster (Buckets.Buckets):
@@ -39,10 +39,7 @@ class CntrMaster (Buckets.Buckets):
         self.regBkts = [IceBucket.CntrMaster(
                                         cntrSize        = self.cntrSize, 
                                         numCntrs        = self.numCntrsPerBkt,
-                                        cntrMaxVal      = cntrMaxVal, 
-                                        epsilonStep     = epsilonStep,
                                         numEpsilonSteps = numEpsilonSteps,
-                                        initialEpsilon  = initialEpsilon,  # initial value of the epsilon accuracy parameter, defined at the paper ICE_buckets.
                                         verbose=self.verbose) for _ in range (self.numRegularBuckets)]        
         
     def printAllCntrs (self, outputFile) -> None:
