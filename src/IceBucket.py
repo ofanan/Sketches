@@ -52,13 +52,17 @@ def calcCntrMaxValsByCntrSizes (numEpsilonSteps=6, cntrSize=4):
     Given the counter's size, find the pre-computed epsilonStep.
     For each value of epsilon in [0, epsilonStep, 2*epsilonStep, 3*epsilonStep, ...], 
     calculate the max counter's val.
+    Return an array with the max counter's val.
     """
     epsilonStep = findPreComputedDatum (cntrSize)['epsilonStep']
-    print (f'cntrSize={cntrSize}')
+    # print (f'cntrSize={cntrSize}')
+    res = [None] * numEpsilonSteps
     epsilon = 0 
-    for step in range (1, numEpsilonSteps):
-        epsilon += epsilonStep 
-        print (f'maxVal at step {step}={calcCntrMaxValGivenEpsilon(epsilon, cntrSize)}')
+    for step in range (numEpsilonSteps):
+        epsilon  += epsilonStep 
+        res[step] = calcCntrMaxValGivenEpsilon(epsilon, cntrSize)
+    # print (f'maxVals={res}')
+    return res
 
 calcCntrMaxValGivenEpsilon = lambda epsilon, cntrSize : calcEstimatorGivenEpsilon (epsilon=epsilon, ell=(1 << cntrSize) - 1) 
 
@@ -70,11 +74,11 @@ class CntrMaster(object):
     genSettingsStr = lambda self : 'Ice_n{}'.format(self.cntrSize)
     
     def __init__(self, 
-                 cntrSize       = 8, # num of bits in each counter.
-                 numCntrs       = 1, # number of counters in the array.
-                 numEpsilonSteps      = None,    # number of different possible estimation scales - a power of two.
-                 cntrMaxVal     = None, # Max value to be reached by a counter. 
-                 verbose        = [], 
+                 cntrSize           = 8, # num of bits in each counter.
+                 numCntrs           = 1, # number of counters in the array.
+                 numEpsilonSteps    = None,    # number of different possible estimation scales - a power of two.
+                 cntrMaxVal         = None, # Max value to be reached by a counter. 
+                 verbose            = [], 
                  ):
         """
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
@@ -270,4 +274,3 @@ class CntrMaster(object):
                 printf (outputFile, '{:.0f} ' .format(calcCntrMaxValGivenEpsilon(self.epsilon, self.cntrSize)))
     
     
-# calcCntrMaxValsByCntrSizes (numEpsilonSteps=6, cntrSize=8)

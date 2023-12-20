@@ -11,6 +11,8 @@ class CntrMaster (Buckets.Buckets):
     New (improved) IceBuckets.
     """
 
+    genSettingsStr = lambda self : 'Nice_n{}'.format(self.cntrSize)
+
     def queryCntrVal (self, cntrIdx=0):
         """
         Query a cntr. 
@@ -25,7 +27,7 @@ class CntrMaster (Buckets.Buckets):
                   numCntrs          = 9, # number of counters in the array.
                   numCntrsPerBkt    = 1, # number of cntrs at each bucket.
                   numCntrsInXlBkt   = 1,
-                  numEpsilonSteps   = 8,
+                  numEpsilonSteps   = 4,
                   numEpsilonStepsInXlBkt = 4,
                   verbose           = [], # determines which outputs would be written to .log/.res/.pcl/debug files, as detailed in settings.py.
                   ):
@@ -34,10 +36,11 @@ class CntrMaster (Buckets.Buckets):
             settings.error (f'in Buckets: you requested cntrSize={cntrSize}, numCntrs={numCntrs}. However, you should choose cntrSize>=1, numCntrs>=1.')
             
         self.cntrSize, self.numCntrs, self.numCntrsPerBkt = int(cntrSize), int(numCntrs), int(numCntrsPerBkt)
+        self.numEpsilonSteps = numEpsilonSteps
         self.numCntrsInXlBkt = numCntrsInXlBkt
         self.numRegularBuckets = self.numCntrs // self.numCntrsPerBkt
         self.verbose    = verbose
-        # self.minValOfXlBkt = 
+        self.minValOfXlBkt = IceBucket.calcCntrMaxValsByCntrSizes (numEpsilonSteps=self.numEpsilonSteps, cntrSize=self.cntrSize)[self.numEpsilonSteps-1] 
         self.regBkts = [IceBucket.CntrMaster(
                             cntrSize        = self.cntrSize, 
                             numCntrs        = self.numCntrsPerBkt,

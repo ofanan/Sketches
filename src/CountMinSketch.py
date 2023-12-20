@@ -71,7 +71,7 @@ class CountMinSketch:
                                     cntrSize        = self.cntrSize, 
                                     numCntrs        = self.numCntrs, 
                                     numCntrsPerBkt  = self.numCntrsPerBkt, 
-                                    numEpsilonSteps = 8,
+                                    numEpsilonSteps = 4,
                                     verbose         = self.verbose)
         elif self.mode=='SecBuckets':
              self.cntrMaster = Buckets.Buckets (
@@ -86,7 +86,7 @@ class CountMinSketch:
                                     numCntrs        = self.numCntrs, 
                                     numCntrsPerBkt  = self.numCntrsPerBkt, 
                                     mode            = 'ICE',
-                                    numEpsilonSteps = 8,
+                                    numEpsilonSteps = 5,
                                     cntrMaxVal      = (1 << self.cntrSize) - 1,
                                     verbose         = self.verbose)
         elif self.mode=='F2pBuckets':
@@ -393,15 +393,15 @@ def main():
     # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     # cms.collectStatOfTrace(traceFileName=traceFileName) #, numIncs=100)
     
-    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
-                          numCntrsPerBkt = numCntrsPerBkt, 
-                          mode='IceBuckets')
-    cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
-    
     # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
     #                       numCntrsPerBkt = numCntrsPerBkt, 
-    #                       mode='NiceBuckets')
+    #                       mode='IceBuckets')
     # cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
+    
+    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
+                          numCntrsPerBkt = numCntrsPerBkt, 
+                          mode='NiceBuckets')
+    cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
     
 if __name__ == '__main__':
     main()
