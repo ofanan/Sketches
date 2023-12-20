@@ -71,7 +71,7 @@ class CountMinSketch:
                                     cntrSize        = self.cntrSize, 
                                     numCntrs        = self.numCntrs, 
                                     numCntrsPerBkt  = self.numCntrsPerBkt, 
-                                    numEpsilonSteps = 1,
+                                    numEpsilonSteps = 2,
                                     verbose         = self.verbose)
         elif self.mode=='SecBuckets':
              self.cntrMaster = Buckets.Buckets (
@@ -263,7 +263,7 @@ class CountMinSketch:
             self.genCntrMaster ()
             if (settings.VERBOSE_LOG in self.verbose or settings.VERBOSE_PROGRESS in self.verbose):
                 infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
-                self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
+                self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
                 self.cntrMaster.setLogFile(self.logFile)
 
             print ('Started running trace input sim at t={}. mode={}, cntrSize={}, depth={}, width={}, numFlows={}' .format (
@@ -366,21 +366,21 @@ class CountMinSketch:
 def main():
     """
     """   
-    # width, depth, cntrSize  = 2, 2, 4
-    # numFlows                = width*depth*1
-    # numCntrsPerBkt          = 2
-    # numIncs                 = 1000 #(width * depth * cntrSize**3)/2
-    # numOfExps               = 1
-    # verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] #settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
-    
-    width, depth, cntrSize  = 64, 4, 8
-    numFlows                = width*depth*16
-    numCntrsPerBkt          = 16
-    numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
-    cntrMaxVal              = 4000000
-    numOfExps               = 1
     traceFileName           = 'equinix-nyc.dirB.20181220-140100.UTC.anon.pcap.csv'
-    verbose                 = [settings.VERBOSE_RES] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
+    width, depth, cntrSize  = 2, 2, 4
+    numFlows                = width*depth*1
+    numCntrsPerBkt          = 2
+    numIncs                 = 1000 #(width * depth * cntrSize**3)/2
+    numOfExps               = 1
+    verbose                 = [settings.VERBOSE_LOG] #settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
+    
+    # width, depth, cntrSize  = 64, 4, 8
+    # numFlows                = width*depth*16
+    # numCntrsPerBkt          = 16
+    # numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
+    # cntrMaxVal              = 4000000
+    # numOfExps               = 1
+    # verbose                 = [settings.VERBOSE_LOG] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
     #                       numCntrsPerBkt = numCntrsPerBkt, 

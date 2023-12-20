@@ -46,9 +46,10 @@ class CntrMaster (Buckets.Buckets):
         self.regBkts = [NiceBucket.CntrMaster(
                             cntrSize        = self.cntrSize, 
                             numCntrs        = self.numCntrsPerBkt,
-                            numEpsilonSteps = numEpsilonSteps,
-                            verbose         = self.verbose)
-                            for _ in range (self.numRegularBuckets)]        
+                            numEpsilonSteps = self.numEpsilonSteps,
+                            verbose         = self.verbose,
+                            id              = i)
+                            for i in range (self.numRegularBuckets)]        
         self.xlBkt = IceBucket.CntrMaster(
                             cntrSize        = self.cntrSize, 
                             numCntrs        = self.numCntrsInXlBkt,

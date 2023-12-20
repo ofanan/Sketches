@@ -21,23 +21,20 @@ class CntrMaster(IceBucket.CntrMaster):
                  numEpsilonSteps    = None,    # number of different possible estimation scales - a power of two.
                  cntrMaxVal         = None, # Max value to be reached by a counter. 
                  verbose            = [], 
+                 id                 = 0,
                  ):
         """
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
         """
         self.cntrSize, self.numCntrs, self.cntrMaxVal = cntrSize, numCntrs, cntrMaxVal
+        self.id = id
         self.numEstimators = 2**self.cntrSize
         self.verbose       = verbose
         self.rst () # reset all the counters
         self.numEpsilonSteps  = numEpsilonSteps
  
-        if self.cntrMaxVal==None:       
-            self.epsilon    = 0
-            self.epsilonStep      = findPreComputedDatum (cntrSize=self.cntrSize)['epsilonStep']
-        else:
-            self.calcEpsilonM() 
-            self.epsilonStep = self.epsilonM / (self.numEpsilonSteps-1) # Proof of Theorem 4 in [ICE_buckets].
-            self.epsilon     = self.epsilonStep 
+        self.epsilon          = 0
+        self.epsilonStep      = findPreComputedDatum (cntrSize=self.cntrSize)['epsilonStep']
     
     def calcAllEstimatorsByEpsilon (self):
         """
@@ -150,10 +147,12 @@ class CntrMaster(IceBucket.CntrMaster):
         cntrVal = self.cntrs[cntrIdx]
         if cntrVal==(1 << self.cntrSize) - 1: # reached the largest possible estimated value w/o up-scaling?
             if self.epsilon==self.numEpsilonSteps * self.epsilonStep: # already up-scaled as high as possible.
-                print ('NiceBucket.incCntrBy1GetVal() encountered a saturated cntr')
+                if settings.VERBOSE_LOG in self.verbose:
+                    printf (self.logFile, f'bkt {self.id} reached max val of regular bkts\n')
                 return True, None
             if settings.VERBOSE_LOG in self.verbose:
-                printf (self.logFile, 'up-scaling\n')
+                print (f'bkt {self.id} is up-scaling. epsilon b4 upscaling={self.epsilon}\n')
+                printf (self.logFile, f'bkt {self.id} is up-scaling. epsilon b4 upscaling={self.epsilon}\n')
             self.upscale () 
             cntrVal = self.cntrs[cntrIdx]# cntrVal is the value in the counter after up-scaling, before incrementing
         curEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal)
