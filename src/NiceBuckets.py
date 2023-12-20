@@ -3,7 +3,7 @@ import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
 
-import settings, Buckets, IceBucket
+import settings, Buckets, IceBucket, NiceBucket
 from printf import printf, printarFp
 
 class CntrMaster (Buckets.Buckets):
@@ -19,8 +19,10 @@ class CntrMaster (Buckets.Buckets):
         Input: cntrIdx - the counter's index. 
         Output: The value that the counter represents (as int/FP).
         """
-        settings.error ('Sorry. NiceBuckets.queryCntrVal() is not implemented yet.')
-        # return self.regBkts[self.idx2BucketNum(cntrIdx)].queryCntrVal(cntrIdx=cntrIdx%self.numCntrsPerBkt)
+        val = self.regBkts[self.idx2BucketNum(cntrIdx)].queryCntrVal(cntrIdx=cntrIdx%self.numCntrsPerBkt)
+        if val==self.minValOfXlBkt:
+            settings.error ('Sorry, querying values above minValOfXlBkt is not implemented yet')
+        return val
             
     def __init__ (self, 
                   cntrSize          = 4, # num of bits in each counter. 
@@ -41,7 +43,7 @@ class CntrMaster (Buckets.Buckets):
         self.numRegularBuckets = self.numCntrs // self.numCntrsPerBkt
         self.verbose    = verbose
         self.minValOfXlBkt = IceBucket.calcCntrMaxValsByCntrSizes (numEpsilonSteps=self.numEpsilonSteps, cntrSize=self.cntrSize)[self.numEpsilonSteps-1] 
-        self.regBkts = [IceBucket.CntrMaster(
+        self.regBkts = [NiceBucket.CntrMaster(
                             cntrSize        = self.cntrSize, 
                             numCntrs        = self.numCntrsPerBkt,
                             numEpsilonSteps = numEpsilonSteps,
