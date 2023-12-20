@@ -26,6 +26,7 @@ class CntrMaster (Buckets.Buckets):
                   numCntrsPerBkt    = 1, # number of cntrs at each bucket.
                   numCntrsInXlBkt   = 1,
                   numEpsilonSteps   = 8,
+                  numEpsilonStepsInXlBkt = 4,
                   verbose           = [], # determines which outputs would be written to .log/.res/.pcl/debug files, as detailed in settings.py.
                   ):
 
@@ -36,11 +37,18 @@ class CntrMaster (Buckets.Buckets):
         self.numCntrsInXlBkt = numCntrsInXlBkt
         self.numRegularBuckets = self.numCntrs // self.numCntrsPerBkt
         self.verbose    = verbose
+        # self.minValOfXlBkt = 
         self.regBkts = [IceBucket.CntrMaster(
-                                        cntrSize        = self.cntrSize, 
-                                        numCntrs        = self.numCntrsPerBkt,
-                                        numEpsilonSteps = numEpsilonSteps,
-                                        verbose=self.verbose) for _ in range (self.numRegularBuckets)]        
+                            cntrSize        = self.cntrSize, 
+                            numCntrs        = self.numCntrsPerBkt,
+                            numEpsilonSteps = numEpsilonSteps,
+                            verbose         = self.verbose)
+                            for _ in range (self.numRegularBuckets)]        
+        self.xlBkt = IceBucket.CntrMaster(
+                            cntrSize        = self.cntrSize, 
+                            numCntrs        = self.numCntrsInXlBkt,
+                            numEpsilonSteps = numEpsilonStepsInXlBkt,
+                            verbose         = self.verbose)
         
     def printAllCntrs (self, outputFile) -> None:
         """
@@ -56,6 +64,7 @@ class CntrMaster (Buckets.Buckets):
         Reset a single counter.
         """
         self.regBkts[self.idx2BucketNum(cntrIdx)].rstCntr(idx%self.numCntrsPerBkt)
+        # self.xlBkt.rstCntr(idx%self.numCntrsPerBkt)
     
     def queryCntr (self, cntrIdx=0) -> dict:
         """

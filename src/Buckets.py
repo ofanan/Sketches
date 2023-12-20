@@ -44,21 +44,24 @@ class Buckets (object):
         self.mode       = mode
         if mode=='SEC':
             self.buckets = [SEC.CntrMaster(cntrSize         = self.cntrSize, 
-                                           numCntrs         = self.numCntrsPerBkt, 
-                                           verbose          = self.verbose) for _ in range (self.numBuckets)]
+                                numCntrs         = self.numCntrsPerBkt, 
+                                verbose          = self.verbose) 
+                            for _ in range (self.numBuckets)]
         elif mode=='ICE':
             self.buckets = [IceBucket.CntrMaster(
-                                            cntrSize        = self.cntrSize, 
-                                            numCntrs        = self.numCntrsPerBkt,
-                                            cntrMaxVal      = cntrMaxVal, 
-                                            numEpsilonSteps = numEpsilonSteps,
-                                            verbose=self.verbose) for _ in range (self.numBuckets)]
+                                cntrSize        = self.cntrSize, 
+                                numCntrs        = self.numCntrsPerBkt,
+                                cntrMaxVal      = cntrMaxVal, 
+                                numEpsilonSteps = numEpsilonSteps,
+                                verbose         = self.verbose) 
+                            for _ in range (self.numBuckets)]
         elif mode=='F2P':
             self.buckets = [F2pBucket.CntrMaster(
-                                            cntrSize        = self.cntrSize, 
-                                            numCntrs        = self.numCntrsPerBkt,
-                                            hyperExpSize    = 0,
-                                            verbose=self.verbose) for _ in range (self.numBuckets)]
+                                cntrSize        = self.cntrSize, 
+                                numCntrs        = self.numCntrsPerBkt,
+                                hyperExpSize    = 0,
+                                verbose         = self.verbose) 
+                            for _ in range (self.numBuckets)]
         elif mode=='MEC':
             numStages = int(25)
             MecBucket.CntrMaster.expRanges, MecBucket.CntrMaster.offsets, MecBucket.CntrMaster.pivots = \

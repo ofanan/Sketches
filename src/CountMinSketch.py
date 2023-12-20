@@ -393,15 +393,15 @@ def main():
     # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     # cms.collectStatOfTrace(traceFileName=traceFileName) #, numIncs=100)
     
-    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
-    #                       numCntrsPerBkt = numCntrsPerBkt, 
-    #                       mode='IceBuckets')
-    # cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
-    
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
                           numCntrsPerBkt = numCntrsPerBkt, 
-                          mode='NiceBuckets')
+                          mode='IceBuckets')
     cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
+    
+    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
+    #                       numCntrsPerBkt = numCntrsPerBkt, 
+    #                       mode='NiceBuckets')
+    # cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
     
 if __name__ == '__main__':
     main()

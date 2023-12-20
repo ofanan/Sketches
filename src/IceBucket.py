@@ -24,6 +24,44 @@ preComputedData = [
                  {'cntrSize' : 16,   'epsilonStep' : 0.0011},
                  ]
 
+def findPreComputedDatum (cntrSize):
+    """
+    Returns the precomputed datum with the requested cntrSize.
+    """
+    preComputedDatum = [item for item in preComputedData if item['cntrSize']==cntrSize]
+    if len(preComputedDatum)==0:
+        settings.error ('Sorry, but the requested cntrSize {cntrSize} is currently not supported by CEDAR')
+    elif len(preComputedDatum)>1:
+        settings.error ('More then one entry in preComputedData for the requested cntrSize {cntrSize}')
+    return preComputedDatum[0]
+           
+def calcEstimatorGivenEpsilon (epsilon, ell):
+    """
+    calculate the ell-th estimator, given epsilon, using (1) from [ICE_buckets]. 
+    The corresponding .tex code is:
+    \frac{\left(\left(1+2\cdot \:\:x^2\right)^\ell-1\right)}{2x^2}\left(1+x^2\right) 
+    """
+    if epsilon<0 or ell<0: 
+        settings.error (f'in CEDAR:calcEstimatorGivenEpsilon(). epsilon={epsilon}, ell={ell}')
+    elif epsilon==0: # perfect estimator - identity function
+        return ell
+    return int ((((1+2*epsilon**2)**ell -1)/(2*epsilon**2)) * (1 + epsilon**2))
+    
+def calcCntrMaxValsByCntrSizes (numEpsilonSteps=6, cntrSize=4):
+    """
+    Given the counter's size, find the pre-computed epsilonStep.
+    For each value of epsilon in [0, epsilonStep, 2*epsilonStep, 3*epsilonStep, ...], 
+    calculate the max counter's val.
+    """
+    epsilonStep = findPreComputedDatum (cntrSize)['epsilonStep']
+    print (f'cntrSize={cntrSize}')
+    epsilon = 0 
+    for step in range (1, numEpsilonSteps):
+        epsilon += epsilonStep 
+        print (f'maxVal at step {step}={calcCntrMaxValGivenEpsilon(epsilon, cntrSize)}')
+
+calcCntrMaxValGivenEpsilon = lambda epsilon, cntrSize : calcEstimatorGivenEpsilon (epsilon=epsilon, ell=(1 << cntrSize) - 1) 
+
 class CntrMaster(object):
     """
     Generate, check and parse counters
@@ -31,8 +69,6 @@ class CntrMaster(object):
     # Generates a string that details the counter's settings (param vals).
     genSettingsStr = lambda self : 'Ice_n{}'.format(self.cntrSize)
     
-    calcCntrMaxValGivenEpsilon = lambda self, epsilon : self.calcEstimatorGivenEpsilon (epsilon=epsilon, ell=(1 << self.cntrSize) - 1) 
-
     def __init__(self, 
                  cntrSize       = 8, # num of bits in each counter.
                  numCntrs       = 1, # number of counters in the array.
@@ -51,25 +87,12 @@ class CntrMaster(object):
  
         if self.cntrMaxVal==None:       
             self.epsilon    = 0
-            self.epsilonStep      = self.findPreComputedDatum ()['epsilonStep']
+            self.epsilonStep      = findPreComputedDatum (cntrSize=self.cntrSize)['epsilonStep']
         else:
             self.calcEpsilonM() 
             self.epsilonStep = self.epsilonM / (self.numEpsilonSteps-1) # Proof of Theorem 4 in [ICE_buckets].
             self.epsilon     = self.epsilonStep 
     
-    def calcCntrMaxValsByCntrSizes (self, cntrSize):
-        """
-        Given the counter's size, find the pre-computed epsilonStep.
-        For each value of epsilon in [0, epsilonStep, 2*epsilonStep, 3*epsilonStep, ...], 
-        calculate the max counter's val.
-        """
-        epsilonStep = self.findPreComputedDatum (cntrSize)['epsilonStep']
-        print (f'cntrSize={cntrSize}')
-        epsilon = 0 
-        for step in range (1, self.numEpsilonSteps):
-            epsilon += epsilonStep 
-            print (f'maxVal at step {step}={self.calcCntrMaxValGivenEpsilon(epsilon)}')
-
     def calcAllEstimatorsByEpsilon (self):
         """
         Calculate the estimators' values based on the epsilonStep accuracy parameter, as detailed in the paper ICE_buckets.
@@ -81,30 +104,6 @@ class CntrMaster(object):
         else:
             return [int ((((1+2*self.epsilon**2)**ell -1)/(2*self.epsilon**2)) * (1 + self.epsilon**2)) for ell in range (self.numEstimators)] 
         
-    def findPreComputedDatum (self, cntrSize=None):
-        """
-        Returns the precomputed datum with the requested cntrSize.
-        """
-        cntrSize = self.cntrSize if cntrSize==None else cntrSize
-        preComputedDatum = [item for item in preComputedData if item['cntrSize']==self.cntrSize]
-        if len(preComputedDatum)==0:
-            settings.error ('Sorry, but the requested cntrSize {self.cntrSize} is currently not supported by CEDAR')
-        elif len(preComputedDatum)>1:
-            settings.error ('More then one entry in preComputedData for the requested cntrSize {self.cntrSize}')
-        return preComputedDatum[0]
-               
-    def calcEstimatorGivenEpsilon (self, epsilon, ell):
-        """
-        calculate the ell-th estimator, given epsilon, using (1) from [ICE_buckets]. 
-        The corresponding .tex code is:
-        \frac{\left(\left(1+2\cdot \:\:x^2\right)^\ell-1\right)}{2x^2}\left(1+x^2\right) 
-        """
-        if epsilon<0 or ell<0: 
-            settings.error (f'in CEDAR:calcEstimatorGivenEpsilon(). epsilon={epsilon}, ell={ell}')
-        elif epsilon==0: # perfect estimator - identity function
-            return ell
-        return int ((((1+2*epsilon**2)**ell -1)/(2*epsilon**2)) * (1 + epsilon**2))
-    
 
     def rst (self):
         """
@@ -136,7 +135,7 @@ class CntrMaster(object):
         else:
             settings.error ('in CEDAR.calcEpsilonM() : sorry, cntrSize>16 is not supported yet in ICE buckets.')
         
-        if self.calcCntrMaxValGivenEpsilon (epsilonHi) < self.cntrMaxVal:
+        if calcCntrMaxValGivenEpsilon (epsilonHi, self.cntrSize) < self.cntrMaxVal:
             setting.serror (f'in CEDAR.calcEpsilonM. Could not reach cntrMaxVal={self.cntrMaxVal} with cntrSize={self.cntrSize} even with the highest suggested Epsilon={epsilonHi}.')
             return
         
@@ -144,18 +143,18 @@ class CntrMaster(object):
         
         while (True):
             if (epsilonHi - epsilonLo < binSearhResolution): # converged. Still, need to check whether this epsilon is high enough.
-                if self.calcCntrMaxValGivenEpsilon (self.epsilonM) >= self.cntrMaxVal: # can reach maxVal with this epsilon --> Good
+                if calcCntrMaxValGivenEpsilon (self.epsilonM, self.cntrSize) >= self.cntrMaxVal: # can reach maxVal with this epsilon --> Good
                     return
                 # now we know that cannot reach targetMaxVal with the current epsilon
                 self.epsilonM += binSearhResolution
-                if self.calcCntrMaxValGivenEpsilon (self.epsilonM) < self.cntrMaxVal: 
+                if calcCntrMaxValGivenEpsilon (self.epsilonM, self.cntrSize) < self.cntrMaxVal: 
                     settings.error ('in CEDAR.calcEpsilonM. problem at binary search')
                 return
                 
             self.epsilonM = (epsilonLo + epsilonHi)/2
-            maxValOfThisEpsilon = self.calcCntrMaxValGivenEpsilon (self.epsilonM)
+            maxValOfThisEpsilon = calcCntrMaxValGivenEpsilon (self.epsilonM, self.cntrSize)
             if (settings.VERBOSE_DETAILS in self.verbose):
-                printf (self.detailFile, 'epsilon={}\n' .format (self.epsilonM))
+                printf (self.detailFile, 'epsilon={}\n' .format (self.epsilonM, self.cntrSize))
             
             if maxValOfThisEpsilon==self.cntrMaxVal: # found exact match 
                 break
@@ -187,8 +186,8 @@ class CntrMaster(object):
         # run the localUpscale procedure, defined in [ICE_buckets].
         for cntrIdx in range (self.numCntrs):
             sqEpsilon = self.epsilon**2
-            ellTag = math.floor (math.log(1 + (2*sqEpsilon*self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell=self.cntrs[cntrIdx]))/(1+sqEpsilon))/math.log(1 + 2*sqEpsilon))            
-            if random.random() < (self.calcEstimatorGivenEpsilon(self.prevEpsilon, ell=self.cntrs[cntrIdx]) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag))/ (self.calcEstimatorGivenEpsilon(self.epsilon, ellTag+1) - self.calcEstimatorGivenEpsilon(self.epsilon, ellTag)):
+            ellTag = math.floor (math.log(1 + (2*sqEpsilon*calcEstimatorGivenEpsilon(self.prevEpsilon, ell=self.cntrs[cntrIdx]))/(1+sqEpsilon))/math.log(1 + 2*sqEpsilon))            
+            if random.random() < (calcEstimatorGivenEpsilon(self.prevEpsilon, ell=self.cntrs[cntrIdx]) - calcEstimatorGivenEpsilon(self.epsilon, ellTag))/ (calcEstimatorGivenEpsilon(self.epsilon, ellTag+1) - calcEstimatorGivenEpsilon(self.epsilon, ellTag)):
                 self.cntrs[cntrIdx] = ellTag + 1
             else:
                 self.cntrs[cntrIdx] = ellTag
@@ -204,8 +203,8 @@ class CntrMaster(object):
                 printf (self.logFile, 'up-scaling\n')
             self.upscale () 
             cntrVal = self.cntrs[cntrIdx]# cntrVal is the value in the counter after up-scaling, before incrementing
-        curEstimate = self.calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal)
-        incEstimate = self.calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal+1)
+        curEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal)
+        incEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal+1)
         if random.random () < 1/(incEstimate - curEstimate): 
             self.cntrs[cntrIdx] += 1
             return incEstimate
@@ -254,10 +253,10 @@ class CntrMaster(object):
         Format-print all the counters as a single the array, to the given file.
         """
         if outputFile==None:
-            print ('cntrs={} ' .format([self.calcEstimatorGivenEpsilon (self.epsilon, cntr) for cntr in self.cntrs]))
+            print ('cntrs={} ' .format([calcEstimatorGivenEpsilon (self.epsilon, cntr) for cntr in self.cntrs]))
         else:
             for cntr in self.cntrs:
-                printf (outputFile, '{:.0f} ' .format(self.calcEstimatorGivenEpsilon(self.epsilon, cntr)))
+                printf (outputFile, '{:.0f} ' .format(calcEstimatorGivenEpsilon(self.epsilon, cntr)))
     
     def printEstimators (self, outputFile=None) -> None:
         """
@@ -268,8 +267,7 @@ class CntrMaster(object):
             print ('eps={:.3f}, estimators={}' .format (self.epsilon, estimators))            
         else:
             for cntr in self.cntrs:
-                printf (outputFile, '{:.0f} ' .format(self.calcCntrMaxValGivenEpsilon(self.epsilon, cntr)))
+                printf (outputFile, '{:.0f} ' .format(calcCntrMaxValGivenEpsilon(self.epsilon, self.cntrSize)))
     
     
-# myIceBucket = CntrMaster (numEpsilonSteps = 7)
-# myIceBucket.calcCntrMaxValsByCntrSizes (cntrSize=8)
+# calcCntrMaxValsByCntrSizes (numEpsilonSteps=6, cntrSize=8)
