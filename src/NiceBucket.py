@@ -2,7 +2,7 @@
 import random, math, numpy as np
 from printf import printf
 import settings, IceBucket
-from IceBucket import calcEstimatorGivenEpsilon, findPreComputedDatum
+from IceBucket import calcEstimatorGivenEpsilon, findPreComputedDatum, calcEstimatorGivenEpsilon
 # To prevent overflows, the search range for some parameters should be limited corresponding to the counter's size. 
 # This is done using the list of dicts below.
 # The data below is used also to determine the 'epsilonStep' used in ICE_buckets. 

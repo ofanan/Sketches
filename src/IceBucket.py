@@ -42,7 +42,7 @@ def calcEstimatorGivenEpsilon (epsilon, ell):
     \frac{\left(\left(1+2\cdot \:\:x^2\right)^\ell-1\right)}{2x^2}\left(1+x^2\right) 
     """
     if epsilon<0 or ell<0: 
-        settings.error (f'in CEDAR:calcEstimatorGivenEpsilon(). epsilon={epsilon}, ell={ell}')
+        settings.error (f'in IceBucket:calcEstimatorGivenEpsilon(). epsilon={epsilon}, ell={ell}')
     elif epsilon==0: # perfect estimator - identity function
         return ell
     return int ((((1+2*epsilon**2)**ell -1)/(2*epsilon**2)) * (1 + epsilon**2))
