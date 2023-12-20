@@ -79,7 +79,10 @@ class CntrMaster (Buckets.Buckets):
             - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.        
         """
         settings.error ('Sorry. NiceBuckets.queryCntr() is not implemented yet.')
-        # return self.regBkts[self.idx2BucketNum(cntrIdx)].cntr2cntrDict(cntrIdx%self.numCntrsPerBkt)           
+        val = self.regBkts[self.idx2BucketNum(cntrIdx)].cntr2cntrDict(cntrIdx%self.numCntrsPerBkt)
+        if val==self.minValOfXlBkt:
+            settings.error ('reached the max val of regular bkts')
+        return val
 
     def incCntrBy1GetVal (self, 
                           cntrIdx  = 0, # idx of the concrete counter to increment in the array 
@@ -90,8 +93,10 @@ class CntrMaster (Buckets.Buckets):
         cntrDict: a dictionary representing the modified counter where: 
             - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.
         """
-        settings.error ('Sorry, NiceBuckets.incCntrBy1GetVal() is not implemented yet')
-        # return self.regBkts[self.idx2BucketNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerBkt)
+        valAfterInc = self.regBkts[self.idx2BucketNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerBkt)
+        if valAfterInc==self.minValOfXlBkt:
+            settings.error ('reached max val of regular bkts')
+        return valAfterInc 
  
 
     def incCntr (self, cntrIdx=0, factor=1, verbose=[], mult=False):
@@ -115,7 +120,7 @@ class CntrMaster (Buckets.Buckets):
         """
         if mult or (factor!=1):
             settings.error ('Sorry, Buckets.incCntr() is currently implemented only when mult==True and factor=1.')
-        return self.regBkts[self.idx2BucketNum(cntrIdx)].incCntrBy1 (cntrIdx=cntrIdx%self.numCntrsPerBkt) 
+        settings.error ('Sorry, Buckets.incCntrBy1 () is not implemented yet.')
 
     def setLogFile (self, logFile):
         """
