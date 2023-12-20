@@ -1,3 +1,8 @@
+import matplotlib #, seaborn
+import matplotlib.pyplot as plt
+# import matplotlib.ticker
+# import matplotlib.pylab as pylab
+
 import math, random, os, pickle, mmh3, time, csv
 import numpy as np
 from datetime import datetime
@@ -320,17 +325,25 @@ class CountMinSketch:
                 if incNum==self.numIncs:
                     break
         
-        outputFileName = 'rand' if traceFileName==None else traceFileName + f'_{incNum}incs.txt'
-        outputFile = open (f'../res/{outputFileName}', 'w')
-        printf (outputFile, f'numFlows={self.numFlows}, num zero flows={len ([item for item in flowRealVal if item==0])}, num non-zeros flows={len ([item for item in flowRealVal if item>0])}')
-        printf (outputFile, f'\nflowSizes={flowRealVal}')
-        numBins = min (100, max (flowRealVal)+1)
-        binSize = max (flowRealVal) // (numBins-1)
+        outputFileName = 'rand' if traceFileName==None else traceFileName + f'_{incNum}incs'
+        outputFile = open (f'../res/{outputFileName}.txt', 'w')
+        maxFlowSize = max (flowRealVal)
+        numBins = min (100, maxFlowSize+1)
+        binSize = maxFlowSize // (numBins-1)
         binVal  = [None] * numBins 
         for bin in range(numBins):
             binVal[bin] = len ([flowId for flowId in range(self.numFlows) if (flowRealVal[flowId]//binSize)==bin])
-        print (f'binVal={binVal}')
-        printf (outputFile, f'\nbinVal={binVal}')
+        binFlowSizes = [binSize*bin for bin in range (numBins)]
+        print (f'binYVals={binVal}')
+        printf (outputFile, f'numFlows={self.numFlows}, num zero flows={len ([item for item in flowRealVal if item==0])}, num non-zeros flows={len ([item for item in flowRealVal if item>0])}')
+        printf (outputFile, f'\nmaxFlowSize={maxFlowSize}, binVal={binVal}')
+        printf (outputFile, f'\nbinFlowSizes={binFlowSizes}')
+        printf (outputFile, f'\nflowSizes={flowRealVal}')
+        _, ax = plt.subplots()
+        ax.plot ([binSize*bin for bin in range (numBins)], binVal)
+        ax.set_yscale ('log')
+        plt.show ()
+        plt.savefig (f'../res/{outputFileName}.pdf', bbox_inches='tight')        
         
     def writeProgress (self, infoStr=None):
         """
@@ -362,21 +375,21 @@ def main():
     traceFileName           = 'equinix-nyc.dirB.20181220-140100.UTC.anon.pcap.csv'
     verbose                 = [settings.VERBOSE_RES] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
-    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
-    #                       numCntrsPerBkt = numCntrsPerBkt, 
-    #                       mode='MecBuckets')
-    # cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
+    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
+                          numCntrsPerBkt = numCntrsPerBkt, 
+                          mode='MecBuckets')
+    cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
      
     # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
     #                       numCntrsPerBkt = numCntrsPerBkt, 
     #                       mode='IceBuckets')
     # cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
     
-    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
-                          numCntrsPerBkt = numCntrsPerBkt, 
-                          mode='SecBuckets')
+    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
+    #                       numCntrsPerBkt = numCntrsPerBkt, 
+    #                       mode='SecBuckets')
     # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
-    cms.collectStatOfTrace(traceFileName=traceFileName)
+    # cms.collectStatOfTrace(traceFileName=traceFileName) #, numIncs=100)
     
 if __name__ == '__main__':
     main()

@@ -6,31 +6,26 @@ from datetime import datetime
 import settings, SEC, IceBucket, F2pBucket, MecBucket 
 from printf import printf, printarFp
 
-class Buckets (object):
+class NiceBuckets (Buckets):
     """
-    Buckets of counters, sharing the scaling/"epsilon" parameter.
+    New (improved) IceBuckets.
     """
 
-    # Generates a strings that details the counter's settings (param vals).    
-    genSettingsStr  = lambda self : f'bkts{self.numBuckets}'
-
-    # Given the index in the Buckets, get the bucket number and the number of the counter in the bucket
-    getBucketNumAndCntrNum = lambda self, idx : [self.idx2BucketNum(idx), idx%self.numCntrsPerBkt]
-       
-    # Given the index in the Buckets, get the bucket number 
-    idx2BucketNum = lambda self, idx : idx//self.numCntrsPerBkt
-    
-    # Query a cntr. 
-    # Input: cntrIdx - the counter's index. 
-    # Output: The value that the counter represents (as int/FP).
-    queryCntrVal    = lambda self, cntrIdx=0 : self.buckets[self.idx2BucketNum(cntrIdx)].queryCntrVal(cntrIdx=cntrIdx%self.numCntrsPerBkt)                  
+    def queryCntrVal (self, cntrIdx=0):
+        """
+        Query a cntr. 
+        Input: cntrIdx - the counter's index. 
+        Output: The value that the counter represents (as int/FP).
+        """
+        settings.error ('Sorry. NiceBuckets.queryCntrVal() is not implemented yet.')
+        # return self.regBkts[self.idx2BucketNum(cntrIdx)].queryCntrVal(cntrIdx=cntrIdx%self.numCntrsPerBkt)
             
     def __init__ (self, 
                   cntrSize          = 4, # num of bits in each counter. 
                   numCntrs          = 9, # number of counters in the array.
                   cntrMaxVal        = 10, 
                   numCntrsPerBkt    = 1, # number of cntrs at each bucket.
-                  mode              = 'SEC',
+                  numCntrsInXlBkt   = 1,
                   numEpsilonSteps   = 8,
                   verbose           = [], # determines which outputs would be written to .log/.res/.pcl/debug files, as detailed in settings.py.
                   ):
@@ -39,45 +34,24 @@ class Buckets (object):
             settings.error (f'in Buckets: you requested cntrSize={cntrSize}, numCntrs={numCntrs}. However, you should choose cntrSize>=1, numCntrs>=1.')
             
         self.cntrSize, self.numCntrs, self.numCntrsPerBkt = int(cntrSize), int(numCntrs), int(numCntrsPerBkt)
-        self.numBuckets = self.numCntrs // self.numCntrsPerBkt
+        self.numCntrsInXlBkt = numCntrsInXlBkt
+        self.numRegularBuckets = self.numCntrs // self.numCntrsPerBkt
         self.verbose    = verbose
-        self.mode       = mode
-        if mode=='SEC':
-            self.buckets = [SEC.CntrMaster(cntrSize         = self.cntrSize, 
-                                           numCntrs         = self.numCntrsPerBkt, 
-                                           verbose          = self.verbose) for _ in range (self.numBuckets)]
-        elif mode=='ICE':
-            self.buckets = [IceBucket.CntrMaster(
-                                            cntrSize        = self.cntrSize, 
-                                            numCntrs        = self.numCntrsPerBkt,
-                                            cntrMaxVal      = cntrMaxVal, 
-                                            numEpsilonSteps = numEpsilonSteps,
-                                            verbose=self.verbose) for _ in range (self.numBuckets)]
-        elif mode=='F2P':
-            self.buckets = [F2pBucket.CntrMaster(
-                                            cntrSize        = self.cntrSize, 
-                                            numCntrs        = self.numCntrsPerBkt,
-                                            hyperExpSize    = 0,
-                                            verbose=self.verbose) for _ in range (self.numBuckets)]
-        elif mode=='MEC':
-            numStages = int(25)
-            MecBucket.CntrMaster.expRanges, MecBucket.CntrMaster.offsets, MecBucket.CntrMaster.pivots = \
-                MecBucket.precomputeExpRangesAndOffsets (cntrSize=self.cntrSize, numStages=numStages)
-            MecBucket.CntrMaster.numStages = numStages
-            self.buckets = [MecBucket.CntrMaster(
-                                            cntrSize        = self.cntrSize, 
-                                            numCntrs        = self.numCntrsPerBkt,
-                                            verbose=self.verbose) for _ in range (self.numBuckets)]
-        else:
-            settings.error ('Sorry. Mode {self.mode} which you chose is not supported yet by Buckets.py.')
-        
+        self.regBkts = [IceBucket.CntrMaster(
+                                        cntrSize        = self.cntrSize, 
+                                        numCntrs        = self.numCntrsPerBkt,
+                                        cntrMaxVal      = cntrMaxVal, 
+                                        epsilonStep     = epsilonStep,
+                                        numEpsilonSteps = numEpsilonSteps,
+                                        initialEpsilon  = initialEpsilon,  # initial value of the epsilon accuracy parameter, defined at the paper ICE_buckets.
+                                        verbose=self.verbose) for _ in range (self.numRegularBuckets)]        
         
     def printAllCntrs (self, outputFile) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
         """
         printf (outputFile, '[')
-        for bkt in self.buckets:
+        for bkt in self.regBkts:
             bkt.printAllCntrVals(outputFile)
         printf (outputFile, ']')
     
@@ -85,7 +59,7 @@ class Buckets (object):
         """
         Reset a single counter.
         """
-        self.buckets[self.idx2BucketNum(cntrIdx)].rstCntr(idx%self.numCntrsPerBkt)
+        self.regBkts[self.idx2BucketNum(cntrIdx)].rstCntr(idx%self.numCntrsPerBkt)
     
     def queryCntr (self, cntrIdx=0) -> dict:
         """
@@ -96,7 +70,8 @@ class Buckets (object):
         cntrDic: a dictionary, where: 
             - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.        
         """
-        return self.buckets[self.idx2BucketNum(cntrIdx)].cntr2cntrDict(cntrIdx%self.numCntrsPerBkt)           
+        settings.error ('Sorry. NiceBuckets.queryCntr() is not implemented yet.')
+        # return self.regBkts[self.idx2BucketNum(cntrIdx)].cntr2cntrDict(cntrIdx%self.numCntrsPerBkt)           
 
     def incCntrBy1GetVal (self, 
                           cntrIdx  = 0, # idx of the concrete counter to increment in the array 
@@ -107,7 +82,8 @@ class Buckets (object):
         cntrDict: a dictionary representing the modified counter where: 
             - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.
         """
-        return self.buckets[self.idx2BucketNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerBkt)
+        settings.error ('Sorry, NiceBuckets.incCntrBy1GetVal() is not implemented yet')
+        # return self.regBkts[self.idx2BucketNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerBkt)
  
 
     def incCntr (self, cntrIdx=0, factor=1, verbose=[], mult=False):
@@ -131,14 +107,14 @@ class Buckets (object):
         """
         if mult or (factor!=1):
             settings.error ('Sorry, Buckets.incCntr() is currently implemented only when mult==True and factor=1.')
-        return self.buckets[self.idx2BucketNum(cntrIdx)].incCntrBy1 (cntrIdx=cntrIdx%self.numCntrsPerBkt) 
+        return self.regBkts[self.idx2BucketNum(cntrIdx)].incCntrBy1 (cntrIdx=cntrIdx%self.numCntrsPerBkt) 
 
     def setLogFile (self, logFile):
         """
         set the log file
         """ 
         self.logFile = logFile
-        for bkt in self.buckets:
+        for bkt in self.regBkts:
             bkt.logFile = logFile
 
     def incCntrGetVal (self, cntrIdx=0, factor=1, verbose=[], mult=False):
@@ -160,6 +136,5 @@ class Buckets (object):
         Else, use probabilistic cntr's modification.
         """
         if mult or (factor!=1):
-            settings.error ('Sorry, Buckets.incCntrGetVal() is currently implemented only when mult==True and factor=1.')
-        return self.buckets[self.idx2BucketNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerBkt) 
+            settings.error ('Sorry, NiceBuckets.incCntrGetVal() is currently implemented only when mult==True and factor=1.')
 
