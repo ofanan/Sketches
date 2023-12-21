@@ -37,6 +37,7 @@ class CountMinSketch:
         
         """
         """
+        random.seed (settings.SEED)
         self.numCntrsPerBkt = int(numCntrsPerBkt)
         if depth<1 or width<1 or cntrSize<1:
             settings.error (f'CountMinSketch was called with depth={depth}, width={width}, cntrSize={cntrSize}. All these parameters should be at least 1.')
@@ -141,7 +142,7 @@ class CountMinSketch:
         """
         flowValAfterInc = math.inf
         for row in range(self.depth):
-             flowValAfterInc = min (flowValAfterInc, self.cntrMaster.incCntrBy1GetVal(cntrIdx=self.mat2aridx (row=row, col=self.hashOfFlow (flowId=flowId, row=row))))
+            flowValAfterInc = min (flowValAfterInc, self.cntrMaster.incCntrBy1GetVal(cntrIdx=self.mat2aridx (row=row, col=self.hashOfFlow (flowId=flowId, row=row))))
         return flowValAfterInc
 
     def queryFlow(self, flow):
@@ -372,9 +373,9 @@ def main():
     width, depth, cntrSize  = 2, 2, 4
     numFlows                = width*depth*1
     numCntrsPerBkt          = 2
-    numIncs                 = 1000 #(width * depth * cntrSize**3)/2
+    numIncs                 = 100000 #(width * depth * cntrSize**3)/2
     numOfExps               = 1
-    verbose                 = [settings.VERBOSE_LOG] #settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
+    verbose                 = [] #settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     
     # width, depth, cntrSize  = 64, 4, 8
     # numFlows                = width*depth*16

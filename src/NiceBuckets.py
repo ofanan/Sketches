@@ -13,8 +13,11 @@ class CntrMaster (Buckets.Buckets):
 
     genSettingsStr = lambda self : 'Nice_n{}'.format(self.cntrSize)
 
-    # Given the index in the Buckets, get the bucket number 
+    # Given the index in the Buckets, get the regular bucket number 
     idx2RegBktNum = lambda self, idx : idx//self.numCntrsPerRegBkt
+
+    # Given the index in the Buckets, get the XL bucket number 
+    idx2XlBktNum = lambda self, idx : idx//self.numCntrsPerXlBkt
 
     def queryCntrVal (self, cntrIdx=0):
         """
@@ -24,7 +27,7 @@ class CntrMaster (Buckets.Buckets):
         """
         val = self.regBkts[self.idx2RegBktNum(cntrIdx)].queryCntrVal(cntrIdx=cntrIdx%self.numCntrsPerRegBkt)
         if val==self.minValOfXlBkt:
-            settings.error ('Sorry, querying values above minValOfXlBkt is not implemented yet')
+            return self.xlBkts[self.idx2XlBktNum (cntrIdx)].queryCntrVal (cntrIdx=cntrIdx%self.numCntrsPerXlBkt) + self.minValOfXlBkt
         return val
             
     def __init__ (self, 
@@ -55,7 +58,7 @@ class CntrMaster (Buckets.Buckets):
                             verbose         = self.verbose,
                             id              = i)
                             for i in range (self.numRegularBuckets)]        
-        self.xlBkts = [IceBucket.CntrMaster(
+        self.xlBkts = [NiceBucket.CntrMaster(
                             cntrSize        = self.cntrSize, 
                             numCntrs        = self.numCntrsPerXlBkt,
                             numEpsilonSteps = numEpsilonStepsInXlBkt,
@@ -70,13 +73,6 @@ class CntrMaster (Buckets.Buckets):
         for bkt in self.regBkts:
             bkt.printAllCntrVals(outputFile)
         printf (outputFile, ']')
-    
-    def rstCntr (self, cntrIdx=0) -> None:
-        """
-        Reset a single counter.
-        """
-        self.regBkts[self.idx2RegBktNum(cntrIdx)].rstCntr(idx%self.numCntrsPerRegBkt)
-        # self.xlBkt.rstCntr(idx%self.numCntrsPerRegBkt)
     
     def queryCntr (self, cntrIdx=0) -> dict:
         """
@@ -104,9 +100,9 @@ class CntrMaster (Buckets.Buckets):
         """
         isSaturated, valAfterInc = self.regBkts[self.idx2RegBktNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerRegBkt)
         if isSaturated:
-            settings.error ('reached max val of regular bkts')
-        return valAfterInc 
- 
+            _, valAfterInc = self.xlBkts[self.idx2XlBktNum (cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerXlBkt) 
+            return valAfterInc + self.minValOfXlBkt
+        return valAfterInc
 
     def incCntr (self, cntrIdx=0, factor=1, verbose=[], mult=False):
         """

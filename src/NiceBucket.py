@@ -36,18 +36,6 @@ class CntrMaster(IceBucket.CntrMaster):
         self.epsilon          = 0
         self.epsilonStep      = findPreComputedDatum (cntrSize=self.cntrSize)['epsilonStep']
     
-    def calcAllEstimatorsByEpsilon (self):
-        """
-        Calculate the estimators' values based on the epsilonStep accuracy parameter, as detailed in the paper ICE_buckets.
-        """
-        if self.epsilon<0: 
-            settings.error (f'in CEDAR:calcAllEstimatorsByEpsilon(). epsilon={self.epsilon}')
-        elif self.epsilon==0: # perfect estimator - identity function
-            return [int(ell) for ell in range (self.numEstimators)]
-        else:
-            return [int ((((1+2*self.epsilon**2)**ell -1)/(2*self.epsilon**2)) * (1 + self.epsilon**2)) for ell in range (self.numEstimators)] 
-        
-
     def rst (self):
         """
         Reset all the counters.
@@ -61,52 +49,6 @@ class CntrMaster(IceBucket.CntrMaster):
         else:
             settings.error ('in CEDAR.rst() : sorry, cntrSize>32 is not supported yet.')
 
-    def calcEpsilonM (self):
-        """
-        Given the requested max counter val (M), calculate Epsilon resulting in this max counter val.
-        The calculation is done using binary search.
-        The resulted value is assigned to self.epsilonM (see Sec. III.C. in [ICE_buckets]
-        """
-        if self.cntrSize <= 8: 
-            epsilonLo, epsilonHi, binSearhResolution = 0.01, 1, 0.001
-        elif self.cntrSize <= 12: 
-            epsilonLo, epsilonHi, binSearhResolution = 0.0001, 0.1, 0.0001
-        elif self.cntrSize <= 14: 
-            epsilonLo, epsilonHi, binSearhResolution = 0.00001, 0.01, 0.00001
-        elif self.cntrSize <= 16: 
-            epsilonLo, epsilonHi, binSearhResolution = 0.000001, 0.001, 0.000001
-        else:
-            settings.error ('in CEDAR.calcEpsilonM() : sorry, cntrSize>16 is not supported yet in ICE buckets.')
-        
-        if calcCntrMaxValGivenEpsilon (epsilonHi, self.cntrSize) < self.cntrMaxVal:
-            setting.serror (f'in CEDAR.calcEpsilonM. Could not reach cntrMaxVal={self.cntrMaxVal} with cntrSize={self.cntrSize} even with the highest suggested Epsilon={epsilonHi}.')
-            return
-        
-        self.epsilonM        = epsilonHi
-        
-        while (True):
-            if (epsilonHi - epsilonLo < binSearhResolution): # converged. Still, need to check whether this epsilon is high enough.
-                if calcCntrMaxValGivenEpsilon (self.epsilonM, self.cntrSize) >= self.cntrMaxVal: # can reach maxVal with this epsilon --> Good
-                    return
-                # now we know that cannot reach targetMaxVal with the current epsilon
-                self.epsilonM += binSearhResolution
-                if calcCntrMaxValGivenEpsilon (self.epsilonM, self.cntrSize) < self.cntrMaxVal: 
-                    settings.error ('in CEDAR.calcEpsilonM. problem at binary search')
-                return
-                
-            self.epsilonM = (epsilonLo + epsilonHi)/2
-            maxValOfThisEpsilon = calcCntrMaxValGivenEpsilon (self.epsilonM, self.cntrSize)
-            if (settings.VERBOSE_DETAILS in self.verbose):
-                printf (self.detailFile, 'epsilon={}\n' .format (self.epsilonM, self.cntrSize))
-            
-            if maxValOfThisEpsilon==self.cntrMaxVal: # found exact match 
-                break
-            if maxValOfThisEpsilon < self.cntrMaxVal: # can't reach maxVal with this epsilon --> need larger epsilon value
-                epsilonLo = self.epsilonM
-            else: # maxVal > targetMaxVal --> reached the maximum value - try to decrease epsilon, to find a tighter value.
-                epsilonHi = self.epsilonM
-
-        
     def rstCntr (self, cntrIdx=0):
         """
         """
@@ -157,7 +99,7 @@ class CntrMaster(IceBucket.CntrMaster):
             cntrVal = self.cntrs[cntrIdx]# cntrVal is the value in the counter after up-scaling, before incrementing
         curEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal)
         incEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal+1)
-        if random.random () < 1/(incEstimate - curEstimate): 
+        if random.random () < 1/(incEstimate - curEstimate): #$$$ if (incEstimate - curEstimate==1) OR ... 
             self.cntrs[cntrIdx] += 1
             return False, incEstimate
         return False, curEstimate
