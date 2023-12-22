@@ -386,22 +386,12 @@ def main(mode, runShortSim=True):
         numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
         numOfExps               = 1
         verbose                 = [settings.VERBOSE_LOG] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
-    
-    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
-    #                       numCntrsPerBkt = numCntrsPerBkt, 
-    #                       mode='MecBuckets')
-    # cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
-     
-    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
-    #                       numCntrsPerBkt = numCntrsPerBkt, 
-    #                       mode='SecBuckets')
-    # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
-    # cms.collectStatOfTrace(traceFileName=traceFileName) #, numIncs=100)
-    
+         
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
                           numCntrsPerBkt = numCntrsPerBkt, 
                           mode=mode)
     cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
+    # cms.collectStatOfTrace(traceFileName=traceFileName) #, numIncs=100)
     
 if __name__ == '__main__':
     main (mode='NiceBuckets', runShortSim=True)
