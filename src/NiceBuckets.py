@@ -51,7 +51,7 @@ class CntrMaster (Buckets.Buckets):
         self.verbose    = verbose
         self.numXlBkts  = numXlBkts
         self.numIndicesPerXlBkt = int (math.ceil(self.numCntrs / self.numXlBkts)) 
-        self.minValOfXlBkt = IceBucket.calcCntrMaxValsByCntrSizes (numEpsilonStepsInRegBkt=self.numEpsilonStepsInRegBkt, cntrSize=self.cntrSize)[self.numEpsilonStepsInRegBkt-1] 
+        self.minValOfXlBkt = IceBucket.calcCntrMaxValsByCntrSizes (numEpsilonSteps=self.numEpsilonStepsInRegBkt, cntrSize=self.cntrSize)[self.numEpsilonStepsInRegBkt-1] 
         self.regBkts = [NiceBucket.CntrMaster(
                             cntrSize        = self.cntrSize, 
                             numCntrs        = self.numCntrsPerRegBkt,

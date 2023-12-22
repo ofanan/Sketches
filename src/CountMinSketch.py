@@ -72,7 +72,7 @@ class CountMinSketch:
                                     numCntrs                = self.numCntrs, 
                                     numCntrsPerRegBkt       = self.numCntrsPerBkt,
                                     numCntrsPerXlBkt        = self.numCntrsPerBkt,
-                                    numEpsilonSteps         = 4,
+                                    numEpsilonStepsInRegBkt = 4,
                                     numEpsilonStepsInXlBkt  = 8, 
                                     numXlBkts               = self.width,
                                     verbose                 = self.verbose)
