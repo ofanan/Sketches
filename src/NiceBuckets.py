@@ -31,31 +31,31 @@ class CntrMaster (Buckets.Buckets):
         return val
             
     def __init__ (self, 
-                  cntrSize          = 4, # num of bits in each counter. 
-                  numCntrs          = 9, # number of counters in the array.
-                  numCntrsPerRegBkt = 1, # number of cntrs at each bucket.
-                  numCntrsPerXlBkt  = 1,
-                  numXlBkts         = 1,
-                  numEpsilonSteps   = 4,
-                  numEpsilonStepsInXlBkt = 4,
-                  verbose           = [], # determines which outputs would be written to .log/.res/.pcl/debug files, as detailed in settings.py.
+                  cntrSize                  = 4, # num of bits in each counter. 
+                  numCntrs                  = 9, # number of counters in the array.
+                  numCntrsPerRegBkt         = 1, # number of cntrs at each bucket.
+                  numCntrsPerXlBkt          = 1,
+                  numXlBkts                 = 1,
+                  numEpsilonStepsInRegBkt   = 4,
+                  numEpsilonStepsInXlBkt    = 4,
+                  verbose                   = [], # determines which outputs would be written to .log/.res/.pcl/debug files, as detailed in settings.py.
                   ):
 
         if cntrSize<1 or numCntrs<1:
             settings.error (f'in Buckets: you requested cntrSize={cntrSize}, numCntrs={numCntrs}. However, you should choose cntrSize>=1, numCntrs>=1.')
             
         self.cntrSize, self.numCntrs, self.numCntrsPerRegBkt = int(cntrSize), int(numCntrs), int(numCntrsPerRegBkt)
-        self.numEpsilonSteps = numEpsilonSteps
+        self.numEpsilonStepsInRegBkt = numEpsilonStepsInRegBkt
         self.numCntrsPerXlBkt = numCntrsPerXlBkt
         self.numRegularBuckets = self.numCntrs // self.numCntrsPerRegBkt
         self.verbose    = verbose
         self.numXlBkts  = numXlBkts
         self.numIndicesPerXlBkt = int (math.ceil(self.numCntrs / self.numXlBkts)) 
-        self.minValOfXlBkt = IceBucket.calcCntrMaxValsByCntrSizes (numEpsilonSteps=self.numEpsilonSteps, cntrSize=self.cntrSize)[self.numEpsilonSteps-1] 
+        self.minValOfXlBkt = IceBucket.calcCntrMaxValsByCntrSizes (numEpsilonStepsInRegBkt=self.numEpsilonStepsInRegBkt, cntrSize=self.cntrSize)[self.numEpsilonStepsInRegBkt-1] 
         self.regBkts = [NiceBucket.CntrMaster(
                             cntrSize        = self.cntrSize, 
                             numCntrs        = self.numCntrsPerRegBkt,
-                            numEpsilonSteps = self.numEpsilonSteps,
+                            numEpsilonSteps = self.numEpsilonStepsInRegBkt,
                             verbose         = self.verbose,
                             id              = i,
                             isXlBkt         = False)

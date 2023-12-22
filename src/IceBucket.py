@@ -61,7 +61,7 @@ def calcCntrMaxValsByCntrSizes (numEpsilonSteps=6, cntrSize=4):
     for step in range (numEpsilonSteps):
         epsilon  += epsilonStep 
         res[step] = calcCntrMaxValGivenEpsilon(epsilon, cntrSize)
-    # print (f'maxVals={res}')
+    print (f'maxVals={res}')
     return res
 
 calcCntrMaxValGivenEpsilon = lambda epsilon, cntrSize : calcEstimatorGivenEpsilon (epsilon=epsilon, ell=(1 << cntrSize) - 1) 
@@ -277,3 +277,4 @@ class CntrMaster(object):
                 printf (outputFile, '{:.0f} ' .format(calcCntrMaxValGivenEpsilon(self.epsilon, self.cntrSize)))
     
     
+# calcCntrMaxValsByCntrSizes (numEpsilonSteps=4, cntrSize=8)
