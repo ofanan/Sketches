@@ -264,7 +264,7 @@ class CountMinSketch:
             csvFile = open (relativePathToInputFile, 'r')
             csvReader = csv.reader(csvFile) #, delimiter=' ', quotechar='|')
             self.genCntrMaster ()
-            if (settings.VERBOSE_LOG in self.verbose or settings.VERBOSE_PROGRESS in self.verbose):
+            if settings.VERBOSE_LOG in self.verbose:
                 infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
                 self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
                 self.cntrMaster.setLogFile(self.logFile)
@@ -283,8 +283,6 @@ class CountMinSketch:
                 if settings.VERBOSE_LOG in self.verbose:
                     self.cntrMaster.printAllCntrs (self.logFile)
                     printf (self.logFile, ' hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
-                if settings.VERBOSE_FULL_RES in self.verbose:
-                    printf (self.fullResFile, f'{self.calcRmseStat()}\n\n') 
 
             Rmse     = math.sqrt (self.sumSqEr/self.numIncs)
             normRmse = Rmse/self.numIncs
@@ -385,7 +383,7 @@ def main(mode, runShortSim=True):
         numCntrsPerBkt          = 16
         numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
         numOfExps               = 1
-        verbose                 = [settings.VERBOSE_LOG] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
+        verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PROGRESS] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
          
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
                           numCntrsPerBkt = numCntrsPerBkt, 
@@ -394,4 +392,4 @@ def main(mode, runShortSim=True):
     # cms.collectStatOfTrace(traceFileName=traceFileName) #, numIncs=100)
     
 if __name__ == '__main__':
-    main (mode='NiceBuckets', runShortSim=True)
+    main (mode='NiceBuckets', runShortSim=False)

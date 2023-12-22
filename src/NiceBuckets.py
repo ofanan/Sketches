@@ -17,7 +17,7 @@ class CntrMaster (Buckets.Buckets):
     idx2RegBktNum = lambda self, idx : idx//self.numCntrsPerRegBkt
 
     # Given the index in the Buckets, get the XL bucket number 
-    idx2XlBktNum = lambda self, idx : idx//self.numCntrsPerXlBkt
+    idx2XlBktNum = lambda self, idx : idx//self.numIndicesPerXlBkt
 
     def queryCntrVal (self, cntrIdx=0):
         """
@@ -50,6 +50,7 @@ class CntrMaster (Buckets.Buckets):
         self.numRegularBuckets = self.numCntrs // self.numCntrsPerRegBkt
         self.verbose    = verbose
         self.numXlBkts  = numXlBkts
+        self.numIndicesPerXlBkt = int (math.ceil(self.numCntrs / self.numXlBkts)) 
         self.minValOfXlBkt = IceBucket.calcCntrMaxValsByCntrSizes (numEpsilonSteps=self.numEpsilonSteps, cntrSize=self.cntrSize)[self.numEpsilonSteps-1] 
         self.regBkts = [NiceBucket.CntrMaster(
                             cntrSize        = self.cntrSize, 
