@@ -233,7 +233,7 @@ class CountMinSketch:
                 self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
                 self.genCntrMaster ()
     
-                if (settings.VERBOSE_LOG in self.verbose or settings.VERBOSE_PROGRESS in self.verbose):
+                if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
                     infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
                     self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
                     self.cntrMaster.setLogFile(self.logFile)
@@ -264,7 +264,7 @@ class CountMinSketch:
             csvFile = open (relativePathToInputFile, 'r')
             csvReader = csv.reader(csvFile) #, delimiter=' ', quotechar='|')
             self.genCntrMaster ()
-            if settings.VERBOSE_LOG in self.verbose:
+            if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
                 infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
                 self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
                 self.cntrMaster.setLogFile(self.logFile)
@@ -284,6 +284,8 @@ class CountMinSketch:
                     self.cntrMaster.printAllCntrs (self.logFile)
                     printf (self.logFile, ' hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
 
+            if settings.VERBOSE_LOG_END_SIM in self.verbose:
+                self.cntrMaster.printAllCntrs (self.logFile)
             Rmse     = math.sqrt (self.sumSqEr/self.numIncs)
             normRmse = Rmse/self.numIncs
             if (settings.VERBOSE_LOG in self.verbose):
@@ -374,9 +376,9 @@ def main(mode, runShortSim=True):
         width, depth, cntrSize  = 2, 2, 4
         numFlows                = width*depth*1
         numCntrsPerBkt          = 2
-        numIncs                 = 100000 #(width * depth * cntrSize**3)/2
+        numIncs                 = 1000 #(width * depth * cntrSize**3)/2
         numOfExps               = 1
-        verbose                 = [] #settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
+        verbose                 = [settings.VERBOSE_LOG_END_SIM] #settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
         width, depth, cntrSize  = 64, 4, 8
         numFlows                = width*depth*16
@@ -392,4 +394,5 @@ def main(mode, runShortSim=True):
     # cms.collectStatOfTrace(traceFileName=traceFileName) #, numIncs=100)
     
 if __name__ == '__main__':
-    main (mode='IceBuckets', runShortSim=False)
+    main (mode='NiceBuckets', runShortSim=True)
+    # main (mode='IceBuckets', runShortSim=False)

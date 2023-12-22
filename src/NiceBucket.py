@@ -133,18 +133,8 @@ class CntrMaster(IceBucket.CntrMaster):
         if outputFile==None:
             print ('cntrs={} ' .format([calcEstimatorGivenEpsilon (self.epsilon, cntr) for cntr in self.cntrs]))
         else:
+            printf (outputFile, f'bkt id={self.id}\n[')
             for cntr in self.cntrs:
                 printf (outputFile, '{:.0f} ' .format(calcEstimatorGivenEpsilon(self.epsilon, cntr)))
-    
-    def printEstimators (self, outputFile=None) -> None:
-        """
-        Generate and format-print all the counters as a single the array, to the given file.
-        """
-        estimators = self.calcAllEstimatorsByEpsilon()
-        if outputFile==None:
-            print ('eps={:.3f}, estimators={}' .format (self.epsilon, estimators))            
-        else:
-            for cntr in self.cntrs:
-                printf (outputFile, '{:.0f} ' .format(calcCntrMaxValGivenEpsilon(self.epsilon, self.cntrSize)))
-    
+            printf (outputFile, f']\n')
     

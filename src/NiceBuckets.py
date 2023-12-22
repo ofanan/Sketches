@@ -73,10 +73,12 @@ class CntrMaster (Buckets.Buckets):
         """
         Format-print all the counters as a single the array, to the given file.
         """
-        printf (outputFile, '[')
+        printf (outputFile, 'Reg bkts:\n')
         for bkt in self.regBkts:
             bkt.printAllCntrVals(outputFile)
-        printf (outputFile, ']')
+        printf (outputFile, 'Xl bkts:\n')
+        for bkt in self.xlBkts:
+            bkt.printAllCntrVals(outputFile)
     
     def queryCntr (self, cntrIdx=0) -> dict:
         """

@@ -16,8 +16,9 @@ VERBOSE_PCL             = 6 # print output to a .pcl file in the directory ../re
 VERBOSE_DETAILS         = 7 # print to stdout details about the counter
 VERBOSE_NOTE            = 8 # print to stdout notes, e.g. when the target cntr value is above its max or below its min.
 VERBOSE_LOG             = 9
-VERBOSE_DETAILED_LOG    = 10
-VERBOSE_PROGRESS        = 11 # Print periodical output notifying the progress. Used to control long runs.
+VERBOSE_LOG_END_SIM     = 10
+VERBOSE_DETAILED_LOG    = 11
+VERBOSE_PROGRESS        = 12 # Print periodical output notifying the progress. Used to control long runs.
 # Configurations to be run. 
 # For cntrSize<8, the conf' the values are unrealistically small, and used only for checks and debugging.
 # For cntrSize>=8, cntrMaxVal is calculated by that reached by F2P stat, and hyperSize is the corresponding hyper-exponent field size in F2P stat.

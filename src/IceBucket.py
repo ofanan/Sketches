@@ -183,7 +183,7 @@ class CntrMaster(object):
           This procedure scales-up a single counter after the "epsilon" variable was increased.
         """        
         if self.epsilon == (self.numEpsilonSteps * self.epsilonStep):
-            settings.error ('IceBucket.upscale() called when epsilon is already maximal. Cannot further increase epsilon.')
+            settings.error (f'IceBucket.upscale() called when epsilon is already maximal. Cannot further increase epsilon. numEpsilonSteps={self.numEpsilonSteps}')
 
         # Update self.epsilon and then update all the estimators' values accordingly.
         self.prevEpsilon    = self.epsilon  
