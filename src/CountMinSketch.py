@@ -385,7 +385,7 @@ def main(mode, runShortSim=True):
         numCntrsPerBkt          = 16
         numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
         numOfExps               = 1
-        verbose                 = [settings.VERBOSE_RES] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
+        verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_LOG_END_SIM] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
          
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
                           numCntrsPerBkt = numCntrsPerBkt, 
@@ -394,5 +394,5 @@ def main(mode, runShortSim=True):
     # cms.collectStatOfTrace(traceFileName=traceFileName) #, numIncs=100)
     
 if __name__ == '__main__':
-    main (mode='NiceBuckets', runShortSim=True)
+    main (mode='NiceBuckets', runShortSim=False)
     # main (mode='IceBuckets', runShortSim=False)
