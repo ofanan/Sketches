@@ -30,7 +30,6 @@ class CountMinSketch:
                  numFlows       = 10, # the total number of flows to be estimated.
                  mode           = 'PerfectCounter', # the counter mode (e.g., SEC, AEE, realCounter).
                  cntrSize       = 2, # num of bits in each counter
-                 cntrMaxVal     = 1000,
                  verbose        = [],
                  seed           = settings.SEED,
                  ):
@@ -143,7 +142,6 @@ class CountMinSketch:
         """
         flowValAfterInc = math.inf
         for row in range(self.depth):
-            print (f'row={row}')
             flowValAfterInc = min (flowValAfterInc, self.cntrMaster.incCntrBy1GetVal(cntrIdx=self.mat2aridx (row=row, col=self.hashOfFlow (flowId=flowId, row=row))))
         return flowValAfterInc
 
@@ -278,7 +276,6 @@ class CountMinSketch:
                 if incNum==self.numIncs:
                     break
                 flowRealVal[flowId]     += 1
-                print (f'incNum={incNum}') #$$$
                 
                 flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
                 self.sumSqEr += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)
@@ -370,45 +367,41 @@ class CountMinSketch:
         else:
             printf (self.logFile, f'{infoStr}\n')
     
-def main():
+def main(mode, runShortSim=True):
     """
     """   
     traceFileName           = 'equinix-nyc.dirB.20181220-140100.UTC.anon.pcap.csv'
-    width, depth, cntrSize  = 2, 2, 4
-    numFlows                = width*depth*1
-    numCntrsPerBkt          = 2
-    numIncs                 = 100000 #(width * depth * cntrSize**3)/2
-    numOfExps               = 1
-    verbose                 = [] #settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     
-    # width, depth, cntrSize  = 64, 4, 8
-    # numFlows                = width*depth*16
-    # numCntrsPerBkt          = 16
-    # numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
-    # cntrMaxVal              = 4000000
-    # numOfExps               = 1
-    # verbose                 = [settings.VERBOSE_LOG] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
+    if runShortSim:
+        width, depth, cntrSize  = 2, 2, 4
+        numFlows                = width*depth*1
+        numCntrsPerBkt          = 2
+        numIncs                 = 100000 #(width * depth * cntrSize**3)/2
+        numOfExps               = 1
+        verbose                 = [] #settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
+    else:
+        width, depth, cntrSize  = 64, 4, 8
+        numFlows                = width*depth*16
+        numCntrsPerBkt          = 16
+        numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
+        numOfExps               = 1
+        verbose                 = [settings.VERBOSE_LOG] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose,
     #                       numCntrsPerBkt = numCntrsPerBkt, 
     #                       mode='MecBuckets')
     # cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
      
-    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
+    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
     #                       numCntrsPerBkt = numCntrsPerBkt, 
     #                       mode='SecBuckets')
     # cms.sim (numOfExps=numOfExps, numIncs=numIncs)
     # cms.collectStatOfTrace(traceFileName=traceFileName) #, numIncs=100)
     
-    # cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, cntrMaxVal=cntrMaxVal,
-    #                       numCntrsPerBkt = numCntrsPerBkt, 
-    #                       mode='IceBuckets')
-    # cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
-    
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
                           numCntrsPerBkt = numCntrsPerBkt, 
-                          mode='NiceBuckets')
+                          mode=mode)
     cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
     
 if __name__ == '__main__':
-    main()
+    main (mode='NiceBuckets', runShortSim=True)

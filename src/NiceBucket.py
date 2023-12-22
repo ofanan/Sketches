@@ -82,7 +82,8 @@ class CntrMaster(IceBucket.CntrMaster):
             cntrVal = self.cntrs[cntrIdx]# cntrVal is the value in the counter after up-scaling, before incrementing
         curEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal)
         incEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal+1)
-        if random.random () < 1/(incEstimate - curEstimate): #$$$ if (incEstimate - curEstimate==1) OR ... 
+        diff        = incEstimate - curEstimate
+        if diff==1 or random.random () < 1/diff:  
             self.cntrs[cntrIdx] += 1
             return False, incEstimate
         return False, curEstimate
