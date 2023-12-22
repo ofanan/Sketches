@@ -69,13 +69,14 @@ class CountMinSketch:
                                     verbose     = self.verbose)
         elif self.mode=='NiceBuckets':
             self.cntrMaster = NiceBuckets.CntrMaster (
-                                    cntrSize            = self.cntrSize, 
-                                    numCntrs            = self.numCntrs, 
-                                    numCntrsPerRegBkt   = self.numCntrsPerBkt,
-                                    numCntrsPerXlBkt    = 2,  
-                                    numEpsilonSteps     = 2,
-                                    numXlBkts           = self.width,
-                                    verbose             = self.verbose)
+                                    cntrSize                = self.cntrSize, 
+                                    numCntrs                = self.numCntrs, 
+                                    numCntrsPerRegBkt       = self.numCntrsPerBkt,
+                                    numCntrsPerXlBkt        = 2,  
+                                    numEpsilonSteps         = 2,
+                                    numEpsilonStepsInXlBkt  = 3, 
+                                    numXlBkts               = self.width,
+                                    verbose                 = self.verbose)
         elif self.mode=='SecBuckets':
              self.cntrMaster = Buckets.Buckets (
                                     cntrSize        = self.cntrSize, 
@@ -142,6 +143,7 @@ class CountMinSketch:
         """
         flowValAfterInc = math.inf
         for row in range(self.depth):
+            print (f'row={row}')
             flowValAfterInc = min (flowValAfterInc, self.cntrMaster.incCntrBy1GetVal(cntrIdx=self.mat2aridx (row=row, col=self.hashOfFlow (flowId=flowId, row=row))))
         return flowValAfterInc
 
@@ -276,6 +278,8 @@ class CountMinSketch:
                 if incNum==self.numIncs:
                     break
                 flowRealVal[flowId]     += 1
+                print (f'incNum={incNum}') #$$$
+                
                 flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
                 self.sumSqEr += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)
                 incNum  += 1                

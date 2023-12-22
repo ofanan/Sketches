@@ -22,39 +22,19 @@ class CntrMaster(IceBucket.CntrMaster):
                  cntrMaxVal         = None, # Max value to be reached by a counter. 
                  verbose            = [], 
                  id                 = 0,
+                 isXlBkt            = False,
                  ):
         """
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
         """
         self.cntrSize, self.numCntrs, self.cntrMaxVal = cntrSize, numCntrs, cntrMaxVal
-        self.id = id
+        self.id, self.isXlBkt, self.verbose = id, isXlBkt, verbose
         self.numEstimators = 2**self.cntrSize
-        self.verbose       = verbose
         self.rst () # reset all the counters
-        self.numEpsilonSteps  = numEpsilonSteps
- 
+        self.numEpsilonSteps  = numEpsilonSteps 
         self.epsilon          = 0
         self.epsilonStep      = findPreComputedDatum (cntrSize=self.cntrSize)['epsilonStep']
     
-    def rst (self):
-        """
-        Reset all the counters.
-        """
-        if self.cntrSize <= 8: 
-            self.cntrs = np.zeros (self.numCntrs, 'uint8')
-        elif self.cntrSize <= 16: 
-            self.cntrs = np.zeros (self.numCntrs, 'uint16')
-        elif self.cntrSize <= 32: 
-            self.cntrs = np.zeros (self.numCntrs, 'uint32')
-        else:
-            settings.error ('in CEDAR.rst() : sorry, cntrSize>32 is not supported yet.')
-
-    def rstCntr (self, cntrIdx=0):
-        """
-        """
-        self.cntrs[cntrIdx] = 0
-
-
     def upscale (self):
         """
         Up-scale for reaching a largest maximal value. In particular:
@@ -89,9 +69,12 @@ class CntrMaster(IceBucket.CntrMaster):
         cntrVal = self.cntrs[cntrIdx]
         if cntrVal==(1 << self.cntrSize) - 1: # reached the largest possible estimated value w/o up-scaling?
             if self.epsilon==self.numEpsilonSteps * self.epsilonStep: # already up-scaled as high as possible.
+                if self.isXlBkt:
+                    settings.error (f'in NiceBucket.incCntrBy1GetVal(). Tried to increment XlBkt {self.id} above the maximum feasible value. cntrSize={self.cntrSize}, numEpsilonSteps={self.numEpsilonSteps}')
+                # Now we know that this isn't an XlBkt --> this is a regular bkt
                 if settings.VERBOSE_LOG in self.verbose:
                     printf (self.logFile, f'bkt {self.id} reached max val of regular bkts\n')
-                return True, None
+                return True, None # return values telling that the (regular) counter is saturated
             if settings.VERBOSE_LOG in self.verbose:
                 print (f'bkt {self.id} is up-scaling. epsilon b4 upscaling={self.epsilon}\n')
                 printf (self.logFile, f'bkt {self.id} is up-scaling. epsilon b4 upscaling={self.epsilon}\n')

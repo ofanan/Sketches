@@ -56,14 +56,17 @@ class CntrMaster (Buckets.Buckets):
                             numCntrs        = self.numCntrsPerRegBkt,
                             numEpsilonSteps = self.numEpsilonSteps,
                             verbose         = self.verbose,
-                            id              = i)
+                            id              = i,
+                            isXlBkt         = False)
                             for i in range (self.numRegularBuckets)]        
         self.xlBkts = [NiceBucket.CntrMaster(
                             cntrSize        = self.cntrSize, 
                             numCntrs        = self.numCntrsPerXlBkt,
                             numEpsilonSteps = numEpsilonStepsInXlBkt,
-                            verbose         = self.verbose)
-                            for _ in range (self.numXlBkts)]
+                            verbose         = self.verbose,
+                            id              = i,
+                            isXlBkt         = True)
+                            for i in range (self.numXlBkts)]
         
     def printAllCntrs (self, outputFile) -> None:
         """
@@ -100,6 +103,7 @@ class CntrMaster (Buckets.Buckets):
         """
         isSaturated, valAfterInc = self.regBkts[self.idx2RegBktNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerRegBkt)
         if isSaturated:
+            # Regular value is saturated --> query the Xl bkt
             _, valAfterInc = self.xlBkts[self.idx2XlBktNum (cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerXlBkt) 
             return valAfterInc + self.minValOfXlBkt
         return valAfterInc

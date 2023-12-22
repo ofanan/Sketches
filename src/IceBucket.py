@@ -120,7 +120,7 @@ class CntrMaster(object):
         elif self.cntrSize <= 32: 
             self.cntrs = np.zeros (self.numCntrs, 'uint32')
         else:
-            settings.error ('in CEDAR.rst() : sorry, cntrSize>32 is not supported yet.')
+            settings.error ('in IceBucket.rst() : sorry, cntrSize>32 is not supported yet.')
 
     def calcEpsilonM (self):
         """
