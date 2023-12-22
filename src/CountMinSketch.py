@@ -89,7 +89,7 @@ class CountMinSketch:
                                     numCntrs        = self.numCntrs, 
                                     numCntrsPerBkt  = self.numCntrsPerBkt, 
                                     mode            = 'ICE',
-                                    numEpsilonSteps = 5,
+                                    numEpsilonSteps = 6,
                                     cntrMaxVal      = (1 << self.cntrSize) - 1,
                                     verbose         = self.verbose)
         elif self.mode=='F2pBuckets':
@@ -392,4 +392,4 @@ def main(mode, runShortSim=True):
     # cms.collectStatOfTrace(traceFileName=traceFileName) #, numIncs=100)
     
 if __name__ == '__main__':
-    main (mode='NiceBuckets', runShortSim=False)
+    main (mode='IceBuckets', runShortSim=False)

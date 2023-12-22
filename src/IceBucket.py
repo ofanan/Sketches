@@ -182,7 +182,7 @@ class CntrMaster(object):
         - For each counter ("symbol"), run the "symbol upsclae" procedure, defined in [ICE_buckets].
           This procedure scales-up a single counter after the "epsilon" variable was increased.
         """        
-        if self.epsilon==self.numEpsilonSteps * self.epsilonStep:
+        if self.epsilon == (self.numEpsilonSteps * self.epsilonStep):
             settings.error ('IceBucket.upscale() called when epsilon is already maximal. Cannot further increase epsilon.')
 
         # Update self.epsilon and then update all the estimators' values accordingly.
@@ -277,4 +277,4 @@ class CntrMaster(object):
                 printf (outputFile, '{:.0f} ' .format(calcCntrMaxValGivenEpsilon(self.epsilon, self.cntrSize)))
     
     
-# calcCntrMaxValsByCntrSizes (numEpsilonSteps=4, cntrSize=8)
+# calcCntrMaxValsByCntrSizes (numEpsilonSteps=6, cntrSize=8)
