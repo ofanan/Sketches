@@ -202,10 +202,10 @@ class CountMinSketch:
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
         """      
         if settings.VERBOSE_PCL in self.verbose:
-            self.pclOutputFile = open(f'../res/pcl_files/sim.pcl', 'ab+')
+            self.pclOutputFile = open(f'../res/pcl_files/sim_{settings.getMachineStr()}.pcl', 'ab+')
 
         if (settings.VERBOSE_RES in self.verbose):
-            self.resFile = open (f'../res/cms_.res', 'a+')
+            self.resFile = open (f'../res/cms_{settings.getMachineStr()}.res', 'a+')
             
         if (settings.VERBOSE_FULL_RES in self.verbose):
             self.fullResFile = open (f'../res/cms_full.res', 'a+')
