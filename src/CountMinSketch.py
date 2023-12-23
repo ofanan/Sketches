@@ -74,7 +74,7 @@ class CountMinSketch:
                                     numCntrsPerXlBkt        = self.numCntrsPerBkt,
                                     numEpsilonStepsInRegBkt = 4,
                                     numEpsilonStepsInXlBkt  = 8, 
-                                    numXlBkts               = self.width,
+                                    numXlBkts               = self.depth,
                                     verbose                 = self.verbose)
         elif self.mode=='SecBuckets':
              self.cntrMaster = Buckets.Buckets (

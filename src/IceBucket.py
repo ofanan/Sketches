@@ -262,9 +262,11 @@ class CntrMaster(object):
         if outputFile==None:
             print ('cntrs={} ' .format([calcEstimatorGivenEpsilon (self.epsilon, cntr) for cntr in self.cntrs]))
         else:
+            printf (outputFile, f'bkt id={self.id}, Estep={self.epsilon/self.epsilonStep}\n[')
             for cntr in self.cntrs:
                 printf (outputFile, '{:.0f} ' .format(calcEstimatorGivenEpsilon(self.epsilon, cntr)))
-    
+            printf (outputFile, f']\n')
+
     def printEstimators (self, outputFile=None) -> None:
         """
         Generate and format-print all the counters as a single the array, to the given file.

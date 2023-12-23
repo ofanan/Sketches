@@ -125,16 +125,3 @@ class CntrMaster(IceBucket.CntrMaster):
         """
         print ('Sorry, but ICE_bucket.queryCntr() is not implemented yet.')
 
-
-    def printAllCntrVals (self, outputFile=None) -> None:
-        """
-        Format-print all the counters as a single the array, to the given file.
-        """
-        if outputFile==None:
-            print ('cntrs={} ' .format([calcEstimatorGivenEpsilon (self.epsilon, cntr) for cntr in self.cntrs]))
-        else:
-            printf (outputFile, f'bkt id={self.id}\n[')
-            for cntr in self.cntrs:
-                printf (outputFile, '{:.0f} ' .format(calcEstimatorGivenEpsilon(self.epsilon, cntr)))
-            printf (outputFile, f']\n')
-    
