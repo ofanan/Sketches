@@ -53,8 +53,9 @@ class Buckets (object):
                                 numCntrs        = self.numCntrsPerBkt,
                                 cntrMaxVal      = cntrMaxVal, 
                                 numEpsilonSteps = numEpsilonSteps,
-                                verbose         = self.verbose) 
-                            for _ in range (self.numBuckets)]
+                                verbose         = self.verbose,
+                                id              = i) 
+                            for i in range (self.numBuckets)]
         elif mode=='F2P':
             self.buckets = [F2pBucket.CntrMaster(
                                 cntrSize        = self.cntrSize, 

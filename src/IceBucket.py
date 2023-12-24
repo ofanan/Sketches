@@ -78,14 +78,15 @@ class CntrMaster(object):
                  numCntrs           = 1, # number of counters in the array.
                  numEpsilonSteps    = None,    # number of different possible estimation scales - a power of two.
                  cntrMaxVal         = None, # Max value to be reached by a counter. 
-                 verbose            = [], 
+                 verbose            = [],
+                 id                 = None, 
                  ):
         """
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
         """
         self.cntrSize, self.numCntrs, self.cntrMaxVal = cntrSize, numCntrs, cntrMaxVal
+        self.id, self.verbose = id, verbose
         self.numEstimators = 2**self.cntrSize
-        self.verbose       = verbose
         self.rst () # reset all the counters
         self.numEpsilonSteps  = numEpsilonSteps
  
@@ -183,7 +184,7 @@ class CntrMaster(object):
           This procedure scales-up a single counter after the "epsilon" variable was increased.
         """        
         if self.epsilon == ( (self.numEpsilonSteps-1) * self.epsilonStep):
-            settings.error (f'IceBucket.upscale() called when epsilon is already maximal. Cannot further increase epsilon. numEpsilonSteps={self.numEpsilonSteps}')
+            settings.error (f'IceBucket.upscale() called when epsilon is already maximal. Cannot further increase epsilon. numEpsilonSteps={self.numEpsilonSteps}. Max val is {calcCntrMaxValsByCntrSizes(cntrSize=self.cntrSize)[-1]}')
 
         # Update self.epsilon and then update all the estimators' values accordingly.
         self.prevEpsilon    = self.epsilon  
@@ -278,4 +279,4 @@ class CntrMaster(object):
                 printf (outputFile, '{:.0f} ' .format(calcCntrMaxValGivenEpsilon(self.epsilon, self.cntrSize)))
     
     
-# calcCntrMaxValsByCntrSizes (numEpsilonSteps=4, cntrSize=4)
+# calcCntrMaxValsByCntrSizes (numEpsilonSteps=6, cntrSize=8)
