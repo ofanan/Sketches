@@ -90,7 +90,6 @@ class CountMinSketch:
                                     numCntrsPerBkt  = self.numCntrsPerBkt, 
                                     mode            = 'ICE',
                                     numEpsilonSteps = 6,
-                                    cntrMaxVal      = (1 << self.cntrSize) - 1,
                                     verbose         = self.verbose)
         elif self.mode=='F2pBuckets':
             self.cntrMaster = Buckets.Buckets (

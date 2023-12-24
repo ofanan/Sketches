@@ -28,7 +28,7 @@ class Buckets (object):
     def __init__ (self, 
                   cntrSize          = 4, # num of bits in each counter. 
                   numCntrs          = 9, # number of counters in the array.
-                  cntrMaxVal        = 10, 
+                  cntrMaxVal        = None, 
                   numCntrsPerBkt    = 1, # number of cntrs at each bucket.
                   mode              = 'SEC',
                   numEpsilonSteps   = 8,

@@ -208,12 +208,13 @@ class CntrMaster(object):
         cntrVal = self.cntrs[cntrIdx]
         if cntrVal==(1 << self.cntrSize) - 1: # reached the largest possible estimated value w/o up-scaling?
             if settings.VERBOSE_LOG in self.verbose:
-                printf (self.logFile, 'up-scaling\n')
+                printf (self.logFile, f'bkt {self.id} is up-scaling. epsilon b4 upscaling={self.epsilon}\n')
             self.upscale () 
             cntrVal = self.cntrs[cntrIdx]# cntrVal is the value in the counter after up-scaling, before incrementing
         curEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal)
         incEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal+1)
-        if random.random () < 1/(incEstimate - curEstimate): 
+        diff = incEstimate - curEstimate  
+        if diff==1 or random.random () < 1/diff: 
             self.cntrs[cntrIdx] += 1
             return incEstimate
         return curEstimate
