@@ -59,8 +59,8 @@ def calcCntrMaxValsByCntrSizes (numEpsilonSteps=6, cntrSize=4):
     res = [None] * numEpsilonSteps
     epsilon = 0 
     for step in range (numEpsilonSteps):
-        epsilon  += epsilonStep 
         res[step] = calcCntrMaxValGivenEpsilon(epsilon, cntrSize)
+        epsilon  += epsilonStep 
     print (f'maxVals={res}')
     return res
 
@@ -182,7 +182,7 @@ class CntrMaster(object):
         - For each counter ("symbol"), run the "symbol upsclae" procedure, defined in [ICE_buckets].
           This procedure scales-up a single counter after the "epsilon" variable was increased.
         """        
-        if self.epsilon == (self.numEpsilonSteps * self.epsilonStep):
+        if self.epsilon == ( (self.numEpsilonSteps-1) * self.epsilonStep):
             settings.error (f'IceBucket.upscale() called when epsilon is already maximal. Cannot further increase epsilon. numEpsilonSteps={self.numEpsilonSteps}')
 
         # Update self.epsilon and then update all the estimators' values accordingly.
@@ -254,7 +254,6 @@ class CntrMaster(object):
         """
         print ('Sorry, but ICE_bucket.queryCntr() is not implemented yet.')
 
-
     def printAllCntrVals (self, outputFile=None) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
@@ -279,4 +278,4 @@ class CntrMaster(object):
                 printf (outputFile, '{:.0f} ' .format(calcCntrMaxValGivenEpsilon(self.epsilon, self.cntrSize)))
     
     
-# calcCntrMaxValsByCntrSizes (numEpsilonSteps=6, cntrSize=8)
+# calcCntrMaxValsByCntrSizes (numEpsilonSteps=4, cntrSize=4)

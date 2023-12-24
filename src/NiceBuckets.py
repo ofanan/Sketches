@@ -104,6 +104,7 @@ class CntrMaster (Buckets.Buckets):
         cntrDict: a dictionary representing the modified counter where: 
             - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.
         """
+        regBktNum = self.idx2RegBktNum(cntrIdx)
         isSaturated, valAfterInc = self.regBkts[self.idx2RegBktNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerRegBkt)
         if isSaturated:
             # Regular value is saturated --> query the Xl bkt
@@ -140,6 +141,8 @@ class CntrMaster (Buckets.Buckets):
         """ 
         self.logFile = logFile
         for bkt in self.regBkts:
+            bkt.logFile = logFile
+        for bkt in self.xlBkts:
             bkt.logFile = logFile
 
     def incCntrGetVal (self, cntrIdx=0, factor=1, verbose=[], mult=False):

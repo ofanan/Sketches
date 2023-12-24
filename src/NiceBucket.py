@@ -34,6 +34,8 @@ class CntrMaster(IceBucket.CntrMaster):
         self.numEpsilonSteps  = numEpsilonSteps 
         self.epsilon          = 0
         self.epsilonStep      = findPreComputedDatum (cntrSize=self.cntrSize)['epsilonStep']
+        if not(self.isXlBkt):
+            self.isSaturated = [False]*self.numCntrs
     
     def upscale (self):
         """
@@ -66,17 +68,19 @@ class CntrMaster(IceBucket.CntrMaster):
         wasSaturated is True iff the counter was saturated already before incrementing (in this case, no increment is done).
         valAfterInc: if wasSaturated==False, then this is the updated counter's value.
         """
+        if not(self.isXlBkt) and self.isSaturated[cntrIdx]:
+            return True, None # return values telling that the (regular) counter is saturated
         cntrVal = self.cntrs[cntrIdx]
         if cntrVal==(1 << self.cntrSize) - 1: # reached the largest possible estimated value w/o up-scaling?
-            if self.epsilon==self.numEpsilonSteps * self.epsilonStep: # already up-scaled as high as possible.
+            if self.epsilon == ((self.numEpsilonSteps-1) * self.epsilonStep): # already up-scaled as high as possible.
                 if self.isXlBkt:
                     settings.error (f'in NiceBucket.incCntrBy1GetVal(). Tried to increment XlBkt {self.id} above the maximum feasible value. cntrSize={self.cntrSize}, numEpsilonSteps={self.numEpsilonSteps}')
                 # Now we know that this isn't an XlBkt --> this is a regular bkt
+                self.isSaturated[cntrIdx] = True
                 if settings.VERBOSE_LOG in self.verbose:
                     printf (self.logFile, f'bkt {self.id} reached max val of regular bkts\n')
                 return True, None # return values telling that the (regular) counter is saturated
             if settings.VERBOSE_LOG in self.verbose:
-                print (f'bkt {self.id} is up-scaling. epsilon b4 upscaling={self.epsilon}\n')
                 printf (self.logFile, f'bkt {self.id} is up-scaling. epsilon b4 upscaling={self.epsilon}\n')
             self.upscale () 
             cntrVal = self.cntrs[cntrIdx]# cntrVal is the value in the counter after up-scaling, before incrementing

@@ -376,14 +376,14 @@ def main(mode, runShortSim=True):
         width, depth, cntrSize  = 2, 2, 4
         numFlows                = width*depth*1
         numCntrsPerBkt          = 2
-        numIncs                 = 1000 #(width * depth * cntrSize**3)/2
+        numIncs                 = 4945 #(width * depth * cntrSize**3)/2
         numOfExps               = 1
-        verbose                 = [settings.VERBOSE_LOG_END_SIM] #settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
+        verbose                 = [settings.VERBOSE_LOG, settings.VERBOSE_LOG_END_SIM] #settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
         width, depth, cntrSize  = 64, 4, 8
         numFlows                = width*depth*16
         numCntrsPerBkt          = 16
-        numIncs                 = 100000000 #(width * depth * cntrSize**3)/2
+        numIncs                 = 100000 #000 #(width * depth * cntrSize**3)/2
         numOfExps               = 1
         verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_LOG_END_SIM] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
          
@@ -394,5 +394,5 @@ def main(mode, runShortSim=True):
     # cms.collectStatOfTrace(traceFileName=traceFileName) #, numIncs=100)
     
 if __name__ == '__main__':
-    main (mode='NiceBuckets', runShortSim=False)
+    main (mode='NiceBuckets', runShortSim=True)
     # main (mode='IceBuckets', runShortSim=False)
