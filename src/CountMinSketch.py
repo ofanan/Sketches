@@ -285,7 +285,7 @@ class CountMinSketch:
 
             if settings.VERBOSE_LOG_END_SIM in self.verbose:
                 self.cntrMaster.printCntrsStat (self.logFile) 
-                self.cntrMaster.printAllCntrs (self.logFile)
+                # self.cntrMaster.printAllCntrs (self.logFile)
             Rmse     = math.sqrt (self.sumSqEr/self.numIncs)
             normRmse = Rmse/self.numIncs
             if (settings.VERBOSE_LOG in self.verbose):
@@ -345,7 +345,6 @@ class CountMinSketch:
         for bin in range(numBins):
             binVal[bin] = len ([flowId for flowId in range(self.numFlows) if (flowRealVal[flowId]//binSize)==bin])
         binFlowSizes = [binSize*bin for bin in range (numBins)]
-        print (f'binYVals={binVal}')
         printf (outputFile, f'numFlows={self.numFlows}, num zero flows={len ([item for item in flowRealVal if item==0])}, num non-zeros flows={len ([item for item in flowRealVal if item>0])}')
         printf (outputFile, f'\nmaxFlowSize={maxFlowSize}, binVal={binVal}')
         printf (outputFile, f'\nbinFlowSizes={binFlowSizes}')

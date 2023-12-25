@@ -80,21 +80,39 @@ class Buckets (object):
         """
         Print statistics about the counters, e.g., the max counter, and binning of the counters.
         """
+        if self.mode!='ICE':
+            print ('Sorry. Printing stat is currently implemented only for IceBuckets.')
+            return
         cntrVals = [None]*self.numCntrs
         i = 0
         for bktNum in range(self.numBkts):            
             cntrVals[i:(i+self.numCntrsPerBkt)] = self.bkts[bktNum].getAllCntrsVals()
             i += self.numCntrsPerBkt
-        print (f'numBkts={self.numBkts}, numCntrs={self.numCntrs}, bktNum={bktNum}, i={i}, cntrVals={cntrVals}') #$$$
+        maxCntr = max(cntrVals)
+        printf (outputFile, f'numBkts={self.numBkts}, numCntrs={self.numCntrs}, maxCntr={maxCntr}\n')
+
+        numBins = min (100, maxCntr+1)
+        binSize = maxCntr // (numBins-1)
+        binVal  = [None] * numBins 
+        for bin in range(numBins):
+            binVal[bin] = len ([cntrNum for cntrNum in range(self.numCntrs) if (cntrVals[cntrNum]//binSize)==bin])
+        binFlowSizes = [binSize*bin for bin in range (numBins)]
+        printf (outputFile, f'binVal={binVal}')
+        printf (outputFile, f'\nbinFlowSizes={binFlowSizes}')
+        printf (outputFile, f'\ncntrVals={cntrVals}\n') 
+        # _, ax = plt.subplots()
+        # ax.plot ([binSize*bin for bin in range (numBins)], binVal)
+        # ax.set_yscale ('log')
+        # plt.show ()
+        # plt.savefig (f'../res/{outputFileName}.pdf', bbox_inches='tight')        
+        
     
     def printAllCntrs (self, outputFile) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
         """
-        printf (outputFile, '[')
         for bkt in self.bkts:
             bkt.printAllCntrVals(outputFile)
-        printf (outputFile, ']')
     
     def rstCntr (self, cntrIdx=0) -> None:
         """
