@@ -3,7 +3,6 @@
 import random, math, numpy as np
 from printf import printf
 import settings
-# import commonFuncs 
 
 # To prevent overflows, the search range for some parameters should be limited corresponding to the counter's size. 
 # This is done using the list of dicts below.

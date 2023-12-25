@@ -1,4 +1,6 @@
 # Buckets of Counter arrays.
+import matplotlib 
+import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
@@ -100,11 +102,10 @@ class Buckets (object):
         printf (outputFile, f'binVal={binVal}')
         printf (outputFile, f'\nbinFlowSizes={binFlowSizes}')
         printf (outputFile, f'\ncntrVals={cntrVals}\n') 
-        # _, ax = plt.subplots()
-        # ax.plot ([binSize*bin for bin in range (numBins)], binVal)
-        # ax.set_yscale ('log')
-        # plt.show ()
-        # plt.savefig (f'../res/{outputFileName}.pdf', bbox_inches='tight')        
+        _, ax = plt.subplots()
+        ax.plot ([binSize*bin for bin in range (numBins)], binVal)
+        ax.set_yscale ('log')
+        plt.savefig (f'../res/equinix-nyc_ICE.pdf', bbox_inches='tight')        
         
     
     def printAllCntrs (self, outputFile) -> None:

@@ -1,8 +1,5 @@
-import matplotlib #, seaborn
+import matplotlib 
 import matplotlib.pyplot as plt
-# import matplotlib.ticker
-# import matplotlib.pylab as pylab
-
 import math, random, os, pickle, mmh3, time, csv
 import numpy as np
 from datetime import datetime
@@ -379,10 +376,10 @@ def main(mode, runShortSim=True):
         numOfExps               = 1
         verbose                 = [settings.VERBOSE_LOG_END_SIM] #settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
-        width, depth, cntrSize  = 2**16, 4, 8
-        numFlows                = width*depth*16
+        width, depth, cntrSize  = 1024, 4, 8
+        numFlows                = 4096 # width*depth*16
         numCntrsPerBkt          = 16
-        numIncs                 = float ('inf') # 1000000 #000 #(width * depth * cntrSize**3)/2
+        numIncs                 = 20000 #float ('inf') #  
         numOfExps               = 1
         verbose                 = [settings.VERBOSE_LOG_END_SIM] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
          
@@ -396,4 +393,4 @@ def main(mode, runShortSim=True):
 # print (f'overall num of pkts={sum(equinixFlowSizes)}')    
 if __name__ == '__main__':
     # main (mode='NiceBuckets', runShortSim=True)
-    main (mode='IceBuckets', runShortSim=True)
+    main (mode='IceBuckets', runShortSim=False)
