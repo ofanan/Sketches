@@ -379,7 +379,7 @@ def main(mode, runShortSim=True):
         width, depth, cntrSize  = 1024, 4, 8
         numFlows                = 4096 # width*depth*16
         numCntrsPerBkt          = 16
-        numIncs                 = 20000 #float ('inf') #  
+        numIncs                 = float ('inf')   
         numOfExps               = 1
         verbose                 = [settings.VERBOSE_LOG_END_SIM] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
          
