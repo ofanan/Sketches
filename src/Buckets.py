@@ -12,7 +12,7 @@ class Buckets (object):
     """
 
     # Generates a strings that details the counter's settings (param vals).    
-    genSettingsStr  = lambda self : f'bkts{self.numBuckets}'
+    genSettingsStr  = lambda self : f'bkts{self.numBkts}'
 
     # Given the index in the Buckets, get the bucket number and the number of the counter in the bucket
     getBucketNumAndCntrNum = lambda self, idx : [self.idx2BucketNum(idx), idx%self.numCntrsPerBkt]
@@ -23,7 +23,7 @@ class Buckets (object):
     # Query a cntr. 
     # Input: cntrIdx - the counter's index. 
     # Output: The value that the counter represents (as int/FP).
-    queryCntrVal    = lambda self, cntrIdx=0 : self.buckets[self.idx2BucketNum(cntrIdx)].queryCntrVal(cntrIdx=cntrIdx%self.numCntrsPerBkt)                  
+    queryCntrVal    = lambda self, cntrIdx=0 : self.bkts[self.idx2BucketNum(cntrIdx)].queryCntrVal(cntrIdx=cntrIdx%self.numCntrsPerBkt)                  
             
     def __init__ (self, 
                   cntrSize          = 4, # num of bits in each counter. 
@@ -39,49 +39,60 @@ class Buckets (object):
             settings.error (f'in Buckets: you requested cntrSize={cntrSize}, numCntrs={numCntrs}. However, you should choose cntrSize>=1, numCntrs>=1.')
             
         self.cntrSize, self.numCntrs, self.numCntrsPerBkt = int(cntrSize), int(numCntrs), int(numCntrsPerBkt)
-        self.numBuckets = self.numCntrs // self.numCntrsPerBkt
+        self.numBkts = self.numCntrs // self.numCntrsPerBkt
         self.verbose    = verbose
         self.mode       = mode
         if mode=='SEC':
-            self.buckets = [SEC.CntrMaster(cntrSize         = self.cntrSize, 
+            self.bkts = [SEC.CntrMaster(cntrSize         = self.cntrSize, 
                                 numCntrs         = self.numCntrsPerBkt, 
                                 verbose          = self.verbose) 
-                            for _ in range (self.numBuckets)]
+                            for _ in range (self.numBkts)]
         elif mode=='ICE':
-            self.buckets = [IceBucket.CntrMaster(
+            self.bkts = [IceBucket.CntrMaster(
                                 cntrSize        = self.cntrSize, 
                                 numCntrs        = self.numCntrsPerBkt,
                                 cntrMaxVal      = cntrMaxVal, 
                                 numEpsilonSteps = numEpsilonSteps,
                                 verbose         = self.verbose,
                                 id              = i) 
-                            for i in range (self.numBuckets)]
+                            for i in range (self.numBkts)]
         elif mode=='F2P':
-            self.buckets = [F2pBucket.CntrMaster(
+            self.bkts = [F2pBucket.CntrMaster(
                                 cntrSize        = self.cntrSize, 
                                 numCntrs        = self.numCntrsPerBkt,
                                 hyperExpSize    = 0,
                                 verbose         = self.verbose) 
-                            for _ in range (self.numBuckets)]
+                            for _ in range (self.numBkts)]
         elif mode=='MEC':
             numStages = int(25)
             MecBucket.CntrMaster.expRanges, MecBucket.CntrMaster.offsets, MecBucket.CntrMaster.pivots = \
                 MecBucket.precomputeExpRangesAndOffsets (cntrSize=self.cntrSize, numStages=numStages)
             MecBucket.CntrMaster.numStages = numStages
-            self.buckets = [MecBucket.CntrMaster(
+            self.bkts = [MecBucket.CntrMaster(
                                             cntrSize        = self.cntrSize, 
                                             numCntrs        = self.numCntrsPerBkt,
-                                            verbose=self.verbose) for _ in range (self.numBuckets)]
+                                            verbose=self.verbose) for _ in range (self.numBkts)]
         else:
             settings.error ('Sorry. Mode {self.mode} which you chose is not supported yet by Buckets.py.')
         
         
+    def printCntrsStat (self, outputFile) -> None:
+        """
+        Print statistics about the counters, e.g., the max counter, and binning of the counters.
+        """
+        cntrVals = [None]*self.numCntrs
+        i = 0
+        for bktNum in range(self.numBkts):            
+            cntrVals[i:(i+self.numCntrsPerBkt)] = self.bkts[bktNum].getAllCntrsVals()
+            i += self.numCntrsPerBkt
+        print (f'numBkts={self.numBkts}, numCntrs={self.numCntrs}, bktNum={bktNum}, i={i}, cntrVals={cntrVals}') #$$$
+    
     def printAllCntrs (self, outputFile) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
         """
         printf (outputFile, '[')
-        for bkt in self.buckets:
+        for bkt in self.bkts:
             bkt.printAllCntrVals(outputFile)
         printf (outputFile, ']')
     
@@ -89,7 +100,7 @@ class Buckets (object):
         """
         Reset a single counter.
         """
-        self.buckets[self.idx2BucketNum(cntrIdx)].rstCntr(idx%self.numCntrsPerBkt)
+        self.bkts[self.idx2BucketNum(cntrIdx)].rstCntr(idx%self.numCntrsPerBkt)
     
     def queryCntr (self, cntrIdx=0) -> dict:
         """
@@ -100,7 +111,7 @@ class Buckets (object):
         cntrDic: a dictionary, where: 
             - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.        
         """
-        return self.buckets[self.idx2BucketNum(cntrIdx)].cntr2cntrDict(cntrIdx%self.numCntrsPerBkt)           
+        return self.bkts[self.idx2BucketNum(cntrIdx)].cntr2cntrDict(cntrIdx%self.numCntrsPerBkt)           
 
     def incCntrBy1GetVal (self, 
                           cntrIdx  = 0, # idx of the concrete counter to increment in the array 
@@ -111,7 +122,7 @@ class Buckets (object):
         cntrDict: a dictionary representing the modified counter where: 
             - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.
         """
-        return self.buckets[self.idx2BucketNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerBkt)
+        return self.bkts[self.idx2BucketNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerBkt)
  
 
     def incCntr (self, cntrIdx=0, factor=1, verbose=[], mult=False):
@@ -135,14 +146,14 @@ class Buckets (object):
         """
         if mult or (factor!=1):
             settings.error ('Sorry, Buckets.incCntr() is currently implemented only when mult==True and factor=1.')
-        return self.buckets[self.idx2BucketNum(cntrIdx)].incCntrBy1 (cntrIdx=cntrIdx%self.numCntrsPerBkt) 
+        return self.bkts[self.idx2BucketNum(cntrIdx)].incCntrBy1 (cntrIdx=cntrIdx%self.numCntrsPerBkt) 
 
     def setLogFile (self, logFile):
         """
         set the log file
         """ 
         self.logFile = logFile
-        for bkt in self.buckets:
+        for bkt in self.bkts:
             bkt.logFile = logFile
 
     def incCntrGetVal (self, cntrIdx=0, factor=1, verbose=[], mult=False):
@@ -165,5 +176,5 @@ class Buckets (object):
         """
         if mult or (factor!=1):
             settings.error ('Sorry, Buckets.incCntrGetVal() is currently implemented only when mult==True and factor=1.')
-        return self.buckets[self.idx2BucketNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerBkt) 
+        return self.bkts[self.idx2BucketNum(cntrIdx)].incCntrBy1GetVal (cntrIdx=cntrIdx%self.numCntrsPerBkt) 
 

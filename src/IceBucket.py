@@ -256,6 +256,15 @@ class CntrMaster(object):
         """
         print ('Sorry, but ICE_bucket.queryCntr() is not implemented yet.')
 
+    def getAllCntrsVals (self) -> list:
+        """
+        Returns a vector containing all the counters' values
+        """
+        vals = [None]*self.numCntrs
+        for cntrNum in range(self.numCntrs):
+            vals[cntrNum] = calcEstimatorGivenEpsilon(self.epsilon, self.cntrs[cntrNum])
+        return vals
+    
     def printAllCntrVals (self, outputFile=None) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
