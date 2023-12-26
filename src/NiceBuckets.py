@@ -1,4 +1,6 @@
 # Buckets of Counter arrays.
+import matplotlib 
+import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
@@ -47,7 +49,7 @@ class CntrMaster (Buckets.Buckets):
         self.cntrSize, self.numCntrs, self.numCntrsPerRegBkt = int(cntrSize), int(numCntrs), int(numCntrsPerRegBkt)
         self.numEpsilonStepsInRegBkt = numEpsilonStepsInRegBkt
         self.numCntrsPerXlBkt = numCntrsPerXlBkt
-        self.numRegularBuckets = self.numCntrs // self.numCntrsPerRegBkt
+        self.numRegBkts = self.numCntrs // self.numCntrsPerRegBkt
         self.verbose    = verbose
         self.numXlBkts  = numXlBkts
         self.mode       = 'Nice'
@@ -60,7 +62,7 @@ class CntrMaster (Buckets.Buckets):
                             verbose         = self.verbose,
                             id              = i,
                             isXlBkt         = False)
-                            for i in range (self.numRegularBuckets)]        
+                            for i in range (self.numRegBkts)]        
         self.xlBkts = [NiceBucket.CntrMaster(
                             cntrSize        = self.cntrSize, 
                             numCntrs        = self.numCntrsPerXlBkt,
@@ -146,6 +148,42 @@ class CntrMaster (Buckets.Buckets):
         for bkt in self.xlBkts:
             bkt.logFile = logFile
 
+    def printCntrsStat (self, 
+                        outputFile, # file to which the stat will be written
+                        genPlot=False, # when True, plot the stat 
+                        outputFileName=None, # filename to which the .pdf plot will be saved
+                        ) -> None:
+        """
+        Print statistics about the counters, e.g., the max counter, and binning of the counters.
+        """
+        cntrVals = [None]*self.numCntrs
+        i = 0
+        for bktNum in range(self.numRegBkts):            
+            cntrVals[i:(i+self.numCntrsPerRegBkt)] = self.regBkts[bktNum].getAllCntrsVals()
+            i += self.numCntrsPerRegBkt
+        maxCntr = max(cntrVals)
+        printf (outputFile, f'numRegBkts={self.numRegBkts}, numCntrs={self.numCntrs}, maxCntr={maxCntr}\n')
+
+        numBins = min (100, maxCntr+1)
+        binSize = maxCntr // (numBins-1)
+        binVal  = [None] * numBins 
+        for bin in range(numBins):
+            binVal[bin] = len ([cntrNum for cntrNum in range(self.numCntrs) if (cntrVals[cntrNum]//binSize)==bin])
+        binFlowSizes = [binSize*bin for bin in range (numBins)]
+        printf (outputFile, f'binVal={binVal}')
+        printf (outputFile, f'\nbinFlowSizes={binFlowSizes}')
+        printf (outputFile, f'\ncntrVals={cntrVals}\n')
+        if not(genPlot):
+            return 
+        if outputFileName==None:
+            settings.error (f'In Buckets.printCntrsStat(). To generate a plot, please specify outputFileName')
+        _, ax = plt.subplots()
+        ax.plot ([binSize*bin for bin in range (numBins)], binVal)
+        ax.set_yscale ('log')
+        plt.savefig (f'../res/{outputFileName}.pdf', bbox_inches='tight')        
+        
+    
+        
     def incCntrGetVal (self, cntrIdx=0, factor=1, verbose=[], mult=False):
         """
         Increase a single counter by a given factor.

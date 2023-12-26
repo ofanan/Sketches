@@ -4,7 +4,7 @@ import math, random, os, pickle, mmh3, time, csv
 import numpy as np
 from datetime import datetime
 import settings, PerfectCounter, Buckets, NiceBuckets
-
+from   tictoc import tic, toc
 from printf import printf, printarFp
 
 class CountMinSketch:
@@ -175,7 +175,7 @@ class CountMinSketch:
         """
         
         self.numOfExps = self.expNum + 1 # Allow writing intermmediate results. Assume we began with expNum=0.
-        Rmse     = [math.sqrt (self.sumSqEr[expNum]/self.numIncs) for expNum in range(self.numOfExps)]
+        Rmse     = [math.sqrt (self.sumSqEr[expNum]/self.incNum) for expNum in range(self.numOfExps)]
         normRmse = [Rmse[expNum]/self.numIncs  for expNum in range(self.numOfExps)]
         if (settings.VERBOSE_LOG in self.verbose):
             printf (self.logFile, '\nnormRmse=')
@@ -218,7 +218,7 @@ class CountMinSketch:
 
             
     def sim (self, 
-             numIncs        = 5000, # overall number of increments (# of pkts in the trace) 
+             maxNumIncs     = 5000, # maximum # of increments (pkts in the trace), after which the simulation will be stopped. 
              numOfExps      = 1,  # number of repeated experiments. Relevant only for randomly-generated traces.
              traceFileName  = None
              ):
@@ -227,15 +227,15 @@ class CountMinSketch:
         """
         
         self.openOutputFiles ()
-        self.numIncs, self.numOfExps = numIncs, numOfExps
+        self.maxNumIncs, self.numOfExps = maxNumIncs, numOfExps
         
+        tic ()
         if traceFileName==None:
             self.traceFileName = 'rand'
             flowRealVal     = [0] * self.numFlows
             self.sumSqEr    = [0] * self.numOfExps # self.sumSqEr[j] will hold the sum of the square errors collected at experiment j. 
             
             self.printSimMsg ('Started')
-
             for self.expNum in range (self.numOfExps):
                 self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
                 self.genCntrMaster ()
@@ -245,7 +245,7 @@ class CountMinSketch:
                     self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
                     self.cntrMaster.setLogFile(self.logFile)
                 
-                for incNum in range(self.numIncs):
+                for self.incNum in range(self.maxNumIncs):
                     flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
                     # flowId = mmh3.hash(str(flowId)) % self.numFlows
                     flowRealVal[flowId]     += 1
@@ -261,10 +261,12 @@ class CountMinSketch:
                 self.dumpDictToPcl    (dict)
             if settings.VERBOSE_RES in self.verbose:
                 printf (self.resFile, f'{dict}\n\n') 
+            self.printSimMsg (f'Finished {self.incNum} increments')
+            toc ()
 
         else: # read trace from a file
             self.traceFileName = traceFileName
-            incNum          = 0
+            self.incNum     = 0
             flowRealVal     = [0] * self.numFlows
             self.sumSqEr    = 0 # self.sumSqEr will hold the sum of the square errors.  
             relativePathToInputFile = settings.getRelativePathToTraceFile (self.traceFileName)
@@ -281,29 +283,31 @@ class CountMinSketch:
 
             for row in csvReader:
                 flowId = int(row[0]) % self.numFlows
-                if incNum==self.numIncs:
-                    break
+                self.incNum  += 1                
                 flowRealVal[flowId]     += 1
                 
                 flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
                 self.sumSqEr += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)
-                incNum  += 1                
                 if settings.VERBOSE_LOG in self.verbose:
                     self.cntrMaster.printAllCntrs (self.logFile)
                     printf (self.logFile, ' hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
+                if self.incNum==self.maxNumIncs:
+                    break
 
             if settings.VERBOSE_LOG_END_SIM in self.verbose:
                 self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr()) 
+                self.cntrMaster.printAllCntrs  (self.logFile)
 
-            self.printSimMsg (f'Finished {incNum} increments')
+            self.printSimMsg (f'Finished {self.incNum} increments')
+            toc ()
 
-            Rmse     = math.sqrt (self.sumSqEr/self.numIncs)
-            normRmse = Rmse/self.numIncs
+            Rmse     = math.sqrt (self.sumSqEr/self.incNum)
+            normRmse = Rmse/self.incNum
             if (settings.VERBOSE_LOG in self.verbose):
                 printf (self.logFile, f'\nnormRmse={normRmse}')
             
             dict = {'numOfExps'     : 1,
-                    'numIncs'       : incNum,
+                    'numIncs'       : self.incNum,
                     'mode'          : self.mode,
                     'cntrSize'      : self.cntrSize, 
                     'depth'         : self.depth,
@@ -317,26 +321,26 @@ class CountMinSketch:
                 printf (self.resFile, f'{dict}\n\n') 
                 
     def collectStatOfTrace (self, 
-             numIncs        = float('inf'), # overall number of increments (# of pkts in the trace) 
+             maxNumIncs     = float('inf'), # overall number of increments (# of pkts in the trace) 
              traceFileName  = None
              ):
         """
         Collect statistics about a trace
         """
         
-        self.numIncs    = numIncs
+        self.maxNumIncs = maxNumIncs
         
         if traceFileName==None:
             self.traceFileName = 'rand'
             flowRealVal     = [0] * self.numFlows
 
-            for incNum in range(self.numIncs):
+            for incNum in range(self.maxNumIncs):
                 flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
                 # flowId = mmh3.hash(str(flowId)) % self.numFlows
                 flowRealVal[flowId]     += 1
         else: # read trace from a file
             self.traceFileName = traceFileName
-            incNum          = 0
+            self.incNum     = 0
             flowRealVal     = [0] * self.numFlows
             relativePathToInputFile = settings.getRelativePathToTraceFile (self.traceFileName)
             settings.checkIfInputFileExists (relativePathToInputFile)
@@ -345,8 +349,8 @@ class CountMinSketch:
             for row in csvReader:
                 flowId = int(row[0]) % self.numFlows
                 flowRealVal[flowId]     += 1
-                incNum          += 1
-                if incNum==self.numIncs:
+                self.incNum += 1
+                if incNum==self.maxNumIncs:
                     break
         
         outputFileName = self.genSettingsStr() + f'_{incNum}incs'
@@ -387,7 +391,7 @@ def main(mode, runShortSim=True):
         width, depth, cntrSize  = 2, 2, 4
         numFlows                = width*depth*1
         numCntrsPerBkt          = 2
-        numIncs                 = 4945 #(width * depth * cntrSize**3)/2
+        maxNumIncs              = 4945 #(width * depth * cntrSize**3)/2
         numOfExps               = 1
         numEpsilonStepsInRegBkt = 8
         numEpsilonStepsInXlBkt  = 4
@@ -396,7 +400,7 @@ def main(mode, runShortSim=True):
         width, depth, cntrSize  = 1024, 4, 8
         numFlows                = 4096 # width*depth*16
         numCntrsPerBkt          = 16
-        numIncs                 = float ('inf')   
+        maxNumIncs              = float ('inf')   
         numOfExps               = 1
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
@@ -407,8 +411,8 @@ def main(mode, runShortSim=True):
                           numEpsilonStepsInRegBkt=numEpsilonStepsInRegBkt, 
                           numEpsilonStepsInXlBkt=numEpsilonStepsInXlBkt,
                           mode=mode)
-    cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
-    # cms.collectStatOfTrace(traceFileName=traceFileName, numIncs=100) 
+    cms.sim (numOfExps=numOfExps, maxNumIncs=maxNumIncs, traceFileName=traceFileName)
+    # cms.collectStatOfTrace(traceFileName=traceFileName, maxNumIncs=100) 
     
 if __name__ == '__main__':
     try:

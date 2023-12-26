@@ -58,7 +58,6 @@ class CntrMaster(IceBucket.CntrMaster):
             else:
                 self.cntrs[cntrIdx] = ellTag
         
-        
     def incCntrBy1GetVal (self, cntrIdx=0):
         """
         Increase a counter cntrIdx by 1ץ
