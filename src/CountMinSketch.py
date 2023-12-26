@@ -398,8 +398,8 @@ def main(mode, runShortSim=True):
         numCntrsPerBkt          = 16
         numIncs                 = float ('inf')   
         numOfExps               = 1
-        numEpsilonStepsInRegBkt = 8
-        numEpsilonStepsInXlBkt  = 4
+        numEpsilonStepsInRegBkt = 5
+        numEpsilonStepsInXlBkt  = 7
         verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_LOG_END_SIM] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
          
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
