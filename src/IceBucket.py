@@ -12,7 +12,7 @@ preComputedData = [
                  {'cntrSize' : 5,    'epsilonStep' : 0.09},
                  {'cntrSize' : 6,    'epsilonStep' : 0.055},
                  {'cntrSize' : 7,    'epsilonStep' : 0.035},
-                 {'cntrSize' : 8,    'epsilonStep' : 0.028},
+                 {'cntrSize' : 8,    'epsilonStep' : 0.0302},
                  {'cntrSize' : 9,    'epsilonStep' : 0.016},
                  {'cntrSize' : 10,   'epsilonStep' : 0.014},
                  {'cntrSize' : 11,   'epsilonStep' : 0.012},
@@ -288,4 +288,4 @@ class CntrMaster(object):
                 printf (outputFile, '{:.0f} ' .format(calcCntrMaxValGivenEpsilon(self.epsilon, self.cntrSize)))
     
     
-# calcCntrMaxValsByCntrSizes (numEpsilonSteps=6, cntrSize=8)
+calcCntrMaxValsByCntrSizes (numEpsilonSteps=6, cntrSize=8)

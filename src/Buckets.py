@@ -80,7 +80,8 @@ class Buckets (object):
         
     def printCntrsStat (self, 
                         outputFile, # file to which the stat will be written
-                        genPlot=False # when True, plot the stat 
+                        genPlot=False, # when True, plot the stat 
+                        outputFileName=None, # filename to which the .pdf plot will be saved
                         ) -> None:
         """
         Print statistics about the counters, e.g., the max counter, and binning of the counters.
@@ -107,10 +108,12 @@ class Buckets (object):
         printf (outputFile, f'\ncntrVals={cntrVals}\n')
         if not(genPlot):
             return 
+        if outputFileName==None:
+            settings.error (f'In Buckets.printCntrsStat(). To generate a plot, please specify outputFileName')
         _, ax = plt.subplots()
         ax.plot ([binSize*bin for bin in range (numBins)], binVal)
         ax.set_yscale ('log')
-        plt.savefig (f'../res/equinix-nyc_{self.mode}.pdf', bbox_inches='tight')        
+        plt.savefig (f'../res/{outputFileName}.pdf', bbox_inches='tight')        
         
     
     def printAllCntrs (self, outputFile) -> None:

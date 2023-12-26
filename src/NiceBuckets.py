@@ -23,8 +23,8 @@ class CntrMaster (Buckets.Buckets):
                         outputFile, # file to which the stat will be written
                         genPlot=False # when True, plot the stat 
                         ) -> None:
-        print (f'Sorry. NiceBuckets.printCntrsStat() is not implemented yet.')
-    
+        print (f'in NiceBuckets.printCntrsStat(). This function is not implemented yet. Continuing run without printing stat.') 
+       
     def queryCntrVal (self, cntrIdx=0):
         """
         Query a cntr. 
