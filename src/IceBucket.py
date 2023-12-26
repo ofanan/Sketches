@@ -78,7 +78,7 @@ class CntrMaster(object):
                  numEpsilonSteps    = None,    # number of different possible estimation scales - a power of two.
                  cntrMaxVal         = None, # Max value to be reached by a counter. 
                  verbose            = [],
-                 id                 = None, 
+                 id                 = None,
                  ):
         """
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
@@ -86,6 +86,7 @@ class CntrMaster(object):
         self.cntrSize, self.numCntrs, self.cntrMaxVal = cntrSize, numCntrs, cntrMaxVal
         self.id, self.verbose = id, verbose
         self.numEstimators = 2**self.cntrSize
+        self.mode = 'ICE'
         self.rst () # reset all the counters
         self.numEpsilonSteps  = numEpsilonSteps
  

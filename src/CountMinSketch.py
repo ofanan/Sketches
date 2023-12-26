@@ -29,7 +29,8 @@ class CountMinSketch:
                  cntrSize       = 2, # num of bits in each counter
                  verbose        = [],
                  seed           = settings.SEED,
-                 numEpsilonSteps= 5
+                 numEpsilonStepsInRegBkt = 8,
+                 numEpsilonStepsInXlBkt  = 4
                  ):
         
         """
@@ -42,7 +43,8 @@ class CountMinSketch:
             print (f'Note: CountMinSketch was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
         self.mode, self.seed = mode, seed
-        self.numEpsilonSteps = numEpsilonSteps
+        self.numEpsilonStepsInRegBkt = numEpsilonStepsInRegBkt
+        self.numEpsilonStepsInXlBkt = numEpsilonStepsInXlBkt
         self.numCntrs   = self.width * self.depth
         
         numBucketsFP = self.numCntrs / self.numCntrsPerBkt
@@ -70,7 +72,7 @@ class CountMinSketch:
                                     numCntrs        = self.numCntrs, 
                                     numCntrsPerBkt  = self.numCntrsPerBkt, 
                                     mode            = 'ICE',
-                                    numEpsilonSteps = self.numEpsilonSteps,
+                                    numEpsilonSteps = self.numEpsilonStepsInRegBkt,
                                     verbose         = self.verbose)
         elif self.mode=='NiceBuckets':
             self.cntrMaster = NiceBuckets.CntrMaster (
@@ -78,10 +80,9 @@ class CountMinSketch:
                                     numCntrs                = self.numCntrs, 
                                     numCntrsPerRegBkt       = self.numCntrsPerBkt,
                                     numCntrsPerXlBkt        = self.numCntrsPerBkt,
-                                    numEpsilonStepsInRegBkt = numEpsilonSteps,
-                                    numEpsilonStepsInXlBkt  = numEpsilonSteps, 
+                                    numEpsilonStepsInRegBkt = self.numEpsilonStepsInRegBkt,
+                                    numEpsilonStepsInXlBkt  = self.numEpsilonStepsInXlBkt,
                                     numXlBkts               = self.depth,
-                                    numEpsilonSteps         = numEpsilonSteps,
                                     verbose                 = self.verbose)
         elif self.mode=='SecBuckets':
              self.cntrMaster = Buckets.Buckets (
@@ -388,23 +389,27 @@ def main(mode, runShortSim=True):
         numCntrsPerBkt          = 2
         numIncs                 = 4945 #(width * depth * cntrSize**3)/2
         numOfExps               = 1
-        numEpsilonSteps         = 8
+        numEpsilonStepsInRegBkt = 8
+        numEpsilonStepsInXlBkt  = 4
         verbose                 = [settings.VERBOSE_LOG_END_SIM] #settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
         width, depth, cntrSize  = 1024, 4, 8
         numFlows                = 4096 # width*depth*16
         numCntrsPerBkt          = 16
-        numIncs                 = 100 #float ('inf')   
+        numIncs                 = float ('inf')   
         numOfExps               = 1
-        numEpsilonSteps         = 5
+        numEpsilonStepsInRegBkt = 8
+        numEpsilonStepsInXlBkt  = 4
         verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_LOG_END_SIM] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
          
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
-                          numCntrsPerBkt = numCntrsPerBkt, numEpsilonSteps=numEpsilonSteps, 
+                          numCntrsPerBkt = numCntrsPerBkt, 
+                          numEpsilonStepsInRegBkt=numEpsilonStepsInRegBkt, 
+                          numEpsilonStepsInXlBkt=numEpsilonStepsInXlBkt,
                           mode=mode)
     cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
     # cms.collectStatOfTrace(traceFileName=traceFileName, numIncs=100) 
     
 if __name__ == '__main__':
-    main (mode='IceBuckets', runShortSim=True)
+    main (mode='NiceBuckets', runShortSim=True)
     # main (mode='IceBuckets', runShortSim=False)

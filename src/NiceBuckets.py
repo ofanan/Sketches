@@ -19,12 +19,6 @@ class CntrMaster (Buckets.Buckets):
     # Given the index in the Buckets, get the XL bucket number 
     idx2XlBktNum = lambda self, idx : idx//self.numIndicesPerXlBkt
 
-    def printCntrsStat (self, 
-                        outputFile, # file to which the stat will be written
-                        genPlot=False # when True, plot the stat 
-                        ) -> None:
-        print (f'in NiceBuckets.printCntrsStat(). This function is not implemented yet. Continuing run without printing stat.') 
-       
     def queryCntrVal (self, cntrIdx=0):
         """
         Query a cntr. 
@@ -56,6 +50,7 @@ class CntrMaster (Buckets.Buckets):
         self.numRegularBuckets = self.numCntrs // self.numCntrsPerRegBkt
         self.verbose    = verbose
         self.numXlBkts  = numXlBkts
+        self.mode       = 'Nice'
         self.numIndicesPerXlBkt = int (math.ceil(self.numCntrs / self.numXlBkts)) 
         self.minValOfXlBkt = IceBucket.calcCntrMaxValsByCntrSizes (numEpsilonSteps=self.numEpsilonStepsInRegBkt, cntrSize=self.cntrSize)[self.numEpsilonStepsInRegBkt-1] 
         self.regBkts = [NiceBucket.CntrMaster(
