@@ -288,4 +288,4 @@ class CntrMaster(object):
                 printf (outputFile, '{:.0f} ' .format(calcCntrMaxValGivenEpsilon(self.epsilon, self.cntrSize)))
     
     
-calcCntrMaxValsByCntrSizes (numEpsilonSteps=6, cntrSize=8)
+# calcCntrMaxValsByCntrSizes (numEpsilonSteps=6, cntrSize=8)

@@ -29,6 +29,7 @@ class CountMinSketch:
                  cntrSize       = 2, # num of bits in each counter
                  verbose        = [],
                  seed           = settings.SEED,
+                 numEpsilonSteps= 5
                  ):
         
         """
@@ -54,7 +55,7 @@ class CountMinSketch:
         self.verbose = verbose
         self.genOutputDirectories ()
 
-    def genCntrMaster (self):
+    def genCntrMaster (self, numEpsilonSteps=5):
         """
         Generate self.cntrMaster according to the mode requested
         """
@@ -69,7 +70,7 @@ class CountMinSketch:
                                     numCntrs        = self.numCntrs, 
                                     numCntrsPerBkt  = self.numCntrsPerBkt, 
                                     mode            = 'ICE',
-                                    numEpsilonSteps = 6,
+                                    numEpsilonSteps = numEpsilonSteps,
                                     verbose         = self.verbose)
         elif self.mode=='NiceBuckets':
             self.cntrMaster = NiceBuckets.CntrMaster (
@@ -383,10 +384,11 @@ def main(mode, runShortSim=True):
         numCntrsPerBkt          = 16
         numIncs                 = float ('inf')   
         numOfExps               = 1
+        numEpsilonSteps         = 5
         verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_LOG_END_SIM] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
          
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
-                          numCntrsPerBkt = numCntrsPerBkt, 
+                          numCntrsPerBkt = numCntrsPerBkt, numEpsilonSteps=numEpsilonSteps, 
                           mode=mode)
     cms.sim (numOfExps=numOfExps, numIncs=numIncs, traceFileName=traceFileName)
     # cms.collectStatOfTrace(traceFileName=traceFileName, numIncs=100) 
