@@ -295,7 +295,7 @@ class CountMinSketch:
             if settings.VERBOSE_LOG_END_SIM in self.verbose:
                 self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr()) 
 
-            self.printSimMsg ('Finished')
+            self.printSimMsg (f'Finished {incNum} increments')
 
             Rmse     = math.sqrt (self.sumSqEr/self.numIncs)
             normRmse = Rmse/self.numIncs
