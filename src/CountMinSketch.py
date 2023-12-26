@@ -184,7 +184,7 @@ class CountMinSketch:
         normRmseAvg          = np.average    (normRmse)
         normRmseConfInterval = settings.confInterval (ar=normRmse, avg=normRmseAvg)
         return {'numOfExps'     : self.numOfExps,
-                'numIncs'     : self.numIncs,
+                'numIncs'       : self.numIncs,
                 'mode'          : self.mode,
                 'cntrSize'      : self.cntrSize, 
                 'depth'         : self.depth,
@@ -303,7 +303,7 @@ class CountMinSketch:
                 printf (self.logFile, f'\nnormRmse={normRmse}')
             
             dict = {'numOfExps'     : 1,
-                    'numIncs'       : self.numIncs,
+                    'numIncs'       : incNum,
                     'mode'          : self.mode,
                     'cntrSize'      : self.cntrSize, 
                     'depth'         : self.depth,
