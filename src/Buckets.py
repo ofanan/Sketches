@@ -78,7 +78,10 @@ class Buckets (object):
             settings.error ('Sorry. Mode {self.mode} which you chose is not supported yet by Buckets.py.')
         
         
-    def printCntrsStat (self, outputFile) -> None:
+    def printCntrsStat (self, 
+                        outputFile, # file to which the stat will be written
+                        genPlot=False # when True, plot the stat 
+                        ) -> None:
         """
         Print statistics about the counters, e.g., the max counter, and binning of the counters.
         """
@@ -101,11 +104,13 @@ class Buckets (object):
         binFlowSizes = [binSize*bin for bin in range (numBins)]
         printf (outputFile, f'binVal={binVal}')
         printf (outputFile, f'\nbinFlowSizes={binFlowSizes}')
-        printf (outputFile, f'\ncntrVals={cntrVals}\n') 
+        printf (outputFile, f'\ncntrVals={cntrVals}\n')
+        if not(genPlot):
+            return 
         _, ax = plt.subplots()
         ax.plot ([binSize*bin for bin in range (numBins)], binVal)
         ax.set_yscale ('log')
-        plt.savefig (f'../res/equinix-nyc_ICE.pdf', bbox_inches='tight')        
+        plt.savefig (f'../res/equinix-nyc_{self.mode}.pdf', bbox_inches='tight')        
         
     
     def printAllCntrs (self, outputFile) -> None:

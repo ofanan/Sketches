@@ -19,6 +19,12 @@ class CntrMaster (Buckets.Buckets):
     # Given the index in the Buckets, get the XL bucket number 
     idx2XlBktNum = lambda self, idx : idx//self.numIndicesPerXlBkt
 
+    def printCntrsStat (self, 
+                        outputFile, # file to which the stat will be written
+                        genPlot=False # when True, plot the stat 
+                        ) -> None:
+        print (f'Sorry. NiceBuckets.printCntrsStat() is not implemented yet.')
+    
     def queryCntrVal (self, cntrIdx=0):
         """
         Query a cntr. 

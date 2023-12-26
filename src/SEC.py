@@ -40,6 +40,12 @@ class CntrMaster (object):
         self.cntrMaxMantissaVal      = (1 << self.cntrSize) - 1
         self.rst () # reset all the counters
         
+    def printCntrsStat (self, 
+                        outputFile, # file to which the stat will be written
+                        genPlot=False # when True, plot the stat 
+                        ) -> None:
+        print (f'Sorry. NiceBuckets.printCntrsStat() is not implemented yet.')
+    
     def printCntrs (self, outputFile) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
