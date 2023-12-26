@@ -41,8 +41,8 @@ class CountMinSketch:
         if depth<2 or width<2:
             print (f'Note: CountMinSketch was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
-        
-        self.mode, self.seed,  = mode, seed
+        self.mode, self.seed = mode, seed
+        self.numEpsilonSteps = numEpsilonSteps
         self.numCntrs   = self.width * self.depth
         
         numBucketsFP = self.numCntrs / self.numCntrsPerBkt
@@ -55,7 +55,7 @@ class CountMinSketch:
         self.verbose = verbose
         self.genOutputDirectories ()
 
-    def genCntrMaster (self, numEpsilonSteps=5):
+    def genCntrMaster (self):
         """
         Generate self.cntrMaster according to the mode requested
         """
@@ -70,7 +70,7 @@ class CountMinSketch:
                                     numCntrs        = self.numCntrs, 
                                     numCntrsPerBkt  = self.numCntrsPerBkt, 
                                     mode            = 'ICE',
-                                    numEpsilonSteps = numEpsilonSteps,
+                                    numEpsilonSteps = self.numEpsilonSteps,
                                     verbose         = self.verbose)
         elif self.mode=='NiceBuckets':
             self.cntrMaster = NiceBuckets.CntrMaster (
@@ -78,9 +78,10 @@ class CountMinSketch:
                                     numCntrs                = self.numCntrs, 
                                     numCntrsPerRegBkt       = self.numCntrsPerBkt,
                                     numCntrsPerXlBkt        = self.numCntrsPerBkt,
-                                    numEpsilonStepsInRegBkt = 4,
-                                    numEpsilonStepsInXlBkt  = 8, 
+                                    numEpsilonStepsInRegBkt = numEpsilonSteps,
+                                    numEpsilonStepsInXlBkt  = numEpsilonSteps, 
                                     numXlBkts               = self.depth,
+                                    numEpsilonSteps         = numEpsilonSteps,
                                     verbose                 = self.verbose)
         elif self.mode=='SecBuckets':
              self.cntrMaster = Buckets.Buckets (
@@ -206,6 +207,14 @@ class CountMinSketch:
             
         if (settings.VERBOSE_FULL_RES in self.verbose):
             self.fullResFile = open (f'../res/cms_full.res', 'a+')
+
+    def printSimMsg (self, str):
+        """
+        Print-screen an info msg about the parameters and hours of the simulation starting to run. 
+        """             
+        print ('{} running sim at t={}. trace={}, mode={}, cntrSize={}, depth={}, width={}, numFlows={}' .format (
+                        str, datetime.now().strftime('%H:%M:%S'), self.traceFileName, self.mode, self.cntrSize, self.depth, self.width, self.numFlows))
+
             
     def sim (self, 
              numIncs        = 5000, # overall number of increments (# of pkts in the trace) 
@@ -223,9 +232,8 @@ class CountMinSketch:
             self.traceFileName = 'rand'
             flowRealVal     = [0] * self.numFlows
             self.sumSqEr    = [0] * self.numOfExps # self.sumSqEr[j] will hold the sum of the square errors collected at experiment j. 
-
-            print ('Started running random input sim at t={}. mode={}, cntrSize={}, depth={}, width={}, numFlows={}' .format (
-                    datetime.now().strftime('%H:%M:%S'), self.mode, self.cntrSize, self.depth, self.width, self.numFlows))
+            
+            self.printSimMsg ('Started')
 
             for self.expNum in range (self.numOfExps):
                 self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
@@ -268,8 +276,8 @@ class CountMinSketch:
                 self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
                 self.cntrMaster.setLogFile(self.logFile)
 
-            print ('Started running trace input sim at t={}. mode={}, cntrSize={}, depth={}, width={}, numFlows={}' .format (
-                    datetime.now().strftime('%H:%M:%S'), self.mode, self.cntrSize, self.depth, self.width, self.numFlows))
+            self.printSimMsg ('Started')
+
             for row in csvReader:
                 flowId = int(row[0]) % self.numFlows
                 if incNum==self.numIncs:
@@ -285,6 +293,9 @@ class CountMinSketch:
 
             if settings.VERBOSE_LOG_END_SIM in self.verbose:
                 self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr()) 
+
+            self.printSimMsg ('Finished')
+
             Rmse     = math.sqrt (self.sumSqEr/self.numIncs)
             normRmse = Rmse/self.numIncs
             if (settings.VERBOSE_LOG in self.verbose):
@@ -377,12 +388,13 @@ def main(mode, runShortSim=True):
         numCntrsPerBkt          = 2
         numIncs                 = 4945 #(width * depth * cntrSize**3)/2
         numOfExps               = 1
+        numEpsilonSteps         = 8
         verbose                 = [settings.VERBOSE_LOG_END_SIM] #settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
         width, depth, cntrSize  = 1024, 4, 8
         numFlows                = 4096 # width*depth*16
         numCntrsPerBkt          = 16
-        numIncs                 = float ('inf')   
+        numIncs                 = 100 #float ('inf')   
         numOfExps               = 1
         numEpsilonSteps         = 5
         verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_LOG_END_SIM] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
@@ -394,5 +406,5 @@ def main(mode, runShortSim=True):
     # cms.collectStatOfTrace(traceFileName=traceFileName, numIncs=100) 
     
 if __name__ == '__main__':
-    main (mode='IceBuckets', runShortSim=False)
+    main (mode='IceBuckets', runShortSim=True)
     # main (mode='IceBuckets', runShortSim=False)

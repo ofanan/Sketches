@@ -37,7 +37,7 @@ class CntrMaster(IceBucket.CntrMaster):
         if not(self.isXlBkt):
             self.isSaturated = [False]*self.numCntrs
     
-    def upscale (self):
+    def upScale (self):
         """
         Up-scale for reaching a largest maximal value. In particular:
         - Increase the self.epsilon, which determines the error, by self.epsilonStep. Increasing self.epsilon allows reaching larger counted value (at the cost of a larger relative error).
@@ -82,7 +82,7 @@ class CntrMaster(IceBucket.CntrMaster):
                 return True, None # return values telling that the (regular) counter is saturated
             if settings.VERBOSE_LOG in self.verbose:
                 printf (self.logFile, f'bkt {self.id} is up-scaling. epsilon b4 upscaling={self.epsilon}\n')
-            self.upscale () 
+            self.upScale () 
             cntrVal = self.cntrs[cntrIdx]# cntrVal is the value in the counter after up-scaling, before incrementing
         curEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal)
         incEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal+1)

@@ -174,7 +174,7 @@ class CntrMaster(object):
         self.cntrs[cntrIdx] = 0
 
 
-    def upscale (self):
+    def upScale (self):
         """
         Up-scale for reaching a largest maximal value. In particular:
         - Increase the self.epsilon, which determines the error, by self.epsilonStep. Increasing self.epsilon allows reaching larger counted value (at the cost of a larger relative error).
@@ -183,7 +183,7 @@ class CntrMaster(object):
           This procedure scales-up a single counter after the "epsilon" variable was increased.
         """        
         if self.epsilon == ( (self.numEpsilonSteps-1) * self.epsilonStep):
-            settings.error (f'IceBucket.upscale() called when epsilon is already maximal. Cannot further increase epsilon. numEpsilonSteps={self.numEpsilonSteps}. Max val is {calcCntrMaxValsByCntrSizes(cntrSize=self.cntrSize)[-1]}')
+            settings.error (f'IceBucket.upScale() called when epsilon is already maximal. Cannot further increase epsilon. numEpsilonSteps={self.numEpsilonSteps}. Max val is {calcCntrMaxValsByCntrSizes(cntrSize=self.cntrSize)[-1]}')
 
         # Update self.epsilon and then update all the estimators' values accordingly.
         self.prevEpsilon    = self.epsilon  
@@ -208,7 +208,7 @@ class CntrMaster(object):
         if cntrVal==(1 << self.cntrSize) - 1: # reached the largest possible estimated value w/o up-scaling?
             if settings.VERBOSE_LOG in self.verbose:
                 printf (self.logFile, f'bkt {self.id} is up-scaling. epsilon b4 upscaling={self.epsilon}\n')
-            self.upscale () 
+            self.upScale () 
             cntrVal = self.cntrs[cntrIdx]# cntrVal is the value in the counter after up-scaling, before incrementing
         curEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal)
         incEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal+1)
