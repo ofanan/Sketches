@@ -420,6 +420,6 @@ def main(mode, runShortSim=True):
     
 if __name__ == '__main__':
     try:
-        main (mode='IceBuckets', runShortSim=False)
+        main (mode='NiceBuckets', runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
