@@ -411,4 +411,7 @@ def main(mode, runShortSim=True):
     # cms.collectStatOfTrace(traceFileName=traceFileName, numIncs=100) 
     
 if __name__ == '__main__':
-    main (mode='NiceBuckets', runShortSim=False)
+    try:
+        main (mode='NiceBuckets', runShortSim=False)
+    except KeyboardInterrupt:
+        print('Keyboard interrupt.')
