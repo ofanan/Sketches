@@ -29,8 +29,9 @@ class CountMinSketch:
                  cntrSize       = 2, # num of bits in each counter
                  verbose        = [],
                  seed           = settings.SEED,
-                 numEpsilonStepsInRegBkt = 8,
-                 numEpsilonStepsInXlBkt  = 4
+                 numEpsilonStepsIceBkts  = 6,
+                 numEpsilonStepsInRegBkt = 5,
+                 numEpsilonStepsInXlBkt  = 6
                  ):
         
         """
@@ -43,8 +44,9 @@ class CountMinSketch:
             print (f'Note: CountMinSketch was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
         self.mode, self.seed = mode, seed
-        self.numEpsilonStepsInRegBkt = numEpsilonStepsInRegBkt
-        self.numEpsilonStepsInXlBkt = numEpsilonStepsInXlBkt
+        self.numEpsilonStepsInRegBkt    = numEpsilonStepsInRegBkt
+        self.numEpsilonStepsInXlBkt     = numEpsilonStepsInXlBkt
+        self.numEpsilonStepsIceBkts     = numEpsilonStepsIceBkts
         self.numCntrs   = self.width * self.depth
         
         numBucketsFP = self.numCntrs / self.numCntrsPerBkt
@@ -72,7 +74,7 @@ class CountMinSketch:
                                     numCntrs        = self.numCntrs, 
                                     numCntrsPerBkt  = self.numCntrsPerBkt, 
                                     mode            = 'ICE',
-                                    numEpsilonSteps = self.numEpsilonStepsInRegBkt,
+                                    numEpsilonSteps = self.numEpsilonStepsIceBkts,
                                     verbose         = self.verbose)
         elif self.mode=='NiceBuckets':
             self.cntrMaster = NiceBuckets.CntrMaster (
@@ -402,20 +404,22 @@ def main(mode, runShortSim=True):
         numCntrsPerBkt          = 16
         maxNumIncs              = float ('inf')   
         numOfExps               = 1
+        numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
         verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_LOG_END_SIM] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
          
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
-                          numCntrsPerBkt = numCntrsPerBkt, 
-                          numEpsilonStepsInRegBkt=numEpsilonStepsInRegBkt, 
-                          numEpsilonStepsInXlBkt=numEpsilonStepsInXlBkt,
+                          numCntrsPerBkt = numCntrsPerBkt,
+                          numEpsilonStepsIceBkts    = numEpsilonStepsIceBkts, 
+                          numEpsilonStepsInRegBkt   = numEpsilonStepsInRegBkt, 
+                          numEpsilonStepsInXlBkt    = numEpsilonStepsInXlBkt,
                           mode=mode)
     cms.sim (numOfExps=numOfExps, maxNumIncs=maxNumIncs, traceFileName=traceFileName)
     # cms.collectStatOfTrace(traceFileName=traceFileName, maxNumIncs=100) 
     
 if __name__ == '__main__':
     try:
-        main (mode='NiceBuckets', runShortSim=False)
+        main (mode='IceBuckets', runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
