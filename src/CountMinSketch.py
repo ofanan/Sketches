@@ -395,9 +395,10 @@ def main(mode, runShortSim=True):
         numCntrsPerBkt          = 2
         maxNumIncs              = 4945 #(width * depth * cntrSize**3)/2
         numOfExps               = 1
-        numEpsilonStepsInRegBkt = 8
-        numEpsilonStepsInXlBkt  = 4
-        verbose                 = [settings.VERBOSE_LOG_END_SIM] #settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
+        numEpsilonStepsIceBkts  = 4 
+        numEpsilonStepsInRegBkt = 2
+        numEpsilonStepsInXlBkt  = 5
+        verbose                 = [settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG] #settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
         width, depth, cntrSize  = 1024, 4, 8
         numFlows                = 4096 # width*depth*16
@@ -420,6 +421,6 @@ def main(mode, runShortSim=True):
     
 if __name__ == '__main__':
     try:
-        main (mode='NiceBuckets', runShortSim=False)
+        main (mode='NiceBuckets', runShortSim=True)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

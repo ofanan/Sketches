@@ -5,7 +5,8 @@ import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
 
-import settings, SEC, IceBucket, F2pBucket, MecBucket 
+import settings, SEC, IceBucket, MecBucket 
+# import F2pBucket #$$ currently private
 from printf import printf, printarFp
 
 class Buckets (object):
@@ -59,12 +60,13 @@ class Buckets (object):
                                 id              = i) 
                             for i in range (self.numBkts)]
         elif mode=='F2P':
-            self.bkts = [F2pBucket.CntrMaster(
-                                cntrSize        = self.cntrSize, 
-                                numCntrs        = self.numCntrsPerBkt,
-                                hyperExpSize    = 0,
-                                verbose         = self.verbose) 
-                            for _ in range (self.numBkts)]
+            settings.error ('Sorry, F2P buckets are private.')
+            # self.bkts = [F2pBucket.CntrMaster(
+            #                     cntrSize        = self.cntrSize, 
+            #                     numCntrs        = self.numCntrsPerBkt,
+            #                     hyperExpSize    = 0,
+            #                     verbose         = self.verbose) 
+            #                 for _ in range (self.numBkts)]
         elif mode=='MEC':
             numStages = int(25)
             MecBucket.CntrMaster.expRanges, MecBucket.CntrMaster.offsets, MecBucket.CntrMaster.pivots = \
