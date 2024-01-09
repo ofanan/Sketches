@@ -18,6 +18,7 @@ class CountMinSketch:
     # given the row and col. in a matrix, return the corresponding index if the mat is flattened into a 1D array.
     mat2aridx  = lambda self, row, col       : self.width*row + col 
 
+    # Generate a string that details the parameters' values.
     genSettingsStr = lambda self : f'cms_{self.traceFileName}_{self.mode}_d{self.depth}_w{self.width}_f{self.numFlows}_bit{self.cntrSize}'
     
     def __init__(self,
@@ -27,11 +28,11 @@ class CountMinSketch:
                  numFlows       = 10, # the total number of flows to be estimated.
                  mode           = 'PerfectCounter', # the counter mode (e.g., SEC, AEE, realCounter).
                  cntrSize       = 2, # num of bits in each counter
-                 verbose        = [],
+                 verbose        = [], # The chosen verbose options, detailed in settings.py, determine the output (e.g., to a .pcl, .res or .log file).
                  seed           = settings.SEED,
-                 numEpsilonStepsIceBkts  = 6,
-                 numEpsilonStepsInRegBkt = 5,
-                 numEpsilonStepsInXlBkt  = 6
+                 numEpsilonStepsIceBkts  = 6, # number of "epsilon" steps in Ice Buckets.
+                 numEpsilonStepsInRegBkt = 5, # number of "epsilon" steps in regular buckets in NiceBuckets.
+                 numEpsilonStepsInXlBkt  = 6  # number of "epsilon" steps in the XL buckets in NiceBuckets.
                  ):
         
         """
@@ -62,51 +63,53 @@ class CountMinSketch:
     def genCntrMaster (self):
         """
         Generate self.cntrMaster according to the mode requested
+        self.cntrMaster is the entity that manages the counters - including incrementing and querying counters.
+        Documentation about the various CntrMaster's types is found in the corresponding .py files. 
         """
         if self.mode=='PerfectCounter':
-             self.cntrMaster = PerfectCounter.CntrMaster (
-                                    cntrSize    = self.cntrSize, 
-                                    numCntrs    = self.numCntrs, 
-                                    verbose     = self.verbose)
+            self.cntrMaster = PerfectCounter.CntrMaster (
+                                cntrSize    = self.cntrSize, 
+                                numCntrs    = self.numCntrs, 
+                                verbose     = self.verbose)
         elif self.mode=='IceBuckets':
             self.cntrMaster = Buckets.Buckets (
-                                    cntrSize        = self.cntrSize, 
-                                    numCntrs        = self.numCntrs, 
-                                    numCntrsPerBkt  = self.numCntrsPerBkt, 
-                                    mode            = 'ICE',
-                                    numEpsilonSteps = self.numEpsilonStepsIceBkts,
-                                    verbose         = self.verbose)
+                                cntrSize        = self.cntrSize, 
+                                numCntrs        = self.numCntrs, 
+                                numCntrsPerBkt  = self.numCntrsPerBkt, 
+                                mode            = 'ICE',
+                                numEpsilonSteps = self.numEpsilonStepsIceBkts,
+                                verbose         = self.verbose)
         elif self.mode=='NiceBuckets':
             self.cntrMaster = NiceBuckets.CntrMaster (
-                                    cntrSize                = self.cntrSize, 
-                                    numCntrs                = self.numCntrs, 
-                                    numCntrsPerRegBkt       = self.numCntrsPerBkt,
-                                    numCntrsPerXlBkt        = self.numCntrsPerBkt,
-                                    numEpsilonStepsInRegBkt = self.numEpsilonStepsInRegBkt,
-                                    numEpsilonStepsInXlBkt  = self.numEpsilonStepsInXlBkt,
-                                    numXlBkts               = self.depth,
-                                    verbose                 = self.verbose)
+                                cntrSize                = self.cntrSize, 
+                                numCntrs                = self.numCntrs, 
+                                numCntrsPerRegBkt       = self.numCntrsPerBkt,
+                                numCntrsPerXlBkt        = self.numCntrsPerBkt,
+                                numEpsilonStepsInRegBkt = self.numEpsilonStepsInRegBkt,
+                                numEpsilonStepsInXlBkt  = self.numEpsilonStepsInXlBkt,
+                                numXlBkts               = self.depth,
+                                verbose                 = self.verbose)
         elif self.mode=='SecBuckets':
              self.cntrMaster = Buckets.Buckets (
-                                    cntrSize        = self.cntrSize, 
-                                    numCntrs        = self.numCntrs, 
-                                    numCntrsPerBkt  = self.numCntrsPerBkt, 
-                                    mode            = 'SEC', 
-                                    verbose         = self.verbose)
+                                cntrSize        = self.cntrSize, 
+                                numCntrs        = self.numCntrs, 
+                                numCntrsPerBkt  = self.numCntrsPerBkt, 
+                                mode            = 'SEC', 
+                                verbose         = self.verbose)
         elif self.mode=='F2pBuckets':
             self.cntrMaster = Buckets.Buckets (
-                                    cntrSize        = self.cntrSize, 
-                                    numCntrs        = self.numCntrs, 
-                                    numCntrsPerBkt  = self.numCntrsPerBkt, 
-                                    mode            = 'F2P',
-                                    verbose         = self.verbose)
+                                cntrSize        = self.cntrSize, 
+                                numCntrs        = self.numCntrs, 
+                                numCntrsPerBkt  = self.numCntrsPerBkt, 
+                                mode            = 'F2P',
+                                verbose         = self.verbose)
         elif self.mode=='MecBuckets':
             self.cntrMaster = Buckets.Buckets (
-                                    cntrSize        = self.cntrSize, 
-                                    numCntrs        = self.numCntrs, 
-                                    numCntrsPerBkt  = self.numCntrsPerBkt, 
-                                    mode            = 'MEC',
-                                    verbose         = self.verbose)
+                                cntrSize        = self.cntrSize, 
+                                numCntrs        = self.numCntrs, 
+                                numCntrsPerBkt  = self.numCntrsPerBkt, 
+                                mode            = 'MEC',
+                                verbose         = self.verbose)
         else:
             print(f'Sorry, the mode {self.mode} that you requested is not supported')
 
@@ -255,7 +258,7 @@ class CountMinSketch:
                     self.sumSqEr[self.expNum] += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)                
                     if settings.VERBOSE_LOG in self.verbose:
                         self.cntrMaster.printAllCntrs (self.logFile)
-                        printf (self.logFile, ' hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
+                        printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
                 if settings.VERBOSE_FULL_RES in self.verbose:
                     printf (self.fullResFile, f'{self.calcRmseStat()}\n\n') 
             dict = self.calcRmseStat    ()
@@ -292,7 +295,7 @@ class CountMinSketch:
                 self.sumSqEr += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)
                 if settings.VERBOSE_LOG in self.verbose:
                     self.cntrMaster.printAllCntrs (self.logFile)
-                    printf (self.logFile, ' hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
+                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
                 if self.incNum==self.maxNumIncs:
                     break
 
@@ -393,9 +396,9 @@ def main(mode, runShortSim=True):
         width, depth, cntrSize  = 2, 2, 4
         numFlows                = width*depth*1
         numCntrsPerBkt          = 2
-        maxNumIncs              = 4945 #(width * depth * cntrSize**3)/2
+        maxNumIncs              = 4000 #(width * depth * cntrSize**3)/2
         numOfExps               = 1
-        numEpsilonStepsIceBkts  = 4 
+        numEpsilonStepsIceBkts  = 5 
         numEpsilonStepsInRegBkt = 2
         numEpsilonStepsInXlBkt  = 5
         verbose                 = [settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG] #settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS

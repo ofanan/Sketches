@@ -1,4 +1,6 @@
 # Buckets of Counter arrays.
+# Each bucket is composed of several counters, and some variable/parameter, shared by all the counters in that bucket.
+# The shared variable may be the exponent value (in the buckets are SEC buckets), the Epsilon step (if these are ICE buckets), etc.
 import matplotlib 
 import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time

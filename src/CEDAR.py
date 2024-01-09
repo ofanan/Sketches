@@ -46,6 +46,7 @@ class CntrMaster(object):
     # Given the cntr's vector, returns the it represents value
     cntr2num = lambda self, cntr : self.cntrInt2num (int (cntr, base=2))
 
+    # Calculate the diff between 2 sequencing estimators.
     calcDiff = lambda self, estimator : (1 + 2*self.delta^2 * estimator) / (1 - self.delta^2)
 
     def __init__(self, 
@@ -123,7 +124,6 @@ class CntrMaster(object):
         """
         """
         self.cntrs[cntrIdx] = 0
-
 
         
     def incCntr(self, cntrIdx=0, factor=1, mult=False, verbose=[]):

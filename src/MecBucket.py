@@ -1,4 +1,11 @@
-# Mixed Exponent Counters
+# A single bucket of Mixed Exponent Counters.
+# These counters are similar to F2P counter: 
+# DIfferent ranges in the counter count using distinct, increasing, resolution.
+# At the beginning, the resolution (difference between every 2 sequencing numbers) is 1.
+# Later (once one of the counters is saturated), the resolution is 1 only for the smallest numbers, but 2 for larger numbers.
+# Later, the resolutions are 1, 2, and 4, and so on.
+# Updating the ranges of the exponents, and tuning the new counters values accordingly, is done in the function upScale.
+
 import math, random, pickle
 from printf import printf
 import settings
@@ -7,7 +14,10 @@ import numpy as np
 def precomputeExpRangesAndOffsets (cntrSize, numStages):
     """
     Pre-compute the expRanges (ranges corresponding to required exponent value) and the offset of each stage.
-    self.offsetOfExpVal[e] will hold the offset to be added to the counter's val when the exponent's value is e.
+    stage holds the number of upScale happened. The initial stage is 0, and each time a counter is saturated, the stage is incremented.
+    expRanges[s][i] will hold the counter's value after which the resolution is doubled (the exponent is incremented by 1) for stage s.
+    For instance, if expRanges[3][1]=7 and expRanges[3][2]=15, then in stage 3, the difference between the counters' values 7 (00..0111) and 15 (00...01111) have resolution of 2**1=1 between each 2 sequencing values.   
+    offsets[s][e] will hold the offset to be added to the counter's val when the stage is s and the exponent's value is e.
     """
     cntrMaxVal = int ((1 << cntrSize) - 1)
     expRanges, offsets = [[]]*numStages, [[]]*numStages #[[None]]*numStages, [[None]]*numStages
@@ -23,9 +33,11 @@ def precomputeExpRangesAndOffsets (cntrSize, numStages):
     for stage in range (1, numStages):
         expRanges[stage]    = expRanges[stage-1].copy ()
         # pivots [stage] will hold the new expRange added at this stage
+        # Only counters larger than the pivot are affected during an upScale. 
+        # Smaller counters are not affected, because smaller exponent ranges are unchanged. 
         pivots [stage]       = int((2*(stage - 2**(math.floor(math.log2(stage))))+1)/(2**(math.ceil(math.log2(stage+1))))*(cntrMaxVal+1))
-        expRanges[stage].append   (pivots[stage])
-        expRanges[stage].sort     ()
+        expRanges[stage].append   (pivots[stage]) # add the new expRange for this stage
+        expRanges[stage].sort     () # sort the expRanges in an incresing fachion
         offsets[stage] = [int(0)]*len(expRanges[stage])
         for i in range(1, len(expRanges[stage])):
             offsets[stage][i] = offsets[stage][i-1] + (expRanges[stage][i] - expRanges[stage][i-1])*(2**(i-1))
@@ -41,7 +53,6 @@ class CntrMaster (object):
     # returns the value of a number given its offset, exp and mant
     # valOf = lambda self, cntr : offset + mantVal*2**expVal
     
-
     def calcProbOfInc1 (self):
         """
         Calculate the array self.probOfInc1, which is defined as follows.
@@ -93,11 +104,13 @@ class CntrMaster (object):
         Outputs: 
         - The value represented by this MEC, at this stage. 
         - The minimal expRangesIdx satisfying CntrMaster.expRanges[stage][expRangeIdx]>=cntr.
+        The value is computed as the value of offset of the largest expRange still below this counter + the value to be added for the gap between the offset and the counter.
         """
         if stage==None:
             stage = self.stage
         for expRangeIdx in range(1, len(CntrMaster.expRanges[stage])):
-            if CntrMaster.expRanges[stage][expRangeIdx] >= cntr:
+            if CntrMaster.expRanges[stage][expRangeIdx] >= cntr: # Is this the first expRanges larger than this counter?
+                # Yep. So take the offset of 1 below this expRange, which is the LARGEST expRange still below this counter. 
                 return CntrMaster.offsets[stage][expRangeIdx-1] + (cntr - CntrMaster.expRanges[stage][expRangeIdx-1])*(2**(expRangeIdx-1)), expRangeIdx
         settings.error (f'in cntr2val. cntr={cntr}, self.cntrMaxVal={CntrMaster.expRanges[stage][-1]-1}, max expRanges={CntrMaster.expRanges[stage][-1]}')
         

@@ -10,14 +10,15 @@ import numpy as np, mmh3, csv, time
 # import datetime as dt
 # from numpy import infty
 import pandas as pd
-
-
 import settings
 
-def parse_pcap_file_by_write_row (traceFileName     = 'equinix-nyc.dirB.20181220-140100.UTC.anon.pcap',      
+def parse_pcap_file (traceFileName     = 'equinix-nyc.dirB.20181220-140100.UTC.anon.pcap',      
                       maxNumOfPkts     = settings.INF_INT, # maximum number of pkts to be parsed, starting from the beginning of the trace
                       maxTraceLenInSec = settings.INF_INT, # maximum time length to be parsed, starting from the beginning of the trace 
                       ):
+    """
+    Parse a .pcap file. Write the parsed file to a .csv file. bearing the same fileName as the .pcap file, but with extension .csv instead of .pcap. 
+    """
 
     tracePath = settings.getTracesPath() + 'Caida' 
     relativePathToInputFile = f'{tracePath}/{traceFileName}'       
@@ -44,45 +45,4 @@ def parse_pcap_file_by_write_row (traceFileName     = 'equinix-nyc.dirB.20181220
     print (f'finished parsing {maxNumOfPkts} pkts by multirow after {time.time() - startTime} sec')
 
 
-def parse_pcap_file_by_write_rows (traceFileName     = 'equinix-nyc.dirB.20181220-140100.UTC.anon.pcap',      
-                      maxNumOfPkts     = 300000, #settings.INF_INT, # maximum number of pkts to be parsed, starting from the beginning of the trace
-                      maxTraceLenInSec = settings.INF_INT, # maximum time length to be parsed, starting from the beginning of the trace 
-                      ):
-
-    tracePath = settings.getTracesPath() + 'Caida' 
-    relativePathToInputFile = f'{tracePath}/{traceFileName}'       
-    settings.checkIfInputFileExists (relativePathToInputFile)    
-
-    csvOutputFile   = open(f'{tracePath}/{traceFileName}.csv', 'w', newline='')
-    writer          = csv.writer (csvOutputFile)
-    pktNum          = 0
-    maxChunkSize    = 100000
-    chunk           = np.empty([maxChunkSize, 1], dtype='uint32')
-    chunk[0] = [0]
-    idxInChunk      = 0
-
-    startTime = time.time()            
-    for pkt in PcapReader(relativePathToInputFile):
-        if IP not in pkt:
-            continue
-        if TCP in pkt:
-            chunk[idxInChunk] = [mmh3.hash (pkt[IP].src + pkt[IP].dst + str(pkt[TCP].sport) + str(pkt[TCP].sport) + '0') % settings.MAX_NUM_OF_FLOWS]
-        elif UDP in pkt:
-            chunk[idxInChunk] = mmh3.hash (pkt[IP].src + pkt[IP].dst + str(pkt[UDP].sport) + str(pkt[UDP].sport) + '1') % settings.MAX_NUM_OF_FLOWS
-        else:
-            continue
-        pktNum += 1
-        idxInChunk += 1
-        if idxInChunk==maxChunkSize:
-            writer.writerows (chunk) #([mmh3.hash (pkt[IP].src + pkt[IP].dst + str(pkt[TCP].sport) + str(pkt[TCP].sport) + '0') % settings.MAX_NUM_OF_FLOWS])
-            chunk = np.empty([maxChunkSize, 1], dtype='uint32')
-            idxInChunk = 0
-    
-        if pktNum >= maxNumOfPkts:
-            break
-    if idxInChunk>0:
-        writer.writerows (chunk) # write the last partial chunk, if exists
-        
-    print (f'finished parsing {maxNumOfPkts} pkts by multirowS after {time.time() - startTime} sec')
-
-parse_pcap_file_by_write_row ()
+parse_pcap_file ()

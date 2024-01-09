@@ -1,4 +1,7 @@
-# Buckets of Counter arrays.
+# This class implements NiceBuckets (New Ice Buckets).
+# ICE_buckets are detailed in the paper: "Independent counter estimation buckets", Einziger, Gil and Fellman, Benny and Kassner, Yaron, Infocom'12.
+# A nice bucket is an IceBucket with improved capabilities (to be added later), e.g., tuning determination of Epsilon in a more efficient way.
+# The array of Ice Buckets consists of Reg (regular) NiceBuckets to count mice, plus Xl Nicebuckets, to count elephants. 
 import matplotlib 
 import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time
@@ -204,4 +207,3 @@ class CntrMaster (Buckets.Buckets):
         """
         if mult or (factor!=1):
             settings.error ('Sorry, NiceBuckets.incCntrGetVal() is currently implemented only when mult==True and factor=1.')
-

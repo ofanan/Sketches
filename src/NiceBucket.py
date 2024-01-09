@@ -1,12 +1,12 @@
-# This class implements a single NiceBucket.
+# This class implements a single NiceBucket (New Ice Bucket).
+# ICE_buckets are detailed in the paper: "Independent counter estimation buckets", Einziger, Gil and Fellman, Benny and Kassner, Yaron, Infocom'12.
+# A nice bucket is an IceBucket with improved capabilities (to be added later), e.g., tuning determination of Epsilon in a more efficient way.
+# In addition, in the highest stage (largest possible Epsilon value), a nice bucket whose value is the highest possible ("111...11") indicates that this counter is saturated, and the value should be found in an Xl bucket. 
 import random, math, numpy as np
 from printf import printf
 import settings, IceBucket
 from IceBucket import calcEstimatorGivenEpsilon, findPreComputedDatum, calcEstimatorGivenEpsilon
 from ctypes.wintypes import BOOLEAN
-# To prevent overflows, the search range for some parameters should be limited corresponding to the counter's size. 
-# This is done using the list of dicts below.
-# The data below is used also to determine the 'epsilonStep' used in ICE_buckets. 
 
 class CntrMaster(IceBucket.CntrMaster):
     """
@@ -78,18 +78,18 @@ class CntrMaster(IceBucket.CntrMaster):
                 self.isSaturated[cntrIdx] = True
                 if settings.VERBOSE_LOG in self.verbose:
                     printf (self.logFile, f'bkt {self.id} reached max val of regular bkts\n')
-                return True, None # return values telling that the (regular) counter is saturated
+                return True, None # The True here indicates that the (regular) counter is saturated. Hence, the returned value is meaningless (None).
             if settings.VERBOSE_LOG in self.verbose:
                 printf (self.logFile, f'bkt {self.id} is up-scaling. epsilon b4 upscaling={self.epsilon}\n')
             self.upScale () 
             cntrVal = self.cntrs[cntrIdx]# cntrVal is the value in the counter after up-scaling, before incrementing
-        curEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal)
-        incEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal+1)
+        curEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal) # the current estimation for the counter
+        incEstimate = calcEstimatorGivenEpsilon(self.epsilon, ell=cntrVal+1) # the estimation if we decide to increment the counter
         diff        = incEstimate - curEstimate
-        if diff==1 or random.random () < 1/diff:  
+        if diff==1 or random.random () < 1/diff: # should we increment the counter?  
             self.cntrs[cntrIdx] += 1
-            return False, incEstimate
-        return False, curEstimate
+            return False, incEstimate # the False here indicates that the counter is not saturated yet.
+        return False, curEstimate # the False here indicates that the counter is not saturated yet.
 
     def incCntr(self, cntrIdx=0, factor=1, mult=False):
         """

@@ -1,4 +1,6 @@
-# An array (single bucket) of Scalable Exponent Counters
+# An array (single bucket) of Shared Exponent Counters (SEC).
+# Each counter contains the Mantissa.
+# A bucket is composed of the counters, and a single, shared, exponent value. 
 import math, time, random
 import numpy as np
 from printf import printf, printarFp
