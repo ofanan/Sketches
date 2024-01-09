@@ -4,7 +4,7 @@ import math, random, os, pickle, mmh3, time, csv
 import numpy as np
 from datetime import datetime
 import settings, PerfectCounter, Buckets, NiceBuckets
-from   tictoc import tic, toc
+from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp
 
 class CountMinSketch:

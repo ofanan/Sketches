@@ -1,3 +1,6 @@
+# A CounterMaster that manages an array of perfect counters.
+# Each perfect counter is an integer counter that can accurately count any integer value.
+
 import numpy as np
 from printf import printf, printarFp
 
@@ -66,5 +69,3 @@ class CntrMaster(object):
         Here i used the variable flowIdx to get the binary number from counters list, and converted it to number
         """
         return self.cntrs[cntrIdx]
-
-

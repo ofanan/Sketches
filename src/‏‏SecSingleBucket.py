@@ -1,4 +1,4 @@
-# Flexible Exponent Counters
+# This file is obsolete. SEC (Shared Exponent Counters) are currently implemented in SEC.py.
 import math, time, random
 from printf import printf
 import settings

@@ -1,6 +1,6 @@
 import time
 """
-An implementation of tic-toc for timing performance.
+An implementation of tic-toc for measuring the timing performance.
 
 Usage:
 
