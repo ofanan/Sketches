@@ -8,24 +8,24 @@ from statistics import mean
 import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
-import settings, F2P, F2P_int, F3P_int, SEAD, CEDAR, Morris, TetraStatic, TetraDynamic, AEE, F2P_li 
+import settings, SEAD, CEDAR, Morris, AEE
 from datetime import datetime
 
 def main ():
-    simController = SimController (verbose = [settings.VERBOSE_RES]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+    simController = SimController (verbose = [settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
     # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2P', 'F3P', 'SEAD stat', 'SEAD dyn', 'Morris', 'AEE'])
     simController.runSingleCntr \
         (dwnSmple       = False,  
-         modes          = ['F2P_li'], #['F2P', 'AEE', 'Morris', 'CEDAR'],
+         modes          = ['CEDAR'], #['F2P', 'AEE', 'Morris', 'CEDAR'],
          # modes          = ['F2P', 'Morris', 'CEDAR', 'SEAD stat', 'SEAD dyn'], #'['Tetra stat', 'F2P', 'SEAD stat', 'SEAD dyn', 'CEDAR', 'Morris'] 
         # modes          = ['Morris'], #'['Tetra stat', 'F2P', 'SEAD stat', 'SEAD dyn', 'CEDAR', 'Morris'] 
         # modes          = ['CEDAR'], #'['Tetra stat', 'F2P', 'SEAD stat', 'SEAD dyn', 'CEDAR', 'Morris'] 
         # modes          = ['F2P'], #'['Tetra stat', 'F2P', 'SEAD stat', 'SEAD dyn', 'CEDAR', 'Morris'] 
         # modes          = ['SEAD stat'], #'['Tetra stat', 'F2P', 'SEAD stat', 'SEAD dyn', 'CEDAR', 'Morris'] 
         # modes          = ['SEAD dyn'], #'['Tetra stat', 'F2P', 'SEAD stat', 'SEAD dyn', 'CEDAR', 'Morris'] 
-         cntrSize       = 6, 
-         numOfExps      = 1,
-         erTypes        = ['WrRmse',], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+         cntrSize       = 4, 
+         numOfExps      = 50,
+         erTypes        = ['WrRmse', 'RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
          cntrMaxVal     = None, 
          )
 
@@ -35,14 +35,10 @@ class SimController (object):
     """
 
     def __init__ (self, 
-                 seed           = settings.SEED,
-                 verbose=[]): # defines which outputs would be written to .res / .pcl output files. See the VERBOSE macros as settings.py. 
-        
-        self.seed    = seed
-        random.seed (settings.SEED)
+                  verbose=[]): # defines which outputs would be written to .res / .pcl output files. See the VERBOSE macros as settings.py. 
         
         self.verbose = verbose
-        if settings.VERBOSE_DETAILED_RES in self.verbose:
+        if settings.VERBOSE_DETAILED_RES in self.verbose or settings.VERBOSE_FULL_RES in self.verbose:
             self.verbose.append (settings.VERBOSE_RES)
         if not (settings.VERBOSE_PCL in self.verbose):
             print ('Note: verbose does not include .pcl')  
@@ -354,12 +350,6 @@ class SimController (object):
             self.cntrRecord = {'mode' : 'F2P', 'cntr' : F2P.CntrMaster(mode='F2P', cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
         elif (self.mode=='F3P'):
             self.cntrRecord = {'mode' : 'F3P', 'cntr' : F2P.CntrMaster(mode='F3P', cntrSize=self.cntrSize, hyperMaxSize=self.hyperMaxSize)}
-        elif (self.mode=='F2P_int'):
-            self.cntrRecord = {'mode' : 'F2P_int', 'cntr' : F2P_int.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
-        elif (self.mode=='F3P_int'):
-            self.cntrRecord = {'mode' : 'F3P_int', 'cntr' : F3P_int.CntrMaster(cntrSize=self.cntrSize, hyperMaxSize=self.hyperMaxSize, verbose=self.verbose)}
-        elif (self.mode=='F2P_li'):
-            self.cntrRecord = {'mode' : 'F2P_li', 'cntr' : F2P_li.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
         elif (self.mode=='SEAD stat'):
             self.expSize      = self.conf['seadExpSize']
             self.cntrRecord = {'mode' : self.mode, 'cntr' : SEAD.CntrMaster(mode='stat', cntrSize=self.cntrSize, expSize=self.expSize)}
@@ -395,7 +385,7 @@ class SimController (object):
         self.initCntrRecord () # Set self.cntrRecord, which holds the counter to run
         self.maxRealVal         = self.cntrMaxVal if (self.maxRealVal==None) else self.maxRealVal
         if self.cntrRecord['cntr'].cntrMaxVal < self.maxRealVal and (not(self.dwnSmple)):
-            settings.error ('The counter of type {}, cntrSize={}, hyperSize={}, can reach max val={} which is smaller than the requested maxRealVal {}, and no dwn smpling was used' . format (self.cntrRecord['mode'], self.cntrSize, self.hyperSize, self.cntrRecord['cntr'].cntrMaxVal, self.maxRealVal))
+            settings.error ('The counter of type {} can reach max val={} which is smaller than the requested maxRealVal {}, and no dwn smpling was used' . format (self.cntrRecord['mode'], self.cntrRecord['cntr'].cntrMaxVal, self.maxRealVal))
 
         # open output files
         outputFileStr = '1cntr_{}{}' .format (self.machineStr, '_w_dwnSmpl' if self.dwnSmple else '')

@@ -7,6 +7,7 @@ SEED    = 42
 INF_INT = 999999999
 MAX_NUM_OF_FLOWS = 2**32
 
+VERBOSE_COUT_CONF       = 0 # print to stdout details about the configuration, e.g., cntrSize, hyperSize, Vmax, bias.
 VERBOSE_COUT_CNTRLINE   = 1 # print to stdout details about the concrete counter and its fields.
 VERBOSE_DEBUG           = 2 # perform checks and debug operations during the run.
 VERBOSE_RES             = 3 # print output to a .res file in the directory ../res
@@ -24,20 +25,20 @@ VERBOSE_PROGRESS        = 12 # Print periodical output notifying the progress. U
 # For cntrSize>=8, cntrMaxVal is calculated by that reached by F2P stat, and hyperSize is the corresponding hyper-exponent field size in F2P stat.
 # hyperMaxSize is 
 # expSize is the minimal needed for SEAD stat to reach the requested value.
-Confs = [{'cntrSize' : 2,  'cntrMaxVal' :  16,       'hyperSize' : 1, 'hyperMaxSize' : 1, 'f2pExpSize' : 1, 'seadExpSize' : 1, 'tetraSize' : 1,'tetraMaxSize' : 1},
-         {'cntrSize' : 4,  'cntrMaxVal' :  32,       'hyperSize' : 1, 'hyperMaxSize' : 1, 'f2pExpSize' : 1, 'seadExpSize' : 2, 'tetraSize' : 1,'tetraMaxSize' : 1},
-         {'cntrSize' : 5,  'cntrMaxVal' :  100,      'hyperSize' : 1, 'hyperMaxSize' : 1, 'f2pExpSize' : 1, 'seadExpSize' : 2, 'tetraSize' : 1,'tetraMaxSize' : 1},
-         {'cntrSize' : 6,  'cntrMaxVal' :  200,      'hyperSize' : 1, 'hyperMaxSize' : 1, 'f2pExpSize' : 1, 'seadExpSize' : 2, 'tetraSize' : 1,'tetraMaxSize' : 1},
-         {'cntrSize' : 7,  'cntrMaxVal' :  300,      'hyperSize' : 1, 'hyperMaxSize' : 1, 'f2pExpSize' : 1, 'seadExpSize' : 2, 'tetraSize' : 1,'tetraMaxSize' : 1},
-         {'cntrSize' : 8,  'cntrMaxVal' :  1488888,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'f2pExpSize' : 3, 'seadExpSize' : 5, 'tetraSize' : 1,'tetraMaxSize' : 1},
-         {'cntrSize' : 9,  'cntrMaxVal' :  2994160,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'f2pExpSize' : 4, 'seadExpSize' : 5},
-         {'cntrSize' : 10, 'cntrMaxVal' :  6004704,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'f2pExpSize' : 4, 'seadExpSize' : 5},
-         {'cntrSize' : 11, 'cntrMaxVal' :  12025792, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'f2pExpSize' : 4, 'seadExpSize' : 5},
-         {'cntrSize' : 12, 'cntrMaxVal' :  24067968, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'f2pExpSize' : 4, 'seadExpSize' : 5},
-         {'cntrSize' : 13, 'cntrMaxVal' :  48152320, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'f2pExpSize' : 4, 'seadExpSize' : 5},
-         {'cntrSize' : 14, 'cntrMaxVal' :  96321024, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'f2pExpSize' : 4, 'seadExpSize' : 5},
-         {'cntrSize' : 15, 'cntrMaxVal' : 192658432, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'f2pExpSize' : 4, 'seadExpSize' : 5},
-         {'cntrSize' : 16, 'cntrMaxVal' : 385333248, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'f2pExpSize' : 4, 'seadExpSize' : 5}]
+Confs = [{'cntrSize' : 2,  'cntrMaxVal' :  16,       'hyperSize' : 1, 'hyperMaxSize' : 1, 'seadExpSize' : 1},
+         {'cntrSize' : 4,  'cntrMaxVal' :  32,       'hyperSize' : 1, 'hyperMaxSize' : 1, 'seadExpSize' : 2},
+         {'cntrSize' : 5,  'cntrMaxVal' :  100,      'hyperSize' : 1, 'hyperMaxSize' : 1, 'seadExpSize' : 2},
+         {'cntrSize' : 6,  'cntrMaxVal' :  200,      'hyperSize' : 1, 'hyperMaxSize' : 1, 'seadExpSize' : 2},
+         {'cntrSize' : 7,  'cntrMaxVal' :  300,      'hyperSize' : 1, 'hyperMaxSize' : 1, 'seadExpSize' : 2},
+         {'cntrSize' : 8,  'cntrMaxVal' :  1488888,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
+         {'cntrSize' : 9,  'cntrMaxVal' :  2994160,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
+         {'cntrSize' : 10, 'cntrMaxVal' :  6004704,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
+         {'cntrSize' : 11, 'cntrMaxVal' :  12025792, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
+         {'cntrSize' : 12, 'cntrMaxVal' :  24067968, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
+         {'cntrSize' : 13, 'cntrMaxVal' :  48152320, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
+         {'cntrSize' : 14, 'cntrMaxVal' :  96321024, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
+         {'cntrSize' : 15, 'cntrMaxVal' : 192658432, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
+         {'cntrSize' : 16, 'cntrMaxVal' : 385333248, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5}]
 
 # Calculate the confidence interval of an array of values ar, given its avg. Based on 
 # https://stackoverflow.com/questions/15033511/compute-a-confidence-interval-from-sample-data
