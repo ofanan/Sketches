@@ -49,7 +49,7 @@ class ResFileParser (object):
         self.labelOfMode = {}
 
         # The colors used for each alg's plot, in the dist' case
-        self.colorOfMode = {'F2P': 'green',
+        self.colorOfMode = {'F2P_li': 'green',
                             'F3P': 'purple',
                             'SEAD stat': 'brown',
                             'SEAD dyn': 'yellow',
@@ -60,7 +60,7 @@ class ResFileParser (object):
                             'AEE': 'blue'}
 
         # The markers used for each alg', in the dist' case
-        self.markerOfMode = {'F2P': 'o',
+        self.markerOfMode = {'F2P_li': 'o',
                             'F3P': 'v',
                             'SEAD stat': '^',
                             'SEAD dyn': 's',
@@ -122,7 +122,7 @@ class ResFileParser (object):
     def genErVsCntrSizePlot (self,
                              erType,
                              numOfExps      = 50,
-                             modes          = ['F2P', 'CEDAR', 'Morris', 'AEE'],
+                             modes          = ['F2P_li', 'CEDAR', 'Morris', 'AEE'],
                              minCntrSize    = 10,
                              maxCntrSize    = 64,
                              ):
@@ -180,7 +180,7 @@ class ResFileParser (object):
 
         self.setPltParams ()  # set the plot's parameters (formats of lines, markers, legends etc.).
         _, ax = plt.subplots()
-        preferredModes = ['F2P', 'Tetra stat', 'SEAD stat', 'SEAD dyn', 'CEDAR', 'Morris']
+        preferredModes = ['F2P_li', 'Tetra stat', 'SEAD stat', 'SEAD dyn', 'CEDAR', 'Morris']
         for mode in [point['mode'] for point in self.points if point['mode'] in preferredModes]:
             pointsOfThisMode = [point for point in self.points if (point['mode'] == mode and point['cntrSize'] == cntrSize)]
             cntrMaxVals = sorted ([point['cntrMaxVal'] for point in pointsOfThisMode])
@@ -217,7 +217,7 @@ class ResFileParser (object):
         plt.savefig ('../res/{}.pdf' .format (outputFileName), bbox_inches='tight')        
         
     def genResolutionPlot (self,
-                            modes       = ['F2P', 'CEDAR', 'Morris', 'AEE', 'SEAD stat'],
+                            modes       = [],
                             minCntrVal  = 0,
                             maxCntrVal  = float('inf'),
                             cntrSize    = 8,
@@ -248,7 +248,7 @@ class ResFileParser (object):
             plt.xscale ('log')
 
         conf        = settings.getConfByCntrSize (cntrSize=cntrSize)
-        plt.xlim ([1, conf['cntrMaxVal']+1]) 
+        plt.xlim ([100, conf['cntrMaxVal']+1]) 
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
@@ -262,7 +262,7 @@ def genResolutionPlot ():
     my_ResFileParser = ResFileParser ()
     my_ResFileParser.rdPcl (pclFileName=f'resolution.pcl')
     for cntrSize in [8]:  # , 12, 16]:
-        my_ResFileParser.genResolutionPlot (modes       = ['CEDAR', 'Morris', 'SEAD stat', 'SEAD dyn''F2P_li'],  #                                        
+        my_ResFileParser.genResolutionPlot (modes       = ['CEDAR', 'Morris', 'SEAD stat', 'SEAD dyn', 'F2P_li'],  #                                        
                                             minCntrVal  = 0,
                                             maxCntrVal  = float('inf'),
                                             cntrSize    = cntrSize,
