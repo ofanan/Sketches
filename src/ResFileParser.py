@@ -75,7 +75,7 @@ class ResFileParser (object):
         """
         Given a .pcl filename, read all the data it contains into self.points
         """
-        settings.check_if_input_file_exists ('../res/pcl_files/{}' .format(pclFileName))
+        settings.checkIfInputFileExists ('../res/pcl_files/{}' .format(pclFileName))
         pclFile = open('../res/pcl_files/{}' .format(pclFileName), 'rb')
         while 1:
             try:
