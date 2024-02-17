@@ -325,21 +325,20 @@ class SimController (object):
         Loop over all possible representations, measure the relative resolution, and write the results to output files as defined by self.verbose.
         """
         if settings.VERBOSE_PCL in self.verbose:
-            if os.path.exists('../res/pcl_files/resolution.pcl'):
-                os.remove('../res/pcl_files/resolution.pcl')
+            # if os.path.exists('../res/pcl_files/resolution.pcl'):
+            #     os.remove('../res/pcl_files/resolution.pcl')
             pclOutputFile = open(f'../res/pcl_files/resolution.pcl', 'ab+')
         for self.cntrSize in cntrSizes:
             self.conf = settings.getConfByCntrSize (cntrSize=self.cntrSize)
             self.cntrMaxVal   = self.conf['cntrMaxVal'] 
             self.hyperSize    = self.conf['hyperSize'] 
-            self.hyperMaxSize = self.conf['hyperMaxSize'] 
             for self.mode in modes:
                 self.initCntrRecord ()
                 listOfVals = []
                 for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
                     cntrVec = np.binary_repr(i, self.cntrSize) 
                     listOfVals.append (self.cntrRecord['cntr'].cntr2num(cntrVec))           
-                if self.mode in ['F2P', 'F3P']:
+                if self.mode in ['F2Pli']:
                     listOfVals = sorted (listOfVals)
                 points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : [(listOfVals[i+1]-listOfVals[i])/listOfVals[i+1] for i in range (len(listOfVals)-1)]}
                 if settings.VERBOSE_PCL in self.verbose:
@@ -350,15 +349,7 @@ class SimController (object):
         Set self.cntrRecord, which holds the counters to run
         """
         # Set self.cntrRecord, which holds the counter to run
-        if (self.mode=='F2P'):
-            self.cntrRecord = {'mode' : 'F2P', 'cntr' : F2P.CntrMaster(mode='F2P', cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
-        elif (self.mode=='F3P'):
-            self.cntrRecord = {'mode' : 'F3P', 'cntr' : F2P.CntrMaster(mode='F3P', cntrSize=self.cntrSize, hyperMaxSize=self.hyperMaxSize)}
-        elif (self.mode=='F2P_int'):
-            self.cntrRecord = {'mode' : 'F2P_int', 'cntr' : F2P_int.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
-        elif (self.mode=='F3P_int'):
-            self.cntrRecord = {'mode' : 'F3P_int', 'cntr' : F3P_int.CntrMaster(cntrSize=self.cntrSize, hyperMaxSize=self.hyperMaxSize, verbose=self.verbose)}
-        elif (self.mode=='F2P_li'):
+        if (self.mode=='F2P_li'):
             self.cntrRecord = {'mode' : 'F2P_li', 'cntr' : F2P_li.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
         elif (self.mode=='SEAD stat'):
             self.expSize      = self.conf['seadExpSize']
@@ -369,15 +360,8 @@ class SimController (object):
             self.cntrRecord = {'mode' : self.mode, 'cntr' : CEDAR.CntrMaster(cntrSize=self.cntrSize, cntrMaxVal=self.cntrMaxVal)}
         elif (self.mode=='Morris'):
             self.cntrRecord = {'mode' : self.mode, 'cntr' : Morris.CntrMaster(cntrSize=self.cntrSize, cntrMaxVal=self.cntrMaxVal)}
-        elif (self.mode=='Tetra stat'):
-            self.cntrRecord = {'mode' : self.mode, 'cntr' : TetraStatic.CntrMaster(cntrSize=self.cntrSize, tetraSize=self.conf['tetraSize'])}
-        elif (self.mode=='Tetra dyn'):
-            self.cntrRecord = {'mode' : self.mode, 'cntr' : TetraDynamic.CntrMaster(cntrSize=self.cntrSize, tetraMaxSize=self.conf['tetraMaxSize'])}
-        elif (self.mode=='AEE'):
-            self.cntrRecord = {'mode' : self.mode, 'cntr' : AEE.CntrMaster(cntrSize=self.cntrSize, cntrMaxVal=self.cntrMaxVal)}
         else:
             settings.error ('mode {} that you chose is not supported' .format (self.mode))
-        
 
 
     def runSingleCntrSingleMode (self):
@@ -481,7 +465,10 @@ class SimController (object):
 
 if __name__ == '__main__':
     try: 
-        main ()
+        simController = SimController (verbose = [settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+        simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2Pli', 'SEAD stat', 'SEAD dyn', 'Morris'])
+        
+        # main ()
         # F2P         = [0.1, 0.4, 0.6, 0.6]
         # CEDAR       = [0.1, 0.5, 0.9, 0.9]
         # mean_F2P    = mean(F2P)

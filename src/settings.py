@@ -25,20 +25,17 @@ VERBOSE_PROGRESS        = 12 # Print periodical output notifying the progress. U
 # For cntrSize>=8, cntrMaxVal is calculated by that reached by F2P stat, and hyperSize is the corresponding hyper-exponent field size in F2P stat.
 # hyperMaxSize is 
 # expSize is the minimal needed for SEAD stat to reach the requested value.
-Confs = [{'cntrSize' : 2,  'cntrMaxVal' :  16,       'hyperSize' : 1, 'hyperMaxSize' : 1, 'seadExpSize' : 1},
-         {'cntrSize' : 4,  'cntrMaxVal' :  32,       'hyperSize' : 1, 'hyperMaxSize' : 1, 'seadExpSize' : 2},
-         {'cntrSize' : 5,  'cntrMaxVal' :  100,      'hyperSize' : 1, 'hyperMaxSize' : 1, 'seadExpSize' : 2},
-         {'cntrSize' : 6,  'cntrMaxVal' :  200,      'hyperSize' : 1, 'hyperMaxSize' : 1, 'seadExpSize' : 2},
-         {'cntrSize' : 7,  'cntrMaxVal' :  300,      'hyperSize' : 1, 'hyperMaxSize' : 1, 'seadExpSize' : 2},
-         {'cntrSize' : 8,  'cntrMaxVal' :  1488888,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
-         {'cntrSize' : 9,  'cntrMaxVal' :  2994160,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
-         {'cntrSize' : 10, 'cntrMaxVal' :  6004704,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
-         {'cntrSize' : 11, 'cntrMaxVal' :  12025792, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
-         {'cntrSize' : 12, 'cntrMaxVal' :  24067968, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
-         {'cntrSize' : 13, 'cntrMaxVal' :  48152320, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
-         {'cntrSize' : 14, 'cntrMaxVal' :  96321024, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
-         {'cntrSize' : 15, 'cntrMaxVal' : 192658432, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
-         {'cntrSize' : 16, 'cntrMaxVal' : 385333248, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5}]
+Confs = [{'cntrSize' : 6,  'cntrMaxVal' : 31744,    'hyperSize' : 2, 'hyperMaxSize' : 1, 'seadExpSize' : 2},
+         {'cntrSize' : 7,  'cntrMaxVal' : 64512,    'hyperSize' : 2, 'hyperMaxSize' : 1, 'seadExpSize' : 2},
+         {'cntrSize' : 8,  'cntrMaxVal' : 130048,   'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
+         {'cntrSize' : 9,  'cntrMaxVal' : 261120,   'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
+         {'cntrSize' : 10, 'cntrMaxVal' : 523264,   'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
+         {'cntrSize' : 11, 'cntrMaxVal' : 1047552,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
+         {'cntrSize' : 12, 'cntrMaxVal' : 2096128,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
+         {'cntrSize' : 13, 'cntrMaxVal' : 4193280,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
+         {'cntrSize' : 14, 'cntrMaxVal' : 8387584,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
+         {'cntrSize' : 15, 'cntrMaxVal' : 16776192, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
+         {'cntrSize' : 16, 'cntrMaxVal' : 33553408, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4}]
 
 # Calculate the confidence interval of an array of values ar, given its avg. Based on 
 # https://stackoverflow.com/questions/15033511/compute-a-confidence-interval-from-sample-data
@@ -99,9 +96,15 @@ def sortcntrMaxVals ():
             continue
         
         splitted_line = line.split ()
+        if len(splitted_line)==0:
+            error ('in settings.sortcntrMaxVals(). line={line}, splitted_line={splitted_line}')
         mode = splitted_line[0]
         list_of_dict = [item['mode'] for item in list_of_dicts if item['mode']==mode]
         if (mode not in [item['mode'] for item in list_of_dicts if item['mode']==mode]):
+            if len(splitted_line)<1:
+                error ('in settings.sortcntrMaxVals(). line={line}, splitted_line={splitted_line}')
+            if len(splitted_line[1])<1:
+                error ('in settings.sortcntrMaxVals(). line={line}, splitted_line={splitted_line}')
             list_of_dicts.append ({'mode' : mode, 'cntrSize' : int(mode.split('_n')[1].split('_')[0]), 'maxVal' : float(splitted_line[1].split('=')[1])})
     list_of_dicts =  sorted (list_of_dicts, key = lambda item : (item['cntrSize'], item['maxVal']))
     output_file   = open ('../res/cntrMaxValsSorted.txt', 'w')
@@ -156,3 +159,5 @@ def getRelativePathToTraceFile (traceFileName):
     RelativePathToTraceFile = f'{getTracesPath()}Caida/{traceFileName}.csv'
     checkIfInputFileExists (RelativePathToTraceFile)
     return RelativePathToTraceFile
+
+sortcntrMaxVals ()

@@ -38,7 +38,6 @@ def printAllCntrMaxVals (flavor='sr', hyperSizeRange=None, cntrSizeRange=[], ver
             if flavor=='li':
                 cntrMaxVal = int(cntrMaxVal)
             if (cntrMaxVal < 10**8):
-                print (f'hyperSize={hyperSize}')
                 printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), cntrMaxVal))
             else:
                 printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), cntrMaxVal))
@@ -79,5 +78,5 @@ def coutConfData (cntrSize, hyperSize, flavor='', verbose=[]):
     genCntrMaster (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=[settings.VERBOSE_COUT_CONF])
 
 # printAllVals (cntrSize=6, hyperSize=2, verbose=[settings.VERBOSE_RES, settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE], flavor='li') #, settings.VERBOSE_COUT_CNTRLINE
-printAllCntrMaxVals (hyperSizeRange=None, cntrSizeRange=[6], verbose=[settings.VERBOSE_RES], flavor='lr')
+printAllCntrMaxVals (hyperSizeRange=[1,2], cntrSizeRange=[6,7,8,9,10,11,12,13,14,15,16], verbose=[settings.VERBOSE_RES], flavor='li')
 # coutConfData (cntrSize=6, hyperSize=1, flavor='li')
