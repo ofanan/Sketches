@@ -78,5 +78,5 @@ def coutConfData (cntrSize, hyperSize, flavor='', verbose=[]):
     genCntrMaster (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=[settings.VERBOSE_COUT_CONF])
 
 # printAllVals (cntrSize=6, hyperSize=2, verbose=[settings.VERBOSE_RES, settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE], flavor='li') #, settings.VERBOSE_COUT_CNTRLINE
-printAllCntrMaxVals (hyperSizeRange=[1,2], cntrSizeRange=[6,7,8,9,10,11,12,13,14,15,16], verbose=[settings.VERBOSE_RES], flavor='li')
+# printAllCntrMaxVals (hyperSizeRange=[1,2], cntrSizeRange=[6,7,8,9,10,11,12,13,14,15,16], verbose=[settings.VERBOSE_RES], flavor='li')
 # coutConfData (cntrSize=6, hyperSize=1, flavor='li')

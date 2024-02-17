@@ -262,7 +262,7 @@ def genResolutionPlot ():
     my_ResFileParser = ResFileParser ()
     my_ResFileParser.rdPcl (pclFileName=f'resolution.pcl')
     for cntrSize in [8]:  # , 12, 16]:
-        my_ResFileParser.genResolutionPlot (modes       = ['CEDAR', 'F2P', 'F3P', 'Morris', 'AEE'],  #                                        
+        my_ResFileParser.genResolutionPlot (modes       = ['CEDAR', 'Morris', 'SEAD stat', 'SEAD dyn''F2P_li'],  #                                        
                                             minCntrVal  = 0,
                                             maxCntrVal  = float('inf'),
                                             cntrSize    = cntrSize,
@@ -270,11 +270,11 @@ def genResolutionPlot ():
                                             )
 
 
-# genResolutionPlot ()
+genResolutionPlot ()
 
-my_ResFileParser = ResFileParser ()
-for ErType in ['RdEr', 'RdRmse', 'WrRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
-    my_ResFileParser.rdPcl (pclFileName=f'1cntr_HPC_{ErType}.pcl')
-    my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=50, maxCntrSize=16)
-    # my_ResFileParser.printAllPoints (cntrSize=8, cntrMaxVal=1488888, printToScreen=True)
+# my_ResFileParser = ResFileParser ()
+# for ErType in ['RdEr', 'RdRmse', 'WrRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
+#     my_ResFileParser.rdPcl (pclFileName=f'1cntr_HPC_{ErType}.pcl')
+#     my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=50, maxCntrSize=16)
+#     # my_ResFileParser.printAllPoints (cntrSize=8, cntrMaxVal=1488888, printToScreen=True)
 

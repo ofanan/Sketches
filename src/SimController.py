@@ -8,7 +8,7 @@ from statistics import mean
 import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
-import settings, F2P, F2P_int, F3P_int, SEAD, CEDAR, Morris, TetraStatic, TetraDynamic, AEE, F2P_li 
+import settings, SEAD, CEDAR, Morris, AEE, F2P_li 
 from datetime import datetime
 
 def main ():
@@ -338,7 +338,7 @@ class SimController (object):
                 for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
                     cntrVec = np.binary_repr(i, self.cntrSize) 
                     listOfVals.append (self.cntrRecord['cntr'].cntr2num(cntrVec))           
-                if self.mode in ['F2Pli']:
+                if self.mode in ['F2P_li']:
                     listOfVals = sorted (listOfVals)
                 points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : [(listOfVals[i+1]-listOfVals[i])/listOfVals[i+1] for i in range (len(listOfVals)-1)]}
                 if settings.VERBOSE_PCL in self.verbose:
@@ -466,7 +466,9 @@ class SimController (object):
 if __name__ == '__main__':
     try: 
         simController = SimController (verbose = [settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
-        simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2Pli', 'SEAD stat', 'SEAD dyn', 'Morris'])
+        # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2P_li', 'SEAD stat', 'SEAD dyn', 'Morris'])
+        simController.measureResolutions (cntrSizes=[8], modes=['F2P_li'])
+        # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2P_li', 'SEAD stat', 'SEAD dyn', 'Morris'])
         
         # main ()
         # F2P         = [0.1, 0.4, 0.6, 0.6]

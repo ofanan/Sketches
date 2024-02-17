@@ -160,4 +160,3 @@ def getRelativePathToTraceFile (traceFileName):
     checkIfInputFileExists (RelativePathToTraceFile)
     return RelativePathToTraceFile
 
-sortcntrMaxVals ()
