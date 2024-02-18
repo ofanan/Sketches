@@ -361,5 +361,3 @@ def checkTimes ():
                 cntrValByShift = mantVal << expVal
     print ('t by shift={}' .format (time.time()-startTime))
 
-
-# printAllVals (cntrSize=8, expSize=5, mode='dyn', verbose=[settings.VERBOSE_RES])

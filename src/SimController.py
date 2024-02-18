@@ -8,7 +8,7 @@ from statistics import mean
 import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
-import settings, SEAD, CEDAR, Morris, AEE, F2P_li 
+import settings, SEAD_stat, CEDAR, Morris, AEE, F2P_li 
 from datetime import datetime
 
 def main ():
@@ -16,14 +16,8 @@ def main ():
     # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2P', 'F3P', 'SEAD stat', 'SEAD dyn', 'Morris', 'AEE'])
     simController.runSingleCntr \
         (dwnSmple       = False,  
-         modes          = ['F2P_li'], #['F2P', 'AEE', 'Morris', 'CEDAR'],
-         # modes          = ['F2P', 'Morris', 'CEDAR', 'SEAD stat', 'SEAD dyn'], #'['Tetra stat', 'F2P', 'SEAD stat', 'SEAD dyn', 'CEDAR', 'Morris'] 
-        # modes          = ['Morris'], #'['Tetra stat', 'F2P', 'SEAD stat', 'SEAD dyn', 'CEDAR', 'Morris'] 
-        # modes          = ['CEDAR'], #'['Tetra stat', 'F2P', 'SEAD stat', 'SEAD dyn', 'CEDAR', 'Morris'] 
-        # modes          = ['F2P'], #'['Tetra stat', 'F2P', 'SEAD stat', 'SEAD dyn', 'CEDAR', 'Morris'] 
-        # modes          = ['SEAD stat'], #'['Tetra stat', 'F2P', 'SEAD stat', 'SEAD dyn', 'CEDAR', 'Morris'] 
-        # modes          = ['SEAD dyn'], #'['Tetra stat', 'F2P', 'SEAD stat', 'SEAD dyn', 'CEDAR', 'Morris'] 
-         cntrSize       = 6, 
+         modes          = ['SEAD stat'], #, 'F2P_li', 'Morris', 'CEDAR'], #[],
+         cntrSize       = 3, 
          numOfExps      = 1,
          erTypes        = ['WrRmse',], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
          cntrMaxVal     = None, 
@@ -353,7 +347,7 @@ class SimController (object):
             self.cntrRecord = {'mode' : 'F2P_li', 'cntr' : F2P_li.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
         elif (self.mode=='SEAD stat'):
             self.expSize      = self.conf['seadExpSize']
-            self.cntrRecord = {'mode' : self.mode, 'cntr' : SEAD.CntrMaster(mode='stat', cntrSize=self.cntrSize, expSize=self.expSize)}
+            self.cntrRecord = {'mode' : self.mode, 'cntr' : SEAD_stat.CntrMaster(cntrSize=self.cntrSize, expSize=self.expSize)}
         elif (self.mode=='SEAD dyn'):
             self.cntrRecord = {'mode' : self.mode, 'cntr' : SEAD.CntrMaster(mode='dyn', cntrSize=self.cntrSize)}
         elif (self.mode=='CEDAR'):
@@ -465,19 +459,9 @@ class SimController (object):
 
 if __name__ == '__main__':
     try: 
-        simController = SimController (verbose = [settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
-        # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2P_li', 'SEAD stat', 'SEAD dyn', 'Morris'])
-        simController.measureResolutions (cntrSizes=[8], modes=['F2P_li'])
+        # simController = SimController (verbose = [settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
         # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2P_li', 'SEAD stat', 'SEAD dyn', 'Morris'])
         
-        # main ()
-        # F2P         = [0.1, 0.4, 0.6, 0.6]
-        # CEDAR       = [0.1, 0.5, 0.9, 0.9]
-        # mean_F2P    = mean(F2P)
-        # mean_CEDAR  = mean(CEDAR)
-        # Rmse_F2P    = settings.RmseOfVec (F2P)
-        # Rmse_CEDAR  = settings.RmseOfVec (CEDAR)
-        # print ('mean_F2P={:.2f}, mean_CEDAR={:.2f}, ratio={:.2f}' .format (mean_F2P, mean_CEDAR, mean_F2P/mean_CEDAR))
-        # print ('Rmse_F2P={:.2f}, Rmse_CEDAR={:.2f}, ratio={:.2f}' .format (Rmse_F2P, Rmse_CEDAR, Rmse_F2P/Rmse_CEDAR))
+        main ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
