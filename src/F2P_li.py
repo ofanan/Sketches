@@ -28,7 +28,7 @@ class CntrMaster (F2P_lr.CntrMaster):
         self.cntrZeroVec    = '1'*(self.cntrSize-mantMinSize) + '0'*mantMinSize  #np.binary_repr(0, self.cntrSize)  
         self.cntrMaxVec     = '0'*self.hyperSize + '1'*(self.cntrSize-self.hyperSize) #np.binary_repr((1<<self.cntrSize)-1, self.cntrSize)
 
-        self.probOfIncBy1 = np.empty (self.Vmax)
+        self.probOfInc1 = np.empty (self.Vmax)
         for expSize in range(0, self.expMaxSize+1):
             mantSize = self.cntrSize - self.hyperSize - expSize
             for i in range (2**expSize):
@@ -36,10 +36,20 @@ class CntrMaster (F2P_lr.CntrMaster):
                 expVal = self.expVec2expVal (expVec=expVec, expSize=expSize)
                 resolution = 2**(expVal + self.bias -mantSize)
                 # print (f'expSize={expSize}, expVec={expVec}, expVal={expVal}, mantSize={mantSize}, resolution={resolution}, inv(res)={1/resolution}')
-                self.probOfIncBy1[abs(expVal)] = 1/resolution
+                self.probOfInc1[abs(expVal)] = 1/resolution
         
-        self.probOfIncBy1[self.Vmax-1] = 1 # Fix the special case, where ExpVal==expMinVal and the resolution is also 1 (namely, prob' of increment is also 1).
+        self.probOfInc1[self.Vmax-1] = 1 # Fix the special case, where ExpVal==expMinVal and the resolution is also 1 (namely, prob' of increment is also 1).
 
+    def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
+        """
+        Increment the counter to the closest higher value.
+        If the cntr reached its max val, or the randomization decides not to inc, merely return the cur cntr.
+        Return the counter's value after the increment        
+        """
+        if factor==1 and mult==False:
+            return self.incCntrBy1GetVal (cntrIdx=cntrIdx)
+        settings.error ('In F2P_li.incCntr(). Sorry, incCntr is currently supported only for factor=1 and mult=False')
+    
     def incCntrBy1GetVal (self, 
                     cntrIdx  = 0, # idx of the concrete counter to increment in the array
                     forceInc = False # If forceInc==True, increment the counter. Else, inc the counter w.p. corresponding to the next counted value.
@@ -57,8 +67,7 @@ class CntrMaster (F2P_lr.CntrMaster):
         expVal     = int (self.expVec2expVal(expVec, expSize))
         mantSize   = self.cntrSize - self.hyperSize - expSize 
         mantVec    = cntr[-mantSize:]
-        mantVal    = float (int (mantVec, base=2)) / 2**(self.cntrSize - self.hyperSize - expSize)  
-        cntrCurVal = self.cntr2num(cntr)
+        mantVal    = int(float (int (mantVec, base=2)) / 2**(self.cntrSize - self.hyperSize - expSize))  
 
         if expVec == self.expMinVec:
             cntrCurVal = mantVal * (2**self.powerMin)
@@ -67,7 +76,7 @@ class CntrMaster (F2P_lr.CntrMaster):
         
         if not(forceInc): # check first the case where we don't have to inc the counter 
             if (self.cntrs[cntrIdx]==self.cntrMaxVec or random.random() > self.probOfInc1[abs(expVal)]): 
-                return cntrCurVal    
+                return int(cntrCurVal)    
 
         # now we know that we have to inc. the cntr
         cntrppVal  = cntrCurVal + (1/self.probOfInc1[abs(expVal)])
@@ -77,6 +86,6 @@ class CntrMaster (F2P_lr.CntrMaster):
         else:
             self.cntrs[cntrIdx] = hyperVec + expVec + np.binary_repr(num=mantVal+1, width=mantSize) 
         print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={cntrppVal}')
-        return cntrppVal 
+        return int(cntrppVal) 
         
             

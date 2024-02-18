@@ -1,9 +1,6 @@
 """
 Controller that runs simulations, using various types of couters. 
 """
-#import itertools
-# from   pathlib import Path
-# from builtins import True False
 from statistics import mean 
 import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
@@ -16,7 +13,7 @@ def main ():
     # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2P', 'F3P', 'SEAD stat', 'SEAD dyn', 'Morris', 'AEE'])
     simController.runSingleCntr \
         (dwnSmple       = False,  
-         modes          = ['SEAD stat'], #, 'F2P_li', 'Morris', 'CEDAR'], #[],
+         modes          = ['F2P_li'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
          cntrSize       = 6, 
          numOfExps      = 1,
          erTypes        = ['WrRmse',], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
@@ -532,10 +529,10 @@ if __name__ == '__main__':
     try: 
         # printAllValsF2P (cntrSize=5, hyperSize=1, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
         # printAllCntrMaxValsF2P (hyperSizeRange=[1,2], cntrSizeRange=[6,7,8,9,10,11,12,13,14,15,16], verbose=[settings.VERBOSE_RES], flavor='li')
-        coutConfDataF2P (cntrSize=6, hyperSize=1, flavor='li')
+        # coutConfDataF2P (cntrSize=6, hyperSize=1, flavor='li')
         # simController = SimController (verbose = [settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
         # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2P_li', 'SEAD stat', 'SEAD dyn', 'Morris'])
         
-        # main ()
+        main ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
