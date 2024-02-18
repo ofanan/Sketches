@@ -49,8 +49,6 @@ class CntrMaster (F2P_lr.CntrMaster):
                 self.cntrppOfAbsExpVal[abs(expVal)] = hyperVec + np.binary_repr(num=i-1, width=expSize) + '0'*mantSize 
             expVal = self.expVec2expVal (expVec='0'*expSize, expSize=expSize)
             self.cntrppOfAbsExpVal[abs(expVal)] = np.binary_repr (expSize-1, self.hyperSize) + ('1'*(expSize-1) if expSize>1 else '') + '0'*(mantSize+1)
-            # print (f'expSize={expSize}, expVal={expVal}, self.cntrppOfAbsExpVal={self.cntrppOfAbsExpVal[abs(expVal)]}')
-        settings.error (self.cntrppOfAbsExpVal)
 
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
         """
@@ -79,7 +77,8 @@ class CntrMaster (F2P_lr.CntrMaster):
         expVal     = int (self.expVec2expVal(expVec, expSize))
         mantSize   = self.cntrSize - self.hyperSize - expSize 
         mantVec    = cntr[-mantSize:]
-        mantVal    = int(float (int (mantVec, base=2)) / 2**(self.cntrSize - self.hyperSize - expSize))  
+        mantIntVal = int (mantVec, base=2)
+        mantVal    = float (mantIntVal) / 2**(self.cntrSize - self.hyperSize - expSize)  
 
         if expVec == self.expMinVec:
             cntrCurVal = mantVal * (2**self.powerMin)
@@ -92,12 +91,18 @@ class CntrMaster (F2P_lr.CntrMaster):
 
         # now we know that we have to inc. the cntr
         cntrppVal  = cntrCurVal + (1/self.probOfInc1[abs(expVal)])
-        print (f'b4 inc: cntrVec={cntr}, cntrVal={cntrCurVal}')
+        if settings.VERBOSE_COUT_CNTRLINE in self.verbose:
+            print (f'b4 inc: cntrVec={cntr}, cntrVal={int(cntrCurVal)}')
         if mantVec == '1'*mantSize: # the mantissa overflowed
-            self.cntrs[cntrIdx] = self.cntrppOfAbsExpVal[expVal]
+            self.cntrs[cntrIdx] = self.cntrppOfAbsExpVal[abs(expVal)]
+            # for i in range(len(self.cntrppOfAbsExpVal)):
+            #     print (f'i={i}, cntrppOfAbsExpVal={self.cntrppOfAbsExpVal[i]}')
+            # settings.error (f'expVal={expVal}, incrementing to {self.cntrs[cntrIdx]}') 
+            # settings.error (f'cntr={self.cntrs[cntrIdx]}, expVal={expVal}, cntrpp={self.cntrppOfAbsExpVal[expVal]}') #$$$
         else:
-            self.cntrs[cntrIdx] = hyperVec + expVec + np.binary_repr(num=mantVal+1, width=mantSize) 
-        print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={cntrppVal}')
+            self.cntrs[cntrIdx] = hyperVec + expVec + np.binary_repr(num=mantIntVal+1, width=mantSize) 
+        if settings.VERBOSE_COUT_CNTRLINE in self.verbose:
+            print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={int(cntrppVal)}')
         return int(cntrppVal) 
         
             
