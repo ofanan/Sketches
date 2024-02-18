@@ -532,7 +532,6 @@ if __name__ == '__main__':
         # coutConfDataF2P (cntrSize=6, hyperSize=1, flavor='li')
         # simController = SimController (verbose = [settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
         # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2P_li', 'SEAD stat', 'SEAD dyn', 'Morris'])
-        
         main ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

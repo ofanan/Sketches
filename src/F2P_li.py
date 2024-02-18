@@ -1,6 +1,6 @@
 # This file implements F2P LI, namely, F2P flavor that represents only integers, and focuses on improved accuracy on elephants.
 # The class F2P_lr mainly inherits from the class F2P_lr. 
-# For futher details, see "main.tex" in Cntr's Overleaf project.
+# For further details, see "main.tex" in Cntr's Overleaf project.
 import math, random, pickle
 from printf import printf
 import settings
@@ -35,10 +35,22 @@ class CntrMaster (F2P_lr.CntrMaster):
                 expVec = np.binary_repr(num=i, width=expSize)
                 expVal = self.expVec2expVal (expVec=expVec, expSize=expSize)
                 resolution = 2**(expVal + self.bias -mantSize)
-                # print (f'expSize={expSize}, expVec={expVec}, expVal={expVal}, mantSize={mantSize}, resolution={resolution}, inv(res)={1/resolution}')
                 self.probOfInc1[abs(expVal)] = 1/resolution
         
         self.probOfInc1[self.Vmax-1] = 1 # Fix the special case, where ExpVal==expMinVal and the resolution is also 1 (namely, prob' of increment is also 1).
+        
+        self.cntrppOfAbsExpVal = ['' for _ in range(self.Vmax)]
+        for expSize in range(self.expMaxSize, 0, -1):
+            hyperVec = np.binary_repr (expSize, self.hyperSize) 
+            mantSize = self.cntrSize - self.hyperSize - expSize
+            for i in range (2**expSize-1, 0, -1): 
+                expVec = np.binary_repr(num=i, width=expSize)
+                expVal = self.expVec2expVal (expVec=expVec, expSize=expSize)
+                self.cntrppOfAbsExpVal[abs(expVal)] = hyperVec + np.binary_repr(num=i-1, width=expSize) + '0'*mantSize 
+            expVal = self.expVec2expVal (expVec='0'*expSize, expSize=expSize)
+            self.cntrppOfAbsExpVal[abs(expVal)] = np.binary_repr (expSize-1, self.hyperSize) + ('1'*(expSize-1) if expSize>1 else '') + '0'*(mantSize+1)
+            # print (f'expSize={expSize}, expVal={expVal}, self.cntrppOfAbsExpVal={self.cntrppOfAbsExpVal[abs(expVal)]}')
+        settings.error (self.cntrppOfAbsExpVal)
 
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
         """
@@ -82,7 +94,7 @@ class CntrMaster (F2P_lr.CntrMaster):
         cntrppVal  = cntrCurVal + (1/self.probOfInc1[abs(expVal)])
         print (f'b4 inc: cntrVec={cntr}, cntrVal={cntrCurVal}')
         if mantVec == '1'*mantSize: # the mantissa overflowed
-            settings.error ('TBD')
+            self.cntrs[cntrIdx] = self.cntrppOfAbsExpVal[expVal]
         else:
             self.cntrs[cntrIdx] = hyperVec + expVec + np.binary_repr(num=mantVal+1, width=mantSize) 
         print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={cntrppVal}')
