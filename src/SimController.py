@@ -8,16 +8,16 @@ from statistics import mean
 import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
-import settings, SEAD_stat, CEDAR, Morris, AEE, F2P_li 
+import settings, SEAD_stat, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li  
 from datetime import datetime
 
 def main ():
-    simController = SimController (verbose = [settings.VERBOSE_DETAILS]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+    simController = SimController (verbose = [settings.VERBOSE_RES]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
     # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2P', 'F3P', 'SEAD stat', 'SEAD dyn', 'Morris', 'AEE'])
     simController.runSingleCntr \
         (dwnSmple       = False,  
          modes          = ['SEAD stat'], #, 'F2P_li', 'Morris', 'CEDAR'], #[],
-         cntrSize       = 8, 
+         cntrSize       = 6, 
          numOfExps      = 1,
          erTypes        = ['WrRmse',], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
          cntrMaxVal     = None, 
@@ -150,7 +150,6 @@ class SimController (object):
         the # of increments ("hit time") needed to make the cntr reach that value.
         The type of statistic collected is the Round Square Mean Error of such write errors.
         """
-        
         self.cntrRecord['sumSqEr']  = [0] * self.numOfExps # self.cntrRecord['sumSqEr'][j] will hold the sum of the square errors collected at experiment j. 
         self.numOfPoints            = [0] * self.numOfExps # self.numOfPoints[j] will hold the number of points collected for statistic at experiment j. The number of points varies, as it depends upon the random process of increasing the approximated cntr. 
         for expNum in range(self.numOfExps):
@@ -161,14 +160,15 @@ class SimController (object):
             self.cntrRecord['cntr'].rstCntr ()
             self.cntrRecord['sampleProb'] = 1 # probability of sampling
             self.writeProgress (expNum)
+            print ('maxRealVal={:.0f}' .format (self.maxRealVal))
             while cntrVal < self.maxRealVal:
                 realValCntr += 1
                 if (self.cntrRecord['sampleProb']==1 or random.random() < self.cntrRecord['sampleProb']): # sample w.p. self.cntrRecord['sampleProb']
-                    cntrAfterInc = self.cntrRecord['cntr'].incCntr (factor=int(1), mult=False, verbose=self.verbose)
-                    cntrNewVal   = cntrAfterInc['val'] / self.cntrRecord['sampleProb']
+                    cntrValAfterInc = self.cntrRecord['cntr'].incCntr (factor=int(1), mult=False, verbose=self.verbose)
+                    cntrNewVal   = cntrValAfterInc / self.cntrRecord['sampleProb']
                     if (settings.VERBOSE_DETAILS in self.verbose): 
-                        print ('realVal={:.0f} oldVal={:.0f}, cntrWoScaling={:.0f}, cntrNewValScaled={:.0f}, maxRealVal={:.0f}'
-                               .format (realValCntr, cntrVal, cntrAfterInc['val'], cntrNewVal, self.maxRealVal))
+                        print ('realVal={:.0f} oldVal={:.0f}, cntrWoScaling={:.0f}, cntrNewValScaled={:.0f}'
+                               .format (realValCntr, cntrVal, cntrValAfterInc, cntrNewVal))
                     if (cntrNewVal != cntrVal): # the counter was incremented
                         cntrVal = cntrNewVal
                         # curRelativeErr = ((realValCntr - cntrVal)/realValCntr)**2
@@ -178,13 +178,13 @@ class SimController (object):
                             printf (self.log_file, 'realValCntr={}, cntrVal={}, added sumSqEr={:.4f}\n' .format (realValCntr, cntrVal, ((realValCntr - cntrVal)/realValCntr)**2))
 
                     if self.dwnSmple:
-                        if cntrAfterInc['val']==self.cntrRecord['cntr'].cntrMaxVal: # the cntr overflowed --> downsample
+                        if cntrValAfterInc==self.cntrRecord['cntr'].cntrMaxVal: # the cntr overflowed --> downsample
                             self.cntrRecord['cntr'].incCntr (mult=True, factor=1/2)
                             self.cntrRecord['sampleProb'] /= 2
                         if (settings.VERBOSE_DETAILS in self.verbose): 
                             print ('smplProb={}' .format (self.cntrRecord['sampleProb'])) 
                     else:
-                        if cntrAfterInc['val']==self.cntrRecord['cntr'].cntrMaxVal: # the cntr reached its maximum values and no down-sample is used --> finish this experiment
+                        if cntrValAfterInc==self.cntrRecord['cntr'].cntrMaxVal: # the cntr reached its maximum values and no down-sample is used --> finish this experiment
                             break  
             if settings.VERBOSE_LOG in self.verbose:
                 printf (self.log_file, 'sumSqEr={:.2f}\n' .format (self.cntrRecord['sumSqEr'][expNum]))
@@ -327,7 +327,7 @@ class SimController (object):
             self.cntrMaxVal   = self.conf['cntrMaxVal'] 
             self.hyperSize    = self.conf['hyperSize'] 
             for self.mode in modes:
-                self.initCntrRecord ()
+                self.genCntrRecord ()
                 listOfVals = []
                 for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
                     cntrVec = np.binary_repr(i, self.cntrSize) 
@@ -338,16 +338,17 @@ class SimController (object):
                 if settings.VERBOSE_PCL in self.verbose:
                     self.dumpDictToPcl ({'mode' : self.mode, 'cntrSize' : self.cntrSize, 'points' : points}, pclOutputFile)
 
-    def initCntrRecord (self):
+    def genCntrRecord (self):
         """
         Set self.cntrRecord, which holds the counters to run
         """
+        verbose = settings.VERBOSE_LOG_CNTRLINE
         # Set self.cntrRecord, which holds the counter to run
         if (self.mode=='F2P_li'):
             self.cntrRecord = {'mode' : 'F2P_li', 'cntr' : F2P_li.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
         elif (self.mode=='SEAD stat'):
             self.expSize      = self.conf['seadExpSize']
-            self.cntrRecord = {'mode' : self.mode, 'cntr' : SEAD_stat.CntrMaster(cntrSize=self.cntrSize, expSize=self.expSize)}
+            self.cntrRecord = {'mode' : self.mode, 'cntr' : SEAD_stat.CntrMaster(cntrSize=self.cntrSize, expSize=self.expSize, verbose=self.verbose)}
         elif (self.mode=='SEAD dyn'):
             self.cntrRecord = {'mode' : self.mode, 'cntr' : SEAD.CntrMaster(mode='dyn', cntrSize=self.cntrSize)}
         elif (self.mode=='CEDAR'):
@@ -370,7 +371,7 @@ class SimController (object):
             self.hyperMaxSize = self.conf['hyperMaxSize'] 
                     
         
-        self.initCntrRecord () # Set self.cntrRecord, which holds the counter to run
+        self.genCntrRecord () # Set self.cntrRecord, which holds the counter to run
         self.maxRealVal         = self.cntrMaxVal if (self.maxRealVal==None) else self.maxRealVal
         if self.cntrRecord['cntr'].cntrMaxVal < self.maxRealVal and (not(self.dwnSmple)):
             settings.error ('The counter of type {}, cntrSize={}, hyperSize={}, can reach max val={} which is smaller than the requested maxRealVal {}, and no dwn smpling was used' . format (self.cntrRecord['mode'], self.cntrSize, self.hyperSize, self.cntrRecord['cntr'].cntrMaxVal, self.maxRealVal))
@@ -457,11 +458,84 @@ class SimController (object):
             self.runSingleCntrSingleMode ()
         return
 
+def genCntrMasterF2P (cntrSize, hyperSize, flavor='', verbose=[]):
+    """
+    return an F2P's CntrMaster belonging to the selected flavor 
+    """
+    if flavor=='sr':
+        return F2P_sr.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+    elif flavor=='lr':
+        return F2P_lr.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+    elif flavor=='li':
+        return F2P_li.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+    else:
+        settings.error (f'In SimController.genCntrMasterF2P(). the requested F2P flavor {flavor} is not supported.')
+
+
+def printAllValsF2P (flavor='', cntrSize=8, hyperSize=2, verbose=[]):
+    """
+    Loop over all the binary combinations of the given counter size. 
+    For each combination, print to file the respective counter, and its value. 
+    The prints are sorted in an increasing order of values.
+    """
+    print (f'running SimController.printAllValsF2P().')
+    myCntrMaster = genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+    if myCntrMaster.isFeasible==False:
+        settings.error (f'The requested configuration is not feasible.')
+    listOfVals = []
+    for i in range (2**cntrSize):
+        cntr = np.binary_repr(i, cntrSize) 
+        val = myCntrMaster.cntr2num(cntr=cntr)
+        if flavor=='li':
+            val = int(val)
+        listOfVals.append ({'cntrVec' : cntr, 'val' : val})
+    listOfVals = sorted (listOfVals, key=lambda item : item['val'])
+    
+    if (settings.VERBOSE_RES in verbose):
+        outputFile    = open ('../res/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
+        for item in listOfVals:
+            printf (outputFile, '{}={}\n' .format (item['cntrVec'], item['val']))
+    
+    if (settings.VERBOSE_PCL in verbose):
+        with open('../res/pcl_files/{}.pcl' .format (myCntrMaster.genSettingsStr()), 'wb') as pclOutputFile:
+            pickle.dump(listOfVals, pclOutputFile) 
+
+def coutConfDataF2P (cntrSize, hyperSize, flavor='', verbose=[]):
+    """
+    print basic configuration data about the requested flavor. 
+    The conf' data includes cntrSize, hyperSize, Vmax, bias. 
+    """
+    genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=[settings.VERBOSE_COUT_CONF])
+
+def printAllCntrMaxValsF2P (flavor='sr', hyperSizeRange=None, cntrSizeRange=[], verbose=[settings.VERBOSE_RES]):
+    """
+    print the maximum value a cntr reach for several "configurations" -- namely, all combinations of cntrSize and hyperSize. 
+    """
+
+    for cntrSize in cntrSizeRange:
+        for hyperSize in range (1,cntrSize-2) if hyperSizeRange==None else hyperSizeRange:
+            myCntrMaster = genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize)
+            if myCntrMaster.isFeasible==False:
+                continue
+            if (settings.VERBOSE_RES in verbose):
+                outputFile    = open (f'../res/cntrMaxVals.txt', 'a')
+            if not(myCntrMaster.isFeasible): # This combination of cntrSize and hyperSize is infeasible
+                continue
+            cntrMaxVal = myCntrMaster.cntrMaxVal
+            if flavor=='li':
+                cntrMaxVal = int(cntrMaxVal)
+            if (cntrMaxVal < 10**8):
+                printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), cntrMaxVal))
+            else:
+                printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), cntrMaxVal))
 if __name__ == '__main__':
     try: 
+        # printAllValsF2P (cntrSize=5, hyperSize=1, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
+        # printAllCntrMaxValsF2P (hyperSizeRange=[1,2], cntrSizeRange=[6,7,8,9,10,11,12,13,14,15,16], verbose=[settings.VERBOSE_RES], flavor='li')
+        coutConfDataF2P (cntrSize=6, hyperSize=1, flavor='li')
         # simController = SimController (verbose = [settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
         # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2P_li', 'SEAD stat', 'SEAD dyn', 'Morris'])
         
-        main ()
+        # main ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

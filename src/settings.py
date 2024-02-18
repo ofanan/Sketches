@@ -20,14 +20,15 @@ VERBOSE_LOG             = 9
 VERBOSE_LOG_END_SIM     = 10
 VERBOSE_DETAILED_LOG    = 11
 VERBOSE_PROGRESS        = 12 # Print periodical output notifying the progress. Used to control long runs.
-# Configurations to be run. 
+VERBOSE_LOG_CNTRLINE    = 14# Configurations to be run. 
 # For cntrSize<8, the conf' the values are unrealistically small, and used only for checks and debugging.
 # For cntrSize>=8, cntrMaxVal is calculated by that reached by F2P stat, and hyperSize is the corresponding hyper-exponent field size in F2P stat.
 # hyperMaxSize is 
 # expSize is the minimal needed for SEAD stat to reach the requested value.
 Confs = [{'cntrSize' : 3,  'cntrMaxVal' : 10,       'hyperSize' : 2, 'hyperMaxSize' : 1, 'seadExpSize' : 1},
-         {'cntrSize' : 6,  'cntrMaxVal' : 31744,    'hyperSize' : 2, 'hyperMaxSize' : 1, 'seadExpSize' : 2},
-         {'cntrSize' : 7,  'cntrMaxVal' : 64512,    'hyperSize' : 2, 'hyperMaxSize' : 1, 'seadExpSize' : 2},
+         {'cntrSize' : 4,  'cntrMaxVal' : 22,       'hyperSize' : 2, 'hyperMaxSize' : 1, 'seadExpSize' : 1},
+         {'cntrSize' : 6,  'cntrMaxVal' : 31744,    'hyperSize' : 2, 'hyperMaxSize' : 1, 'seadExpSize' : 4},
+         {'cntrSize' : 7,  'cntrMaxVal' : 64512,    'hyperSize' : 2, 'hyperMaxSize' : 1, 'seadExpSize' : 4},
          {'cntrSize' : 8,  'cntrMaxVal' : 130048,   'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
          {'cntrSize' : 9,  'cntrMaxVal' : 261120,   'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
          {'cntrSize' : 10, 'cntrMaxVal' : 523264,   'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},

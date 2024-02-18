@@ -1,8 +1,3 @@
-#import itertools
-# import time, random, sys, os
-# from   pathlib import Path
-# from builtins import True False
-# import pickle
 import math, time, random
 from printf import printf
 import settings
@@ -36,7 +31,7 @@ class CntrMaster (object):
     getExpVal  = lambda self, cntrIdx : int (self.getExpVec(cntrIdx), base=2)             
 
     # get the mantissa value in 'stat' mode  
-    getMantVal = lambda self, cntrIdx : int (self.getMantVec(cntrIdx), base=2)
+    getMantVal = lambda self, cntrIdx : int (self.cntrs[cntrIdx][self.expSize:], base=2)
     
     def calcOffsets (self):
         """
@@ -64,9 +59,11 @@ class CntrMaster (object):
         self.verbose     = verbose
         self.cntrZeroVec = '0' * self.cntrSize
         self.cntrs       = [self.cntrZeroVec] * self.numCntrs
-        
-        self.expSize = expSize
+        self.expSize     = expSize
         self.calcParams ()
+        if settings.VERBOSE_LOG_CNTRLINE in self.verbose:
+            self.logFIle = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
+
              
     def rstCntr (self, cntrIdx=0):
         """
@@ -86,15 +83,13 @@ class CntrMaster (object):
         self.calcOffsets ()
         self.cntrMaxVal = self.valOf (mantVal=2**self.mantSize-1, expVal=self.expMaxVal)
    
-    def cntr2num (self, cntr, verbose=None):
+    def cntr2num (self, 
+                  cntr, # the counter, given as a binary vector (e.g., "11110"). 
+                  ):
         """
         Convert a counter, given as a binary vector (e.g., "11110"), to an integer num.
-        Input: cntr, , given as a binary vector (e.g., "11110").
         Output: integer.
-        """
-        
-        if (verbose!=None): #if a new verbose was given, it overrides the current verbose
-            self.verbose = verbose
+        """        
         if (len(cntr) != self.cntrSize): # if the cntr's size differs from the default, we have to update the basic params
             print ('the size of the given counter is {} while CntrMaster was initialized with cntrSize={}.' .format (len(cntr), self.cntrSize))
             print ('Please initialize a cntr with the correct len.')
@@ -127,8 +122,8 @@ class CntrMaster (object):
         if verbose!=None:
             self.verbose = verbose
         if factor==1 and mult==False:
-            return self.incCntrBy1 (cntrIdx)
-        
+            return self.incCntrBy1GetVal (cntrIdx)
+    
         settings.error ('Sorry. SEAD_stat.inccntr() is currently implemented only as incCntrBy1.')
     
     def incCntrBy1GetVal (self, cntrIdx=0):
@@ -157,13 +152,13 @@ class CntrMaster (object):
 
         # Need to increment the cntr
         mantVal = self.getMantVal(cntrIdx)
-        if settings.VERBOSE_COUT_CNTRLINE in self.verbose:
-            printf ('')
         if (mantVal < 2**self.mantSize-1): # can we further increment the mantissa w/o o/f?
             self.cntrs[cntrIdx] = np.binary_repr(expVal, self.expSize) + np.binary_repr (mantVal+1, self.mantSize)
         else:  # need to increase the exponent
             self.cntrs[cntrIdx] = np.binary_repr(expVal+1, self.expSize) + '0' * self.mantSize # need to decrement the mantissa field size.
-        return cntrppVal            
+        if settings.VERBOSE_LOG_CNTRLINE in self.verbose:
+            printf (self.logFIle, f'After inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={cntrppVal}\n')
+        return cntrppVal
         # return {'cntrVec' : self.cntrs[cntrIdx], 'val' : cntrppVal}    
 
 
@@ -184,7 +179,7 @@ def printAllVals (cntrSize=4, expSize=1, verbose=[]):
     if (settings.VERBOSE_RES in verbose):
         myCntrMaster.cntrSize   = cntrSize
         myCntrMaster.expSize    = expSize
-        outputFile    = open ('../res/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
+        outputFile    = open ('../res/log_files/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
         for item in listOfVals:
             printf (outputFile, '{}={}\n' .format (item['cntrVec'], item['val']))
     print ('cntrMaxVal={}' .format (myCntrMaster.cntrMaxVal))
