@@ -13,8 +13,6 @@ class CntrMaster (object):
     Generate, check and parse counters
     """
 
-    flavor = lambda self : 'stat'
-
     # Generates a strings that details the counter's settings (param vals).    
     genSettingsStr = lambda self : 'SEADstat_n{}_e{}' .format (self.cntrSize, self.expSize) # if self.mode=='stat' else 0)
     
@@ -49,21 +47,14 @@ class CntrMaster (object):
         for expVal in range (self.expMaxVal): # for each potential exponent value
             self.offsetOfExpVal[expVal+1] = self.offsetOfExpVal[expVal] + 2**(expVal+self.mantSize)
   
-    def __init__ (self, cntrSize=4, expSize=2, numCntrs=1, verbose=[]):
-        
+    def __init__ (self, 
+                  cntrSize=4,   # num of bits in each counter.
+                  expSize=2,    # size of the exp field, in bits. Relevant only for static counters.
+                  numCntrs=1,   # number of counters in the array. 
+                  verbose=[]    # one of the verbose macros, detailed in settings.py
+                  ):
         """
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
-        Inputs:
-        cntrSize  - num of bits in each counter.
-        expSize - size of the exp field, in bits. Relevant only for static counters. 
-        numCntrs - number of counters in the array.
-        verbose - can be either:
-            settings.VERBOSE_COUT_CNTRLINE - print to stdout details about the concrete counter and its fields.
-            settings.VERBOSE_DEBUG         - perform checks and debug operations during the run. 
-            settings.VERBOSE_RES           - print output to a .res file in the directory ../res
-            settings.VERBOSE_PCL           = print output to a .pcl file in the directory ../res/pcl_files
-            settings.VERBOSE_DETAILS       = print to stdout details about the counter
-            settings.VERBOSE_NOTE          = print to stdout notes, e.g. when the target cntr value is above its max or below its min.
         """
         
         if (cntrSize<3):
@@ -140,7 +131,7 @@ class CntrMaster (object):
         
         settings.error ('Sorry. SEAD_stat.inccntr() is currently implemented only as incCntrBy1.')
     
-    def incCntrBy1 (self, cntrIdx=0):
+    def incCntrBy1GetVal (self, cntrIdx=0):
         """
         Increase a counter by 1.
         Operation:
@@ -154,21 +145,26 @@ class CntrMaster (object):
         """
         cntrCurVal = self.cntr2num (self.cntrs[cntrIdx])
         if cntrCurVal == self.cntrMaxVal:
-            return {'cntrVec' : self.cntrs[cntrIdx], 'val' : cntrCurVal}    
+            return cntrCurVal
+            # return {'cntrVec' : self.cntrs[cntrIdx], 'val' : cntrCurVal}    
 
         expVal  = self.getExpVal (cntrIdx)
         cntrppVal = cntrCurVal + 2**expVal
 
-        if random.random() >= 1/float(cntrppVal-cntrCurVal): 
-            return {'cntrVec' : self.cntrs[cntrIdx], 'val' : cntrCurVal}    
+        if random.random() >= 1/float(cntrppVal-cntrCurVal):
+            return cntrCurVal 
+            # return {'cntrVec' : self.cntrs[cntrIdx], 'val' : cntrCurVal}    
 
         # Need to increment the cntr
         mantVal = self.getMantVal(cntrIdx)
+        if settings.VERBOSE_COUT_CNTRLINE in self.verbose:
+            printf ('')
         if (mantVal < 2**self.mantSize-1): # can we further increment the mantissa w/o o/f?
             self.cntrs[cntrIdx] = np.binary_repr(expVal, self.expSize) + np.binary_repr (mantVal+1, self.mantSize)
         else:  # need to increase the exponent
-            self.cntrs[cntrIdx] = np.binary_repr(expVal+1, self.expSize) + '0' * self.mantSize # need to decrement the mantissa field size.            
-        return {'cntrVec' : self.cntrs[cntrIdx], 'val' : cntrppVal}    
+            self.cntrs[cntrIdx] = np.binary_repr(expVal+1, self.expSize) + '0' * self.mantSize # need to decrement the mantissa field size.
+        return cntrppVal            
+        # return {'cntrVec' : self.cntrs[cntrIdx], 'val' : cntrppVal}    
 
 
 def printAllVals (cntrSize=4, expSize=1, verbose=[]):
