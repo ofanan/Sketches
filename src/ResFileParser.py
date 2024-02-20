@@ -123,14 +123,14 @@ class ResFileParser (object):
                              erType,
                              numOfExps      = 50,
                              modes          = ['F2P_li', 'CEDAR', 'Morris', 'AEE'],
-                             minCntrSize    = 10,
+                             minCntrSize    = 8,
                              maxCntrSize    = 64,
                              ):
         """
         Generate a plot showing the error as a function of the counter's size.
         """
 
-        outputFileName = f'1cntr_{erType}' 
+        outputFileName = f'1cntr_PC_{erType}' 
         self.setPltParams ()  # set the plot's parameters (formats of lines, markers, legends etc.).
         _, ax = plt.subplots()
 
@@ -271,11 +271,11 @@ def genResolutionPlot ():
                                             )
 
 
-genResolutionPlot ()
+# genResolutionPlot ()
 
-# my_ResFileParser = ResFileParser ()
-# for ErType in ['RdEr', 'RdRmse', 'WrRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
-#     my_ResFileParser.rdPcl (pclFileName=f'1cntr_HPC_{ErType}.pcl')
-#     my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=50, maxCntrSize=16)
-#     # my_ResFileParser.printAllPoints (cntrSize=8, cntrMaxVal=1488888, printToScreen=True)
+my_ResFileParser = ResFileParser ()
+for ErType in ['RdRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
+    my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
+    my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=1, maxCntrSize=16) # 50
+    # my_ResFileParser.printAllPoints (cntrSize=8, cntrMaxVal=1488888, printToScreen=True)
 

@@ -166,6 +166,15 @@ class CntrMaster(object):
 
         return {'cntrVec': np.binary_repr(self.cntrs[cntrIdx], self.cntrSize), 'val': self.estimators[self.cntrs[cntrIdx]]}
 
+    def incCntrBy1GetVal (self):
+        """
+        """
+        if (self.cntrs[cntrIdx] == self.numEstimators-1): # reached the largest estimator --> cannot further inc
+            return self.estimators[self.cntrs[cntrIdx]]
+        if random.random() < 1/self.diffs[self.cntrs[cntrIdx]]:
+            self.cntrs[cntrIdx] += 1
+        return self.estimators[self.cntrs[cntrIdx]]
+
     def queryCntr(self, cntrIdx=0) -> dict:
         """
         Query a cntr.
