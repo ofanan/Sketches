@@ -16,7 +16,7 @@ aSearchRanges = [
                  {'cntrSize' : 5,    'aLo' : 1,      'aHi' : 1000},
                  {'cntrSize' : 6,    'aLo' : 1,      'aHi' : 1000},
                  {'cntrSize' : 7,    'aLo' : 1,      'aHi' : 1000},
-                 {'cntrSize' : 8,    'aLo' : 10,     'aHi' : 100},
+                 {'cntrSize' : 8,    'aLo' : 10,     'aHi' : 120},
                  {'cntrSize' : 9,    'aLo' : 10,     'aHi' : 10000},
                  {'cntrSize' : 10,   'aLo' : 10,     'aHi' : 10000},
                  {'cntrSize' : 11,   'aLo' : 100,    'aHi' : 10000},
@@ -68,7 +68,7 @@ class CntrMaster (object):
                 print (f'cntrSize={self.cntrSize}, a={self.a}, CntrMaxVal={CntrMaxVal}')
     
     
-    def findMaxAByMaxVal (self, targetMaxVal, aLo=10, aHi=1000, delta=0.01):
+    def findMaxAByMaxVal (self, targetMaxVal, aLo=10, aHi=1000, delta=0.001):
         """
         Given a target maximum countable value, return the maximal 'a' parameter that reaches this value, 
         for the current counter's size.
@@ -99,8 +99,10 @@ class CntrMaster (object):
                 break
             if (maxVal < targetMaxVal): # can't reach maxVal with this a --> need smaller a value
                 aHi = self.a
-            else: # maxVal > targetMaxVal --> reached the maximum value - try to increase a, to find a more tight value.
+            else: # maxVal > targetMaxVal --> reached the maximum value - try to increase a, to find a tight value.
                 aLo = self.a
+        if (self.calcCntrMaxVal() < targetMaxVal): # due to quantization, self.a is still too large
+            return self.a - delta
         return self.a 
             
 
@@ -188,21 +190,23 @@ class CntrMaster (object):
         settings.checkCntrIdx (cntrIdx=cntrIdx, numCntrs=self.numCntrs, cntrType='Morris')
         return {'cntrVec' : self.cntrs[cntrIdx], 'val' : self.cntr2num(self.cntrs[cntrIdx])}    
         
-    def incCntrBy1 (self, 
+    def incCntrBy1GetVal (self, 
                     cntrIdx  = 0, # idx of the concrete counter to increment in the array
                     forceInc = False) -> dict: # If forceInc==True, increment the counter. Else, inc the counter w.p. corresponding to the next counted value.
         """
         Increment the counter to the closest higher value        
         """
+        cntrDict = self.incCntr ()
+        return cntrDict['val']
         settings.error ('This function is not debugged yet. Please check it carefully before using.')
-        settings.checkCntrIdx (cntrIdx=cntrIdx, numCntrs=self.numCntrs, cntrType='Morris')
         
         if not(forceInc):
             settings.error ('Sorry. Morris.incCntrBy1() is currently supports only for forceInc==True.')
         
         cntrInt = int (self.cntrs[cntrIdx], 2)
         self.cntrs[cntrIdx] = np.binary_repr (cntrInt+1, cntrSize)
-        return {'cntrVec' : self.cntrs[cntrIdx], 'val' : self.cntr2num(self.cntrs[cntrIdx])}    
+        self.cntrs[cntrIdx]    
+        # return {'cntrVec' : self.cntrs[cntrIdx], 'val' : self.cntr2num(self.cntrs[cntrIdx])}    
         
     def incCntr (self, cntrIdx=0, factor=1, verbose=[], mult=False):
         """
@@ -253,7 +257,7 @@ def printAllVals (cntrSize=4, a=None, cntrMaxVal=None, verbose=[]):
     For each combination, print to file the respective counter, and its value. 
     The prints are sorted in an increasing order of values.
     """
-    print ('running printAllVals')
+    print ('running Morris.printAllVals')
     myCntrMaster = CntrMaster(cntrSize=cntrSize, a=a, cntrMaxVal=cntrMaxVal, verbose=verbose)
     listOfVals = []
     for i in range (1 << cntrSize):
@@ -278,4 +282,4 @@ def printAllCntrMaxVals (cntrSizes=[], verbose=[settings.VERBOSE_RES]):
     return
 
 
-# printAllVals (cntrSize=8, a=None, cntrMaxVal=1488888, verbose=[settings.VERBOSE_RES])
+# printAllVals (cntrSize=8, a=None, cntrMaxVal=130048, verbose=[settings.VERBOSE_RES]) #1488888

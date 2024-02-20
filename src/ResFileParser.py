@@ -262,7 +262,7 @@ def genResolutionPlot ():
     my_ResFileParser = ResFileParser ()
     my_ResFileParser.rdPcl (pclFileName=f'resolution.pcl') 
     for cntrSize in [8]:  # , 12, 16]:
-        my_ResFileParser.genResolutionPlot (modes       = ['CEDAR', 'Morris', 'SEAD stat', 'SEAD dyn', 'F2P_li'],  #                                        
+        my_ResFileParser.genResolutionPlot (modes       = ['Morris', 'SEAD stat', 'F2P_li'],  # 'CEDAR', 'SEAD dyn',                                          
                                             minCntrVal  = 0,
                                             maxCntrVal  = float('inf'),
                                             cntrSize    = cntrSize,

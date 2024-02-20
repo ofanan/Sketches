@@ -1,7 +1,7 @@
 """
 Controller that runs simulations, using various types of couters. 
 """
-from statistics import mean 
+# from statistics import mean 
 import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
@@ -9,14 +9,15 @@ import settings, SEAD_stat, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li
 from datetime import datetime
 
 def main ():
-    simController = SimController (verbose = [settings.VERBOSE_RES]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
-    # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2P', 'F3P', 'SEAD stat', 'SEAD dyn', 'Morris', 'AEE'])
+    simController = SimController (verbose = [settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+    simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['F2P_li', 'SEAD stat', 'Morris']) #$$$
+    return #$$$
     simController.runSingleCntr \
         (dwnSmple       = False,  
-         modes          = ['F2P_li'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
-         cntrSize       = 6, 
+         modes          = ['SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
+         cntrSize       = 8, 
          numOfExps      = 1,
-         erTypes        = ['WrRmse',], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+         erTypes        = ['RdRmse',], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
          cntrMaxVal     = None, 
          )
 
@@ -161,7 +162,7 @@ class SimController (object):
             while cntrVal < self.maxRealVal:
                 realValCntr += 1
                 if (self.cntrRecord['sampleProb']==1 or random.random() < self.cntrRecord['sampleProb']): # sample w.p. self.cntrRecord['sampleProb']
-                    cntrValAfterInc = self.cntrRecord['cntr'].incCntr (factor=int(1), mult=False, verbose=self.verbose)
+                    cntrValAfterInc = self.cntrRecord['cntr'].incCntrBy1GetVal ()
                     cntrNewVal   = cntrValAfterInc / self.cntrRecord['sampleProb']
                     if (settings.VERBOSE_DETAILS in self.verbose): 
                         print ('realVal={:.0f} oldVal={:.0f}, cntrWoScaling={:.0f}, cntrNewValScaled={:.0f}'
@@ -213,8 +214,8 @@ class SimController (object):
             while realValCntr < self.maxRealVal:
                 realValCntr += 1
                 if (self.cntrRecord['sampleProb']==1 or random.random() < self.cntrRecord['sampleProb']): # sample w.p. self.cntrRecord['sampleProb']
-                    cntrAfterInc = self.cntrRecord['cntr'].incCntr (factor=int(1), mult=False, verbose=self.verbose)
-                    cntrNewVal   = cntrAfterInc['val'] / self.cntrRecord['sampleProb']
+                    cntrValAfterInc = self.cntrRecord['cntr'].incCntrBy1GetVal ()
+                    cntrNewVal      = cntrValAfterInc / self.cntrRecord['sampleProb']
                     if (settings.VERBOSE_DETAILS in self.verbose): 
                         print ('realVal={:.0f} oldVal={:.0f}, cntrWoScaling={:.0f}, cntrNewValScaled={:.0f}, maxRealVal={:.0f}'
                                .format (realValCntr, cntrVal, cntrAfterInc['val'], cntrNewVal, self.maxRealVal))
@@ -527,7 +528,7 @@ def printAllCntrMaxValsF2P (flavor='sr', hyperSizeRange=None, cntrSizeRange=[], 
                 printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), cntrMaxVal))
 if __name__ == '__main__':
     try: 
-        # printAllValsF2P (cntrSize=5, hyperSize=1, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
+        # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
         # printAllCntrMaxValsF2P (hyperSizeRange=[1,2], cntrSizeRange=[6,7,8,9,10,11,12,13,14,15,16], verbose=[settings.VERBOSE_RES], flavor='li')
         # coutConfDataF2P (cntrSize=6, hyperSize=1, flavor='li')
         # simController = SimController (verbose = [settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
