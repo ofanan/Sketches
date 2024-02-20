@@ -248,7 +248,7 @@ class ResFileParser (object):
             plt.xscale ('log')
 
         conf        = settings.getConfByCntrSize (cntrSize=cntrSize)
-        plt.xlim ([100, conf['cntrMaxVal']+1]) 
+        plt.xlim ([minCntrVal, conf['cntrMaxVal']+1]) 
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
@@ -263,7 +263,7 @@ def genResolutionPlot ():
     my_ResFileParser.rdPcl (pclFileName=f'resolution.pcl') 
     for cntrSize in [8]:  # , 12, 16]:
         my_ResFileParser.genResolutionPlot (modes       = ['Morris', 'SEAD stat', 'F2P_li'],  # 'CEDAR', 'SEAD dyn',                                          
-                                            minCntrVal  = 0,
+                                            minCntrVal  = 1000,
                                             maxCntrVal  = float('inf'),
                                             cntrSize    = cntrSize,
                                             xLog        = False
