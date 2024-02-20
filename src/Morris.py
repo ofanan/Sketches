@@ -68,7 +68,7 @@ class CntrMaster (object):
                 print (f'cntrSize={self.cntrSize}, a={self.a}, CntrMaxVal={CntrMaxVal}')
     
     
-    def findMaxAByMaxVal (self, targetMaxVal, aLo=10, aHi=1000, delta=0.001):
+    def calcAByMaxVal (self, targetMaxVal, aLo=10, aHi=1000, delta=0.001):
         """
         Given a target maximum countable value, return the maximal 'a' parameter that reaches this value, 
         for the current counter's size.
@@ -101,8 +101,10 @@ class CntrMaster (object):
                 aHi = self.a
             else: # maxVal > targetMaxVal --> reached the maximum value - try to increase a, to find a tight value.
                 aLo = self.a
+        print (f'****** cntrMaxVal={self.calcCntrMaxVal()}, targetMaxVal={targetMaxVal}, a={self.a}')
         if (self.calcCntrMaxVal() < targetMaxVal): # due to quantization, self.a is still too large
-            return self.a - delta
+            self.a -= delta
+            print (f'****** after dec: cntrMaxVal={self.calcCntrMaxVal()}, targetMaxVal={targetMaxVal}, a={self.a}')
         return self.a 
             
 
@@ -166,7 +168,7 @@ class CntrMaster (object):
             if (cntrMaxVal==None):
                 settings.error ('error: the input arguments should include either delta or cntrMaxVal')                
             self.cntrMaxVal = cntrMaxVal
-            self.findMaxAByMaxVal(self.cntrMaxVal)
+            self.calcAByMaxVal(self.cntrMaxVal)
         else: 
             self.a       = a
         self.cntrZero    = 0

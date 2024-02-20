@@ -248,7 +248,8 @@ class ResFileParser (object):
             plt.xscale ('log')
 
         conf        = settings.getConfByCntrSize (cntrSize=cntrSize)
-        plt.xlim ([minCntrVal, conf['cntrMaxVal']+1]) 
+        plt.xlim ([minCntrVal, conf['cntrMaxVal']+1])
+        plt.ylim (0.01, 0.1) 
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        

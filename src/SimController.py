@@ -9,13 +9,13 @@ import settings, SEAD_stat, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li
 from datetime import datetime
 
 def main ():
-    simController = SimController (verbose = [settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
-    simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['F2P_li', 'SEAD stat', 'Morris']) #$$$
-    return #$$$
+    simController = SimController (verbose = [settings.VERBOSE_RES]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+    # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['F2P_li', 'SEAD stat', 'Morris']) #$$$
+    # return #$$$
     simController.runSingleCntr \
         (dwnSmple       = False,  
-         modes          = ['SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
-         cntrSize       = 8, 
+         modes          = ['Morris','F2P_li'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
+         cntrSize       = 12, 
          numOfExps      = 1,
          erTypes        = ['RdRmse',], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
          cntrMaxVal     = None, 
