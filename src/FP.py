@@ -46,6 +46,7 @@ class CntrMaster (object):
         self.cntrMaxVec     = '1'*self.cntrSize
         self.cntrMaxVal     = self.cntr2num (self.cntrMaxVec)
         self.bias           = 2**(self.expSize-1)
+        settings.error (self.bias) #$$$
         if settings.VERBOSE_COUT_CONF in self.verbose:
             print (self.genSettingsStr ())
         self.rstAllCntrs ()
@@ -110,12 +111,13 @@ def printAllVals(cntrSize=8, expSizes=None, verbose=[]):
     The prints are sorted in an increasing order of values.
     """
     listOfVals = []
-    myCntrMaster = CntrMaster(cntrSize=cntrSize)
-    expSizes = range (1, cntrSize) if expSizes==None else expSizes 
-    for num in range(2 ** cntrSize):
+    expSizes = range (1, cntrSize) if expSizes==None else expSizes
+    for expSize in expSizes: 
+        myCntrMaster = CntrMaster(cntrSize=cntrSize, expSize=expSize)
         val = myCntrMaster.cntr2num(num)
-        listOfVals.append ({'cntrVec' : np.binary_repr(num, cntrSize), 'val' : val})
-
+        for num in range(2 ** cntrSize):
+            listOfVals.append ({'cntrVec' : np.binary_repr(num, cntrSize), 'val' : val})
+    
     if settings.VERBOSE_RES in verbose:
         outputFile = open('../res/{}.res'.format(myCntrMaster.genSettingsStr()), 'w')
         for item in listOfVals:
