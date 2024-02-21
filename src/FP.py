@@ -3,6 +3,7 @@ import math, random, pickle
 from printf import printf
 import settings
 import numpy as np
+from bitstring import Bits
 
 class CntrMaster (object):
     """
@@ -12,11 +13,14 @@ class CntrMaster (object):
     """
 
     # Generates a strings that details the counter's settings (param vals).    
-    genSettingsStr = lambda self : f'FP_n{self.cntrSize}_m{self.mantSize}_e{self.expSize}'
+    genSettingsStr  = lambda self : f'FP_n{self.cntrSize}_m{self.mantSize}_e{self.expSize}'
     
     # print the details of the counter in a convenient way
-    printCntrLine  = lambda self, cntr, expVec, expVal, power, mantVec, mantVal, cntrVal : print (f'cntr={cntr}, hyperVec={cntr[0:self.hyperSize]}, expVec={expVec}, bias={self.bias}, expVal={expVal}, power={power}, mantVec={cntrVal}, mantVal={mantVal}, val={cntrVal}')
+    printCntrLine   = lambda self, cntr, expVec, expVal, power, mantVec, mantVal, cntrVal : print (f'cntr={cntr}, hyperVec={cntr[0:self.hyperSize]}, expVec={expVec}, bias={self.bias}, expVal={expVal}, power={power}, mantVec={cntrVal}, mantVal={mantVal}, val={cntrVal}')
 
+    # return the integer value represented by the input exponent vector 
+    expVec2Val      = lambda self, expVec : Bits(bin=expVec).int
+    
     def __init__ (self, 
                   cntrSize  = 8, # of bits in the cntr 
                   expSize   = 2,
@@ -39,14 +43,14 @@ class CntrMaster (object):
         self.numCntrs   = numCntrs
         self.verbose    = verbose
         self.expSize    = expSize
+        self.mantSize   = self.cntrSize - self.expSize
         if self.expSize + 1 > self.cntrSize: # need at least 1 mantissa bit
             self.isFeasible = False
             return 
         self.cntrZeroVec    = '0'*self.cntrSize
         self.cntrMaxVec     = '1'*self.cntrSize
-        self.cntrMaxVal     = self.cntr2num (self.cntrMaxVec)
         self.bias           = 2**(self.expSize-1)
-        settings.error (self.bias) #$$$
+        self.cntrMaxVal     = self.cntr2num (self.cntrMaxVec)
         if settings.VERBOSE_COUT_CONF in self.verbose:
             print (self.genSettingsStr ())
         self.rstAllCntrs ()
@@ -78,9 +82,10 @@ class CntrMaster (object):
         if expVec == '0'*self.expSize:
             cntrVal  = mantVal * (2**(self.bias+1))
         else:
-            cntrVal  = (1 + mantVal) * (2**(int(expVec, self.expSize)+self.bias))
+            # print (f'expVec={expVec}, expSize={self.expSize}')
+            cntrVal  = (1 + mantVal) * (2**(self.expVec2Val(expVec)+self.bias))
         if settings.VERBOSE_COUT_CNTRLINE in self.verbose:
-            expVal = int(expVec, self.expSize)
+            expVal = self.expVec2Val(expVec)
             if expVec == '0'*self.expSize:
                 power = self.bias+1
             else:
@@ -110,18 +115,19 @@ def printAllVals(cntrSize=8, expSizes=None, verbose=[]):
     For each combination, print to file the respective counter, and its value.
     The prints are sorted in an increasing order of values.
     """
-    listOfVals = []
     expSizes = range (1, cntrSize) if expSizes==None else expSizes
     for expSize in expSizes: 
+        listOfVals = []
         myCntrMaster = CntrMaster(cntrSize=cntrSize, expSize=expSize)
-        val = myCntrMaster.cntr2num(num)
         for num in range(2 ** cntrSize):
-            listOfVals.append ({'cntrVec' : np.binary_repr(num, cntrSize), 'val' : val})
-    
-    if settings.VERBOSE_RES in verbose:
-        outputFile = open('../res/{}.res'.format(myCntrMaster.genSettingsStr()), 'w')
-        for item in listOfVals:
-            printf(outputFile, '{}={:.1f}\n'.format(item['cntrVec'], item['val']))
+            cntr = np.binary_repr(num, cntrSize)
+            val = myCntrMaster.cntr2num(cntr)
+            listOfVals.append ({'cntrVec' : cntr, 'val' : val})
+        if settings.VERBOSE_RES in verbose:
+            listOfVals = sorted (listOfVals, key=lambda item : item['val'])
+            outputFile = open('../res/{}.res'.format(myCntrMaster.genSettingsStr()), 'w')
+            printf (outputFile, f'// bias={myCntrMaster.bias}\n')
+            for item in listOfVals:
+                printf(outputFile, '{}={}\n'.format(item['cntrVec'], item['val']))
 
-
-printAllVals (cntrSize=8, expSizes=None, verbose=[])
+printAllVals (cntrSize=8, expSizes=[1, 2], verbose=[settings.VERBOSE_RES])
