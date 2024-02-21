@@ -122,7 +122,7 @@ class ResFileParser (object):
     def genErVsCntrSizePlot (self,
                              erType,
                              numOfExps      = 50,
-                             modes          = ['F2P_li', 'CEDAR', 'Morris', 'AEE'],
+                             modes          = ['F2P_li', 'CEDAR', 'Morris'],
                              minCntrSize    = 8,
                              maxCntrSize    = 64,
                              ):
@@ -274,7 +274,7 @@ def genResolutionPlot ():
 # genResolutionPlot ()
 
 my_ResFileParser = ResFileParser ()
-for ErType in ['RdRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
+for ErType in ['WrRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
     my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
     my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=1, maxCntrSize=16) # 50
     # my_ResFileParser.printAllPoints (cntrSize=8, cntrMaxVal=1488888, printToScreen=True)

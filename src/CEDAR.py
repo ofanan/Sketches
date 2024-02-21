@@ -166,7 +166,7 @@ class CntrMaster(object):
 
         return {'cntrVec': np.binary_repr(self.cntrs[cntrIdx], self.cntrSize), 'val': self.estimators[self.cntrs[cntrIdx]]}
 
-    def incCntrBy1GetVal (self):
+    def incCntrBy1GetVal (self, cntrIdx=0):
         """
         """
         if (self.cntrs[cntrIdx] == self.numEstimators-1): # reached the largest estimator --> cannot further inc

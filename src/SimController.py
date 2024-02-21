@@ -14,10 +14,10 @@ def main ():
     # return #$$$
     simController.runSingleCntr \
         (dwnSmple       = False,  
-         modes          = ['CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
+         modes          = ['F2P_li', 'Morris', ], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
          cntrSize       = 8, 
          numOfExps      = 1,
-         erTypes        = ['RdRmse',], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+         erTypes        = ['WrRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
          cntrMaxVal     = None, 
          )
 

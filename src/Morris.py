@@ -101,10 +101,8 @@ class CntrMaster (object):
                 aHi = self.a
             else: # maxVal > targetMaxVal --> reached the maximum value - try to increase a, to find a tight value.
                 aLo = self.a
-        # print (f'****** cntrMaxVal={self.calcCntrMaxVal()}, targetMaxVal={targetMaxVal}, a={self.a}')
         if (self.calcCntrMaxVal() < targetMaxVal): # due to quantization, self.a is still too large
             self.a -= delta
-            # print (f'****** after dec: cntrMaxVal={self.calcCntrMaxVal()}, targetMaxVal={targetMaxVal}, a={self.a}')
         return self.a 
             
 
