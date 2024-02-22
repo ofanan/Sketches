@@ -11,7 +11,7 @@ from datetime import datetime
 def main ():
     simController = SimController (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
     # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['F2P_li', 'SEAD stat', 'Morris']) #$$$
-    simController.measureResolutions (cntrSizes=[6], modes=['FP']) #$$$
+    simController.measureResolutions (cntrSizes=[6], expSize=2, modes=['FP']) #$$$
     return #$$$
     simController.runSingleCntr \
         (dwnSmple       = False,  
