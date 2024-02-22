@@ -47,12 +47,14 @@ class CntrMaster (object):
         if self.expSize + 1 > self.cntrSize: # need at least 1 mantissa bit
             self.isFeasible = False
             return 
+        self.expMinVal      = -2**(self.expSize-1)
         self.cntrZeroVec    = '0'*self.cntrSize
         self.cntrMaxVec     = '1'*self.cntrSize
-        self.bias           = 2**(self.expSize-1)
+        self.bias           = -2**(self.expSize-1)
         self.cntrMaxVal     = self.cntr2num (self.cntrMaxVec)
         if settings.VERBOSE_COUT_CONF in self.verbose:
-            print (self.genSettingsStr ())
+            print (f'// {self.genSettingsStr ()}')
+            print (f'// bias={self.bias}, expMinVal={self.expMinVal}')
         self.rstAllCntrs ()
         
     def rstAllCntrs (self):
@@ -79,7 +81,7 @@ class CntrMaster (object):
         expVec  = cntr[0:self.expSize]
         mantVec = cntr[self.expSize:]
         mantVal = float (int (mantVec, base=2)) / 2**(self.cntrSize - self.expSize)  
-        if expVec == '0'*self.expSize:
+        if expVec == self.expMinVal:
             cntrVal  = mantVal * (2**(self.bias+1))
         else:
             # print (f'expVec={expVec}, expSize={self.expSize}')
