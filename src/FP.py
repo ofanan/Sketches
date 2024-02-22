@@ -16,7 +16,7 @@ class CntrMaster (object):
     genSettingsStr  = lambda self : f'FP_n{self.cntrSize}_m{self.mantSize}_e{self.expSize}'
     
     # print the details of the counter in a convenient way
-    printCntrLine   = lambda self, cntr, expVec, expVal, power, mantVec, mantVal, cntrVal : print (f'cntr={cntr}, hyperVec={cntr[0:self.hyperSize]}, expVec={expVec}, bias={self.bias}, expVal={expVal}, power={power}, mantVec={cntrVal}, mantVal={mantVal}, val={cntrVal}')
+    printCntrLine   = lambda self, cntr, expVec, expVal, power, mantVec, mantVal, cntrVal : print (f'cntr={cntr}, expVec={expVec}, expVal={expVal}, power={power}, mantVec={mantVec}, mantVal={mantVal}, val={cntrVal}')
 
     # return the integer value represented by the input exponent vector 
     expVec2Val      = lambda self, expVec : Bits(bin=expVec).int
@@ -84,15 +84,15 @@ class CntrMaster (object):
         else:
             # print (f'expVec={expVec}, expSize={self.expSize}')
             cntrVal  = (1 + mantVal) * (2**(self.expVec2Val(expVec)+self.bias))
-        if settings.VERBOSE_COUT_CNTRLINE in self.verbose:
-            expVal = self.expVec2Val(expVec)
-            if expVec == '0'*self.expSize:
-                power = self.bias+1
-            else:
-                power = expVal + self.bias
-            self.printCntrLine (cntr=cntr, expVec=expVec, expVal=expVal, power=power, mantVec=mantVec, mantVal=mantVal, cntrVal=cntrVal)
+        expVal = self.expVec2Val(expVec)
+        if expVec == '0'*self.expSize:
+            power = self.bias+1
+        else:
+            power = expVal + self.bias
         if self.signed and self.signs[cntrIdx]==False:
             cntrVal *= (-1)
+        if settings.VERBOSE_COUT_CNTRLINE in self.verbose:
+            self.printCntrLine (cntr=cntr, expVec=expVec, expVal=expVal, power=power, mantVec=mantVec, mantVal=mantVal, cntrVal=cntrVal)
         return cntrVal
     
     def queryCntr (self, cntrIdx=0):
@@ -118,7 +118,7 @@ def printAllVals(cntrSize=8, expSizes=None, verbose=[]):
     expSizes = range (1, cntrSize) if expSizes==None else expSizes
     for expSize in expSizes: 
         listOfVals = []
-        myCntrMaster = CntrMaster(cntrSize=cntrSize, expSize=expSize)
+        myCntrMaster = CntrMaster(cntrSize=cntrSize, expSize=expSize, verbose=verbose)
         for num in range(2 ** cntrSize):
             cntr = np.binary_repr(num, cntrSize)
             val = myCntrMaster.cntr2num(cntr)
@@ -130,4 +130,4 @@ def printAllVals(cntrSize=8, expSizes=None, verbose=[]):
             for item in listOfVals:
                 printf(outputFile, '{}={}\n'.format(item['cntrVec'], item['val']))
 
-printAllVals (cntrSize=8, expSizes=[1, 2], verbose=[settings.VERBOSE_RES])
+printAllVals (cntrSize=3, expSizes=[1], verbose=[settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE])
