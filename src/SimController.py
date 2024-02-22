@@ -5,17 +5,18 @@ Controller that runs simulations, using various types of couters.
 import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
-import settings, SEAD_stat, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li  
+import settings, SEAD_stat, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li, FP  
 from datetime import datetime
 
 def main ():
     simController = SimController (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
     # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['F2P_li', 'SEAD stat', 'Morris']) #$$$
-    # return #$$$
+    simController.measureResolutions (cntrSizes=[6], modes=['FP']) #$$$
+    return #$$$
     simController.runSingleCntr \
         (dwnSmple       = False,  
          modes          = ['F2P_li', 'Morris', ], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
-         cntrSize       = 8, 
+         cntrSize       = 6, 
          numOfExps      = 1,
          erTypes        = ['WrRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
          cntrMaxVal     = None, 
@@ -312,7 +313,11 @@ class SimController (object):
                 'Lo'            : normRmseConfInterval[0],
                 'Hi'            : normRmseConfInterval[1]}
 
-    def measureResolutions (self, cntrSizes, modes) -> None:  # modes (type of counter) to run  
+    def measureResolutions (self, 
+                            cntrSizes, 
+                            expSize =None, # num of bits in the exponent to run  
+                            modes=[] # modes (type of counter) to run
+                            ) -> None:    
         """
         Loop over all possible representations, measure the relative resolution, and write the results to output files as defined by self.verbose.
         """
@@ -325,18 +330,19 @@ class SimController (object):
             self.cntrMaxVal   = self.conf['cntrMaxVal'] 
             self.hyperSize    = self.conf['hyperSize'] 
             for self.mode in modes:
-                self.genCntrRecord ()
+                self.genCntrRecord (expSize)
                 listOfVals = []
                 for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
                     cntrVec = np.binary_repr(i, self.cntrSize) 
                     listOfVals.append (self.cntrRecord['cntr'].cntr2num(cntrVec))           
-                if self.mode in ['F2P_li']:
-                    listOfVals = sorted (listOfVals)
+                listOfVals = sorted (listOfVals)
                 points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : [(listOfVals[i+1]-listOfVals[i])/listOfVals[i+1] for i in range (len(listOfVals)-1)]}
                 if settings.VERBOSE_PCL in self.verbose:
                     self.dumpDictToPcl ({'mode' : self.mode, 'cntrSize' : self.cntrSize, 'points' : points}, pclOutputFile)
 
-    def genCntrRecord (self):
+    def genCntrRecord (self,
+                       expSize=None, # When expSize==None, read the expSize from the hard-coded configurations in settings.py 
+                       ):
         """
         Set self.cntrRecord, which holds the counters to run
         """
@@ -344,8 +350,12 @@ class SimController (object):
         # Set self.cntrRecord, which holds the counter to run
         if (self.mode=='F2P_li'):
             self.cntrRecord = {'mode' : 'F2P_li', 'cntr' : F2P_li.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
+        elif (self.mode=='FP'):
+            if expSize==None:
+                settings.error ('In SimController.genCntrRecord(). For generating an FP.CntrMaster you must specify an expSize')
+            self.cntrRecord = {'mode' : 'FP', 'cntr' : FP.CntrMaster(cntrSize=self.cntrSize, expSize=expSize, verbose=self.verbose)}
         elif (self.mode=='SEAD stat'):
-            self.expSize      = self.conf['seadExpSize']
+            self.expSize      = self.conf['seadExpSize'] if expSize==None else expSize
             self.cntrRecord = {'mode' : self.mode, 'cntr' : SEAD_stat.CntrMaster(cntrSize=self.cntrSize, expSize=self.expSize, verbose=self.verbose)}
         elif (self.mode=='SEAD dyn'):
             self.cntrRecord = {'mode' : self.mode, 'cntr' : SEAD.CntrMaster(mode='dyn', cntrSize=self.cntrSize)}
