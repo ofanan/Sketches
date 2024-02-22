@@ -3,7 +3,7 @@ import math, random, pickle
 from printf import printf
 import settings
 import numpy as np
-from bitstring import Bits
+# from bitstring import Bits
 
 class CntrMaster (object):
     """
@@ -19,7 +19,7 @@ class CntrMaster (object):
     printCntrLine   = lambda self, cntr, expVec, expVal, power, mantVec, mantVal, cntrVal : print (f'cntr={cntr}, expVec={expVec}, expVal={expVal}, power={power}, mantVec={mantVec}, mantVal={mantVal}, val={cntrVal}')
 
     # return the integer value represented by the input exponent vector 
-    expVec2Val      = lambda self, expVec : Bits(bin=expVec).int
+    expVec2Val      = lambda self, expVec : int(expVec, base=2)
     
     def __init__ (self, 
                   cntrSize  = 8, # of bits in the cntr 
@@ -47,7 +47,7 @@ class CntrMaster (object):
         if self.expSize + 1 > self.cntrSize: # need at least 1 mantissa bit
             self.isFeasible = False
             return 
-        self.expMinVal      = -2**(self.expSize-1)
+        self.expMinVal      = '0'*self.expSize
         self.cntrZeroVec    = '0'*self.cntrSize
         self.cntrMaxVec     = '1'*self.cntrSize
         self.bias           = -2**(self.expSize-1)
@@ -132,4 +132,4 @@ def printAllVals(cntrSize=8, expSizes=None, verbose=[]):
             for item in listOfVals:
                 printf(outputFile, '{}={}\n'.format(item['cntrVec'], item['val']))
 
-printAllVals (cntrSize=3, expSizes=[1], verbose=[settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE])
+printAllVals (cntrSize=3, expSizes=[2], verbose=[settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE])
