@@ -132,4 +132,4 @@ def printAllVals(cntrSize=8, expSizes=None, verbose=[]):
             for item in listOfVals:
                 printf(outputFile, '{}={}\n'.format(item['cntrVec'], item['val']))
 
-printAllVals (cntrSize=3, expSizes=[2], verbose=[settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE])
+# printAllVals (cntrSize=8, expSizes=[2], verbose=[settings.VERBOSE_RES, settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE])
