@@ -10,8 +10,13 @@ from datetime import datetime
 
 def main ():
     simController = SimController (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
-    # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['F2P_li', 'SEAD stat', 'Morris']) #$$$
-    simController.measureResolutions (cntrSizes=[6], expSize=2, modes=['FP']) #$$$
+    isInt    = False # When True, consider only "counters"
+    if isInt:
+        modes = ['SEAD stat', 'Morris', 'F2P_li']
+    else: 
+        modes = ['FP', 'F2P_lr']
+    simController.measureResolutions (cntrSizes=[8], modes=modes, expSize=2, isInt=False) # 'SEAD stat', 'F2P_lr',   
+    # simController.measureResolutions (cntrSizes=[8], expSize=2, modes=['FP']) #$$$
     return #$$$
     simController.runSingleCntr \
         (dwnSmple       = False,  
@@ -314,9 +319,10 @@ class SimController (object):
                 'Hi'            : normRmseConfInterval[1]}
 
     def measureResolutions (self, 
-                            cntrSizes, 
-                            expSize =None, # num of bits in the exponent to run  
-                            modes=[] # modes (type of counter) to run
+                            cntrSizes   = [], 
+                            expSize     = None, # num of bits in the exponent to run  
+                            modes       = [], # modes (type of counter) to run
+                            isInt       = True, # When True, add _int to the output file name. else, add _real to the output file name
                             ) -> None:    
         """
         Loop over all possible representations, measure the relative resolution, and write the results to output files as defined by self.verbose.
@@ -324,7 +330,7 @@ class SimController (object):
         if settings.VERBOSE_PCL in self.verbose:
             # if os.path.exists('../res/pcl_files/resolution.pcl'):
             #     os.remove('../res/pcl_files/resolution.pcl')
-            pclOutputFile = open(f'../res/pcl_files/resolution.pcl', 'ab+')
+            pclOutputFile = open('../res/pcl_files/resolution_{}.pcl' .format ('int' if isInt else 'real'), 'ab+')
         for self.cntrSize in cntrSizes:
             self.conf = settings.getConfByCntrSize (cntrSize=self.cntrSize)
             self.cntrMaxVal   = self.conf['cntrMaxVal'] 
@@ -349,6 +355,8 @@ class SimController (object):
         verbose = settings.VERBOSE_LOG_CNTRLINE
         # Set self.cntrRecord, which holds the counter to run
         if (self.mode=='F2P_li'):
+            self.cntrRecord = {'mode' : 'F2P_li', 'cntr' : F2P_li.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
+        elif (self.mode=='F2P_lr'):
             self.cntrRecord = {'mode' : 'F2P_li', 'cntr' : F2P_li.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
         elif (self.mode=='FP'):
             if expSize==None:

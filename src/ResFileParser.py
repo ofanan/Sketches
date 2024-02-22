@@ -49,26 +49,32 @@ class ResFileParser (object):
         self.labelOfMode = {}
 
         # The colors used for each alg's plot, in the dist' case
-        self.colorOfMode = {'F2P_li': 'green',
-                            'F3P': 'purple',
-                            'SEAD stat': 'brown',
-                            'SEAD dyn': 'yellow',
+        self.colorOfMode = {'F2P_li'    : 'green',
+                            'F2P_lr'    : 'green',
+                            'F2P_ls'    : 'green',
+                            'F3P'       : 'purple',
+                            'SEAD stat' : 'brown',
+                            'SEAD dyn'  : 'yellow',
+                            'FP'        : 'blue',
                             'Tetra stat': 'blue',
-                            'Tetra dyn': 'black',
-                            'CEDAR': 'magenta',
-                            'Morris': 'red',
-                            'AEE': 'blue'}
+                            'Tetra dyn' : 'black',
+                            'CEDAR'     : 'magenta',
+                            'Morris'    : 'red',
+                            'AEE'       : 'blue'}
 
         # The markers used for each alg', in the dist' case
-        self.markerOfMode = {'F2P_li': 'o',
-                            'F3P': 'v',
-                            'SEAD stat': '^',
-                            'SEAD dyn': 's',
-                            'Tetra stat': 'p',
-                            'Tetra dyn': 'X',
-                            'CEDAR': '<',
-                            'Morris': '>',
-                            'AEE': 'o'}
+        self.markerOfMode = {'F2P_li'    : 'o',
+                             'F2P_lr'    : 'o',
+                             'F2P_sr'    : 'o',
+                             'F3P'       : 'v',
+                             'SEAD stat' : '^',
+                             'SEAD dyn'  : 's',
+                             'FP'        : 'p',
+                             'Tetra stat': 'p',
+                             'Tetra dyn' : 'X',
+                             'CEDAR'     : '<',
+                             'Morris'    : '>',
+                             'AEE'       : 'o'}
         self.points = []
         
     def rdPcl (self, pclFileName):
@@ -221,6 +227,7 @@ class ResFileParser (object):
                             minCntrVal  = 0,
                             maxCntrVal  = float('inf'),
                             cntrSize    = 8,
+                            isInt       = True,
                             xLog        = False,
                            ) -> None:
         """
@@ -249,33 +256,42 @@ class ResFileParser (object):
 
         conf        = settings.getConfByCntrSize (cntrSize=cntrSize)
         plt.xlim ([minCntrVal, conf['cntrMaxVal']+1])
-        plt.ylim (0.01, 0.1) 
+        # plt.ylim (0.01, 0.1) 
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
-        plt.savefig ('../res/Resolution_{}bits_{}.pdf' .format (cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
+        plt.savefig ('../res/Resolution_{}_{}bits_{}.pdf' .format ('int' if isInt else 'real', cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
 
 
-def genResolutionPlot ():
+def genResolutionPlot (isInt=True):
     """
     """
     
     my_ResFileParser = ResFileParser ()
-    my_ResFileParser.rdPcl (pclFileName=f'resolution.pcl') 
+    my_ResFileParser.rdPcl (pclFileName='resolution_{}.pcl' .format('int' if isInt else 'real'))
+    # my_ResFileParser.printAllPoints (printToScreen=True) #$$$
+    # settings.error ('rega') #$$
+    if isInt:
+        modes       = ['Morris', 'SEAD stat', 'F2P_li']
+        minCntrVal  = 1000
+    else:
+        modes   = ['F2P_lr', 'FP']
+        minCntrVal  = 0
     for cntrSize in [8]:  # , 12, 16]:
-        my_ResFileParser.genResolutionPlot (modes       = ['Morris', 'SEAD stat', 'F2P_li'],  # 'CEDAR', 'SEAD dyn',                                          
-                                            minCntrVal  = 1000,
+        my_ResFileParser.genResolutionPlot (modes       = modes,
+                                            isInt       = isInt,                                          
+                                            minCntrVal  = minCntrVal,
                                             maxCntrVal  = float('inf'),
                                             cntrSize    = cntrSize,
                                             xLog        = False
                                             )
 
 
-# genResolutionPlot ()
+genResolutionPlot (isInt=False)
 
-my_ResFileParser = ResFileParser ()
-for ErType in ['WrRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
-    my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
-    my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=1, maxCntrSize=16) # 50
+# my_ResFileParser = ResFileParser ()
+# for ErType in ['WrRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
+#     my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
+#     my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=1, maxCntrSize=16) # 50
     # my_ResFileParser.printAllPoints (cntrSize=8, cntrMaxVal=1488888, printToScreen=True)
 
