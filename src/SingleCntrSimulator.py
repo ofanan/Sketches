@@ -346,7 +346,11 @@ class SingleCntrSimulator (object):
             params = settings.extractParamsFromSettingStr (settingStr)
             self.mode       = params['mode']
             self.cntrSize   = params['cntrSize']
-            self.genCntrRecord (expSize=params['expSize'])
+            if self.mode=='FP': 
+                self.genCntrRecord (expSize=params['expSize'])
+            else: 
+                self.hyperSize   = 2
+                self.genCntrRecord (expSize=None)        
             for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
                 cntrVec = np.binary_repr(i, self.cntrSize) 
                 listOfVals.append (self.cntrRecord['cntr'].cntr2num(cntrVec))           
@@ -363,10 +367,12 @@ class SingleCntrSimulator (object):
         """
         verbose = settings.VERBOSE_LOG_CNTRLINE
         # Set self.cntrRecord, which holds the counter to run
-        if (self.mode=='F2P_li'):
+        if (self.mode=='F2Pli'):
             self.cntrRecord = {'mode' : 'F2P_li', 'cntr' : F2P_li.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
-        elif (self.mode=='F2P_lr'):
-            self.cntrRecord = {'mode' : 'F2P_li', 'cntr' : F2P_li.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
+        elif (self.mode=='F2Plr'):
+            self.cntrRecord = {'mode' : 'F2P_lr', 'cntr' : F2P_lr.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
+        elif (self.mode=='F2Psr'):
+            self.cntrRecord = {'mode' : 'F2P_sr', 'cntr' : F2P_sr.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
         elif (self.mode=='FP'):
             if expSize==None:
                 settings.error ('In SingleCntrSimulator.genCntrRecord(). For generating an FP.CntrMaster you must specify an expSize')
@@ -559,7 +565,7 @@ def main ():
     simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
     # simController.runSingleCntr \
     #     (dwnSmple       = False,  
-    #      modes          = ['F2P_li', 'Morris', ], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
+    #      modes          = ['F2Pli', 'Morris', ], #, 'SEAD stat', 'F2Pli', 'Morris', 'CEDAR'], #[],
     #      cntrSize       = 6, 
     #      numOfExps      = 1,
     #      erTypes        = ['WrRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
@@ -570,13 +576,13 @@ def main ():
     # simController.measureResolutionsByModes (
     #     cntrSizes   = [8], 
     #     expSize     = 2, 
-    #     modes       = ['SEAD stat', 'Morris', 'F2P_li'],
+    #     modes       = ['SEAD stat', 'Morris', 'F2Pli'],
     #     delPrevPcl  = True
     #     ) 
     # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
     simController.measureResolutionsBySettingStrs (
-        delPrevPcl  = True, # When True, delete the previous .pcl file, if exists
-        settingStrs = ['FP_n7_m2_e5'],  # Concrete settings for which the measurements will be done 
+        delPrevPcl  = False, # When True, delete the previous .pcl file, if exists
+        settingStrs = ['F2Plr_n7_h2', 'F2Psr_n7_h2'],  # 'FP_n7_m5_e2'# Concrete settings for which the measurements will be done 
         )    
 
 if __name__ == '__main__':
