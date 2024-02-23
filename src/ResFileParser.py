@@ -27,19 +27,20 @@ class ResFileParser (object):
 
     # Set the parameters of the plot (sizes of fonts, legend, ticks etc.).
     # mfc='none' makes the markers empty.
-    setPltParams = lambda self, size = 'large': matplotlib.rcParams.update({'font.size': FONT_SIZE,
-                                                                             'legend.fontsize': LEGEND_FONT_SIZE,
-                                                                             'xtick.labelsize': FONT_SIZE,
-                                                                             'ytick.labelsize': FONT_SIZE,
-                                                                             'axes.labelsize': FONT_SIZE,
-                                                                             'axes.titlesize': FONT_SIZE, }) if (size == 'large') else matplotlib.rcParams.update({
-                                                                             'font.size': FONT_SIZE_SMALL,
-                                                                             'legend.fontsize': LEGEND_FONT_SIZE_SMALL,
-                                                                             'xtick.labelsize': FONT_SIZE_SMALL,
-                                                                             'ytick.labelsize': FONT_SIZE_SMALL,
-                                                                             'axes.labelsize': FONT_SIZE_SMALL,
-                                                                             'axes.titlesize':FONT_SIZE_SMALL
-                                                                             })
+    setPltParams = lambda self, size = 'large': matplotlib.rcParams.update({
+        'font.size': FONT_SIZE,
+        'legend.fontsize': LEGEND_FONT_SIZE,
+        'xtick.labelsize': FONT_SIZE,
+        'ytick.labelsize': FONT_SIZE,
+        'axes.labelsize': FONT_SIZE,
+        'axes.titlesize': FONT_SIZE, }) if (size == 'large') else matplotlib.rcParams.update({
+        'font.size': FONT_SIZE_SMALL,
+        'legend.fontsize': LEGEND_FONT_SIZE_SMALL,
+        'xtick.labelsize': FONT_SIZE_SMALL,
+        'ytick.labelsize': FONT_SIZE_SMALL,
+        'axes.labelsize': FONT_SIZE_SMALL,
+        'axes.titlesize':FONT_SIZE_SMALL
+        })
     
     def __init__ (self):
         """
@@ -48,10 +49,12 @@ class ResFileParser (object):
         # List of algorithms' names, used in the plots' legend, for the dist' case
         self.labelOfMode = {}
 
+        self.colors = ['green', 'purple', 'brown', 'yellow', 'blue']
+
         # The colors used for each alg's plot, in the dist' case
-        self.colorOfMode = {'F2P_li'    : 'green',
-                            'F2P_lr'    : 'green',
-                            'F2P_ls'    : 'green',
+        self.colorOfMode = {'F2Pli'     : 'green',
+                            'F2Plr'     : 'green',
+                            'F2Pls'     : 'purple',
                             'F3P'       : 'purple',
                             'SEAD stat' : 'brown',
                             'SEAD dyn'  : 'yellow',
@@ -61,6 +64,8 @@ class ResFileParser (object):
                             'CEDAR'     : 'magenta',
                             'Morris'    : 'red',
                             'AEE'       : 'blue'}
+
+        self.markers = ['o', 'v', '^', 's', 'p', 'X']
 
         # The markers used for each alg', in the dist' case
         self.markerOfMode = {'F2P_li'    : 'o',
@@ -274,6 +279,7 @@ class ResFileParser (object):
         """
         self.setPltParams   ()  # set the plot's parameters (formats of lines, markers, legends etc.).
         _, ax = plt.subplots()
+        colorIdx = 0
         for settingStr in settingStrs:
             pointsOfThisSettingStr = [point for point in self.points if point['settingStr'] == settingStr]
             if pointsOfThisSettingStr == []:
@@ -285,8 +291,9 @@ class ResFileParser (object):
             params      = settings.extractParamsFromSettingStr (settingStr)
             mode        = params['mode']
             cntrSize    = params['cntrSize']
-            ax.plot (points['X'], points['Y'], color=self.colorOfMode[mode], marker=self.markerOfMode[mode],
-                     markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=mode, mfc='none') 
+            ax.plot (points['X'], points['Y'], color=self.colors[colorIdx], marker=self.markers[colorIdx],
+                     markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=mode, mfc='none')
+            colorIdx += 1 
 
         plt.xlabel('Counted Value')
         plt.ylabel(f'Relative Resolution')
