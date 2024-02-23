@@ -300,7 +300,7 @@ class ResFileParser (object):
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
-        # plt.savefig ('../res/Resolution_{}_{}bits_{}.pdf' .format (cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
+        plt.savefig ('../res/resolutionBySettingStrs_n{}_{}.pdf' .format (cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
 
 def genResolutionPlot ():
     """
