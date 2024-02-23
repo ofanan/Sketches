@@ -205,14 +205,14 @@ class ResFileParser (object):
                 else:
                     y_lo, y_avg, y_hi = point['relRdErLo'], point['relRdErAvg'], point['relRdErHi']
                      
-                printf (datOutputFile, 'settingsStr={}, mode={}. cntrMaxVal={}, y_lo={:.2f}, y_hi={:.2f}, y_avg={:.2f}\n' .format 
-                                       (point['settingsStr'], mode, cntrMaxVal, y_lo, y_hi, y_avg))                    
+                printf (datOutputFile, 'settingStr={}, mode={}. cntrMaxVal={}, y_lo={:.2f}, y_hi={:.2f}, y_avg={:.2f}\n' .format 
+                                       (point['settingStr'], mode, cntrMaxVal, y_lo, y_hi, y_avg))                    
                 y.append (y_avg)
 
             label = mode
         
             ax.plot (cntrMaxVals, y, color=self.colorOfMode[mode], marker=self.markerOfMode[mode],
-                     markersize=MARKER_SIZE, linewidth=LINE_WIDTH, label=point['settingsStr'], mfc='none') 
+                     markersize=MARKER_SIZE, linewidth=LINE_WIDTH, label=point['settingStr'], mfc='none') 
 
         plt.xlabel('Counter Maximum Value')
         plt.ylabel('Avg. {} Eror' .format ('Absolute' if plotAbsEr else 'Relative'))
@@ -266,7 +266,7 @@ class ResFileParser (object):
 
 
     def genResolutionPlotBySettingStrs (self,
-            settingsStrs    = [],           # Concrete settings for which the plot will be generated
+            settingStrs    = [],           # Concrete settings for which the plot will be generated
             minCntrVal      = 0,            # min' X (counter) value at the plot
             maxCntrVal      = float('inf'), # max X (counter) value at the plot
             xLog            = False,        # When True, plot the x axis in a log' scaling.
@@ -323,6 +323,12 @@ def genResolutionPlot ():
                 cntrSize    = cntrSize,
                 xLog        = False
                 )
+    else:
+        my_ResFileParser.rdPcl (pclFileName=f'resolutionBySettings.pcl')
+        my_ResFileParser.genResolutionPlotBySettingStrs(
+            settingStrs = ['FP_n7_m2_e5'], 
+            xLog        = True
+            )
 
 genResolutionPlot ()
 # my_ResFileParser = ResFileParser ()

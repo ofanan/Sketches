@@ -342,7 +342,6 @@ class SingleCntrSimulator (object):
                 os.remove(f'../res/pcl_files/{pclOutputFileName}.pcl')
             pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}.pcl', 'ab+')
         for settingStr in settingStrs:
-            print (f'settingStr={settingStr}')
             listOfVals = []
             params = settings.extractParamsFromSettingStr (settingStr)
             self.mode       = params['mode']
