@@ -311,6 +311,7 @@ class SingleCntrSimulator (object):
 
     def measureResolutionsByModes (
             self, 
+            delPrevPcl  = False, # When True, delete the previous .pcl file, if exists
             cntrSizes   = [], 
             expSize     = None, # num of bits in the exponent to run  
             modes       = [], # modes (type of counter) to run
@@ -319,15 +320,15 @@ class SingleCntrSimulator (object):
         Loop over all possible representations, measure the relative resolution, and write the results to output files as defined by self.verbose.
         """
         if settings.VERBOSE_PCL in self.verbose:
-            # if os.path.exists('../res/pcl_files/resolution.pcl'):
-            #     os.remove('../res/pcl_files/resolution.pcl')
+            if delPrevPcl and os.path.exists('../res/pcl_files/resolutionByModes.pcl'):
+                os.remove('../res/pcl_files/resolutionByModes.pcl')
             pclOutputFile = open('../res/pcl_files/resolutionByModes.pcl', 'ab+')
         for self.cntrSize in cntrSizes:
             self.conf = settings.getConfByCntrSize (cntrSize=self.cntrSize)
             self.cntrMaxVal   = self.conf['cntrMaxVal'] 
             self.hyperSize    = self.conf['hyperSize'] 
             for self.mode in modes:
-                self.genCntrRecord (expSize)
+                self.genCntrRecord (expSize=None if self.mode=='SEAD Stat' else expSize)
                 listOfVals = []
                 for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
                     cntrVec = np.binary_repr(i, self.cntrSize) 
@@ -565,7 +566,8 @@ if __name__ == '__main__':
         simController.measureResolutionsByModes (
             cntrSizes   = [8], 
             expSize     = 2, 
-            modes       = ['SEAD stat', 'Morris', 'F2P_li']
+            modes       = ['SEAD stat', 'Morris', 'F2P_li'],
+            delPrevPcl  = True
             ) 
         # simController.measureResolutions (cntrSizes=[8], expSize=2, modes=['FP']) #$$$
         # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE

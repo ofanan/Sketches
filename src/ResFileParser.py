@@ -244,9 +244,11 @@ class ResFileParser (object):
             if len(pointsOfThisMode) < 1:
                 settings.error (f'More than a single list of points for mode {mode}')
             points = pointsOfThisMode[0]['points']
+            # if mode=='SEAD stat': #$$
+            #     settings.error (points) #$$
             
             ax.plot (points['X'], points['Y'], color=self.colorOfMode[mode], marker=self.markerOfMode[mode],
-                     markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=mode, mfc='none') 
+                     markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH, label=mode, mfc='none') 
 
         plt.xlabel('Counted Value')
         plt.ylabel(f'Relative Resolution')
@@ -260,7 +262,7 @@ class ResFileParser (object):
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
-        plt.savefig ('../res/ResolutionByModes_n{}_{}.pdf' .format (cntrSize, cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
+        plt.savefig ('../res/ResolutionByModes_n{}_{}.pdf' .format (cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
 
 
     def genResolutionPlotBySettingStrs (self,
@@ -315,7 +317,7 @@ def genResolutionPlot ():
         my_ResFileParser.rdPcl (pclFileName=f'resolutionByModes.pcl')
         for cntrSize in [8]:  # , 12, 16]:
             my_ResFileParser.genResolutionPlotByModes (
-                modes       = ['Morris', 'SEAD stat', 'F2P_li'],
+                modes       = ['SEAD stat',], #  'Morris', 'F2P_li'
                 minCntrVal  = 1000,
                 maxCntrVal  = float('inf'),
                 cntrSize    = cntrSize,
