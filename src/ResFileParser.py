@@ -328,8 +328,8 @@ def genResolutionPlot ():
     else:
         my_ResFileParser.rdPcl (pclFileName=f'resolutionBySettingStrs.pcl')
         my_ResFileParser.genResolutionPlotBySettingStrs(
-            # settingStrs = ['FP_n7_m2_e5', 'F2Plr_n7_h2'], 
-            settingStrs = ['FP_n7_m5_e2', 'F2Psr_n7_h1'], 
+            settingStrs = ['FP_n7_m2_e5', 'F2Plr_n7_h1'], 
+            # settingStrs = ['FP_n7_m5_e2', 'F2Psr_n7_h1'], 
             #['FP_n7_m2_e5', 'FP_n7_m5_e2', 'F2Plr_n7_h2', 'F2Psr_n7_h2'], 
             xLog        = True
             )

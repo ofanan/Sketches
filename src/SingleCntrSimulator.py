@@ -588,8 +588,8 @@ def main ():
 if __name__ == '__main__':
     try:
         # printAllCntrMaxValsF2P (flavor='lr', hyperSizeRange=[2], cntrSizeRange=[7], verbose=[settings.VERBOSE_RES])
-        printAllValsF2P (cntrSize=7, hyperSize=2, verbose=[settings.VERBOSE_RES], flavor='lr') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
-        # main ()
+        # printAllValsF2P (cntrSize=7, hyperSize=2, verbose=[settings.VERBOSE_RES], flavor='lr') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
+        main ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
         exit ()
