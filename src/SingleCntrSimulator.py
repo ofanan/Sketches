@@ -342,12 +342,12 @@ class SingleCntrSimulator (object):
                 os.remove(f'../res/pcl_files/{pclOutputFileName}.pcl')
             pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}.pcl', 'ab+')
         for settingStr in settingStrs:
-            self.genCntrRecord (expSize)
             listOfVals = []
             params = settings.extractParamsFromSettingStr (settingStr)
             self.mode       = params['mode']
             self.cntrSize   = params['cntrSize']
             expSize         = params['expSize']
+            self.genCntrRecord (expSize)
             for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
                 cntrVec = np.binary_repr(i, self.cntrSize) 
                 listOfVals.append (self.cntrRecord['cntr'].cntr2num(cntrVec))           
