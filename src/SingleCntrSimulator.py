@@ -328,7 +328,7 @@ class SingleCntrSimulator (object):
             self.cntrMaxVal   = self.conf['cntrMaxVal'] 
             self.hyperSize    = self.conf['hyperSize'] 
             for self.mode in modes:
-                self.genCntrRecord (expSize=None if self.mode=='SEAD Stat' else expSize)
+                self.genCntrRecord (expSize=None if self.mode=='SEAD stat' else expSize)
                 listOfVals = []
                 for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
                     cntrVec = np.binary_repr(i, self.cntrSize) 

@@ -12,7 +12,7 @@ from nltk.corpus.reader import lin
 MARKER_SIZE = 16
 MARKER_SIZE_SMALL = 1
 LINE_WIDTH = 3 
-LINE_WIDTH_SMALL = 1 
+LINE_WIDTH_SMALL = 2 
 FONT_SIZE = 20
 FONT_SIZE_SMALL = 5
 LEGEND_FONT_SIZE = 14
@@ -248,7 +248,7 @@ class ResFileParser (object):
             #     settings.error (points) #$$
             
             ax.plot (points['X'], points['Y'], color=self.colorOfMode[mode], marker=self.markerOfMode[mode],
-                     markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH, label=mode, mfc='none') 
+                     markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=mode, mfc='none') 
 
         plt.xlabel('Counted Value')
         plt.ylabel(f'Relative Resolution')
@@ -317,7 +317,7 @@ def genResolutionPlot ():
         my_ResFileParser.rdPcl (pclFileName=f'resolutionByModes.pcl')
         for cntrSize in [8]:  # , 12, 16]:
             my_ResFileParser.genResolutionPlotByModes (
-                modes       = ['SEAD stat',], #  'Morris', 'F2P_li'
+                modes       = ['SEAD stat', 'Morris', 'F2P_li'], #  
                 minCntrVal  = 1000,
                 maxCntrVal  = float('inf'),
                 cntrSize    = cntrSize,
