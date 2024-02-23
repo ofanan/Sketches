@@ -349,7 +349,7 @@ class SingleCntrSimulator (object):
             if self.mode=='FP': 
                 self.genCntrRecord (expSize=params['expSize'])
             else: 
-                self.hyperSize   = 2
+                self.hyperSize   = params['hyperSize']
                 self.genCntrRecord (expSize=None)        
             for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
                 cntrVec = np.binary_repr(i, self.cntrSize) 
@@ -582,7 +582,7 @@ def main ():
     # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
     simController.measureResolutionsBySettingStrs (
         delPrevPcl  = False, # When True, delete the previous .pcl file, if exists
-        settingStrs = ['F2Plr_n7_h2', 'F2Psr_n7_h2'],  # 'FP_n7_m5_e2'# Concrete settings for which the measurements will be done 
+        settingStrs = ['F2Plr_n7_h1', 'F2Psr_n7_h1'],  # 'FP_n7_m5_e2'# Concrete settings for which the measurements will be done 
         )    
 
 if __name__ == '__main__':
