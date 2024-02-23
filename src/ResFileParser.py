@@ -193,7 +193,7 @@ class ResFileParser (object):
             y = []
             for cntrMaxVal in [item for item in cntrMaxVals if (item >= 10000)]:
                 pointOfThisModeNMaxVal = [point for point in pointsOfThisMode if point['cntrMaxVal'] == cntrMaxVal]
-                pointOfThisModeNMaxVal = [point for point in pointOfThisModeNMaxVal if point['settingsStr'] not in ['F2P_n8_h1', 'SEADstat_n8_e1']]  # $$$
+                pointOfThisModeNMaxVal = [point for point in pointOfThisModeNMaxVal if point['settingStr'] not in ['F2P_n8_h1', 'SEADstat_n8_e1']]  # $$$
                 if (len(pointOfThisModeNMaxVal) != 1):
                     print ('bug at genErVsCntrMaxValPlot: pointOfThisModeNMaxVal!=1. Points are')
                     print (pointOfThisModeNMaxVal) 

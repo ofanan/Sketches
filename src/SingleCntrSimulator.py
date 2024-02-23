@@ -317,12 +317,13 @@ class SingleCntrSimulator (object):
             modes       = [], # modes (type of counter) to run
             ) -> None:    
         """
-        Loop over all possible representations, measure the relative resolution, and write the results to output files as defined by self.verbose.
+        Loop over all requested modes and cntrSizes, measure the relative resolution, and write the results to output files as defined by self.verbose.
         """
         if settings.VERBOSE_PCL in self.verbose:
-            if delPrevPcl and os.path.exists('../res/pcl_files/resolutionByModes.pcl'):
-                os.remove('../res/pcl_files/resolutionByModes.pcl')
-            pclOutputFile = open('../res/pcl_files/resolutionByModes.pcl', 'ab+')
+            pclOutputFileName = 'resolutionByModes'
+            if delPrevPcl and os.path.exists(f'../res/pcl_files/{pclOutputFileName}.pcl'):
+                os.remove(f'../res/pcl_files/{pclOutputFileName}.pcl')
+            pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}.pcl', 'ab+')
         for self.cntrSize in cntrSizes:
             self.conf = settings.getConfByCntrSize (cntrSize=self.cntrSize)
             self.cntrMaxVal   = self.conf['cntrMaxVal'] 
@@ -340,26 +341,30 @@ class SingleCntrSimulator (object):
 
     def measureResolutionsBySettingsStrs (
             self, 
-            settingStrs   = [], 
+            delPrevPcl  = False, # When True, delete the previous .pcl file, if exists
+            settingStrs   = [],  # Concrete settings for which the measurements will be done 
             ) -> None:    
         """
         Loop over all the desired settings, measure the relative resolution, and write the results to output files as defined by self.verbose.
         """
         if settings.VERBOSE_PCL in self.verbose:
-            # if os.path.exists('../res/pcl_files/resolution.pcl'):
-            #     os.remove('../res/pcl_files/resolution.pcl')
-            pclOutputFile = open('../res/pcl_files/resolution_{}.pcl' .format ('int' if isInt else 'real'), 'ab+')
-        for self.cntrSize in cntrSizes:
-            for self.mode in modes:
-                self.genCntrRecord (expSize)
-                listOfVals = []
-                for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
-                    cntrVec = np.binary_repr(i, self.cntrSize) 
-                    listOfVals.append (self.cntrRecord['cntr'].cntr2num(cntrVec))           
-                listOfVals = sorted (listOfVals)
-                points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : [(listOfVals[i+1]-listOfVals[i])/listOfVals[i+1] for i in range (len(listOfVals)-1)]}
-                if settings.VERBOSE_PCL in self.verbose:
-                    self.dumpDictToPcl ({'settingsStr' : self.cntrRecord['cntr'].genSettingsStr(), 'cntrSize' : self.cntrSize, 'points' : points}, pclOutputFile)
+            pclOutputFileName = 'resolutionBySettingStrs'
+            if delPrevPcl and os.path.exists(f'../res/pcl_files/{pclOutputFileName}.pcl'):
+                os.remove(f'../res/pcl_files/{pclOutputFileName}.pcl')
+            pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}.pcl', 'ab+')
+        for settingStr in settingStrs:
+            self.genCntrRecord (expSize)
+            listOfVals = []
+            params = settings.extractParamsFromSettingStr (settingStr)
+            self.cntrSize   = params['cntrSize']
+            expSize         = params['expSize']
+            for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
+                cntrVec = np.binary_repr(i, self.cntrSize) 
+                listOfVals.append (self.cntrRecord['cntr'].cntr2num(cntrVec))           
+            listOfVals = sorted (listOfVals)
+            points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : [(listOfVals[i+1]-listOfVals[i])/listOfVals[i+1] for i in range (len(listOfVals)-1)]}
+            if settings.VERBOSE_PCL in self.verbose:
+                self.dumpDictToPcl ({'settingsStr' : settingStr, 'points' : points}, pclOutputFile)
 
     def genCntrRecord (self,
                        expSize=None, # When expSize==None, read the expSize from the hard-coded configurations in settings.py 
