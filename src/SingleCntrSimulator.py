@@ -345,11 +345,9 @@ class SingleCntrSimulator (object):
             print (f'settingStr={settingStr}')
             listOfVals = []
             params = settings.extractParamsFromSettingStr (settingStr)
-            settings.error (params) #$$$
             self.mode       = params['mode']
             self.cntrSize   = params['cntrSize']
-            expSize         = params['expSize']
-            self.genCntrRecord (expSize)
+            self.genCntrRecord (expSize=params['expSize'])
             for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
                 cntrVec = np.binary_repr(i, self.cntrSize) 
                 listOfVals.append (self.cntrRecord['cntr'].cntr2num(cntrVec))           
