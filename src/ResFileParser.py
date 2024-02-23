@@ -260,7 +260,7 @@ class ResFileParser (object):
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
-        plt.savefig ('../res/Resolution_{}_{}bits_{}.pdf' .format ('int' if isInt else 'real', cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
+        plt.savefig ('../res/ResolutionByModes_n{}_{}.pdf' .format (cntrSize, cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
 
 
     def genResolutionPlotBySettingStrs (self,
@@ -301,31 +301,28 @@ class ResFileParser (object):
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
         plt.savefig ('../res/Resolution_{}_{}bits_{}.pdf' .format ('int' if isInt else 'real', cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
 
-def genResolutionPlot (isInt=True):
+def genResolutionPlot ():
     """
     """
     
     my_ResFileParser = ResFileParser ()
-    my_ResFileParser.rdPcl (pclFileName=f'resolution_{cntrSize}.pcl')
     byModes = True
     # my_ResFileParser.printAllPoints (printToScreen=True) #$$$
     # settings.error ('rega') #$$
     # modes   = ['F2P_lr', 'FP']
     # minCntrVal  = 0
     if byModes:
-        modes       = ['Morris', 'SEAD stat', 'F2P_li']
-        minCntrVal  = 1000
+        my_ResFileParser.rdPcl (pclFileName=f'resolutionByModes.pcl')
         for cntrSize in [8]:  # , 12, 16]:
             my_ResFileParser.genResolutionPlotByModes (
-                modes       = modes,
-                minCntrVal  = minCntrVal,
+                modes       = ['Morris', 'SEAD stat', 'F2P_li'],
+                minCntrVal  = 1000,
                 maxCntrVal  = float('inf'),
                 cntrSize    = cntrSize,
                 xLog        = False
                 )
 
-genResolutionPlot (isInt=False)
-
+genResolutionPlot ()
 # my_ResFileParser = ResFileParser ()
 # for ErType in ['WrRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
 #     my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')

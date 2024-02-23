@@ -9,14 +9,6 @@ from datetime import datetime
 
 def main ():
     simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
-    isInt    = False # When True, consider only "counters"
-    if isInt:
-        modes = ['SEAD stat', 'Morris', 'F2P_li']
-    else: 
-        modes = ['FP', 'F2P_lr']
-    simController.measureResolutions (cntrSizes=[8], modes=modes, expSize=2, isInt=False) # 'SEAD stat', 'F2P_lr',   
-    # simController.measureResolutions (cntrSizes=[8], expSize=2, modes=['FP']) #$$$
-    return #$$$
     simController.runSingleCntr \
         (dwnSmple       = False,  
          modes          = ['F2P_li', 'Morris', ], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
@@ -317,23 +309,46 @@ class SingleCntrSimulator (object):
                 'Lo'            : normRmseConfInterval[0],
                 'Hi'            : normRmseConfInterval[1]}
 
-    def measureResolutions (self, 
-                            cntrSizes   = [], 
-                            expSize     = None, # num of bits in the exponent to run  
-                            modes       = [], # modes (type of counter) to run
-                            isInt       = True, # When True, add _int to the output file name. else, add _real to the output file name
-                            ) -> None:    
+    def measureResolutionsByModes (
+            self, 
+            cntrSizes   = [], 
+            expSize     = None, # num of bits in the exponent to run  
+            modes       = [], # modes (type of counter) to run
+            ) -> None:    
         """
         Loop over all possible representations, measure the relative resolution, and write the results to output files as defined by self.verbose.
         """
         if settings.VERBOSE_PCL in self.verbose:
             # if os.path.exists('../res/pcl_files/resolution.pcl'):
             #     os.remove('../res/pcl_files/resolution.pcl')
-            pclOutputFile = open('../res/pcl_files/resolution_{}.pcl' .format ('int' if isInt else 'real'), 'ab+')
+            pclOutputFile = open('../res/pcl_files/resolutionByModes.pcl', 'ab+')
         for self.cntrSize in cntrSizes:
             self.conf = settings.getConfByCntrSize (cntrSize=self.cntrSize)
             self.cntrMaxVal   = self.conf['cntrMaxVal'] 
             self.hyperSize    = self.conf['hyperSize'] 
+            for self.mode in modes:
+                self.genCntrRecord (expSize)
+                listOfVals = []
+                for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
+                    cntrVec = np.binary_repr(i, self.cntrSize) 
+                    listOfVals.append (self.cntrRecord['cntr'].cntr2num(cntrVec))           
+                listOfVals = sorted (listOfVals)
+                points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : [(listOfVals[i+1]-listOfVals[i])/listOfVals[i+1] for i in range (len(listOfVals)-1)]}
+                if settings.VERBOSE_PCL in self.verbose:
+                    self.dumpDictToPcl ({'mode' : self.mode, 'cntrSize' : self.cntrSize, 'points' : points}, pclOutputFile)
+
+    def measureResolutionsBySettingsStrs (
+            self, 
+            settingStrs   = [], 
+            ) -> None:    
+        """
+        Loop over all the desired settings, measure the relative resolution, and write the results to output files as defined by self.verbose.
+        """
+        if settings.VERBOSE_PCL in self.verbose:
+            # if os.path.exists('../res/pcl_files/resolution.pcl'):
+            #     os.remove('../res/pcl_files/resolution.pcl')
+            pclOutputFile = open('../res/pcl_files/resolution_{}.pcl' .format ('int' if isInt else 'real'), 'ab+')
+        for self.cntrSize in cntrSizes:
             for self.mode in modes:
                 self.genCntrRecord (expSize)
                 listOfVals = []
@@ -543,13 +558,22 @@ def printAllCntrMaxValsF2P (flavor='sr', hyperSizeRange=None, cntrSizeRange=[], 
                 printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), cntrMaxVal))
             else:
                 printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), cntrMaxVal))
+
 if __name__ == '__main__':
     try: 
+        simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+        simController.measureResolutionsByModes (
+            cntrSizes   = [8], 
+            expSize     = 2, 
+            modes       = ['SEAD stat', 'Morris', 'F2P_li']
+            ) 
+        # simController.measureResolutions (cntrSizes=[8], expSize=2, modes=['FP']) #$$$
         # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
         # printAllCntrMaxValsF2P (hyperSizeRange=[1,2], cntrSizeRange=[6,7,8,9,10,11,12,13,14,15,16], verbose=[settings.VERBOSE_RES], flavor='li')
         # coutConfDataF2P (cntrSize=6, hyperSize=1, flavor='li')
         # simController = SingleCntrSimulator (verbose = [settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
         # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2P_li', 'SEAD stat', 'SEAD dyn', 'Morris'])
-        main ()
+        # main ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
+
