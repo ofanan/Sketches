@@ -342,8 +342,10 @@ class SingleCntrSimulator (object):
                 os.remove(f'../res/pcl_files/{pclOutputFileName}.pcl')
             pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}.pcl', 'ab+')
         for settingStr in settingStrs:
+            print (f'settingStr={settingStr}')
             listOfVals = []
             params = settings.extractParamsFromSettingStr (settingStr)
+            settings.error (params) #$$$
             self.mode       = params['mode']
             self.cntrSize   = params['cntrSize']
             expSize         = params['expSize']
@@ -577,7 +579,7 @@ def main ():
     # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
     simController.measureResolutionsBySettingsStrs (
         delPrevPcl  = True, # When True, delete the previous .pcl file, if exists
-        settingStrs   = ['FP_n7_m2_e5'],  # Concrete settings for which the measurements will be done 
+        settingStrs = ['FP_n7_m2_e5'],  # Concrete settings for which the measurements will be done 
         )    
 
 if __name__ == '__main__':

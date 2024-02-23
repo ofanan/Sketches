@@ -185,7 +185,4 @@ def extractParamsFromSettingStr (str):
     splittedStr = str.split ('_h')
     if len(splittedStr)>1:
         params['hyperSize'] = int(splittedStr[1].split('_')[0]) 
-    print (params)
-
-    
-extractParamsFromSettingStr ('FP_n4_m2_e2') # F2Pli_n6_h2
+    return params
