@@ -7,17 +7,6 @@ import numpy as np #, scipy.stats as st, pandas as pd
 import settings, SEAD_stat, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li, FP  
 from datetime import datetime
 
-def main ():
-    simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
-    simController.runSingleCntr \
-        (dwnSmple       = False,  
-         modes          = ['F2P_li', 'Morris', ], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
-         cntrSize       = 6, 
-         numOfExps      = 1,
-         erTypes        = ['WrRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
-         cntrMaxVal     = None, 
-         )
-
 class SingleCntrSimulator (object):
     """
     Controller that runs single-counter simulations, using various types of counters and configurations. 
@@ -356,6 +345,7 @@ class SingleCntrSimulator (object):
             self.genCntrRecord (expSize)
             listOfVals = []
             params = settings.extractParamsFromSettingStr (settingStr)
+            self.mode       = params['mode']
             self.cntrSize   = params['cntrSize']
             expSize         = params['expSize']
             for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
@@ -565,22 +555,40 @@ def printAllCntrMaxValsF2P (flavor='sr', hyperSizeRange=None, cntrSizeRange=[], 
             else:
                 printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), cntrMaxVal))
 
+
+def main ():
+    simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+    # simController.runSingleCntr \
+    #     (dwnSmple       = False,  
+    #      modes          = ['F2P_li', 'Morris', ], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
+    #      cntrSize       = 6, 
+    #      numOfExps      = 1,
+    #      erTypes        = ['WrRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+    #      cntrMaxVal     = None, 
+    #      )
+    
+    # simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+    # simController.measureResolutionsByModes (
+    #     cntrSizes   = [8], 
+    #     expSize     = 2, 
+    #     modes       = ['SEAD stat', 'Morris', 'F2P_li'],
+    #     delPrevPcl  = True
+    #     ) 
+    # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
+    simController.measureResolutionsBySettingsStrs (
+        delPrevPcl  = True, # When True, delete the previous .pcl file, if exists
+        settingStrs   = ['FP_n7_m2_e5'],  # Concrete settings for which the measurements will be done 
+        )    
+
 if __name__ == '__main__':
-    try: 
-        simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
-        simController.measureResolutionsByModes (
-            cntrSizes   = [8], 
-            expSize     = 2, 
-            modes       = ['SEAD stat', 'Morris', 'F2P_li'],
-            delPrevPcl  = True
-            ) 
-        # simController.measureResolutions (cntrSizes=[8], expSize=2, modes=['FP']) #$$$
+    try:
+        # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
+        main ()
+    except KeyboardInterrupt:
+        print('Keyboard interrupt.')
+        exit ()
+
+
         # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
         # printAllCntrMaxValsF2P (hyperSizeRange=[1,2], cntrSizeRange=[6,7,8,9,10,11,12,13,14,15,16], verbose=[settings.VERBOSE_RES], flavor='li')
         # coutConfDataF2P (cntrSize=6, hyperSize=1, flavor='li')
-        # simController = SingleCntrSimulator (verbose = [settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
-        # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2P_li', 'SEAD stat', 'SEAD dyn', 'Morris'])
-        # main ()
-    except KeyboardInterrupt:
-        print('Keyboard interrupt.')
-

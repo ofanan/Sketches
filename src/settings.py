@@ -163,3 +163,24 @@ def getRelativePathToTraceFile (traceFileName):
     checkIfInputFileExists (RelativePathToTraceFile)
     return RelativePathToTraceFile
 
+def extractParamsFromSettingStr (str):
+    """
+    given a settings string, extract from it the params it represents - e.g., cntrSize, hyperSize, expSize
+    """
+
+    params = {'mode'        : str.split ('_')[0], 
+              'cntrSize'    : int(str.split('_n')[1].split('_')[0])
+              }
+    splittedStr = str.split ('_e')
+    if len(splittedStr)>1:
+        params['expSize'] = splittedStr[1].split('_')[0] 
+    splittedStr = str.split ('_m')
+    if len(splittedStr)>1:
+        params['mantSize'] = splittedStr[1].split('_')[0] 
+    splittedStr = str.split ('_h')
+    if len(splittedStr)>1:
+        params['hyperSize'] = splittedStr[1].split('_')[0] 
+    print (params)
+
+    
+extractParamsFromSettingStr ('FP_n4_m2_e2') # F2Pli_n6_h2
