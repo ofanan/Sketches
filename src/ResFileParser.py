@@ -244,8 +244,6 @@ class ResFileParser (object):
             if len(pointsOfThisMode) < 1:
                 settings.error (f'More than a single list of points for mode {mode}')
             points = pointsOfThisMode[0]['points']
-            # if mode=='SEAD stat': #$$
-            #     settings.error (points) #$$
             
             ax.plot (points['X'], points['Y'], color=self.colorOfMode[mode], marker=self.markerOfMode[mode],
                      markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=mode, mfc='none') 
@@ -267,7 +265,7 @@ class ResFileParser (object):
 
     def genResolutionPlotBySettingStrs (self,
             settingStrs    = [],           # Concrete settings for which the plot will be generated
-            minCntrVal      = 0,            # min' X (counter) value at the plot
+            minCntrVal      = 1,            # min' X (counter) value at the plot
             maxCntrVal      = float('inf'), # max X (counter) value at the plot
             xLog            = False,        # When True, plot the x axis in a log' scaling.
             ) -> None:
@@ -276,16 +274,17 @@ class ResFileParser (object):
         """
         self.setPltParams   ()  # set the plot's parameters (formats of lines, markers, legends etc.).
         _, ax = plt.subplots()
-        for mode in modes:
-            pointsOfThisCntrSize = [point for point in self.points if point['cntrSize'] == cntrSize]
-            pointsOfThisMode = [point for point in pointsOfThisCntrSize if point['mode'] == mode]
-            if pointsOfThisMode == []:
-                print (f'No points found for mode {mode}')
+        for settingStr in settingStrs:
+            pointsOfThisSettingStr = [point for point in self.points if point['settingStr'] == settingStr]
+            if pointsOfThisSettingStr == []:
+                print (f'No points found for settingStr {settingStr}')
                 continue
-            if len(pointsOfThisMode) < 1:
-                settings.error (f'More than a single list of points for mode {mode}')
-            points = pointsOfThisMode[0]['points']
-            
+            if len(pointsOfThisSettingStr) < 1:
+                settings.error (f'More than a single list of points for settingStr {pointsOfThisSettingStr}')
+            points      = pointsOfThisSettingStr[0]['points']
+            params      = settings.extractParamsFromSettingStr (settingStr)
+            mode        = params['mode']
+            cntrSize    = params['cntrSize']
             ax.plot (points['X'], points['Y'], color=self.colorOfMode[mode], marker=self.markerOfMode[mode],
                      markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=mode, mfc='none') 
 
@@ -301,16 +300,14 @@ class ResFileParser (object):
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
-        plt.savefig ('../res/Resolution_{}_{}bits_{}.pdf' .format ('int' if isInt else 'real', cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
+        # plt.savefig ('../res/Resolution_{}_{}bits_{}.pdf' .format (cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
 
 def genResolutionPlot ():
     """
     """
     
     my_ResFileParser = ResFileParser ()
-    byModes = True
-    # my_ResFileParser.printAllPoints (printToScreen=True) #$$$
-    # settings.error ('rega') #$$
+    byModes = False
     # modes   = ['F2P_lr', 'FP']
     # minCntrVal  = 0
     if byModes:
@@ -324,7 +321,7 @@ def genResolutionPlot ():
                 xLog        = False
                 )
     else:
-        my_ResFileParser.rdPcl (pclFileName=f'resolutionBySettings.pcl')
+        my_ResFileParser.rdPcl (pclFileName=f'resolutionBySettingStrs.pcl')
         my_ResFileParser.genResolutionPlotBySettingStrs(
             settingStrs = ['FP_n7_m2_e5'], 
             xLog        = True

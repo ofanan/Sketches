@@ -105,7 +105,7 @@ class SingleCntrSimulator (object):
                 'mode'              : self.cntrRecord['mode'],
                 'cntrSize'          : self.cntrSize, 
                 'cntrMaxVal'        : self.cntrMaxVal,
-                'settingsStr'       : self.cntrRecord['cntr'].genSettingsStr(),
+                'settingStr'       : self.cntrRecord['cntr'].genSettingsStr(),
                 'Avg'               : wrErAvg,
                 'Lo'                : wrErConfInterval[0],
                 'Hi'                : wrErConfInterval[1]}
@@ -267,7 +267,7 @@ class SingleCntrSimulator (object):
                 'mode'              : self.cntrRecord['mode'],
                 'cntrSize'          : self.cntrSize, 
                 'cntrMaxVal'        : self.cntrMaxVal,
-                'settingsStr'       : self.cntrRecord['cntr'].genSettingsStr(),
+                'settingStr'       : self.cntrRecord['cntr'].genSettingsStr(),
                 'Avg'               : rdErAvg,
                 'Lo'                : rdErConfInterval[0],
                 'Hi'                : rdErConfInterval[1]}
@@ -293,7 +293,7 @@ class SingleCntrSimulator (object):
                 'mode'          : self.cntrRecord['mode'],
                 'cntrSize'      : self.cntrSize, 
                 'cntrMaxVal'    : self.cntrMaxVal,
-                'settingsStr'   : self.cntrRecord['cntr'].genSettingsStr(),
+                'settingStr'   : self.cntrRecord['cntr'].genSettingsStr(),
                 'Avg'           : normRmseAvg,
                 'Lo'            : normRmseConfInterval[0],
                 'Hi'            : normRmseConfInterval[1]}
@@ -328,7 +328,7 @@ class SingleCntrSimulator (object):
                 if settings.VERBOSE_PCL in self.verbose:
                     self.dumpDictToPcl ({'mode' : self.mode, 'cntrSize' : self.cntrSize, 'points' : points}, pclOutputFile)
 
-    def measureResolutionsBySettingsStrs (
+    def measureResolutionsBySettingStrs (
             self, 
             delPrevPcl  = False, # When True, delete the previous .pcl file, if exists
             settingStrs   = [],  # Concrete settings for which the measurements will be done 
@@ -353,7 +353,7 @@ class SingleCntrSimulator (object):
             listOfVals = sorted (listOfVals)
             points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : [(listOfVals[i+1]-listOfVals[i])/listOfVals[i+1] for i in range (len(listOfVals)-1)]}
             if settings.VERBOSE_PCL in self.verbose:
-                self.dumpDictToPcl ({'settingsStr' : settingStr, 'points' : points}, pclOutputFile)
+                self.dumpDictToPcl ({'settingStr' : settingStr, 'points' : points}, pclOutputFile)
 
     def genCntrRecord (self,
                        expSize=None, # When expSize==None, read the expSize from the hard-coded configurations in settings.py 
@@ -574,7 +574,7 @@ def main ():
     #     delPrevPcl  = True
     #     ) 
     # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
-    simController.measureResolutionsBySettingsStrs (
+    simController.measureResolutionsBySettingStrs (
         delPrevPcl  = True, # When True, delete the previous .pcl file, if exists
         settingStrs = ['FP_n7_m2_e5'],  # Concrete settings for which the measurements will be done 
         )    
