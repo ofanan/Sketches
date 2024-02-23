@@ -292,7 +292,7 @@ class ResFileParser (object):
             mode        = params['mode']
             cntrSize    = params['cntrSize']
             ax.plot (points['X'], points['Y'], color=self.colors[colorIdx], marker=self.markers[colorIdx],
-                     markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=mode, mfc='none')
+                     markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=settingStr, mfc='none')
             colorIdx += 1 
 
         plt.xlabel('Counted Value')
@@ -302,8 +302,6 @@ class ResFileParser (object):
             plt.xscale ('log')
 
         conf        = settings.getConfByCntrSize (cntrSize=cntrSize)
-        plt.xlim ([minCntrVal, conf['cntrMaxVal']+1])
-        # plt.ylim (0.01, 0.1) 
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
@@ -330,7 +328,9 @@ def genResolutionPlot ():
     else:
         my_ResFileParser.rdPcl (pclFileName=f'resolutionBySettingStrs.pcl')
         my_ResFileParser.genResolutionPlotBySettingStrs(
-            settingStrs = ['FP_n7_m2_e5'], 
+            # settingStrs = ['FP_n7_m2_e5', 'F2Plr_n7_h2'], 
+            settingStrs = ['FP_n7_m5_e2', 'F2Psr_n7_h2'], 
+            #['FP_n7_m2_e5', 'FP_n7_m5_e2', 'F2Plr_n7_h2', 'F2Psr_n7_h2'], 
             xLog        = True
             )
 
