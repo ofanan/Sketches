@@ -1,7 +1,6 @@
 """
-Controller that runs simulations, using various types of couters. 
+Controller that runs single-counter simulations, using various types of counters. 
 """
-# from statistics import mean 
 import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
@@ -9,7 +8,7 @@ import settings, SEAD_stat, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li, FP
 from datetime import datetime
 
 def main ():
-    simController = SimController (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+    simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
     isInt    = False # When True, consider only "counters"
     if isInt:
         modes = ['SEAD stat', 'Morris', 'F2P_li']
@@ -27,9 +26,9 @@ def main ():
          cntrMaxVal     = None, 
          )
 
-class SimController (object):
+class SingleCntrSimulator (object):
     """
-    Controller that runs a simulation 
+    Controller that runs single-counter simulations, using various types of counters and configurations. 
     """
 
     def __init__ (self, 
@@ -344,7 +343,7 @@ class SimController (object):
                 listOfVals = sorted (listOfVals)
                 points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : [(listOfVals[i+1]-listOfVals[i])/listOfVals[i+1] for i in range (len(listOfVals)-1)]}
                 if settings.VERBOSE_PCL in self.verbose:
-                    self.dumpDictToPcl ({'mode' : self.mode, 'cntrSize' : self.cntrSize, 'points' : points}, pclOutputFile)
+                    self.dumpDictToPcl ({'settingsStr' : self.cntrRecord['cntr'].genSettingsStr(), 'cntrSize' : self.cntrSize, 'points' : points}, pclOutputFile)
 
     def genCntrRecord (self,
                        expSize=None, # When expSize==None, read the expSize from the hard-coded configurations in settings.py 
@@ -360,7 +359,7 @@ class SimController (object):
             self.cntrRecord = {'mode' : 'F2P_li', 'cntr' : F2P_li.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
         elif (self.mode=='FP'):
             if expSize==None:
-                settings.error ('In SimController.genCntrRecord(). For generating an FP.CntrMaster you must specify an expSize')
+                settings.error ('In SingleCntrSimulator.genCntrRecord(). For generating an FP.CntrMaster you must specify an expSize')
             self.cntrRecord = {'mode' : 'FP', 'cntr' : FP.CntrMaster(cntrSize=self.cntrSize, expSize=expSize, verbose=self.verbose)}
         elif (self.mode=='SEAD stat'):
             self.expSize      = self.conf['seadExpSize'] if expSize==None else expSize
@@ -485,7 +484,7 @@ def genCntrMasterF2P (cntrSize, hyperSize, flavor='', verbose=[]):
     elif flavor=='li':
         return F2P_li.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
     else:
-        settings.error (f'In SimController.genCntrMasterF2P(). the requested F2P flavor {flavor} is not supported.')
+        settings.error (f'In SingleCntrSimulator.genCntrMasterF2P(). the requested F2P flavor {flavor} is not supported.')
 
 
 def printAllValsF2P (flavor='', cntrSize=8, hyperSize=2, verbose=[]):
@@ -494,7 +493,7 @@ def printAllValsF2P (flavor='', cntrSize=8, hyperSize=2, verbose=[]):
     For each combination, print to file the respective counter, and its value. 
     The prints are sorted in an increasing order of values.
     """
-    print (f'running SimController.printAllValsF2P().')
+    print (f'running SingleCntrSimulator.printAllValsF2P().')
     myCntrMaster = genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
     if myCntrMaster.isFeasible==False:
         settings.error (f'The requested configuration is not feasible.')
@@ -549,7 +548,7 @@ if __name__ == '__main__':
         # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
         # printAllCntrMaxValsF2P (hyperSizeRange=[1,2], cntrSizeRange=[6,7,8,9,10,11,12,13,14,15,16], verbose=[settings.VERBOSE_RES], flavor='li')
         # coutConfDataF2P (cntrSize=6, hyperSize=1, flavor='li')
-        # simController = SimController (verbose = [settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+        # simController = SingleCntrSimulator (verbose = [settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
         # simController.measureResolutions (cntrSizes=[8, 12, 16], modes=['CEDAR', 'F2P_li', 'SEAD stat', 'SEAD dyn', 'Morris'])
         main ()
     except KeyboardInterrupt:

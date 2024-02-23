@@ -222,14 +222,14 @@ class ResFileParser (object):
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE) #, frameon=False)        
         plt.savefig ('../res/{}.pdf' .format (outputFileName), bbox_inches='tight')        
         
-    def genResolutionPlot (self,
-                            modes       = [],
-                            minCntrVal  = 0,
-                            maxCntrVal  = float('inf'),
-                            cntrSize    = 8,
-                            isInt       = True,
-                            xLog        = False,
-                           ) -> None:
+       
+    def genResolutionPlotByModes (self,
+            modes           = [],   # modes for which the plot will be generated. 
+            cntrSize        = 8,    # cntrSizes for which the plot will be generated. 
+            minCntrVal      = 0,  # min' X (counter) value at the plot
+            maxCntrVal      = float('inf'), # max X (counter) value at the plot
+            xLog            = False,    # When True, plot the x axis in a log' scaling.
+            ) -> None:
         """
         Generate a plot showing the resolution as a function of the counted val for the given modes
         """
@@ -263,29 +263,66 @@ class ResFileParser (object):
         plt.savefig ('../res/Resolution_{}_{}bits_{}.pdf' .format ('int' if isInt else 'real', cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
 
 
+    def genResolutionPlotBySettingStrs (self,
+            settingsStrs    = [],           # Concrete settings for which the plot will be generated
+            minCntrVal      = 0,            # min' X (counter) value at the plot
+            maxCntrVal      = float('inf'), # max X (counter) value at the plot
+            xLog            = False,        # When True, plot the x axis in a log' scaling.
+            ) -> None:
+        """
+        Generate a plot showing the resolution as a function of the counted val for the given modes
+        """
+        self.setPltParams   ()  # set the plot's parameters (formats of lines, markers, legends etc.).
+        _, ax = plt.subplots()
+        for mode in modes:
+            pointsOfThisCntrSize = [point for point in self.points if point['cntrSize'] == cntrSize]
+            pointsOfThisMode = [point for point in pointsOfThisCntrSize if point['mode'] == mode]
+            if pointsOfThisMode == []:
+                print (f'No points found for mode {mode}')
+                continue
+            if len(pointsOfThisMode) < 1:
+                settings.error (f'More than a single list of points for mode {mode}')
+            points = pointsOfThisMode[0]['points']
+            
+            ax.plot (points['X'], points['Y'], color=self.colorOfMode[mode], marker=self.markerOfMode[mode],
+                     markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=mode, mfc='none') 
+
+        plt.xlabel('Counted Value')
+        plt.ylabel(f'Relative Resolution')
+        plt.yscale ('log')
+        if xLog: 
+            plt.xscale ('log')
+
+        conf        = settings.getConfByCntrSize (cntrSize=cntrSize)
+        plt.xlim ([minCntrVal, conf['cntrMaxVal']+1])
+        # plt.ylim (0.01, 0.1) 
+        handles, labels = plt.gca().get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
+        plt.savefig ('../res/Resolution_{}_{}bits_{}.pdf' .format ('int' if isInt else 'real', cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
+
 def genResolutionPlot (isInt=True):
     """
     """
     
     my_ResFileParser = ResFileParser ()
-    my_ResFileParser.rdPcl (pclFileName='resolution_{}.pcl' .format('int' if isInt else 'real'))
+    my_ResFileParser.rdPcl (pclFileName=f'resolution_{cntrSize}.pcl')
+    byModes = True
     # my_ResFileParser.printAllPoints (printToScreen=True) #$$$
     # settings.error ('rega') #$$
-    if isInt:
+    # modes   = ['F2P_lr', 'FP']
+    # minCntrVal  = 0
+    if byModes:
         modes       = ['Morris', 'SEAD stat', 'F2P_li']
         minCntrVal  = 1000
-    else:
-        modes   = ['F2P_lr', 'FP']
-        minCntrVal  = 0
-    for cntrSize in [8]:  # , 12, 16]:
-        my_ResFileParser.genResolutionPlot (modes       = modes,
-                                            isInt       = isInt,                                          
-                                            minCntrVal  = minCntrVal,
-                                            maxCntrVal  = float('inf'),
-                                            cntrSize    = cntrSize,
-                                            xLog        = False
-                                            )
-
+        for cntrSize in [8]:  # , 12, 16]:
+            my_ResFileParser.genResolutionPlotByModes (
+                modes       = modes,
+                minCntrVal  = minCntrVal,
+                maxCntrVal  = float('inf'),
+                cntrSize    = cntrSize,
+                xLog        = False
+                )
 
 genResolutionPlot (isInt=False)
 
