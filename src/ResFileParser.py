@@ -275,7 +275,8 @@ class ResFileParser (object):
             xLog            = False,        # When True, plot the x axis in a log' scaling.
             ) -> None:
         """
-        Generate a plot showing the resolution as a function of the counted val for the given modes
+        Generate a plot showing the resolution as a function of the counted val for the given settings.
+        Each input setting string details the cntrSize, exponent size (expSize), hyper-exp size (hyperSize), etc.
         """
         self.setPltParams   ()  # set the plot's parameters (formats of lines, markers, legends etc.).
         _, ax = plt.subplots()
@@ -328,16 +329,17 @@ def genResolutionPlot ():
     else:
         my_ResFileParser.rdPcl (pclFileName=f'resolutionBySettingStrs.pcl')
         my_ResFileParser.genResolutionPlotBySettingStrs(
-            settingStrs = ['FP_n7_m2_e5', 'F2Plr_n7_h1'], 
-            # settingStrs = ['FP_n7_m5_e2', 'F2Psr_n7_h1'], 
+            # settingStrs = ['FP_n7_m2_e5', 'F2Plr_n7_h1'], 
             #['FP_n7_m2_e5', 'FP_n7_m5_e2', 'F2Plr_n7_h2', 'F2Psr_n7_h2'], 
+            # settingStrs = ['FP_n15_m13_e2', 'F2Psr_n15_h2'], # ['FP_n7_m5_e2', 'F2Psr_n7_h1'], 
+            settingStrs = ['FP_n15_m10_e5', 'F2Plr_n15_h2'], # ['FP_n7_m5_e2', 'F2Psr_n7_h1'], 
             xLog        = True
             )
 
-genResolutionPlot ()
-# my_ResFileParser = ResFileParser ()
-# for ErType in ['WrRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
-#     my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
-#     my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=1, maxCntrSize=16) # 50
+# genResolutionPlot ()
+my_ResFileParser = ResFileParser ()
+for ErType in ['WrRmse', 'RdRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
+    my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
+    my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=1, maxCntrSize=16) # 50
     # my_ResFileParser.printAllPoints (cntrSize=8, cntrMaxVal=1488888, printToScreen=True)
 

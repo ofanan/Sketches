@@ -186,3 +186,16 @@ def extractParamsFromSettingStr (str):
     if len(splittedStr)>1:
         params['hyperSize'] = int(splittedStr[1].split('_')[0]) 
     return params
+
+def makeSymmetricVec (X):
+    """
+    Input: a vector X of length n.
+    Output: a vector Y of length 2*n, where:
+    The first n items in Y are the same as in X, but in reverse order, and inverted sign.
+    The next n items in Y are the same as the n items in X.
+    """
+    n = len(X)
+    reversed_negative_part = [-x for x in X[-1::-1]]
+    Y = reversed_negative_part + [0] + X
+    return Y
+
