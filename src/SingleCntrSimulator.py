@@ -650,9 +650,6 @@ if __name__ == '__main__':
         print('Keyboard interrupt.')
         exit ()
 
-
-        # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
-        # printAllCntrMaxValsF2P (hyperSizeRange=[1,2], cntrSizeRange=[6,7,8,9,10,11,12,13,14,15,16], verbose=[settings.VERBOSE_RES], flavor='li')
         # coutConfDataF2P (cntrSize=6, hyperSize=1, flavor='li')
-# print (getAllValsF2P (flavor='sr', signed=True, cntrSize=7, hyperSize=1))
-print (getAllValsFP (cntrSize=4, expSizes=[1], signed=True)) #, settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
+print (getAllValsF2P (flavor='lr', signed=True, cntrSize=7, hyperSize=2))
+print (getAllValsFP (cntrSize=7, expSizes=[4], signed=True)) #, settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
