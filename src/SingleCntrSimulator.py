@@ -504,13 +504,23 @@ def genCntrMasterF2P (cntrSize, hyperSize, flavor='', verbose=[]):
         settings.error (f'In SingleCntrSimulator.genCntrMasterF2P(). the requested F2P flavor {flavor} is not supported.')
 
 
-def printAllValsF2P (flavor='', cntrSize=8, hyperSize=2, verbose=[]):
+def GetAllValsF2P (flavor='', 
+                   cntrSize     = 8, # size of the counter, WITHOUT the sign bit (if exists).  
+                   hyperSize    = 2, # size of the hyper-exp field. 
+                   verbose      = [], #verbose level. See settings.py for details.
+                   signed       = False # When True, assume an additional bit for the  
+                   ):
     """
     Loop over all the binary combinations of the given counter size. 
-    For each combination, print to file the respective counter, and its value. 
-    The prints are sorted in an increasing order of values.
+    For each combination, get the respective counter.
+    Sort by an increasing value.
+    Output is according to the verbose, as defined in settings.py. In particular: 
+    If the verbose include settings.VERBOSE_RES, print to an output file the list of cntrVecs and respective values. 
+    Return the (sorted) list of values.
     """
     print (f'running SingleCntrSimulator.printAllValsF2P().')
+    if signed: 
+        cntrSize = cntrSize-1 
     myCntrMaster = genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
     if myCntrMaster.isFeasible==False:
         settings.error (f'The requested configuration is not feasible.')
@@ -530,7 +540,12 @@ def printAllValsF2P (flavor='', cntrSize=8, hyperSize=2, verbose=[]):
     
     if (settings.VERBOSE_PCL in verbose):
         with open('../res/pcl_files/{}.pcl' .format (myCntrMaster.genSettingsStr()), 'wb') as pclOutputFile:
-            pickle.dump(listOfVals, pclOutputFile) 
+            pickle.dump(listOfVals, pclOutputFile)
+    
+    if signed:
+        listOfVals = settings.makeSymmetricVec (listOfVals)
+        
+    return listOfVals
 
 def coutConfDataF2P (cntrSize, hyperSize, flavor='', verbose=[]):
     """
@@ -601,3 +616,4 @@ if __name__ == '__main__':
         # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
         # printAllCntrMaxValsF2P (hyperSizeRange=[1,2], cntrSizeRange=[6,7,8,9,10,11,12,13,14,15,16], verbose=[settings.VERBOSE_RES], flavor='li')
         # coutConfDataF2P (cntrSize=6, hyperSize=1, flavor='li')
+printAllValsF2P (cntrSize=4, hyperSize=1)
