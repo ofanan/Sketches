@@ -1,29 +1,20 @@
 """
 calculate the quantization error of a number representation system. 
 """
+
 import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
 import settings, SEAD_stat, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li, FP  
 from datetime import datetime
 
-class QuantErrorCalculator (object):
-    """
-    """
-    
-    def __init__ (self):
-        self.weights = [2*i for i in range (6)]
-    
-    def calcQuantErrorElement (self, g, w):
-        return min(g, key=lambda x: abs(w - x)) - w
-    
-    def calcQuantErrorVec (self, grid):
-        self.Rvec = np.array([self.calcQuantErrorElement(grid, w) for w in self.weights])
-        print (f'grid={grid}, weights={self.weights}, R_vec={self.Rvec}')
+def calcQuantErrorElement (g, w):
+    return min(g, key=lambda x: abs(w - x)) - w
 
+def calcQuantErrorVec (grid, vec2quantize):
+    return np.array([calcQuantErrorElement(grid, w) for w in vec2quantize])
 
-
-myQErrorCalc = QuantErrorCalculator()
-grid = [7, 13]
-myQErrorCalc.calcQuantErrorVec (grid=grid)
-
+vec2quantize = [-0.5, 4.5, 5, 10.5, 13]
+grid         = [i for i in range (11)]
+quantErVec = calcQuantErrorVec (vec2quantize=vec2quantize, grid=grid)
+print (f'vec2quantize={vec2quantize}\ngrid={grid}\nquantErVec={quantErVec}')
