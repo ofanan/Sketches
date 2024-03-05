@@ -517,6 +517,8 @@ def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit)
     If the verbose include settings.VERBOSE_RES, print to an output file the list of cntrVecs and respective values. 
     Return the (sorted) list of values.
     """
+    if signed:
+        cntrSize -= 1
     expSizes = range (1, cntrSize) if expSizes==None else expSizes
     for expSize in expSizes: 
         listOfVals = []
@@ -532,13 +534,13 @@ def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit)
             for item in listOfVals:
                 printf(outputFile, '{}={}\n'.format(item['cntrVec'], item['val']))
 
+    listOfVals = [item['val'] for item in listOfVals]    
     if signed:
         listOfVals = settings.makeSymmetricVec (listOfVals)
         
     return listOfVals
 
 
-# printAllVals (cntrSize=4, expSizes=[2], verbose=[settings.VERBOSE_RES]) #, settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
 def getAllValsF2P (flavor='', 
                    cntrSize     = 8, # size of the counter, WITHOUT the sign bit (if exists).  
                    hyperSize    = 2, # size of the hyper-exp field. 
@@ -652,4 +654,5 @@ if __name__ == '__main__':
         # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
         # printAllCntrMaxValsF2P (hyperSizeRange=[1,2], cntrSizeRange=[6,7,8,9,10,11,12,13,14,15,16], verbose=[settings.VERBOSE_RES], flavor='li')
         # coutConfDataF2P (cntrSize=6, hyperSize=1, flavor='li')
-print (getAllValsF2P (flavor='sr', signed=True, cntrSize=7, hyperSize=1))
+# print (getAllValsF2P (flavor='sr', signed=True, cntrSize=7, hyperSize=1))
+print (getAllValsFP (cntrSize=4, expSizes=[1], signed=True)) #, settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
