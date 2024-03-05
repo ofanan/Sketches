@@ -34,7 +34,7 @@ def calcQuantErrorVecMy (grid, vec2quantize):
 
 lenOfGrid    = 2**7
 lenOfVec     = 10000
-vec2quantize = [-0.01*i for i in range(lenOfVec)]
+vec2quantize = [(-7 + 0.01*i) for i in range(lenOfVec)]
 grid         = [i for i in range (lenOfGrid+1)]
 tic ()
 quantErVec = calcQuantErrorVec (vec2quantize=vec2quantize, grid=grid)
