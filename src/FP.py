@@ -22,7 +22,7 @@ class CntrMaster (object):
     expVec2Val      = lambda self, expVec : int(expVec, base=2)
     
     def __init__ (self, 
-                  cntrSize  = 8, # of bits in the cntr 
+                  cntrSize  = 8, # of bits in the cntr, EXCLUDING the sign bit (if exists) 
                   expSize   = 2,
                   signed    = False, # When True, the FP is signed (the MSB is the sign bit)
                   numCntrs  = 1, # of cntrs in the cntrs' array

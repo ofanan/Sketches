@@ -504,7 +504,42 @@ def genCntrMasterF2P (cntrSize, hyperSize, flavor='', verbose=[]):
         settings.error (f'In SingleCntrSimulator.genCntrMasterF2P(). the requested F2P flavor {flavor} is not supported.')
 
 
-def GetAllValsF2P (flavor='', 
+def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit) 
+                  expSizes  = None, # number of bits in the exp. When None, consider all feasible exponent-field sizes. Else, loop over all the requested exponent sizes.
+                  signed    = False, 
+                  verbose   = [] # verbose level. See settings.py
+                  ):
+    """
+    Loop over all the binary combinations of the given counter size.
+    For each combination, get the respective counter.
+    Sort by an increasing value.
+    Output is according to the verbose, as defined in settings.py. In particular: 
+    If the verbose include settings.VERBOSE_RES, print to an output file the list of cntrVecs and respective values. 
+    Return the (sorted) list of values.
+    """
+    expSizes = range (1, cntrSize) if expSizes==None else expSizes
+    for expSize in expSizes: 
+        listOfVals = []
+        myCntrMaster = FP.CntrMaster(cntrSize=cntrSize, expSize=expSize, verbose=verbose)
+        for num in range(2 ** cntrSize):
+            cntr = np.binary_repr(num, cntrSize)
+            val = myCntrMaster.cntr2num(cntr)
+            listOfVals.append ({'cntrVec' : cntr, 'val' : val})
+        if settings.VERBOSE_RES in verbose:
+            listOfVals = sorted (listOfVals, key=lambda item : item['val'])
+            outputFile = open('../res/{}.res'.format(myCntrMaster.genSettingsStr()), 'w')
+            printf (outputFile, f'// bias={myCntrMaster.bias}\n')
+            for item in listOfVals:
+                printf(outputFile, '{}={}\n'.format(item['cntrVec'], item['val']))
+
+    if signed:
+        listOfVals = settings.makeSymmetricVec (listOfVals)
+        
+    return listOfVals
+
+
+# printAllVals (cntrSize=4, expSizes=[2], verbose=[settings.VERBOSE_RES]) #, settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
+def getAllValsF2P (flavor='', 
                    cntrSize     = 8, # size of the counter, WITHOUT the sign bit (if exists).  
                    hyperSize    = 2, # size of the hyper-exp field. 
                    verbose      = [], #verbose level. See settings.py for details.
@@ -518,9 +553,9 @@ def GetAllValsF2P (flavor='',
     If the verbose include settings.VERBOSE_RES, print to an output file the list of cntrVecs and respective values. 
     Return the (sorted) list of values.
     """
-    print (f'running SingleCntrSimulator.printAllValsF2P().')
+    print (f'running SingleCntrSimulator.getAllValsF2P().')
     if signed: 
-        cntrSize = cntrSize-1 
+        cntrSize -= 1 
     myCntrMaster = genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
     if myCntrMaster.isFeasible==False:
         settings.error (f'The requested configuration is not feasible.')
@@ -541,7 +576,8 @@ def GetAllValsF2P (flavor='',
     if (settings.VERBOSE_PCL in verbose):
         with open('../res/pcl_files/{}.pcl' .format (myCntrMaster.genSettingsStr()), 'wb') as pclOutputFile:
             pickle.dump(listOfVals, pclOutputFile)
-    
+
+    listOfVals = [item['val'] for item in listOfVals]    
     if signed:
         listOfVals = settings.makeSymmetricVec (listOfVals)
         
@@ -616,4 +652,4 @@ if __name__ == '__main__':
         # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
         # printAllCntrMaxValsF2P (hyperSizeRange=[1,2], cntrSizeRange=[6,7,8,9,10,11,12,13,14,15,16], verbose=[settings.VERBOSE_RES], flavor='li')
         # coutConfDataF2P (cntrSize=6, hyperSize=1, flavor='li')
-printAllValsF2P (cntrSize=4, hyperSize=1)
+print (getAllValsF2P (flavor='sr', signed=True, cntrSize=7, hyperSize=1))

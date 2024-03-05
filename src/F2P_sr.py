@@ -50,9 +50,9 @@ class CntrMaster (object):
         return True
    
     def __init__ (self, 
-                  cntrSize  = 8, # of bits in the cntr 
-                  hyperSize = 1, # of bits in the hyper-exp field 
-                  numCntrs  = 1, # of cntrs in the cntrs' array
+                  cntrSize  : int = 8, # of bits in the cntr 
+                  hyperSize : int = 1, # of bits in the hyper-exp field 
+                  numCntrs  : int = 1, # of cntrs in the cntrs' array
                   verbose   = []    # the optional verbose values are detailed in settings.py
                   ):
         
@@ -61,11 +61,11 @@ class CntrMaster (object):
         If the parameters are invalid (e.g., infeasible cntrSize), return None. 
         """
         self.isFeasible = True
-        if (cntrSize<3):
+        self.cntrSize   = cntrSize
+        if (self.cntrSize<3):
             print ('error: cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
             self.isFeasible = False
             return 
-        self.cntrSize   = int(cntrSize)
         self.numCntrs   = numCntrs
         self.verbose    = verbose
         if (not (self.setHyperSize (hyperSize))):
