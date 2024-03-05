@@ -38,7 +38,9 @@ if (large):
     lenOfGrid    = 2**7
     lenOfVec     = 10000
     vec2quantize = [(-0.05*lenOfVec + 0.1*i) for i in range(lenOfVec)]
+    print (f'vec2quantize[0]={vec2quantize[0]}, vec2quantize[-1]={vec2quantize[-1]}')
     grid         = [i for i in range (lenOfGrid)]
+    print (f'grid[0]={grid[0]}, grid[-1]={grid[-1]}')
 else:
     vec2quantize = [-0.5, 4.5, 5.5, 10.5]
     grid         = [0, 5, 10]
