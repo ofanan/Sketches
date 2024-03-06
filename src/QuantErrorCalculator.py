@@ -15,7 +15,7 @@ def calcQuantErrorElement (g, v):
 def calcAbsQuantErrorVec (grid, vec2quantize):
     return abs(np.array([calcQuantErrorElement(grid, v) for v in vec2quantize]))
 
-def calcAbsQuantErrorVecMy (grid, vec2quantize):
+def calcAbsQuantErrorSortedVecs (grid, vec2quantize):
     vecOfErrs = np.empty (len(vec2quantize))
     idxInGrid = 0
     for idxInVec in range(len(vec2quantize)):
@@ -33,29 +33,43 @@ def calcAbsQuantErrorVecMy (grid, vec2quantize):
                break 
     return vecOfErrs
 
+def calcMseSortedVecs (grid, vec2quantize):
+    overallAbsErr = 0
+    idxInGrid = 0
+    for idxInVec in range(len(vec2quantize)):
+        if idxInGrid==len(grid): # already reached the max grid val --> all next items in vec should be compared to the last item in the grid 
+            overallAbsErr += (vec2quantize[idxInVec]-grid[-1])**2
+            continue
+        curAbsErr = abs (vec2quantize[idxInVec]-grid[idxInGrid])
+        while (idxInGrid < len(grid)):
+            absErr = abs (vec2quantize[idxInVec]-grid[idxInGrid])
+            if absErr <= curAbsErr:
+                curAbsErr = absErr
+                idxInGrid += 1
+            else:
+               idxInGrid -= 1
+               break
+        overallAbsErr += curAbsErr**2
+    return (overallAbsErr/len(vec2quantize))
+
 large = True
 if (large):
     lenOfGrid    = 2**7
-    lenOfVec     = 10000
+    lenOfVec     = 50000
     vec2quantize = [(-0.05*lenOfVec + 0.1*i) for i in range(lenOfVec)]
-    print (f'vec2quantize[0]={vec2quantize[0]}, vec2quantize[-1]={vec2quantize[-1]}')
     grid         = [i for i in range (lenOfGrid)]
-    print (f'grid[0]={grid[0]}, grid[-1]={grid[-1]}')
 else:
     vec2quantize = [-0.5, 4.5, 5.5, 10.5]
     grid         = [0, 5, 10]
-# settings.error (f'grid={grid}') #$$$
-# settings.error (f'vec2quantize={vec2quantize}') #$$$
 tic ()
 quantErVec = calcAbsQuantErrorVec (vec2quantize=vec2quantize, grid=grid)
-if (large):
-    toc ()
+# Mse = np.mean([item**2 for item in quantErVec])
+# if (large):
+#     toc ()
 tic ()
-quantErVecMy = calcAbsQuantErrorVecMy (vec2quantize=vec2quantize, grid=grid)
+MseMy = calcMseSortedVecs(grid=grid, vec2quantize=vec2quantize)
 if (large):
     toc ()
-if not(large):
-    print (f'quantErVec={quantErVec}\nquantErVecMy={quantErVecMy}\ndiff={quantErVec-quantErVecMy}')
+# MseDiff = MseMy - Mse
+# print (f'MseDiff={MseDiff}, rel_err={MseDiff/MseMy}')
 
-sumDiff = sum(abs(quantErVec-quantErVecMy))
-print (f'sumDiff={sumDiff}')
