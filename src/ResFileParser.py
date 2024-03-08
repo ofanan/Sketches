@@ -19,6 +19,35 @@ LEGEND_FONT_SIZE = 14
 LEGEND_FONT_SIZE_SMALL = 5 
 USE_FRAME              = True # When True, plot a "frame" (box) around the plot 
 
+colors = ['green', 'purple', 'brown', 'yellow', 'blue']
+
+# The colors used for each alg's plot, in the dist' case
+colorOfMode = {
+    'F2P_lr'    : 'green',
+    'F2P_sr'    : 'green',
+    'F2P_li'    : 'purple',
+    'F3P'       : 'purple',
+    'SEAD stat' : 'brown',
+    'SEAD dyn'  : 'yellow',
+    'FP'        : 'blue',
+    'Tetra stat': 'blue',
+    'Tetra dyn' : 'black',
+    'CEDAR'     : 'magenta',
+    'Morris'    : 'red',
+    'AEE'       : 'blue'
+    }
+
+def genFpLabel (mantSize : int, expSize : int) -> str:
+    """
+    Generates a label string that details the counter's settings (param vals), to be used in plots.
+    """
+    return f'{mantSize}M{expSize}E'
+
+def genF2pLabel (flavor : str) -> str:
+    """
+    Generates a label string that details the counter's settings (param vals), to be used in plots.
+    """
+    return f'F2P {flavor}'
 
 class ResFileParser (object):
     """
@@ -48,22 +77,6 @@ class ResFileParser (object):
         """
         # List of algorithms' names, used in the plots' legend, for the dist' case
         self.labelOfMode = {}
-
-        self.colors = ['green', 'purple', 'brown', 'yellow', 'blue']
-
-        # The colors used for each alg's plot, in the dist' case
-        self.colorOfMode = {'F2Pli'     : 'green',
-                            'F2Plr'     : 'green',
-                            'F2Pls'     : 'purple',
-                            'F3P'       : 'purple',
-                            'SEAD stat' : 'brown',
-                            'SEAD dyn'  : 'yellow',
-                            'FP'        : 'blue',
-                            'Tetra stat': 'blue',
-                            'Tetra dyn' : 'black',
-                            'CEDAR'     : 'magenta',
-                            'Morris'    : 'red',
-                            'AEE'       : 'blue'}
 
         self.markers = ['o', 'v', '^', 's', 'p', 'X']
 
@@ -162,9 +175,9 @@ class ResFileParser (object):
                     print (pointOfThisModeNCntrSize[1]) 
                 point = pointOfThisModeNCntrSize[0]
                 y_lo, y_avg, y_hi = point['Lo'], point['Avg'], point['Hi']                     
-                ax.plot ((cntrSize, cntrSize), (y_lo, y_hi), color=self.colorOfMode[mode])  # Plot the conf' interval line
+                ax.plot ((cntrSize, cntrSize), (y_lo, y_hi), color=colorOfMode[mode])  # Plot the conf' interval line
                 y.append (y_avg)
-            ax.plot (cntrSizes, y, color=self.colorOfMode[mode], marker=self.markerOfMode[mode],
+            ax.plot (cntrSizes, y, color=colorOfMode[mode], marker=self.markerOfMode[mode],
                      markersize=MARKER_SIZE, linewidth=LINE_WIDTH, label=point['mode'], mfc='none') 
 
         plt.xlabel('Counter Size [bits]')
@@ -216,7 +229,7 @@ class ResFileParser (object):
 
             label = mode
         
-            ax.plot (cntrMaxVals, y, color=self.colorOfMode[mode], marker=self.markerOfMode[mode],
+            ax.plot (cntrMaxVals, y, color=colorOfMode[mode], marker=self.markerOfMode[mode],
                      markersize=MARKER_SIZE, linewidth=LINE_WIDTH, label=point['settingStr'], mfc='none') 
 
         plt.xlabel('Counter Maximum Value')
@@ -250,7 +263,7 @@ class ResFileParser (object):
                 settings.error (f'More than a single list of points for mode {mode}')
             points = pointsOfThisMode[0]['points']
             
-            ax.plot (points['X'], points['Y'], color=self.colorOfMode[mode], marker=self.markerOfMode[mode],
+            ax.plot (points['X'], points['Y'], color=colorOfMode[mode], marker=self.markerOfMode[mode],
                      markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=mode, mfc='none') 
 
         plt.xlabel('Counted Value')
@@ -292,7 +305,7 @@ class ResFileParser (object):
             params      = settings.extractParamsFromSettingStr (settingStr)
             mode        = params['mode']
             cntrSize    = params['cntrSize']
-            ax.plot (points['X'], points['Y'], color=self.colors[colorIdx], marker=self.markers[colorIdx],
+            ax.plot (points['X'], points['Y'], color=colors[colorIdx], marker=self.markers[colorIdx],
                      markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=settingStr, mfc='none')
             colorIdx += 1 
 
@@ -337,9 +350,9 @@ def genResolutionPlot ():
             )
 
 # genResolutionPlot ()
-my_ResFileParser = ResFileParser ()
-for ErType in ['WrRmse', 'RdRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
-    my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
-    my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=1, maxCntrSize=16) # 50
+# my_ResFileParser = ResFileParser ()
+# for ErType in ['WrRmse', 'RdRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
+#     my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
+#     my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=1, maxCntrSize=16) # 50
     # my_ResFileParser.printAllPoints (cntrSize=8, cntrMaxVal=1488888, printToScreen=True)
 

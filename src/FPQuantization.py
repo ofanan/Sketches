@@ -5,7 +5,7 @@ from tictoc import tic, toc
 import matplotlib.pyplot as plt
 
 from printf import printf, printar, printarFp
-import settings, F2P_sr, F2P_lr, F2P_li, FP  
+import settings, ResFileParser, F2P_sr, F2P_lr, F2P_li, FP  
 from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
 
 def clamp (vec: np.array, lowerBnd: float, upperBnd: float) -> np.array:
@@ -67,9 +67,23 @@ def calcMseSortedVecs (grid, vec2quantize):
 #     """
 #     vec2quantize = clamp (vec2quantize)
     
-def simQuantErr (modes=[], cntrSize=8, expSizes=[], hyperSize=2, verbose=[]):
-    vec2quantize = np.random.uniform(low=-1000, high=1000, size=20)
+def genVec2Quantize (dist     : 'uniform',  # distribution from which points are drawn  
+                     lowerBnd : float,      # lower bound for the generated points  
+                     upperBnd : float,      # upper bound for the generated points
+                     numPts : int           # Num of points in the generated vector
+                     ) -> np.array:
+    """
+    Generate a vector to be quantized.
+    """
+    if dist=='uniform':
+        return np.array([(lowerBnd + i*(upperBnd-lowerBnd)/numPts) for i in range(numPts)])
+    else:
+        settings.error ('In Quantization.py. Sorry. The distribution {dist} you chose is not supported.')
     
+    
+def simQuantErr (modes=[], cntrSize=8, expSizes=[], hyperSize=2, verbose=[]):
+    
+    vec2quantize = genVec2Quantize (dist='uniform', lowerBnd=-100, upperBnd=100, numPts = 1000)
     cntrSize = cntrSize-1 # account for the sign bit
     for mode in modes:
         if mode=='FP':
@@ -77,13 +91,13 @@ def simQuantErr (modes=[], cntrSize=8, expSizes=[], hyperSize=2, verbose=[]):
                 grid     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, signed=False, verbose=verbose)                
                 clampedVec2quantize = clamp (vec=vec2quantize, lowerBnd=grid[0], upperBnd=grid[-1]) # getAllVals returns the grid sorted, so the smallest, largest values are the first, last ones
                 MSE = calcMseSortedVecs(grid=grid, vec2quantize=clampedVec2quantize)
-                print (f'{settings.genFpLabelStr(expSize=expSize, mantSize=cntrSize-expSize)}, MSE={MSE}')
-        elif mode=='F2P':
-            # grid     = F2P_sr.CntrMaster (cntrSize=8, hyperSize=2, numCntrs=1, verbose=verbose)
-            grid = getAllValsF2P (flavor='sr', cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)                
+                print (f'{ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-expSize)}, MSE={MSE}')
+        elif mode.startswith('F2P'):
+            flavor = mode.split('_')[1]
+            grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)                
             clampedVec2quantize = clamp (vec=vec2quantize, lowerBnd=grid[0], upperBnd=grid[-1]) # getAllVals returns the grid sorted, so the smallest, largest values are the first, last ones
             MSE = calcMseSortedVecs(grid=grid, vec2quantize=clampedVec2quantize)
-            print (f'{settings.genF2PLabel(flavor=flavor)}')
+            print (f'{ResFileParser.genF2pLabel(flavor=flavor)}, MSE={MSE}')
         else:
             settings.error ('Sorry, the requested mode {mode} is not supported.')
-simQuantErr (modes=['FP', 'F2P'], expSizes=[1,6])
+simQuantErr (modes=['F2P_sr', 'FP'], expSizes=[1,6])

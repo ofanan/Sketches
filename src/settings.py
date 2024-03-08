@@ -198,11 +198,3 @@ def makeSymmetricVec (X):
     reversed_negative_part = [-x for x in X[-1::-2]]
     Y = reversed_negative_part + [X[0]] + X[1:]
     return Y
-
-
-   
-def genFpLabelStr (mantSize : int, expSize : int) -> str:
-    """
-    Generates a label string that details the counter's settings (param vals), to be used in plots.
-    """
-    return f'{mantSize}M{expSize}E'
