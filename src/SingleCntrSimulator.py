@@ -505,7 +505,7 @@ def genCntrMasterF2P (cntrSize, hyperSize, flavor='', verbose=[]):
 
 
 def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit) 
-                  expSizes  = None, # number of bits in the exp. When None, consider all feasible exponent-field sizes. Else, loop over all the requested exponent sizes.
+                  expSize   = 1, # number of bits in the exp.
                   signed    = False, 
                   verbose   = [] # verbose level. See settings.py
                   ):
@@ -519,20 +519,18 @@ def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit)
     """
     if signed:
         cntrSize -= 1
-    expSizes = range (1, cntrSize) if expSizes==None else expSizes
-    for expSize in expSizes: 
-        listOfVals = []
-        myCntrMaster = FP.CntrMaster(cntrSize=cntrSize, expSize=expSize, verbose=verbose)
-        for num in range(2 ** cntrSize):
-            cntr = np.binary_repr(num, cntrSize)
-            val = myCntrMaster.cntr2num(cntr)
-            listOfVals.append ({'cntrVec' : cntr, 'val' : val})
-        if settings.VERBOSE_RES in verbose:
-            listOfVals = sorted (listOfVals, key=lambda item : item['val'])
-            outputFile = open('../res/{}.res'.format(myCntrMaster.genSettingsStr()), 'w')
-            printf (outputFile, f'// bias={myCntrMaster.bias}\n')
-            for item in listOfVals:
-                printf(outputFile, '{}={}\n'.format(item['cntrVec'], item['val']))
+    listOfVals = []
+    myCntrMaster = FP.CntrMaster(cntrSize=cntrSize, expSize=expSize, verbose=verbose)
+    for num in range(2 ** cntrSize):
+        cntr = np.binary_repr(num, cntrSize)
+        val = myCntrMaster.cntr2num(cntr)
+        listOfVals.append ({'cntrVec' : cntr, 'val' : val})
+    listOfVals = sorted (listOfVals, key=lambda item : item['val'])
+    if settings.VERBOSE_RES in verbose:
+        outputFile = open('../res/{}.res'.format(myCntrMaster.genSettingsStr()), 'w')
+        printf (outputFile, f'// bias={myCntrMaster.bias}\n')
+        for item in listOfVals:
+            printf(outputFile, '{}={}\n'.format(item['cntrVec'], item['val']))
 
     listOfVals = [item['val'] for item in listOfVals]    
     if signed:
