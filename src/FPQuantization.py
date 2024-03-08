@@ -78,6 +78,6 @@ def simQuantErr (modes=[], cntrSize=8, expSizes=[], hyperSize=2, verbose=[]):
                 grid     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, signed=False, verbose=verbose)                
                 clampedVec2quantize = clamp (vec=vec2quantize, lowerBnd=grid[0], upperBnd=grid[-1]) # getAllVals returns the grid sorted, so the smallest, largest values are the first, last ones
                 MSE = calcMseSortedVecs(grid=grid, vec2quantize=clampedVec2quantize)
-                print (f'MSE={MSE}')
+                print (f'{settings.genFpLabelStr(expSize=expSize, mantSize=cntrSize-expSize)}, MSE={MSE}')
 
 simQuantErr (modes=['FP'], expSizes=[1,6])

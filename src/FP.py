@@ -12,7 +12,7 @@ class CntrMaster (object):
     Then, it's possible to perform arithmetic ops on the counters in chosen indices of the array. 
     """
 
-    # Generates a strings that details the counter's settings (param vals).    
+    # Generates a string that details the counter's settings (param vals).    
     genSettingsStr  = lambda self : f'FP_n{self.cntrSize}_m{self.mantSize}_e{self.expSize}'
     
     # print the details of the counter in a convenient way
