@@ -74,10 +74,16 @@ def simQuantErr (modes=[], cntrSize=8, expSizes=[], hyperSize=2, verbose=[]):
     for mode in modes:
         if mode=='FP':
             for expSize in expSizes: 
-                print (f'expSize={expSize}')
                 grid     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, signed=False, verbose=verbose)                
                 clampedVec2quantize = clamp (vec=vec2quantize, lowerBnd=grid[0], upperBnd=grid[-1]) # getAllVals returns the grid sorted, so the smallest, largest values are the first, last ones
                 MSE = calcMseSortedVecs(grid=grid, vec2quantize=clampedVec2quantize)
                 print (f'{settings.genFpLabelStr(expSize=expSize, mantSize=cntrSize-expSize)}, MSE={MSE}')
-
-simQuantErr (modes=['FP'], expSizes=[1,6])
+        elif mode=='F2P':
+            # grid     = F2P_sr.CntrMaster (cntrSize=8, hyperSize=2, numCntrs=1, verbose=verbose)
+            grid = getAllValsF2P (flavor='sr', cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)                
+            clampedVec2quantize = clamp (vec=vec2quantize, lowerBnd=grid[0], upperBnd=grid[-1]) # getAllVals returns the grid sorted, so the smallest, largest values are the first, last ones
+            MSE = calcMseSortedVecs(grid=grid, vec2quantize=clampedVec2quantize)
+            print (f'{settings.genF2PLabel(flavor=flavor)}')
+        else:
+            settings.error ('Sorry, the requested mode {mode} is not supported.')
+simQuantErr (modes=['FP', 'F2P'], expSizes=[1,6])
