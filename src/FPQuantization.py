@@ -83,7 +83,7 @@ def genVec2Quantize (dist     : 'uniform',  # distribution from which points are
     
 def simQuantErr (modes=[], cntrSize=8, expSizes=[], hyperSize=2, verbose=[]):
     
-    vec2quantize = genVec2Quantize (dist='uniform', lowerBnd=-100, upperBnd=100, numPts = 1000)
+    vec2quantize = genVec2Quantize (dist='uniform', lowerBnd=-0.5, upperBnd=0.5, numPts = 1000)
     cntrSize = cntrSize-1 # account for the sign bit
     for mode in modes:
         if mode=='FP':
