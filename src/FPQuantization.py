@@ -74,7 +74,10 @@ def simQuantErr (modes=[], cntrSize=8, expSizes=[], hyperSize=2, verbose=[]):
     for mode in modes:
         if mode=='FP':
             for expSize in expSizes: 
+                print (f'expSize={expSize}')
                 grid     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, signed=False, verbose=verbose)                
-                clampedVec2quantize = clamp (vec2quantize=vec2quantize, lowrBnd=grid[0], upperBnd=grid[-1]) # getAllVals returns the grid sorted, so the smallest, largest values are the first, last ones
+                clampedVec2quantize = clamp (vec=vec2quantize, lowerBnd=grid[0], upperBnd=grid[-1]) # getAllVals returns the grid sorted, so the smallest, largest values are the first, last ones
                 MSE = calcMseSortedVecs(grid=grid, vec2quantize=clampedVec2quantize)
                 print (f'MSE={MSE}')
+
+simQuantErr (modes=['FP'], expSizes=[1,6])

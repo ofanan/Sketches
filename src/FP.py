@@ -78,9 +78,13 @@ class CntrMaster (object):
         if (len(cntr) != self.cntrSize): # if the cntr's size differs from the default, we have to update the basic params
             settings.error (f'In FP.cntr2num(). the size of the given counter {cntr} is {len(cntr)} while CntrMaster was initialized with cntrSize={self.cntrSize}')
 
-        expVec  = cntr[0:self.expSize]
-        mantVec = cntr[self.expSize:]
-        mantVal = float (int (mantVec, base=2)) / 2**(self.cntrSize - self.expSize)  
+        expVec      = cntr[0:self.expSize]
+        mantVec     = cntr[self.expSize:]
+        mantSize    = self.cntrSize - self.expSize
+        if mantSize<1:
+            settings.error (f'FP.cntr2num() was called with cntrSize={self.cntrSize}, expSize={self.expSize}, resulting in mantSize={mantSize} which is infeasible.')
+            
+        mantVal     = float (int (mantVec, base=2)) / 2**mantSize  
         if expVec == self.expMinVal:
             cntrVal  = mantVal * (2**(self.bias+1))
         else:
@@ -132,4 +136,3 @@ def printAllVals(cntrSize=8, expSizes=None, verbose=[]):
             for item in listOfVals:
                 printf(outputFile, '{}={}\n'.format(item['cntrVec'], item['val']))
 
-printAllVals (cntrSize=4, expSizes=[2], verbose=[settings.VERBOSE_RES]) #, settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
