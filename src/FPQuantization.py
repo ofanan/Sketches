@@ -24,11 +24,11 @@ def quantizeWoRnd (vec : np.array, grid : np.array) -> np.array:
     Quantize an input vector, using symmetric Min-max quantization. This is done by scaling the vector.
     The function does NOT round the vector.
     """
-    vec = sorted (vec)
     upperBnd = max (abs(vec[0]), abs(vec[-1])) # The upper bound is the largest absolute value in the vector to quantize.
     lowerBnd = -upperBnd
     vec = clamp (vec, lowerBnd, upperBnd)
     scale = (upperBnd-lowerBnd) / (grid[-1]-grid[0])
+    settings.error (f'upperBnd={upperBnd}, lowerBnd={lowerBnd}, grid[-1]={grid[-1]}, grid[0]={grid[0]}') #$$$
     return [item/scale for item in vec] 
     
 def calcAbsQuantErrorSortedVecs (grid, vec):
@@ -90,7 +90,7 @@ def genVec2Quantize (dist     : 'uniform',  # distribution from which points are
     if dist=='uniform':
         return np.array([(lowerBnd + i*(upperBnd-lowerBnd)/numPts) for i in range(numPts)])
     elif dist=='Gaussian':
-        return sorted (np.random.randn(numPts) * (upperBnd/2))
+        return (np.sort (np.random.randn(numPts) * (upperBnd/2)))
     else:
         settings.error ('In Quantization.py. Sorry. The distribution {dist} you chose is not supported.')
     
@@ -106,7 +106,7 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
     """
     
     
-    vec2quantize = genVec2Quantize (dist='Gaussian', lowerBnd=-0.5, upperBnd=5, numPts = 1000)
+    vec2quantize = genVec2Quantize (dist='Gaussian', lowerBnd=-0.5, upperBnd=1, numPts = 100)
     cntrSize = cntrSize-1 # account for the sign bit
     for mode in modes:
         if mode=='FP':
@@ -118,9 +118,8 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
         elif mode.startswith('F2P'):
             flavor = mode.split('_')[1]
             grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
-            print (f'grid[0]={grid[0]}, grid[-1]={grid[-1]}')
-            MSE = calcMseSortedVecs(grid=grid, vec2quantize=clampedVec2quantize)
-            print (f'{ResFileParser.genF2pLabel(flavor=flavor)}, MSE={MSE}')
+            MSE = calcMseSortedVecs (grid=grid, vec=quantizeWoRnd (vec=vec2quantize, grid=grid))
+            print ('{}, abs_MSE={}, rel_MSE={}' .format(ResFileParser.genF2pLabel(flavor=flavor), MSE['abs'], MSE['rel']))
         else:
             settings.error ('Sorry, the requested mode {mode} is not supported.')
-simQuantErr (modes=['F2P_sr', 'FP'], expSizes=[1,6])
+simQuantErr (modes=['F2P_sr', 'FP'], expSizes=[1,6]) #'F2P_sr', 
