@@ -28,7 +28,6 @@ def quantizeWoRnd (vec : np.array, grid : np.array) -> np.array:
     lowerBnd = -upperBnd
     vec = clamp (vec, lowerBnd, upperBnd)
     scale = (upperBnd-lowerBnd) / (grid[-1]-grid[0])
-    settings.error (f'upperBnd={upperBnd}, lowerBnd={lowerBnd}, grid[-1]={grid[-1]}, grid[0]={grid[0]}') #$$$
     return [item/scale for item in vec] 
     
 def calcAbsQuantErrorSortedVecs (grid, vec):
@@ -117,7 +116,7 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
                 print ('{}, abs_MSE={}, rel_MSE={}' .format(ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-expSize), MSE['abs'], MSE['rel']))
         elif mode.startswith('F2P'):
             flavor = mode.split('_')[1]
-            grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+            grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose, signed=True)
             MSE = calcMseSortedVecs (grid=grid, vec=quantizeWoRnd (vec=vec2quantize, grid=grid))
             print ('{}, abs_MSE={}, rel_MSE={}' .format(ResFileParser.genF2pLabel(flavor=flavor), MSE['abs'], MSE['rel']))
         else:
