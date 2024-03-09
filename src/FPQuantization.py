@@ -21,25 +21,29 @@ def clamp (vec: np.array, lowerBnd: float, upperBnd: float) -> np.array:
 
 def quantizeWoRnd (vec : np.array, grid : np.array) -> np.array:
     """
-    Quantize an input vector, using symmetric Min-max quantization.
+    Quantize an input vector, using symmetric Min-max quantization. This is done by scaling the vector.
+    The function does NOT round the vector.
     """
     vec = sorted (vec)
     upperBnd = max (abs(vec[0]), abs(vec[-1])) # The upper bound is the largest absolute value in the vector to quantize.
     lowerBnd = -upperBnd
     vec = clamp (vec, lowerBnd, upperBnd)
     scale = (upperBnd-lowerBnd) / (grid[-1]-grid[0])
-    return [item/scale for item in vec] # $$ Now need to find the nearest.
+    return [item/scale for item in vec] 
     
-def calcAbsQuantErrorSortedVecs (grid, vec2quantize):
-    vecOfErrs = np.empty (len(vec2quantize))
+def calcAbsQuantErrorSortedVecs (grid, vec):
+    """
+    Given a sorted grid and a sorted quantized vec, return the quantizatoin error for each item in the quantized vec.
+    """
+    vecOfErrs = np.empty (len(vec))
     idxInGrid = 0
-    for idxInVec in range(len(vec2quantize)):
+    for idxInVec in range(len(vec)):
         if idxInGrid==len(grid): # already reached the max grid val --> all next items in vec should be compared to the last item in the grid 
-            vecOfErrs[idxInVec] = abs (vec2quantize[idxInVec]-grid[-1])
+            vecOfErrs[idxInVec] = abs (vec[idxInVec]-grid[-1])
             continue
-        vecOfErrs[idxInVec] = abs (vec2quantize[idxInVec]-grid[idxInGrid])
+        vecOfErrs[idxInVec] = abs (vec[idxInVec]-grid[idxInGrid])
         while (idxInGrid < len(grid)):
-            absErr = abs (vec2quantize[idxInVec]-grid[idxInGrid])
+            absErr = abs (vec[idxInVec]-grid[idxInGrid])
             if absErr <= vecOfErrs[idxInVec]:
                 vecOfErrs[idxInVec] = absErr
                 idxInGrid += 1
@@ -59,7 +63,7 @@ def calcMseSortedVecs (grid, vec):
         if idxInGrid==len(grid): # already reached the max grid val --> all next items in vec should be compared to the last item in the grid 
             sqAbsErr        = (vec[idxInVec]-grid[-1])**2
             overallAbsErr += sqAbsErr
-            overallRelErr += sqAbsErr/(grid[-1]**2)
+            overallRelErr += sqAbsErr/(vec[idxInVec]**2)
             continue
         curAbsErr = abs (vec[idxInVec]-grid[idxInGrid])
         while (idxInGrid < len(grid)):
@@ -72,8 +76,8 @@ def calcMseSortedVecs (grid, vec):
                break
         sqAbsErr        = curAbsErr**2
         overallAbsErr  += sqAbsErr
-        overallRelErr  += sqAbsErr/(grid[idxInGrid]**2)
-    return {'MSE abs' : overallAbsErr/len(vec), 'MSE rel' : overallRelErr/len(vec)} 
+        overallRelErr  += sqAbsErr/(vec[idxInVec]**2)
+    return {'abs' : overallAbsErr/len(vec), 'rel' : overallRelErr/len(vec)} 
 
 def genVec2Quantize (dist     : 'uniform',  # distribution from which points are drawn  
                      lowerBnd : float,      # lower bound for the generated points  
@@ -91,7 +95,16 @@ def genVec2Quantize (dist     : 'uniform',  # distribution from which points are
         settings.error ('In Quantization.py. Sorry. The distribution {dist} you chose is not supported.')
     
     
-def simQuantErr (modes=[], cntrSize=8, expSizes=[], hyperSize=2, verbose=[]):
+def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr. 
+                 cntrSize   = 8,  # of bits, including the sign bit 
+                 expSizes   = [1], # size of the exponent when simulating FP 
+                 hyperSize  = 2,  # size of the hyper-exp, when simulating F2P  
+                 verbose    = []  # level of verbose, as defined in settings.py. 
+                 ):
+    """
+    Simulate the required configuration and output the results (the quantization errors) as defined by the verbose.
+    """
+    
     
     vec2quantize = genVec2Quantize (dist='Gaussian', lowerBnd=-0.5, upperBnd=5, numPts = 1000)
     cntrSize = cntrSize-1 # account for the sign bit
@@ -100,13 +113,12 @@ def simQuantErr (modes=[], cntrSize=8, expSizes=[], hyperSize=2, verbose=[]):
             for expSize in expSizes: 
                 grid     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, signed=False, verbose=verbose)                
                 print (f'grid[0]={grid[0]}, grid[-1]={grid[-1]}')
-                MSE = calcMseSortedVec s(grid=grid, vec2quantize=quantizeWoRnd (vec=vec2quantize, grid=grid))
-                print (f'{ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-expSize)}, MSE={MSE}')
+                MSE = calcMseSortedVecs (grid=grid, vec=quantizeWoRnd (vec=vec2quantize, grid=grid))
+                print ('{}, abs_MSE={}, rel_MSE={}' .format(ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-expSize), MSE['abs'], MSE['rel']))
         elif mode.startswith('F2P'):
             flavor = mode.split('_')[1]
             grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
-            print (f'grid[0]={grid[0]}, grid[-1]={grid[-1]}')                
-            clampedVec2quantize = clamp (vec=vec2quantize, lowerBnd=grid[0], upperBnd=grid[-1]) # getAllVals returns the grid sorted, so the smallest, largest values are the first, last ones
+            print (f'grid[0]={grid[0]}, grid[-1]={grid[-1]}')
             MSE = calcMseSortedVecs(grid=grid, vec2quantize=clampedVec2quantize)
             print (f'{ResFileParser.genF2pLabel(flavor=flavor)}, MSE={MSE}')
         else:
