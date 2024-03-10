@@ -520,7 +520,7 @@ def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit)
     if signed:
         cntrSize -= 1
     listOfVals = []
-    myCntrMaster = FP.CntrMaster(cntrSize=cntrSize, expSize=expSize, verbose=verbose)
+    myCntrMaster = FP.CntrMaster(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=False) # For efficiency, we generate an unsigned vec; later, we will take its mirror for the negative part.
     for num in range(2 ** cntrSize):
         cntr = np.binary_repr(num, cntrSize)
         val = myCntrMaster.cntr2num(cntr)

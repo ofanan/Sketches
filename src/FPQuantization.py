@@ -106,11 +106,10 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
     
     np.random.seed (settings.SEED)
     vec2quantize = genVec2Quantize (dist='Gaussian', lowerBnd=-0.5, upperBnd=1, numPts = 100)
-    cntrSize = cntrSize-1 # account for the sign bit
     for mode in modes:
         if mode=='FP':
             for expSize in expSizes: 
-                grid     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, signed=False, verbose=verbose)                
+                grid     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=True)                
                 print (f'grid[0]={grid[0]}, grid[-1]={grid[-1]}')
                 MSE = calcMseSortedVecs (grid=grid, vec=quantizeWoRnd (vec=vec2quantize, grid=grid))
                 print ('{}, abs_MSE={}, rel_MSE={}' .format(ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-expSize), MSE['abs'], MSE['rel']))
