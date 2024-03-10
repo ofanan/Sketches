@@ -19,12 +19,12 @@ LEGEND_FONT_SIZE = 14
 LEGEND_FONT_SIZE_SMALL = 5 
 USE_FRAME              = True # When True, plot a "frame" (box) around the plot 
 
-colors = ['green', 'purple', 'brown', 'yellow', 'blue']
+colors = ['green', 'purple', 'brown', 'black', 'blue']
 
 # The colors used for each alg's plot, in the dist' case
 colorOfMode = {
     'F2P_lr'    : 'green',
-    'F2P_sr'    : 'green',
+    'F2P_sr'    : 'brown',
     'F2P_li'    : 'purple',
     'F3P'       : 'purple',
     'SEAD stat' : 'brown',
@@ -55,7 +55,7 @@ def genFpLabel (mantSize : int, expSize : int) -> str:
     """
     Generates a label string that details the counter's settings (param vals), to be used in plots.
     """
-    return f'{mantSize}M{expSize}E'
+    return f'FP {mantSize}M{expSize}E'
 
 def genF2pLabel (flavor : str) -> str:
     """

@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from printf import printf, printar, printarFp
 import settings, ResFileParser, F2P_sr, F2P_lr, F2P_li, FP  
 from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
-from ResFileParser import colorOfMode, markerOfMode, MARKER_SIZE_SMALL
+from ResFileParser import colors, colorOfMode, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, LEGEND_FONT_SIZE
 
 def clamp (vec: np.array, lowerBnd: float, upperBnd: float) -> np.array:
     """
@@ -30,41 +30,62 @@ def scaleGrid (grid : np.array, lowerBnd=0, upperBnd=100) -> np.array:
     
 def plotScaledGrids (
         modes       = [], # modes to be simulated, e.g. FP, F2P_sr. 
-        cntrSize    = 7,  # of bits, including the sign bit 
-        expSizes    = [6], # size of the exponent when simulating FP 
+        cntrSize    = 6,  # of bits, including the sign bit 
         hyperSize   = 2,  # size of the hyper-exp, when simulating F2P  
         signed      = False, # when True, plot also negative values (symmetrically w.r.t. 0).
         verbose     = []  # level of verbose, as defined in settings.py. 
         ) -> None:
     """
     """
+    setPltParams = lambda self, size = 'large': matplotlib.rcParams.update({
+        'font.size'         : FONT_SIZE,
+        'legend.fontsize'   : LEGEND_FONT_SIZE,
+        'xtick.labelsize'   : FONT_SIZE,
+        'ytick.labelsize'   : FONT_SIZE,
+        'axes.labelsize'    : FONT_SIZE,
+        'axes.titlesize'    : FONT_SIZE, }) if (size == 'large') else matplotlib.rcParams.update({
+        'font.size'         : FONT_SIZE_SMALL,
+        'legend.fontsize'   : LEGEND_FONT_SIZE_SMALL,
+        'xtick.labelsize'   : FONT_SIZE_SMALL,
+        'ytick.labelsize'   : FONT_SIZE_SMALL,
+        'axes.labelsize'    : FONT_SIZE_SMALL,
+        'axes.titlesize'    :FONT_SIZE_SMALL
+        })
     _, ax = plt.subplots()
     plotRecords = []
     lenGrid     = 2**cntrSize
     for mode in modes:
-        if mode=='FP':
-            for expSize in expSizes: 
-                plotRecords.append ({
-                    'label' : ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-expSize),
-                    'grid'  : scaleGrid (getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=signed)), 
-                    })
+        if mode.startswith('FP'):
+            expSize = int(mode.split ('_e')[1])
+            mode = 'FP'
+            plotRecords.append ({
+                'mode'  : mode,
+                'label' : ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-expSize),
+                'grid'  : scaleGrid (getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=signed)), 
+                })
         elif mode.startswith('F2P'):
             flavor = mode.split('_')[1]
             plotRecords.append ({
+                'mode'  : mode,
                 'label' : ResFileParser.genF2pLabel(flavor=flavor),
                 'grid'  : scaleGrid (getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose, signed=signed)) 
                 })
 
-        for i in range(len(plotRecords)): 
-            plotRecord = plotRecords[i]     
-            ax.plot (plotRecord['grid'], 
-                     [i for item in range(lenGrid)], 
-                     color      = colorOfMode[mode], 
-                     marker     = markerOfMode[mode], 
-                     linestyle  = 'None', 
-                     markerSize = MARKER_SIZE_SMALL, 
-                     label      = plotRecord['label'])  # Plot the conf' interval line
-        plt.show()
+    for i in range(len(plotRecords)): 
+        plotRecord = plotRecords[i]     
+        ax.plot (plotRecord['grid'], 
+                 [len(plotRecords)-i for item in range(lenGrid)], 
+                 color      = colors[i], 
+                 marker     = markerOfMode[mode], 
+                 linestyle  = 'None', 
+                 markersize = MARKER_SIZE_SMALL, 
+                 label      = plotRecord['label'])  # Plot the conf' interval line
+    frame1 = plt.gca()
+    frame1.axes.get_yaxis().set_visible(False)
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = dict(zip(labels, handles))
+    plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
+    plt.show()
 
 def quantizeWoRnd (vec : np.array, grid : np.array) -> np.array:
     """
@@ -168,4 +189,4 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
         else:
             settings.error ('Sorry, the requested mode {mode} is not supported.')
 # simQuantErr (modes=['F2P_sr', 'FP'], expSizes=[1,6]) #'F2P_sr', 
-plotScaledGrids (modes=['FP', 'F2P_sr'])
+plotScaledGrids (cntrSize=6, modes=['FP_e1', 'F2P_sr', 'FP_e5', 'F2P_lr'])

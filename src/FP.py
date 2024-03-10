@@ -22,11 +22,11 @@ class CntrMaster (object):
     expVec2Val      = lambda self, expVec : int(expVec, base=2)
     
     def __init__ (self, 
-                  cntrSize  = 8, # of bits in the cntr, EXCLUDING the sign bit (if exists) 
-                  expSize   = 2,
-                  signed    = False, # When True, the FP is signed (the MSB is the sign bit)
-                  numCntrs  = 1, # of cntrs in the cntrs' array
-                  verbose   = []    # the optional verbose values are detailed in settings.py
+                  cntrSize  : int  = 8, # of bits in the cntr, EXCLUDING the sign bit (if exists) 
+                  expSize   : int  = 2,
+                  signed    : bool = False, # When True, the FP is signed (the MSB is the sign bit)
+                  numCntrs  : int  = 1, # of cntrs in the cntrs' array
+                  verbose   : list = []    # the optional verbose values are detailed in settings.py
                   ):
         
         """
@@ -38,7 +38,7 @@ class CntrMaster (object):
             print ('error: cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
             self.isFeasible = False
             return 
-        self.cntrSize   = int(cntrSize)
+        self.cntrSize   = cntrSize
         self.signed     = signed
         self.numCntrs   = numCntrs
         self.verbose    = verbose
