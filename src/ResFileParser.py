@@ -37,6 +37,20 @@ colorOfMode = {
     'AEE'       : 'blue'
     }
 
+# The markers used for each alg', in the dist' case
+markerOfMode = {'F2P_li'    : 'o',
+                     'F2P_lr'    : 'o',
+                     'F2P_sr'    : 'o',
+                     'F3P'       : 'v',
+                     'SEAD stat' : '^',
+                     'SEAD dyn'  : 's',
+                     'FP'        : 'p',
+                     'Tetra stat': 'p',
+                     'Tetra dyn' : 'X',
+                     'CEDAR'     : '<',
+                     'Morris'    : '>',
+                     'AEE'       : 'o'}
+
 def genFpLabel (mantSize : int, expSize : int) -> str:
     """
     Generates a label string that details the counter's settings (param vals), to be used in plots.
@@ -80,19 +94,6 @@ class ResFileParser (object):
 
         self.markers = ['o', 'v', '^', 's', 'p', 'X']
 
-        # The markers used for each alg', in the dist' case
-        self.markerOfMode = {'F2P_li'    : 'o',
-                             'F2P_lr'    : 'o',
-                             'F2P_sr'    : 'o',
-                             'F3P'       : 'v',
-                             'SEAD stat' : '^',
-                             'SEAD dyn'  : 's',
-                             'FP'        : 'p',
-                             'Tetra stat': 'p',
-                             'Tetra dyn' : 'X',
-                             'CEDAR'     : '<',
-                             'Morris'    : '>',
-                             'AEE'       : 'o'}
         self.points = []
         
     def rdPcl (self, pclFileName):
@@ -177,7 +178,7 @@ class ResFileParser (object):
                 y_lo, y_avg, y_hi = point['Lo'], point['Avg'], point['Hi']                     
                 ax.plot ((cntrSize, cntrSize), (y_lo, y_hi), color=colorOfMode[mode])  # Plot the conf' interval line
                 y.append (y_avg)
-            ax.plot (cntrSizes, y, color=colorOfMode[mode], marker=self.markerOfMode[mode],
+            ax.plot (cntrSizes, y, color=colorOfMode[mode], marker=markerOfMode[mode],
                      markersize=MARKER_SIZE, linewidth=LINE_WIDTH, label=point['mode'], mfc='none') 
 
         plt.xlabel('Counter Size [bits]')
@@ -229,7 +230,7 @@ class ResFileParser (object):
 
             label = mode
         
-            ax.plot (cntrMaxVals, y, color=colorOfMode[mode], marker=self.markerOfMode[mode],
+            ax.plot (cntrMaxVals, y, color=colorOfMode[mode], marker=markerOfMode[mode],
                      markersize=MARKER_SIZE, linewidth=LINE_WIDTH, label=point['settingStr'], mfc='none') 
 
         plt.xlabel('Counter Maximum Value')
@@ -263,7 +264,7 @@ class ResFileParser (object):
                 settings.error (f'More than a single list of points for mode {mode}')
             points = pointsOfThisMode[0]['points']
             
-            ax.plot (points['X'], points['Y'], color=colorOfMode[mode], marker=self.markerOfMode[mode],
+            ax.plot (points['X'], points['Y'], color=colorOfMode[mode], marker=markerOfMode[mode],
                      markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=mode, mfc='none') 
 
         plt.xlabel('Counted Value')
