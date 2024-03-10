@@ -194,7 +194,7 @@ def makeSymmetricVec (X):
     The first n items in Y are the same as in X, but in reverse order, and inverted sign.
     The next n items in Y are the same as the n items in X.
     """
-    n = len(X)
-    reversed_negative_part = [-x for x in X[-1::-2]]
-    Y = reversed_negative_part + [X[0]] + X[1:]
+    # n = len(X)
+    # reversed_negative_part = [-item for item in X[::-1]]
+    Y = [-item for item in X[::-1]] + X
     return Y
