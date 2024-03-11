@@ -103,7 +103,9 @@ def plotScaledGrids (
     plt.xlim (0,5)        
     plt.show()
 
-def quantize (vec : np.array, grid : np.array) -> np.array:
+def quantize (vec  : np.array, # The vector to quantize 
+              grid : np.array  # The quantization grid (all the values that can be represented by the destination number representation
+              ) -> [np.array, float]: # [the_quantized_vector, the scale_factor (by which the vector was divided)] 
     """
     Quantize an input vector, using symmetric Min-max quantization. 
     This is done by:
@@ -143,7 +145,7 @@ def genVec2Quantize (dist       : 'uniform',  # distribution from which points a
                      numPts     : int   = 100, # Num of points in the generated vector
                      ) -> np.array:
     """
-    Generate a vector to be quantized.
+    Generate a vector to be quantized, using the requested distribution.
     """
     if dist=='uniform':
         return np.array([(lowerBnd + i*(upperBnd-lowerBnd)/numPts) for i in range(numPts)])
