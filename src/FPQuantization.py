@@ -20,6 +20,21 @@ def clamp (vec: np.array, lowerBnd: float, upperBnd: float) -> np.array:
     vec[vec > upperBnd] = upperBnd
     return vec
 
+def dequantize (vec : np.array, scale : float) -> np.array:
+    """
+    Dequantize the given vector, namely, multiply each element in it by the given scale.
+    """
+    return [item*scale for item in vec] 
+
+def calcMse (orgVec : np.array, changedVec : np.array):
+    """
+    Calculate the Mean Square Error (both relative and absolute) between the original vector and the changed vector. 
+    """    
+    return {
+        'avgRelMSE' : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec))]) / len(orgVec),
+        'absErrVec' : [orgVec[i]-changedVec[i] for i in range(len(orgVec))]
+        }
+
 def scaleGrid (grid : np.array, lowerBnd=0, upperBnd=100) -> np.array:
     """
     Scale the given sorted grid into the given range [lowerBnd, upperBnd]
@@ -99,6 +114,38 @@ def quantizeWoRnd (vec : np.array, grid : np.array) -> np.array:
     scale = (upperBnd-lowerBnd) / (grid[-1]-grid[0])
     return [item/scale for item in vec] 
     
+def quantize (vec : np.array, grid : np.array) -> np.array:
+    """
+    Quantize an input vector, using symmetric Min-max quantization. 
+    This is done by:
+    - Quantizing the vector, namely:
+      - Clamping and scaling the vector. The scaling method is minMax.
+      - Rounding the vector to the nearest values in the grid.
+    """
+    upperBnd    = max (abs(vec[0]), abs(vec[-1])) # The upper bound is the largest absolute value in the vector to quantize.
+    lowerBnd    = -upperBnd
+    scaledVec   = clamp (vec, lowerBnd, upperBnd)
+    scale       = (upperBnd-lowerBnd) / (grid[-1]-grid[0])
+    scaledVec   = [item/scale for item in vec] # The vector after scaling and clamping (still w/o rounding)  
+    quantVec    = np.empty (len(vec)) # The quantized vector (after rounding scaledVec) 
+    idxInGrid = int(0)
+    for idxInVec in range(len(scaledVec)):
+        if idxInGrid==len(grid): # already reached the max grid val --> all next items in q should be the last item in the grid 
+            quantVec[idxInVec] = grid[-1]
+            continue
+        quantVec[idxInVec]= grid[idxInGrid]
+        minAbsErr = abs (scaledVec[idxInVec]-quantVec[idxInVec])
+        while (idxInGrid < len(grid)):
+            quantVec[idxInVec]= grid[idxInGrid]
+            absErr = abs (scaledVec[idxInVec]-quantVec[idxInVec])
+            if absErr <= minAbsErr:
+                minAbsErr = absErr
+                idxInGrid += 1
+            else:
+               idxInGrid -= 1
+               break
+    return [quantVec, scale]
+
 def calcAbsQuantErrorSortedVecs (grid, vec):
     """
     Given a sorted grid and a sorted quantized vec, return the quantizatoin error for each item in the quantized vec.
@@ -178,15 +225,26 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
     for mode in modes:
         if mode=='FP':
             for expSize in expSizes: 
-                grid     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=True)                
-                MSE = calcMseSortedVecs (grid=grid, vec=quantizeWoRnd (vec=vec2quantize, grid=grid))
-                print ('{}, rel_MSE={}' .format(ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize), MSE['rel']))
+                grid     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=True)
+                [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
+                dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
+                MSE = calcMse(orgVec=vec2quantize, changedVec=dequantizedVec) 
+                print ('{}, rel_MSE={}' .format(ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize), MSE['avgRelMSE']))
         elif mode.startswith('F2P'):
             flavor = mode.split('_')[1]
             grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose, signed=True)
             MSE = calcMseSortedVecs (grid=grid, vec=quantizeWoRnd (vec=vec2quantize, grid=grid))
             print ('{}, rel_MSE={}' .format(ResFileParser.genF2pLabel(flavor=flavor), MSE['rel']))
+        elif mode=='shortTest':
+            grid = np.array([i for i in range(10)])
+            vec2quantize = np.array([0, 3, 17, 88, 91, 100])
+            [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)
+            print (f'grid={grid}\nvec2quantize={vec2quantize}\nquantizedVec={quantizedVec}, scale={scale}')
+            exit ()                
+            dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
+            MSE = calcMse(orgVec=vec2quantize, changedVec=dequantizedVec) 
+            print ('{}, rel_MSE={}' .format(ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize), MSE['avgRelMSE']))            
         else:
             settings.error ('Sorry, the requested mode {mode} is not supported.')
-# simQuantErr (modes=['F2P_sr', 'FP'], expSizes=[1,6]) #'F2P_sr', 
-plotScaledGrids (cntrSize=6, modes=['FP_e1', 'F2P_sr', 'FP_e5', 'F2P_lr'])
+simQuantErr (modes=['shortTest'], expSizes=[6]) #'F2P_sr', 
+# plotScaledGrids (cntrSize=6, modes=['FP_e1', 'F2P_sr', 'FP_e5', 'F2P_lr'])
