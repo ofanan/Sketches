@@ -84,7 +84,8 @@ def plotScaledGrids (
     frame1.axes.get_yaxis().set_visible(False)
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
-    plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
+    plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
+    plt.xlim (0,5)        
     plt.show()
 
 def quantizeWoRnd (vec : np.array, grid : np.array) -> np.array:
@@ -146,10 +147,11 @@ def calcMseSortedVecs (grid, vec):
         overallRelErr  += sqAbsErr/(vec[idxInVec]**2)
     return {'abs' : overallAbsErr/len(vec), 'rel' : overallRelErr/len(vec)} 
 
-def genVec2Quantize (dist     : 'uniform',  # distribution from which points are drawn  
-                     lowerBnd : float,      # lower bound for the generated points  
-                     upperBnd : float,      # upper bound for the generated points
-                     numPts : int           # Num of points in the generated vector
+def genVec2Quantize (dist       : 'uniform',  # distribution from which points are drawn  
+                     lowerBnd   : float = 0,   # lower bound for the generated points  
+                     upperBnd   : float = 1,   # upper bound for the generated points
+                     stdev      : float = 1,   # standard variation when generating a Gaussian dist' points
+                     numPts     : int   = 100, # Num of points in the generated vector
                      ) -> np.array:
     """
     Generate a vector to be quantized.
@@ -157,7 +159,7 @@ def genVec2Quantize (dist     : 'uniform',  # distribution from which points are
     if dist=='uniform':
         return np.array([(lowerBnd + i*(upperBnd-lowerBnd)/numPts) for i in range(numPts)])
     elif dist=='Gaussian':
-        return (np.sort (np.random.randn(numPts) * (upperBnd/2)))
+        return (np.sort (np.random.randn(numPts) * stdev))
     else:
         settings.error ('In Quantization.py. Sorry. The distribution {dist} you chose is not supported.')
     
@@ -171,21 +173,19 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
     """
     Simulate the required configuration and output the results (the quantization errors) as defined by the verbose.
     """
-    
     np.random.seed (settings.SEED)
-    vec2quantize = genVec2Quantize (dist='Gaussian', lowerBnd=-0.5, upperBnd=1, numPts = 100)
+    vec2quantize = genVec2Quantize (dist='Gaussian', stdev=1, numPts = 100)
     for mode in modes:
         if mode=='FP':
             for expSize in expSizes: 
                 grid     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=True)                
-                print (f'grid[0]={grid[0]}, grid[-1]={grid[-1]}')
                 MSE = calcMseSortedVecs (grid=grid, vec=quantizeWoRnd (vec=vec2quantize, grid=grid))
-                print ('{}, abs_MSE={}, rel_MSE={}' .format(ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-expSize), MSE['abs'], MSE['rel']))
+                print ('{}, rel_MSE={}' .format(ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize), MSE['rel']))
         elif mode.startswith('F2P'):
             flavor = mode.split('_')[1]
             grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose, signed=True)
             MSE = calcMseSortedVecs (grid=grid, vec=quantizeWoRnd (vec=vec2quantize, grid=grid))
-            print ('{}, abs_MSE={}, rel_MSE={}' .format(ResFileParser.genF2pLabel(flavor=flavor), MSE['abs'], MSE['rel']))
+            print ('{}, rel_MSE={}' .format(ResFileParser.genF2pLabel(flavor=flavor), MSE['rel']))
         else:
             settings.error ('Sorry, the requested mode {mode} is not supported.')
 # simQuantErr (modes=['F2P_sr', 'FP'], expSizes=[1,6]) #'F2P_sr', 
