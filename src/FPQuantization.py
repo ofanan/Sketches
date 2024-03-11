@@ -1,5 +1,4 @@
-import numpy as np
-import os
+import os, scipy, numpy as np
 # from datetime import datetime
 from tictoc import tic, toc
 import matplotlib.pyplot as plt
@@ -29,10 +28,11 @@ def dequantize (vec : np.array, scale : float) -> np.array:
 def calcMse (orgVec : np.array, changedVec : np.array):
     """
     Calculate the Mean Square Error (both relative and absolute) between the original vector and the changed vector. 
-    """    
+    """
     return {
-        'avgRelMSE' : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec))]) / len(orgVec),
-        'absErrVec' : [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))]
+        'avgRelMSE' : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]) / len(orgVec),
+        'absErrVec' : [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))],
+        'weightedGauss' : [scipy.stats.norm(0, 1).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
         }
 
 def scaleGrid (grid : np.array, lowerBnd=0, upperBnd=100) -> np.array:
@@ -140,7 +140,7 @@ def quantize (vec  : np.array, # The vector to quantize
 
 def genVec2Quantize (dist       : 'uniform',  # distribution from which points are drawn  
                      lowerBnd   : float = 0,   # lower bound for the generated points  
-                     upperBnd   : float = 100,   # upper bound for the generated points
+                     upperBnd   : float = 1,   # upper bound for the generated points
                      stdev      : float = 1,   # standard variation when generating a Gaussian dist' points
                      numPts     : int   = 100, # Num of points in the generated vector
                      ) -> np.array:
@@ -159,13 +159,14 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
                  cntrSize   = 8,  # of bits, including the sign bit 
                  expSizes   = [1], # size of the exponent when simulating FP 
                  hyperSize  = 2,  # size of the hyper-exp, when simulating F2P  
-                 verbose    = []  # level of verbose, as defined in settings.py. 
+                 verbose    = [],  # level of verbose, as defined in settings.py. 
+                 plotWeightedErr = True
                  ):
     """
     Simulate the required configuration and output the results (the quantization errors) as defined by the verbose.
     """
     np.random.seed (settings.SEED)
-    vec2quantize = genVec2Quantize (dist='Gaussian', stdev=1, numPts = 1000)
+    vec2quantize = genVec2Quantize (dist='Uniform', stdev=1, numPts = 100)
     _, ax = plt.subplots()
     plotRecords = []
     for mode in modes:
@@ -180,7 +181,8 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
                 plotRecords.append ({
                     'mode'      : mode,
                     'label'     : label,
-                    'absErrVec' : MSE['absErrVec'] 
+                    # 'absErrVec' : MSE['absErrVec'],
+                    'weightedGauss' : MSE['weightedGauss']  
                     })
         elif mode.startswith('F2P'):
             flavor = mode.split('_')[1]
@@ -193,7 +195,8 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
             plotRecords.append ({
                 'mode'      : mode,
                 'label'     : label,
-                'absErrVec' : MSE['absErrVec'] 
+                # 'absErrVec' : MSE['absErrVec'],
+                'weightedGauss' : MSE['weightedGauss']  
                 })
         elif mode=='shortTest':
             grid = np.array([i for i in range(-10, 11)])
@@ -206,21 +209,23 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
         else:
             settings.error ('Sorry, the requested mode {mode} is not supported.')
 
-    for i in range(len(plotRecords)): 
-        plotRecord = plotRecords[i]     
-        ax.plot (vec2quantize, 
-                 plotRecord['absErrVec'], 
-                 color      = colors[i], 
-                 marker     = markerOfMode[mode], 
-                 linestyle  = 'None', 
-                 markersize = 4, 
-                 label      = plotRecord['label'])  # Plot the conf' interval line
-    handles, labels = plt.gca().get_legend_handles_labels()
-    by_label = dict(zip(labels, handles))
-    plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
-    # plt.xlim (-0.5, 0.5)
-    plt.ylim (0, 0.01)
-    plt.show()
+
+    
+    if plotWeightedErr:
+        for i in range(len(plotRecords)): 
+            plotRecord = plotRecords[i]
+            print (plotRecord)     
+            ax.plot (vec2quantize, 
+                     plotRecord['weightedGauss'], 
+                     color      = colors[i], 
+                     marker     = markerOfMode[mode], 
+                     linestyle  = 'None', 
+                     markersize = 4, 
+                     label      = plotRecord['label'])  # Plot the conf' interval line
+        handles, labels = plt.gca().get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
+        plt.show()
         
         
 simQuantErr (modes=['F2P_sr', 'FP'], expSizes=[1]) #'F2P_sr', 
