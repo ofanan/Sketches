@@ -29,6 +29,7 @@ def calcMse (orgVec : np.array, changedVec : np.array):
     """
     Calculate the Mean Square Error (both relative and absolute) between the original vector and the changed vector. 
     """
+    # settings.error (changedVec) #$$
     return {
         'avgRelMSE' : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]) / len(orgVec),
         'absErrVec' : [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))],
@@ -140,9 +141,9 @@ def quantize (vec  : np.array, # The vector to quantize
 
 def genVec2Quantize (dist       : 'uniform',  # distribution from which points are drawn  
                      lowerBnd   : float = 0,   # lower bound for the generated points  
-                     upperBnd   : float = 1,   # upper bound for the generated points
+                     upperBnd   : float = 10,   # upper bound for the generated points
                      stdev      : float = 1,   # standard variation when generating a Gaussian dist' points
-                     numPts     : int   = 100, # Num of points in the generated vector
+                     numPts     : int   = 1000, # Num of points in the generated vector
                      ) -> np.array:
     """
     Generate a vector to be quantized, using the requested distribution.
@@ -177,7 +178,7 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
                 dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
                 MSE = calcMse(orgVec=vec2quantize, changedVec=dequantizedVec) 
                 label = ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize)
-                print ('{}, rel_MSE={:.3f}, avgAbsErr={:.4f}' .format(label, MSE['avgRelMSE'], np.average(MSE['absErrVec'])))
+                # print ('{}, rel_MSE={:.3f}, avgAbsErr={:.4f}' .format(label, MSE['avgRelMSE'], np.average(MSE['absErrVec'])))
                 plotRecords.append ({
                     'mode'      : mode,
                     'label'     : label,
@@ -191,7 +192,7 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
             MSE = calcMse(orgVec=vec2quantize, changedVec=dequantizedVec) 
             label = ResFileParser.genF2pLabel(flavor=flavor)
-            print ('{}, rel_MSE={:.3f}, avgAbsErr={:.4f}' .format(label, MSE['avgRelMSE'], np.average(MSE['absErrVec'])))
+            # print ('{}, rel_MSE={:.3f}, avgAbsErr={:.4f}' .format(label, MSE['avgRelMSE'], np.average(MSE['absErrVec'])))
             plotRecords.append ({
                 'mode'      : mode,
                 'label'     : label,
@@ -203,9 +204,9 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
             vec2quantize = np.array([-100, -95, -7, 99, 100])
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
-            print (f'grid={grid}\nvec2quantize={vec2quantize}\nquantizedVec={quantizedVec}\ndeqVec={dequantizedVec}\nscale={scale}') #$$
+            # print (f'grid={grid}\nvec2quantize={vec2quantize}\nquantizedVec={quantizedVec}\ndeqVec={dequantizedVec}\nscale={scale}') #$$
             MSE = calcMse(orgVec=vec2quantize, changedVec=dequantizedVec) 
-            print ('testShort, absErrVec={}\nrel_MSE={}' .format(MSE['absErrVec'], MSE['avgRelMSE']))            
+            # print ('testShort, absErrVec={}\nrel_MSE={}' .format(MSE['absErrVec'], MSE['avgRelMSE']))            
         else:
             settings.error ('Sorry, the requested mode {mode} is not supported.')
 
@@ -214,7 +215,6 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
     if plotWeightedErr:
         for i in range(len(plotRecords)): 
             plotRecord = plotRecords[i]
-            print (plotRecord)     
             ax.plot (vec2quantize, 
                      plotRecord['weightedGauss'], 
                      color      = colors[i], 
