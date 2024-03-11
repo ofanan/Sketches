@@ -143,6 +143,7 @@ def quantize (vec : np.array, grid : np.array) -> np.array:
                 idxInGrid += 1
             else:
                idxInGrid -= 1
+               quantVec[idxInVec]= grid[idxInGrid]
                break
     return [quantVec, scale]
 
@@ -236,12 +237,11 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
             MSE = calcMseSortedVecs (grid=grid, vec=quantizeWoRnd (vec=vec2quantize, grid=grid))
             print ('{}, rel_MSE={}' .format(ResFileParser.genF2pLabel(flavor=flavor), MSE['rel']))
         elif mode=='shortTest':
-            grid = np.array([i for i in range(10)])
-            vec2quantize = np.array([0, 3, 17, 88, 91, 100])
+            grid = np.array([i for i in range(-10, 11)])
+            vec2quantize = np.array([-100, 0, 3, 17, 88, 91, 100])
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)
-            print (f'grid={grid}\nvec2quantize={vec2quantize}\nquantizedVec={quantizedVec}, scale={scale}')
-            exit ()                
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
+            print (f'grid={grid}\nvec2quantize={vec2quantize}\nquantizedVec={quantizedVec}\ndeqVec={dequantizedVec}\nscale={scale}') #$$
             MSE = calcMse(orgVec=vec2quantize, changedVec=dequantizedVec) 
             print ('{}, rel_MSE={}' .format(ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize), MSE['avgRelMSE']))            
         else:
