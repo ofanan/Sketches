@@ -32,7 +32,7 @@ def calcMse (orgVec : np.array, changedVec : np.array):
     """    
     return {
         'avgRelMSE' : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec))]) / len(orgVec),
-        'absErrVec' : [orgVec[i]-changedVec[i] for i in range(len(orgVec))]
+        'absErrVec' : [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))]
         }
 
 def scaleGrid (grid : np.array, lowerBnd=0, upperBnd=100) -> np.array:
@@ -173,14 +173,16 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
                 [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
                 dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
                 MSE = calcMse(orgVec=vec2quantize, changedVec=dequantizedVec) 
-                print ('{}, rel_MSE={}' .format(ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize), MSE['avgRelMSE']))
+                label = ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize)
+                print ('{}, rel_MSE={:.3f}, avgAbsErr={:.4f}' .format(label, MSE['avgRelMSE'], np.average(MSE['absErrVec'])))
         elif mode.startswith('F2P'):
             flavor = mode.split('_')[1]
             grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose, signed=True)
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
             MSE = calcMse(orgVec=vec2quantize, changedVec=dequantizedVec) 
-            print ('{}, rel_MSE={}' .format(ResFileParser.genF2pLabel(flavor=flavor), MSE['avgRelMSE']))
+            label = ResFileParser.genF2pLabel(flavor=flavor)
+            print ('{}, rel_MSE={:.3f}, avgAbsErr={:.4f}' .format(label, MSE['avgRelMSE'], np.average(MSE['absErrVec'])))
         elif mode=='shortTest':
             grid = np.array([i for i in range(-10, 11)])
             vec2quantize = np.array([-100, -95, -7, 99, 100])
@@ -191,5 +193,7 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
             print ('testShort, absErrVec={}\nrel_MSE={}' .format(MSE['absErrVec'], MSE['avgRelMSE']))            
         else:
             settings.error ('Sorry, the requested mode {mode} is not supported.')
+        
+        
 simQuantErr (modes=['FP', 'F2P_sr'], expSizes=[1, 6]) #'F2P_sr', 
 # plotScaledGrids (cntrSize=6, modes=['FP_e1', 'F2P_sr', 'FP_e5', 'F2P_lr'])
