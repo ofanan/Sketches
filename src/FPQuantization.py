@@ -103,17 +103,6 @@ def plotScaledGrids (
     plt.xlim (0,5)        
     plt.show()
 
-def quantizeWoRnd (vec : np.array, grid : np.array) -> np.array:
-    """
-    Quantize an input vector, using symmetric Min-max quantization. This is done by scaling the vector.
-    The function does NOT round the vector.
-    """
-    upperBnd = max (abs(vec[0]), abs(vec[-1])) # The upper bound is the largest absolute value in the vector to quantize.
-    lowerBnd = -upperBnd
-    vec = clamp (vec, lowerBnd, upperBnd)
-    scale = (upperBnd-lowerBnd) / (grid[-1]-grid[0])
-    return [item/scale for item in vec] 
-    
 def quantize (vec : np.array, grid : np.array) -> np.array:
     """
     Quantize an input vector, using symmetric Min-max quantization. 
@@ -146,54 +135,6 @@ def quantize (vec : np.array, grid : np.array) -> np.array:
                quantVec[idxInVec]= grid[idxInGrid]
                break
     return [quantVec, scale]
-
-def calcAbsQuantErrorSortedVecs (grid, vec):
-    """
-    Given a sorted grid and a sorted quantized vec, return the quantizatoin error for each item in the quantized vec.
-    """
-    vecOfErrs = np.empty (len(vec))
-    idxInGrid = 0
-    for idxInVec in range(len(vec)):
-        if idxInGrid==len(grid): # already reached the max grid val --> all next items in vec should be compared to the last item in the grid 
-            vecOfErrs[idxInVec] = abs (vec[idxInVec]-grid[-1])
-            continue
-        vecOfErrs[idxInVec] = abs (vec[idxInVec]-grid[idxInGrid])
-        while (idxInGrid < len(grid)):
-            absErr = abs (vec[idxInVec]-grid[idxInGrid])
-            if absErr <= vecOfErrs[idxInVec]:
-                vecOfErrs[idxInVec] = absErr
-                idxInGrid += 1
-            else:
-               idxInGrid -= 1
-               break 
-    return vecOfErrs
-
-def calcMseSortedVecs (grid, vec):
-    """
-    Calculate the Mean Square Error between the grid and the (quantized) vector 
-    """
-    overallAbsErr = 0
-    overallRelErr = 0
-    idxInGrid = 0
-    for idxInVec in range(len(vec)):
-        if idxInGrid==len(grid): # already reached the max grid val --> all next items in vec should be compared to the last item in the grid 
-            sqAbsErr        = (vec[idxInVec]-grid[-1])**2
-            overallAbsErr += sqAbsErr
-            overallRelErr += sqAbsErr/(vec[idxInVec]**2)
-            continue
-        curAbsErr = abs (vec[idxInVec]-grid[idxInGrid])
-        while (idxInGrid < len(grid)):
-            absErr = abs (vec[idxInVec]-grid[idxInGrid])
-            if absErr <= curAbsErr:
-                curAbsErr = absErr
-                idxInGrid += 1
-            else:
-               idxInGrid -= 1
-               break
-        sqAbsErr        = curAbsErr**2
-        overallAbsErr  += sqAbsErr
-        overallRelErr  += sqAbsErr/(vec[idxInVec]**2)
-    return {'abs' : overallAbsErr/len(vec), 'rel' : overallRelErr/len(vec)} 
 
 def genVec2Quantize (dist       : 'uniform',  # distribution from which points are drawn  
                      lowerBnd   : float = 0,   # lower bound for the generated points  
@@ -238,12 +179,12 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
             print ('{}, rel_MSE={}' .format(ResFileParser.genF2pLabel(flavor=flavor), MSE['rel']))
         elif mode=='shortTest':
             grid = np.array([i for i in range(-10, 11)])
-            vec2quantize = np.array([-100, 0, 3, 17, 88, 91, 100])
+            vec2quantize = np.array([-100, -95, -7, 99, 100])
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
             print (f'grid={grid}\nvec2quantize={vec2quantize}\nquantizedVec={quantizedVec}\ndeqVec={dequantizedVec}\nscale={scale}') #$$
             MSE = calcMse(orgVec=vec2quantize, changedVec=dequantizedVec) 
-            print ('{}, rel_MSE={}' .format(ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize), MSE['avgRelMSE']))            
+            print ('testShort, absErrVec={}\nrel_MSE={}' .format(MSE['absErrVec'], MSE['avgRelMSE']))            
         else:
             settings.error ('Sorry, the requested mode {mode} is not supported.')
 simQuantErr (modes=['shortTest'], expSizes=[6]) #'F2P_sr', 
