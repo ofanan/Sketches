@@ -140,19 +140,19 @@ def quantize (vec  : np.array, # The vector to quantize
 
 def genVec2Quantize (dist       : 'uniform',  # distribution from which points are drawn  
                      lowerBnd   : float = 0,   # lower bound for the generated points  
-                     upperBnd   : float = 1,   # upper bound for the generated points
+                     upperBnd   : float = 100,   # upper bound for the generated points
                      stdev      : float = 1,   # standard variation when generating a Gaussian dist' points
                      numPts     : int   = 100, # Num of points in the generated vector
                      ) -> np.array:
     """
     Generate a vector to be quantized, using the requested distribution.
     """
-    if dist=='uniform':
+    if dist=='Uniform':
         return np.array([(lowerBnd + i*(upperBnd-lowerBnd)/numPts) for i in range(numPts)])
     elif dist=='Gaussian':
         return (np.sort (np.random.randn(numPts) * stdev))
     else:
-        settings.error ('In Quantization.py. Sorry. The distribution {dist} you chose is not supported.')
+        settings.error ('In Quantization.genVec2Quantize(). Sorry. The distribution {dist} you chose is not supported.')
     
     
 def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr. 
@@ -165,7 +165,9 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
     Simulate the required configuration and output the results (the quantization errors) as defined by the verbose.
     """
     np.random.seed (settings.SEED)
-    vec2quantize = genVec2Quantize (dist='Gaussian', stdev=1, numPts = 100)
+    vec2quantize = genVec2Quantize (dist='Gaussian', stdev=1, numPts = 1000)
+    _, ax = plt.subplots()
+    plotRecords = []
     for mode in modes:
         if mode=='FP':
             for expSize in expSizes: 
@@ -175,6 +177,11 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
                 MSE = calcMse(orgVec=vec2quantize, changedVec=dequantizedVec) 
                 label = ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize)
                 print ('{}, rel_MSE={:.3f}, avgAbsErr={:.4f}' .format(label, MSE['avgRelMSE'], np.average(MSE['absErrVec'])))
+                plotRecords.append ({
+                    'mode'      : mode,
+                    'label'     : label,
+                    'absErrVec' : MSE['absErrVec'] 
+                    })
         elif mode.startswith('F2P'):
             flavor = mode.split('_')[1]
             grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose, signed=True)
@@ -183,6 +190,11 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
             MSE = calcMse(orgVec=vec2quantize, changedVec=dequantizedVec) 
             label = ResFileParser.genF2pLabel(flavor=flavor)
             print ('{}, rel_MSE={:.3f}, avgAbsErr={:.4f}' .format(label, MSE['avgRelMSE'], np.average(MSE['absErrVec'])))
+            plotRecords.append ({
+                'mode'      : mode,
+                'label'     : label,
+                'absErrVec' : MSE['absErrVec'] 
+                })
         elif mode=='shortTest':
             grid = np.array([i for i in range(-10, 11)])
             vec2quantize = np.array([-100, -95, -7, 99, 100])
@@ -193,7 +205,23 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
             print ('testShort, absErrVec={}\nrel_MSE={}' .format(MSE['absErrVec'], MSE['avgRelMSE']))            
         else:
             settings.error ('Sorry, the requested mode {mode} is not supported.')
+
+    for i in range(len(plotRecords)): 
+        plotRecord = plotRecords[i]     
+        ax.plot (vec2quantize, 
+                 plotRecord['absErrVec'], 
+                 color      = colors[i], 
+                 marker     = markerOfMode[mode], 
+                 linestyle  = 'None', 
+                 markersize = 4, 
+                 label      = plotRecord['label'])  # Plot the conf' interval line
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = dict(zip(labels, handles))
+    plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
+    # plt.xlim (-0.5, 0.5)
+    plt.ylim (0, 0.01)
+    plt.show()
         
         
-simQuantErr (modes=['FP', 'F2P_sr'], expSizes=[1, 6]) #'F2P_sr', 
+simQuantErr (modes=['F2P_sr', 'FP'], expSizes=[1]) #'F2P_sr', 
 # plotScaledGrids (cntrSize=6, modes=['FP_e1', 'F2P_sr', 'FP_e5', 'F2P_lr'])
