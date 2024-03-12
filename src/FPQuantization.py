@@ -160,7 +160,7 @@ def quantize (vec  : np.array, # The vector to quantize
                break
     return [quantVec, scale]
 
-def genVec2Quantize (dist       : 'uniform',  # distribution from which points are drawn  
+def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which points are drawn  
                      lowerBnd   : float = 0,   # lower bound for the generated points  
                      upperBnd   : float = 10,   # upper bound for the generated points
                      stdev      : float = 1,   # standard variation when generating a Gaussian dist' points
@@ -191,15 +191,21 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
     np.random.seed (settings.SEED)
     if settings.VERBOSE_RES in verbose:
         resFile = open (f'../res/quant_n{cntrSize}.res', 'a+')
-    vec2quantize = genVec2Quantize (dist='Uniform', stdev=1, numPts = numPts)
+    vec2quantize = genVec2Quantize (
+        dist        = 'Uniform', 
+        lowerBnd    = 0,   # lower bound for the generated points  
+        upperBnd    = 3,   # upper bound for the generated points
+        stdev       = 1, 
+        numPts      = numPts)
     _, ax = plt.subplots()
     plotRecords = []
     for mode in modes:
         if mode=='FP':
             for expSize in expSizes: 
                 grid     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=True)
-                [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
+                [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)
                 dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
+                print (f'vec2quant={vec2quantize}\ndeqVec={dequantizedVec}') #$$$
                 plotRecords.append (calcMse(
                         orgVec      = vec2quantize, 
                         changedVec  = dequantizedVec, 
@@ -211,6 +217,7 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
             grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=[], signed=True)
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
+            print (f'vec2quant={vec2quantize}\ndeqVec={dequantizedVec}') #$$$
             plotRecords.append (calcMse(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
