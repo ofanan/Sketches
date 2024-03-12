@@ -21,6 +21,7 @@ VERBOSE_LOG_END_SIM     = 10
 VERBOSE_DETAILED_LOG    = 11
 VERBOSE_PROGRESS        = 12 # Print periodical output notifying the progress. Used to control long runs.
 VERBOSE_LOG_CNTRLINE    = 14  
+VERBOSE_PLOT            = 15
 
 # Configurations to be run. 
 # For cntrSize<8, the conf' the values are unrealistically small, and used only for checks and debugging.
