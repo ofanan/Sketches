@@ -49,11 +49,12 @@ def calcMse (orgVec     : np.array, # vector before quantization
         weightedRelMse[idxInweightedRelMse] = scipy.stats.norm(0, stdev).pdf(orgVec[i])*((orgVec[i]-changedVec[i])/orgVec[i])**2 
         idxInweightedRelMse += 1
     return {
+        'label'          : label,
+        'scale'          : scale, 
         'avgRelMse'      : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]) / len(orgVec),
         'absErrVec'      : [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))],
         'weightedAbsMse' : weightedAbsMse,
         'weightedRelMse' : weightedRelMse,
-        'label'          : label, 
         }
 
 def scaleGrid (grid : np.array, lowerBnd=0, upperBnd=100) -> np.array:
