@@ -188,6 +188,8 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
     Simulate the required configuration and output the results (the quantization errors) as defined by the verbose.
     """
     np.random.seed (settings.SEED)
+    if settings.VERBOSE_RES in verbose:
+        resFile = open (f'../res/quant_n{cntrSize}.res', 'a+')
     vec2quantize = genVec2Quantize (dist='Uniform', stdev=1, numPts = numPts)
     _, ax = plt.subplots()
     plotRecords = []
@@ -229,6 +231,12 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
 
     if settings.VERBOSE_COUT_CNTRLINE in verbose:
         print (plotRecords)
+        
+    if settings.VERBOSE_RES in verbose:
+        for plotRecord in plotRecords:
+            for key, value in plotRecord.items(): 
+                printf (resFile, f'{key} : {value}\n')
+            printf (resFile, '\n\n')
 
     if plotWeightedErr:
         for i in range(len(plotRecords)): 
@@ -246,4 +254,4 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
         plt.show()
 
 # plotScaledGrids (cntrSize=6, modes=['FP_e1', 'F2P_sr', 'FP_e5', 'F2P_lr'])
-simQuantErr (modes=['F2P_sr', 'FP'], expSizes=[1], numPts=10, verbose=[settings.VERBOSE_COUT_CNTRLINE]) #'F2P_sr', 
+simQuantErr (modes=['F2P_sr', 'FP'], expSizes=[1], numPts=10, verbose=[settings.VERBOSE_RES]) #'F2P_sr', 
