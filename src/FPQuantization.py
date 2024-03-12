@@ -28,7 +28,7 @@ def dequantize (vec : np.array, scale : float) -> np.array:
 def calcMse (orgVec     : np.array, # vector before quantization 
              changedVec : np.array, # vector after quantization+dequantization
              dist       : str ='Gaussian', # distribution by which the MSE is weighted
-             stdev      : float = 0.1,       # standard variation of the distribution; the expected value is 0.
+             stdev      : float = 0.01,       # standard variation of the distribution; the expected value is 0.
              label      : str = None,        # a string defining the mode (e.g., 'F2P_lr'
              scale      : float = None       # the scale by which orgVec was quantized 
              ):
@@ -40,7 +40,7 @@ def calcMse (orgVec     : np.array, # vector before quantization
     if dist!='Gaussian':
         settings.error (f'In FPQuantization.calcMse(). Sorry, the distribution {dist} you chose is not supported.')
     weightedAbsMseVec      = [scipy.stats.norm(0, stdev).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
-    weightedRelMseVec      = np.empty(len(orgVec)-1)
+    weightedRelMseVec      = np.empty(len([item for item in orgVec if item!=0]))
     idxInweightedRelMseVec = 0
     for i in range(len(orgVec)):
         if orgVec[i]==0:
@@ -48,7 +48,7 @@ def calcMse (orgVec     : np.array, # vector before quantization
         weightedRelMseVec[idxInweightedRelMseVec] = scipy.stats.norm(0, stdev).pdf(orgVec[i])*((orgVec[i]-changedVec[i])/orgVec[i])**2 
         idxInweightedRelMseVec += 1
     return {
-        'label'          :  label,
+        'label'             : label,
         'scale'             : scale, 
         'avgRelMse'         : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]) / len(orgVec),
         'absErrVec'         : [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))],
@@ -193,7 +193,7 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
         resFile = open (f'../res/quant_n{cntrSize}.res', 'a+')
     upperBnd = 3
     vec2quantize = genVec2Quantize (
-        dist        = 'Uniform', 
+        dist        = 'Gaussian', 
         lowerBnd    = -upperBnd,   # lower bound for the generated points  
         upperBnd    = upperBnd,   # upper bound for the generated points
         stdev       = 1, 
@@ -244,8 +244,8 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
     if settings.VERBOSE_RES in verbose:
         for plotRecord in plotRecords:
             for key, value in plotRecord.items():
-                # if len(value==1): 
-                printf (resFile, f'{key} : {value}\n')
+                if not key.endswith('Vec'):
+                    printf (resFile, f'{key} : {value}\n')
             printf (resFile, '\n\n')
 
     if settings.VERBOSE_PLOT in verbose:
@@ -264,4 +264,4 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
         plt.show()
 
 # plotScaledGrids (cntrSize=6, modes=['FP_e1', 'F2P_sr', 'FP_e5', 'F2P_lr'])
-simQuantErr (modes=['F2P_sr', 'FP'], expSizes=[1], numPts=100, verbose=[settings.VERBOSE_RES]) #'F2P_sr', 
+simQuantErr (modes=['F2P_sr', 'FP'], expSizes=[1], numPts=1000, verbose=[settings.VERBOSE_RES]) #'F2P_sr', 
