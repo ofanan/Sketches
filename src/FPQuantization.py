@@ -25,26 +25,35 @@ def dequantize (vec : np.array, scale : float) -> np.array:
     """
     return [item*scale for item in vec] 
 
-def calcMse (orgVec : np.array, changedVec : np.array, dist='Gaussian', stdev=0.1):
+def calcMse (orgVec     : np.array, # vector before quantization 
+             changedVec : np.array, # vector after quantization+dequantization
+             dist       : str ='Gaussian', # distribution by which the MSE is weighted
+             stdev      : float = 0.1,       # standard variation of the distribution; the expected value is 0.
+             label      : str = None,        # a string defining the mode (e.g., 'F2P_lr'
+             scale      : float = None       # the scale by which orgVec was quantized 
+             ):
     """
-    Calculate the Mean Square Error (both relative and absolute) between the original vector and the changed vector. 
+    Calculate the: 
+    - MSE (Mean Square Error), both relative and absolute, between the original vector and the changed vector.
+    - The Mse, weighted by the given distribution and stdev (standard variation). 
     """
     # settings.error (changedVec) #$$
     if dist!='Gaussian':
         settings.error (f'In FPQuantization.calcMse(). Sorry, the distribution {dist} you chose is not supported.')
-    weightedMse     = [scipy.stats.norm(0, stdev).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
-    weightedRelMse  = np.empty(len(orgVec)-1)
+    weightedAbsMse      = [scipy.stats.norm(0, stdev).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
+    weightedRelMse      = np.empty(len(orgVec)-1)
     idxInweightedRelMse = 0
     for i in range(len(orgVec)):
         if orgVec[i]==0:
             continue
-        weightedRelMse[idxInweightedRelMse]  = scipy.stats.norm(0, stdev).pdf(orgVec[i])*((orgVec[i]-changedVec[i])/orgVec[i])**2 
+        weightedRelMse[idxInweightedRelMse] = scipy.stats.norm(0, stdev).pdf(orgVec[i])*((orgVec[i]-changedVec[i])/orgVec[i])**2 
         idxInweightedRelMse += 1
     return {
-        'avgRelMse' : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]) / len(orgVec),
-        'absErrVec' : [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))],
-        'weightedMse' : weightedMse,
-        'weightedRelMse' : weightedRelMse 
+        'avgRelMse'      : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]) / len(orgVec),
+        'absErrVec'      : [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))],
+        'weightedAbsMse' : weightedAbsMse,
+        'weightedRelMse' : weightedRelMse,
+        'label'          : label, 
         }
 
 def scaleGrid (grid : np.array, lowerBnd=0, upperBnd=100) -> np.array:
@@ -185,47 +194,42 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
     for mode in modes:
         if mode=='FP':
             for expSize in expSizes: 
-                grid     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=True)
+                grid     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=True)
                 [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
                 dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
-                MSE = calcMse(orgVec=vec2quantize, changedVec=dequantizedVec) 
-                label = ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize)
-                # print ('{}, rel_MSE={:.3f}, avgAbsErr={:.4f}' .format(label, MSE['avgRelMse'], np.average(MSE['absErrVec'])))
-                print ('{}, weightedRelMse={}' .format(label, np.average(MSE['weightedRelMse'])))
-                plotRecords.append ({
-                    'mode'      : mode,
-                    'label'     : label,
-                    # 'absErrVec' : MSE['absErrVec'],
-                    'weightedRelMse' : MSE['weightedRelMse']  
-                    })
+                plotRecords.append (calcMse(
+                        orgVec      = vec2quantize, 
+                        changedVec  = dequantizedVec, 
+                        label       = ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize),
+                        scale       = scale
+                        ))
         elif mode.startswith('F2P'):
             flavor = mode.split('_')[1]
-            grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose, signed=True)
+            grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=[], signed=True)
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
-            MSE = calcMse(orgVec=vec2quantize, changedVec=dequantizedVec) 
-            label = ResFileParser.genF2pLabel(flavor=flavor)
-            # print ('{}, rel_MSE={:.3f}, avgAbsErr={:.4f}' .format(label, MSE['avgRelMse'], np.average(MSE['absErrVec'])))
-            print ('{}, weightedRelMse={}' .format(label, np.average(MSE['weightedRelMse'])))
-            plotRecords.append ({
-                'mode'      : mode,
-                'label'     : label,
-                # 'absErrVec' : MSE['absErrVec'],
-                'weightedRelMse' : MSE['weightedRelMse']  
-                })
+            plotRecords.append (calcMse(
+                    orgVec      = vec2quantize, 
+                    changedVec  = dequantizedVec, 
+                    label       = ResFileParser.genF2pLabel(flavor=flavor),
+                    scale       = scale
+                    ))
         elif mode=='shortTest':
             grid = np.array([i for i in range(-10, 11)])
             vec2quantize = np.array([-100, -95, -7, 99, 100])
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
-            # print (f'grid={grid}\nvec2quantize={vec2quantize}\nquantizedVec={quantizedVec}\ndeqVec={dequantizedVec}\nscale={scale}') #$$
-            MSE = calcMse(orgVec=vec2quantize, changedVec=dequantizedVec) 
-            # print ('testShort, absErrVec={}\nrel_MSE={}' .format(MSE['absErrVec'], MSE['avgRelMse']))            
+            plotRecords.append (calcMse(
+                    orgVec      = vec2quantize, 
+                    changedVec  = dequantizedVec, 
+                    label       = 'shortTest'
+                    ))
         else:
             settings.error ('Sorry, the requested mode {mode} is not supported.')
 
+    if settings.VERBOSE_COUT_CNTRLINE in verbose:
+        print (plotRecords)
 
-    
     if plotWeightedErr:
         for i in range(len(plotRecords)): 
             plotRecord = plotRecords[i]
@@ -240,7 +244,6 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
         plt.show()
-        
-        
-simQuantErr (modes=['F2P_sr', 'FP'], expSizes=[1], numPts=2) #'F2P_sr', 
+
 # plotScaledGrids (cntrSize=6, modes=['FP_e1', 'F2P_sr', 'FP_e5', 'F2P_lr'])
+simQuantErr (modes=['F2P_sr', 'FP'], expSizes=[1], numPts=10, verbose=[settings.VERBOSE_COUT_CNTRLINE]) #'F2P_sr', 
