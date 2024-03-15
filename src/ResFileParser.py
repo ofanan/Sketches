@@ -23,9 +23,6 @@ colors = ['green', 'purple', 'brown', 'black', 'blue']
 
 # The colors used for each alg's plot, in the dist' case
 colorOfMode = {
-    'F2P_lr'    : 'green',
-    'F2P_sr'    : 'brown',
-    'F2P_li'    : 'purple',
     'F3P'       : 'purple',
     'SEAD stat' : 'brown',
     'SEAD dyn'  : 'yellow',
@@ -35,6 +32,14 @@ colorOfMode = {
     'CEDAR'     : 'magenta',
     'Morris'    : 'red',
     'AEE'       : 'blue'
+    }
+
+colorOfLabel = {
+    'F2P lr'    : 'green',
+    'F2P sr'    : 'brown',
+    'F2P li'    : 'purple',
+    'FP 6M1E'   : 'brown',
+    'FP 1M6E'   : 'blue',
     }
 
 # The markers used for each alg', in the dist' case

@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from printf import printf, printar, printarFp
 import settings, ResFileParser, F2P_sr, F2P_lr, F2P_li, FP  
 from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
-from ResFileParser import colors, colorOfMode, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, LEGEND_FONT_SIZE
+from ResFileParser import colors, colorOfLabel, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, LEGEND_FONT_SIZE
 
 def clamp (vec: np.array, lowerBnd: float, upperBnd: float) -> np.array:
     """
@@ -113,7 +113,7 @@ def plotScaledGrids (
         plotRecord = plotRecords[i]     
         ax.plot (plotRecord['grid'], 
                  [len(plotRecords)-i for item in range(lenGrid)], 
-                 color      = colors[i], 
+                 color      = colorOfLabel[plotRecord['label']], 
                  marker     = markerOfMode[mode], 
                  linestyle  = 'None', 
                  markersize = MARKER_SIZE_SMALL, 
@@ -253,7 +253,7 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
             plotRecord = plotRecords[i]
             ax.plot (vec2quantize, 
                      plotRecord['weightedRelMse'], 
-                     color      = colors[i], 
+                     color      = plotRecord['label'], 
                      marker     = markerOfMode[mode], 
                      linestyle  = 'None', 
                      markersize = 4, 
