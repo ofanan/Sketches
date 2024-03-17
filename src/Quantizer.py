@@ -41,8 +41,7 @@ def calcMse (orgVec     : np.array, # vector before quantization
     """
     if dist!='Gaussian':
         settings.error (f'In FPQuantization.calcMse(). Sorry, the distribution {dist} you chose is not supported.')
-    # weightedAbsMseVec      = [scipy.stats.norm(0, stdev).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
-    weightedAbsMseVec = np.empty(len(orgVec))
+    weightedAbsMseVec      = [scipy.stats.norm(0, stdev).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
     weightedRelMseVec      = np.empty(len([item for item in orgVec if item!=0]))
     idxInweightedRelMseVec = 0
     for i in range(len(orgVec)):
@@ -189,8 +188,7 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
     
 def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr. 
                  cntrSize       = 8,  # of bits, including the sign bit 
-                 expSizes       = [1], # size of the exponent when simulating FP 
-                 hyperSize      = 2,  # size of the hyper-exp, when simulating F2P  
+                 hyperSize      = 1,  # size of the hyper-exp, when simulating F2P  
                  numPts         = 1000, # num of points in the quantized vec
                  verbose        = [],  # level of verbose, as defined in settings.py.
                  stdev          = 1,   # standard variation of the vector to quantize, when drawn from a Gaussian dist'  
@@ -219,22 +217,21 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
         if mode.startswith('FP'):
             expSize = int(mode.split ('_e')[1])
             mode = 'FP'
-            for expSize in expSizes: 
-                grid                    = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=True)
-                [quantizedVec, scale]   = quantize(vec=vec2quantize, grid=grid)
-                dequantizedVec          = dequantize(vec=quantizedVec, scale=scale)
-                label                   = ResFileParser.genFpLabel(
-                    expSize     = expSize, 
-                    mantSize    = (cntrSize-1-expSize))
-                resRecords.append (calcMse(
-                        orgVec      = vec2quantize, 
-                        changedVec  = dequantizedVec, 
-                        label       = label,
-                        stdev       = stdev,
-                        scale       = scale,
-                        logFile     = logFile,
-                        verbose     = verbose
-                        ))
+            grid                    = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=True)
+            [quantizedVec, scale]   = quantize(vec=vec2quantize, grid=grid)
+            dequantizedVec          = dequantize(vec=quantizedVec, scale=scale)
+            label                   = ResFileParser.genFpLabel(
+                expSize     = expSize, 
+                mantSize    = (cntrSize-1-expSize))
+            resRecords.append (calcMse(
+                    orgVec      = vec2quantize, 
+                    changedVec  = dequantizedVec, 
+                    label       = label,
+                    stdev       = stdev,
+                    scale       = scale,
+                    logFile     = logFile,
+                    verbose     = verbose
+                    ))
         elif mode.startswith('F2P'):
             flavor = mode.split('_')[1]
             grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=[], signed=True)
@@ -282,7 +279,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
                  resRecord['weightedAbsMseVec'], 
                  color      = colorOfLabel[resRecord['label']], 
                  marker     = markerOfMode[mode], 
-                linestyle  = 'None', 
+                # linestyle  = 'None', 
                  markersize = 2, 
                  label      = resRecord['label'])  # Plot the conf' interval line
     handles, labels = plt.gca().get_legend_handles_labels()
@@ -298,10 +295,9 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
 
 # plotScaledGrids (cntrSize=6, modes=['FP_e1', 'F2P_sr', 'FP_e5', 'F2P_lr'])
 stdev = 1
-simQuantErr (modes          = ['FP_e1'], # 'F2P_sr', 'FP_e1'   
-             expSizes       = [1], 
+simQuantErr (modes          = ['FP_e1', 'F2P_sr'], # 'F2P_sr', 'FP_e1'   
              numPts         = 1000, 
              stdev          = stdev,
-             vecLowerBnd    = -1*stdev,
-             vecUpperBnd    =  1*stdev,
-             verbose= [settings.VERBOSE_RES]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
+             vecLowerBnd    = -4*stdev,
+             vecUpperBnd    =  4*stdev,
+             verbose= [settings.VERBOSE_PLOT, settings.VERBOSE_RES]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
