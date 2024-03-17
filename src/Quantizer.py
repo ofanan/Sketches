@@ -17,7 +17,7 @@ def clamp (vec: np.array, lowerBnd: float, upperBnd: float) -> np.array:
     """
     vec[vec < lowerBnd] = lowerBnd
     vec[vec > upperBnd] = upperBnd
-    return vec
+    return vec 
 
 def dequantize (vec : np.array, scale : float) -> np.array:
     """
@@ -30,7 +30,9 @@ def calcMse (orgVec     : np.array, # vector before quantization
              dist       : str ='Gaussian', # distribution by which the MSE is weighted
              stdev      : float = 0.01,       # standard variation of the distribution; the expected value is 0.
              label      : str = None,        # a string defining the mode (e.g., 'F2P_lr'
-             scale      : float = None       # the scale by which orgVec was quantized 
+             scale      : float = None,       # the scale by which orgVec was quantized
+             logFile     = None, # object for the logFile; to be used if the verbose requests for logFile
+             verbose    : array = []    # level of verbose, as defined in settings.py 
              ):
     """
     Calculate the: 
@@ -47,6 +49,12 @@ def calcMse (orgVec     : np.array, # vector before quantization
             continue
         weightedRelMseVec[idxInweightedRelMseVec] = scipy.stats.norm(0, stdev).pdf(orgVec[i])*((orgVec[i]-changedVec[i])/orgVec[i])**2 
         idxInweightedRelMseVec += 1
+
+    if settings.VERBOSE_LOG in verobse:
+        printf (logFile, '// Label={}' .format(resRecord['label']))
+        for i in range (10):
+             printf (logFile, f'i={i}, org={orgVec[i]}, changed={changedVec[i]}, PDF={scipy.stats.norm(0, stdev).pdf(orgVec[i])}, weightedAbsMse={htedAbsMseVec}')
+                    
     return {
         'label'             : label,
         'scale'             : scale, 
@@ -87,37 +95,37 @@ def plotScaledGrids (
         'xtick.labelsize'   : FONT_SIZE_SMALL,
         'ytick.labelsize'   : FONT_SIZE_SMALL,
         'axes.labelsize'    : FONT_SIZE_SMALL,
-        'axes.titlesize'    :FONT_SIZE_SMALL
+        'axes.titlesize'    : FONT_SIZE_SMALL
         })
     _, ax = plt.subplots()
-    plotRecords = []
+    resRecords = []
     lenGrid     = 2**cntrSize
     for mode in modes:
         if mode.startswith('FP'):
             expSize = int(mode.split ('_e')[1])
             mode = 'FP'
-            plotRecords.append ({
+            resRecords.append ({
                 'mode'  : mode,
                 'label' : ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-expSize),
                 'grid'  : scaleGrid (getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=signed)), 
                 })
         elif mode.startswith('F2P'):
             flavor = mode.split('_')[1]
-            plotRecords.append ({
+            resRecords.append ({
                 'mode'  : mode,
                 'label' : ResFileParser.genF2pLabel(flavor=flavor),
                 'grid'  : scaleGrid (getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose, signed=signed)) 
                 })
 
-    for i in range(len(plotRecords)): 
-        plotRecord = plotRecords[i]     
-        ax.plot (plotRecord['grid'], 
-                 [len(plotRecords)-i for item in range(lenGrid)], 
-                 color      = colorOfLabel[plotRecord['label']], 
+    for i in range(len(resRecords)): 
+        resRecord = resRecords[i]     
+        ax.plot (resRecord['grid'], 
+                 [len(resRecords)-i for item in range(lenGrid)], 
+                 color      = colorOfLabel[resRecord['label']], 
                  marker     = markerOfMode[mode], 
                  linestyle  = 'None', 
                  markersize = MARKER_SIZE_SMALL, 
-                 label      = plotRecord['label'])  # Plot the conf' interval line
+                 label      = resRecord['label'])  # Plot the conf' interval line
     frame1 = plt.gca()
     frame1.axes.get_yaxis().set_visible(False)
     handles, labels = plt.gca().get_legend_handles_labels()
@@ -178,12 +186,15 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
         settings.error ('In Quantization.genVec2Quantize(). Sorry. The distribution {dist} you chose is not supported.')
     
     
-def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr. 
-                 cntrSize   = 8,  # of bits, including the sign bit 
-                 expSizes   = [1], # size of the exponent when simulating FP 
-                 hyperSize  = 2,  # size of the hyper-exp, when simulating F2P  
-                 numPts     = 1000, # num of points in the quantized vec
-                 verbose    = [],  # level of verbose, as defined in settings.py. 
+def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr. 
+                 cntrSize       = 8,  # of bits, including the sign bit 
+                 expSizes       = [1], # size of the exponent when simulating FP 
+                 hyperSize      = 2,  # size of the hyper-exp, when simulating F2P  
+                 numPts         = 1000, # num of points in the quantized vec
+                 verbose        = [],  # level of verbose, as defined in settings.py.
+                 stdev          = 1,   # standard variation of the vector to quantize, when drawn from a Gaussian dist'  
+                 vecLowerBnd    = -float('inf'), # lower Bnd of the generated vector to quantize, if drawn from a uniform dist'  
+                 vecUpperBnd    = float('inf')   # upper Bnd of the generated vector to quantize, if drawn from a uniform dist'
                  ):
     """
     Simulate the required configuration and output the results (the quantization errors) as defined by the verbose.
@@ -191,15 +202,16 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
     np.random.seed (settings.SEED)
     if settings.VERBOSE_RES in verbose:
         resFile = open (f'../res/quant_n{cntrSize}.res', 'a+')
-    upperBnd = 3
+    if settings.VERBOSE_LOG in verobse:
+        logFile = open (f'../res/quant_n{cntrSize}.log', 'a+')        
     vec2quantize = genVec2Quantize (
-        dist        = 'Gaussian', 
-        lowerBnd    = -upperBnd,   # lower bound for the generated points  
-        upperBnd    = upperBnd,   # upper bound for the generated points
-        stdev       = 1, 
+        dist        = 'Uniform', 
+        lowerBnd    = vecLowerBnd,   # lower bound for the generated points  
+        upperBnd    = vecUpperBnd,   # upper bound for the generated points
+        stdev       = stdev, 
         numPts      = numPts)
     _, ax = plt.subplots()
-    plotRecords = []
+    resRecords = []
     for mode in modes:
         if mode=='FP':
             for expSize in expSizes: 
@@ -207,11 +219,13 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
                 [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)
                 dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
                 # print (f'vec2quant={vec2quantize}\ndeqVec={dequantizedVec}') #$$$
-                plotRecords.append (calcMse(
+                resRecords.append (calcMse(
                         orgVec      = vec2quantize, 
                         changedVec  = dequantizedVec, 
                         label       = ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize),
-                        scale       = scale
+                        scale       = scale,
+                        logFile     = logFile,
+                        verbose     = verbose
                         ))
         elif mode.startswith('F2P'):
             flavor = mode.split('_')[1]
@@ -219,7 +233,7 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
             # print (f'vec2quant={vec2quantize}\ndeqVec={dequantizedVec}') #$$$
-            plotRecords.append (calcMse(
+            resRecords.append (calcMse(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
                     label       = ResFileParser.genF2pLabel(flavor=flavor),
@@ -230,7 +244,7 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
             vec2quantize = np.array([-100, -95, -7, 99, 100])
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
-            plotRecords.append (calcMse(
+            resRecords.append (calcMse(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
                     label       = 'shortTest'
@@ -239,29 +253,60 @@ def simQuantErr (modes      = [], # modes to be simulated, e.g. FP, F2P_sr.
             settings.error ('Sorry, the requested mode {mode} is not supported.')
 
     if settings.VERBOSE_COUT_CNTRLINE in verbose:
-        print (plotRecords)
+        print (resRecords)
         
     if settings.VERBOSE_RES in verbose:
-        for plotRecord in plotRecords:
-            for key, value in plotRecord.items():
+        for resRecord in resRecords:
+            for key, value in resRecord.items():
                 if not key.endswith('Vec'):
                     printf (resFile, f'{key} : {value}\n')
             printf (resFile, '\n\n')
 
-    if settings.VERBOSE_PLOT in verbose:
-        for i in range(len(plotRecords)): 
-            plotRecord = plotRecords[i]
-            ax.plot (vec2quantize, 
-                     plotRecord['weightedRelMse'], 
-                     color      = plotRecord['label'], 
-                     marker     = markerOfMode[mode], 
-                     linestyle  = 'None', 
-                     markersize = 4, 
-                     label      = plotRecord['label'])  # Plot the conf' interval line
-        handles, labels = plt.gca().get_legend_handles_labels()
-        by_label = dict(zip(labels, handles))
-        plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
-        plt.show()
+    if settings.VERBOSE_PLOT not in verbose:
+        return
+     
+    for i in range(len(resRecords)): 
+        resRecord = resRecords[i]
+        ax.plot (vec2quantize, 
+                 resRecord['weightedAbsMseVec'], 
+                 color      = colorOfLabel[resRecord['label']], 
+                 marker     = markerOfMode[mode], 
+                linestyle  = 'None', 
+                 markersize = 2, 
+                 label      = resRecord['label'])  # Plot the conf' interval line
+    handles, labels = plt.gca().get_legend_handles_labels()
+    by_label = dict(zip(labels, handles))
+    plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
+    # plt.yscale ('log')
+    # plt.ylim (10**(-30), 10**(-2))
+    plt.xlim (-1, 1)
+    plt.show()
+
+class SimQuantizer (ojbect):
+    """
+    Class for quantization simulations
+    """
+    
+    def __init__ (
+        self,
+        modes          = [], # modes to be simulated, e.g. FP, F2P_sr. 
+        cntrSize       = 8,  # of bits, including the sign bit 
+        expSizes       = [1], # size of the exponent when simulating FP 
+        hyperSize      = 2,  # size of the hyper-exp, when simulating F2P  
+        numPts         = 1000, # num of points in the quantized vec
+        verbose        = [],  # level of verbose, as defined in settings.py.
+        stdev          = 1,   # standard variation of the vector to quantize, when drawn from a Gaussian dist'  
+        vecLowerBnd    = -float('inf'), # lower Bnd of the generated vector to quantize, if drawn from a uniform dist'  
+        vecUpperBnd    = float('inf')):   # upper Bnd of the generated vector to quantize, if drawn from a uniform dist'
+        return 
+    
 
 # plotScaledGrids (cntrSize=6, modes=['FP_e1', 'F2P_sr', 'FP_e5', 'F2P_lr'])
-simQuantErr (modes=['F2P_sr', 'FP'], expSizes=[1], numPts=1000, verbose=[settings.VERBOSE_RES]) #'F2P_sr', 
+stdev = 1
+simQuantErr (modes          = ['F2P_sr','FP'], #   
+             expSizes       = [1], 
+             numPts         = 1000, 
+             stdev          = stdev,
+             vecLowerBnd    = -1*stdev,
+             vecUpperBnd    =  1*stdev,
+             verbose= [settings.VERBOSE_LOG]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  

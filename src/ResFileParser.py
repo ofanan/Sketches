@@ -36,9 +36,9 @@ colorOfMode = {
 
 colorOfLabel = {
     'F2P lr'    : 'green',
-    'F2P sr'    : 'brown',
+    'F2P sr'    : 'black',
     'F2P li'    : 'purple',
-    'FP 6M1E'   : 'brown',
+    'FP 6M1E'   : 'magenta',
     'FP 1M6E'   : 'blue',
     }
 
