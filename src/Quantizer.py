@@ -43,10 +43,6 @@ def calcMse (orgVec     : np.array, # vector before quantization
         settings.error (f'In FPQuantization.calcMse(). Sorry, the distribution {dist} you chose is not supported.')
     # weightedAbsMseVec      = [scipy.stats.norm(0, stdev).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
     weightedAbsMseVec = np.empty(len(orgVec))
-    for i in range (10): #(len(orgVec)): 
-        weightedAbsMseVec[i] = scipy.stats.norm(0, stdev).pdf(orgVec[i])
-        print (f'orgVec[i]={orgVec[i]}, weightedMse={weightedAbsMseVec[i]}') #$$$
-    settings.error ('reag') #$$$
     weightedRelMseVec      = np.empty(len([item for item in orgVec if item!=0]))
     idxInweightedRelMseVec = 0
     for i in range(len(orgVec)):
@@ -224,7 +220,6 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
                 [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)
                 dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
                 label = ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize),
-                # print (f'vec2quant={vec2quantize}\ndeqVec={dequantizedVec}') #$$$
                 resRecords.append (calcMse(
                         orgVec      = vec2quantize, 
                         changedVec  = dequantizedVec, 
@@ -239,7 +234,6 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
             grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=[], signed=True)
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
-            # print (f'vec2quant={vec2quantize}\ndeqVec={dequantizedVec}') #$$$
             resRecords.append (calcMse(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
@@ -304,4 +298,3 @@ simQuantErr (modes          = ['F2P_sr','FP'], #
              vecLowerBnd    = -1*stdev,
              vecUpperBnd    =  1*stdev,
              verbose= [settings.VERBOSE_LOG]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
-# print (scipy.stats.norm(0, stdev).pdf(-0.982))
