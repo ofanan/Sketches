@@ -32,7 +32,7 @@ def calcMse (orgVec     : np.array, # vector before quantization
              label      : str = None,        # a string defining the mode (e.g., 'F2P_lr'
              scale      : float = None,       # the scale by which orgVec was quantized
              logFile     = None, # object for the logFile; to be used if the verbose requests for logFile
-             verbose    : array = []    # level of verbose, as defined in settings.py 
+             verbose    : list = []    # level of verbose, as defined in settings.py 
              ):
     """
     Calculate the: 
@@ -50,10 +50,10 @@ def calcMse (orgVec     : np.array, # vector before quantization
         weightedRelMseVec[idxInweightedRelMseVec] = scipy.stats.norm(0, stdev).pdf(orgVec[i])*((orgVec[i]-changedVec[i])/orgVec[i])**2 
         idxInweightedRelMseVec += 1
 
-    if settings.VERBOSE_LOG in verobse:
-        printf (logFile, '// Label={}' .format(resRecord['label']))
+    if settings.VERBOSE_LOG in verbose:
+        printf (logFile, 'f// Label={label}')
         for i in range (10):
-             printf (logFile, f'i={i}, org={orgVec[i]}, changed={changedVec[i]}, PDF={scipy.stats.norm(0, stdev).pdf(orgVec[i])}, weightedAbsMse={htedAbsMseVec}')
+             printf (logFile, f'i={i}, org={orgVec[i]}, changed={changedVec[i]}, PDF={scipy.stats.norm(0, stdev).pdf(orgVec[i])}, weightedAbsMse={weightedAbsMseVec}')
                     
     return {
         'label'             : label,
@@ -83,20 +83,20 @@ def plotScaledGrids (
         ) -> None:
     """
     """
-    setPltParams = lambda self, size = 'large': matplotlib.rcParams.update({
-        'font.size'         : FONT_SIZE,
-        'legend.fontsize'   : LEGEND_FONT_SIZE,
-        'xtick.labelsize'   : FONT_SIZE,
-        'ytick.labelsize'   : FONT_SIZE,
-        'axes.labelsize'    : FONT_SIZE,
-        'axes.titlesize'    : FONT_SIZE, }) if (size == 'large') else matplotlib.rcParams.update({
-        'font.size'         : FONT_SIZE_SMALL,
-        'legend.fontsize'   : LEGEND_FONT_SIZE_SMALL,
-        'xtick.labelsize'   : FONT_SIZE_SMALL,
-        'ytick.labelsize'   : FONT_SIZE_SMALL,
-        'axes.labelsize'    : FONT_SIZE_SMALL,
-        'axes.titlesize'    : FONT_SIZE_SMALL
-        })
+    # setPltParams = lambda self, size = 'large': matplotlib.rcParams.update({
+    #     'font.size'         : FONT_SIZE,
+    #     'legend.fontsize'   : LEGEND_FONT_SIZE,
+    #     'xtick.labelsize'   : FONT_SIZE,
+    #     'ytick.labelsize'   : FONT_SIZE,
+    #     'axes.labelsize'    : FONT_SIZE,
+    #     'axes.titlesize'    : FONT_SIZE, }) if (size == 'large') else matplotlib.rcParams.update({
+    #     'font.size'         : FONT_SIZE_SMALL,
+    #     'legend.fontsize'   : LEGEND_FONT_SIZE_SMALL,
+    #     'xtick.labelsize'   : FONT_SIZE_SMALL,
+    #     'ytick.labelsize'   : FONT_SIZE_SMALL,
+    #     'axes.labelsize'    : FONT_SIZE_SMALL,
+    #     'axes.titlesize'    : FONT_SIZE_SMALL
+    #     })
     _, ax = plt.subplots()
     resRecords = []
     lenGrid     = 2**cntrSize
@@ -202,7 +202,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
     np.random.seed (settings.SEED)
     if settings.VERBOSE_RES in verbose:
         resFile = open (f'../res/quant_n{cntrSize}.res', 'a+')
-    if settings.VERBOSE_LOG in verobse:
+    if settings.VERBOSE_LOG in verbose:
         logFile = open (f'../res/quant_n{cntrSize}.log', 'a+')        
     vec2quantize = genVec2Quantize (
         dist        = 'Uniform', 
@@ -218,11 +218,12 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
                 grid     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=True)
                 [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)
                 dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
+                label = ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize),
                 # print (f'vec2quant={vec2quantize}\ndeqVec={dequantizedVec}') #$$$
                 resRecords.append (calcMse(
                         orgVec      = vec2quantize, 
                         changedVec  = dequantizedVec, 
-                        label       = ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize),
+                        label       = label,
                         scale       = scale,
                         logFile     = logFile,
                         verbose     = verbose
@@ -237,7 +238,9 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
                     label       = ResFileParser.genF2pLabel(flavor=flavor),
-                    scale       = scale
+                    scale       = scale,
+                    logFile     = logFile,
+                    verbose     = verbose
                     ))
         elif mode=='shortTest':
             grid = np.array([i for i in range(-10, 11)])
@@ -282,23 +285,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
     plt.xlim (-1, 1)
     plt.show()
 
-class SimQuantizer (ojbect):
-    """
-    Class for quantization simulations
-    """
-    
-    def __init__ (
-        self,
-        modes          = [], # modes to be simulated, e.g. FP, F2P_sr. 
-        cntrSize       = 8,  # of bits, including the sign bit 
-        expSizes       = [1], # size of the exponent when simulating FP 
-        hyperSize      = 2,  # size of the hyper-exp, when simulating F2P  
-        numPts         = 1000, # num of points in the quantized vec
-        verbose        = [],  # level of verbose, as defined in settings.py.
-        stdev          = 1,   # standard variation of the vector to quantize, when drawn from a Gaussian dist'  
-        vecLowerBnd    = -float('inf'), # lower Bnd of the generated vector to quantize, if drawn from a uniform dist'  
-        vecUpperBnd    = float('inf')):   # upper Bnd of the generated vector to quantize, if drawn from a uniform dist'
-        return 
+
     
 
 # plotScaledGrids (cntrSize=6, modes=['FP_e1', 'F2P_sr', 'FP_e5', 'F2P_lr'])
