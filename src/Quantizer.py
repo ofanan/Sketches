@@ -41,7 +41,12 @@ def calcMse (orgVec     : np.array, # vector before quantization
     """
     if dist!='Gaussian':
         settings.error (f'In FPQuantization.calcMse(). Sorry, the distribution {dist} you chose is not supported.')
-    weightedAbsMseVec      = [scipy.stats.norm(0, stdev).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
+    # weightedAbsMseVec      = [scipy.stats.norm(0, stdev).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
+    weightedAbsMseVec = np.empty(len(orgVec))
+    for i in range (10): #(len(orgVec)): 
+        weightedAbsMseVec[i] = scipy.stats.norm(0, stdev).pdf(orgVec[i])
+        print (f'orgVec[i]={orgVec[i]}, weightedMse={weightedAbsMseVec[i]}') #$$$
+    settings.error ('reag') #$$$
     weightedRelMseVec      = np.empty(len([item for item in orgVec if item!=0]))
     idxInweightedRelMseVec = 0
     for i in range(len(orgVec)):
@@ -203,7 +208,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
     if settings.VERBOSE_RES in verbose:
         resFile = open (f'../res/quant_n{cntrSize}.res', 'a+')
     if settings.VERBOSE_LOG in verbose:
-        logFile = open (f'../res/quant_n{cntrSize}.log', 'a+')        
+        logFile = open (f'../res/quant_n{cntrSize}.log', 'w')        
     vec2quantize = genVec2Quantize (
         dist        = 'Uniform', 
         lowerBnd    = vecLowerBnd,   # lower bound for the generated points  
@@ -224,6 +229,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
                         orgVec      = vec2quantize, 
                         changedVec  = dequantizedVec, 
                         label       = label,
+                        stdev       = stdev,
                         scale       = scale,
                         logFile     = logFile,
                         verbose     = verbose
@@ -239,6 +245,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
                     changedVec  = dequantizedVec, 
                     label       = ResFileParser.genF2pLabel(flavor=flavor),
                     scale       = scale,
+                    stdev       = stdev,
                     logFile     = logFile,
                     verbose     = verbose
                     ))
@@ -297,3 +304,4 @@ simQuantErr (modes          = ['F2P_sr','FP'], #
              vecLowerBnd    = -1*stdev,
              vecUpperBnd    =  1*stdev,
              verbose= [settings.VERBOSE_LOG]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
+# print (scipy.stats.norm(0, stdev).pdf(-0.982))
