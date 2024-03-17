@@ -51,9 +51,9 @@ def calcMse (orgVec     : np.array, # vector before quantization
         idxInweightedRelMseVec += 1
 
     if settings.VERBOSE_LOG in verbose:
-        printf (logFile, 'f// Label={label}')
+        printf (logFile, f'// Label={label}\n')
         for i in range (10):
-             printf (logFile, f'i={i}, org={orgVec[i]}, changed={changedVec[i]}, PDF={scipy.stats.norm(0, stdev).pdf(orgVec[i])}, weightedAbsMse={weightedAbsMseVec}')
+             printf (logFile, f'i={i}, org={orgVec[i]}, changed={changedVec[i]}, PDF={scipy.stats.norm(0, stdev).pdf(orgVec[i])}, weightedAbsMse={weightedAbsMseVec[i]}\n')
                     
     return {
         'label'             : label,
