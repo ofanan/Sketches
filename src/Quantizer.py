@@ -29,7 +29,7 @@ def calcMse (orgVec     : np.array, # vector before quantization
              changedVec : np.array, # vector after quantization+dequantization
              dist       : str ='Gaussian', # distribution by which the MSE is weighted
              stdev      : float = 0.01,       # standard variation of the distribution; the expected value is 0.
-             label      : str = None,        # a string defining the mode (e.g., 'F2P_lr'
+             label      = None,        # a string defining the mode (e.g., 'F2P_lr'
              scale      : float = None,       # the scale by which orgVec was quantized
              logFile     = None, # object for the logFile; to be used if the verbose requests for logFile
              verbose    : list = []    # level of verbose, as defined in settings.py 
@@ -204,7 +204,9 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
     if settings.VERBOSE_RES in verbose:
         resFile = open (f'../res/quant_n{cntrSize}.res', 'a+')
     if settings.VERBOSE_LOG in verbose:
-        logFile = open (f'../res/quant_n{cntrSize}.log', 'w')        
+        logFile = open (f'../res/quant_n{cntrSize}.log', 'w')
+    else:        
+        logFile = None
     vec2quantize = genVec2Quantize (
         dist        = 'Uniform', 
         lowerBnd    = vecLowerBnd,   # lower bound for the generated points  
@@ -214,12 +216,16 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
     _, ax = plt.subplots()
     resRecords = []
     for mode in modes:
-        if mode=='FP':
+        if mode.startswith('FP'):
+            expSize = int(mode.split ('_e')[1])
+            mode = 'FP'
             for expSize in expSizes: 
-                grid     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=True)
-                [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)
-                dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
-                label = ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize),
+                grid                    = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=True)
+                [quantizedVec, scale]   = quantize(vec=vec2quantize, grid=grid)
+                dequantizedVec          = dequantize(vec=quantizedVec, scale=scale)
+                label                   = ResFileParser.genFpLabel(
+                    expSize     = expSize, 
+                    mantSize    = (cntrSize-1-expSize))
                 resRecords.append (calcMse(
                         orgVec      = vec2quantize, 
                         changedVec  = dequantizedVec, 
@@ -234,6 +240,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
             grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=[], signed=True)
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
+            label       = ResFileParser.genF2pLabel(flavor=flavor)
             resRecords.append (calcMse(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
@@ -291,10 +298,10 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
 
 # plotScaledGrids (cntrSize=6, modes=['FP_e1', 'F2P_sr', 'FP_e5', 'F2P_lr'])
 stdev = 1
-simQuantErr (modes          = ['F2P_sr','FP'], #   
+simQuantErr (modes          = ['FP_e1'], # 'F2P_sr', 'FP_e1'   
              expSizes       = [1], 
              numPts         = 1000, 
              stdev          = stdev,
              vecLowerBnd    = -1*stdev,
              vecUpperBnd    =  1*stdev,
-             verbose= [settings.VERBOSE_LOG]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
+             verbose= [settings.VERBOSE_RES]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
