@@ -174,11 +174,13 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
                      upperBnd   : float = 10,   # upper bound for the generated points
                      stdev      : float = 1,   # standard variation when generating a Gaussian dist' points
                      numPts     : int   = 1000, # Num of points in the generated vector
+                     outLier    : float = None,
                      ) -> np.array:
     """
     Generate a vector to be quantized, using the requested distribution.
     """
     if dist=='Uniform':
+        Add the outLier here.
         return np.array([(lowerBnd + i*(upperBnd-lowerBnd)/numPts) for i in range(numPts)])
     elif dist=='Gaussian':
         return (np.sort (np.random.randn(numPts) * stdev))
@@ -193,7 +195,8 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
                  verbose        = [],  # level of verbose, as defined in settings.py.
                  stdev          = 1,   # standard variation of the vector to quantize, when drawn from a Gaussian dist'  
                  vecLowerBnd    = -float('inf'), # lower Bnd of the generated vector to quantize, if drawn from a uniform dist'  
-                 vecUpperBnd    = float('inf')   # upper Bnd of the generated vector to quantize, if drawn from a uniform dist'
+                 vecUpperBnd    = float('inf'),   # upper Bnd of the generated vector to quantize, if drawn from a uniform dist'
+                 outLier        = None # Outlier value, to be added to the generated vector
                  ):
     """
     Simulate the required configuration and output the results (the quantization errors) as defined by the verbose.
@@ -210,6 +213,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
         lowerBnd    = vecLowerBnd,   # lower bound for the generated points  
         upperBnd    = vecUpperBnd,   # upper bound for the generated points
         stdev       = stdev, 
+        outLier     = outLier,
         numPts      = numPts)
     _, ax = plt.subplots()
     resRecords = []
@@ -300,4 +304,5 @@ simQuantErr (modes          = ['FP_e1', 'F2P_sr'], # 'F2P_sr', 'FP_e1'
              stdev          = stdev,
              vecLowerBnd    = -4*stdev,
              vecUpperBnd    =  4*stdev,
+             outLier        = 100*stdev,
              verbose= [settings.VERBOSE_PLOT, settings.VERBOSE_RES]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
