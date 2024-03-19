@@ -1,4 +1,4 @@
-import os, scipy, numpy as np
+import os, scipy, matplotlib, numpy as np
 # from datetime import datetime
 from tictoc import tic, toc
 import matplotlib.pyplot as plt
@@ -7,6 +7,26 @@ from printf import printf, printar, printarFp
 import settings, ResFileParser, F2P_sr, F2P_lr, F2P_li, FP  
 from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
 from ResFileParser import colors, colorOfLabel, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, LEGEND_FONT_SIZE
+
+def setPltParams (size : str = 'large') -> None:
+    """
+    Set the plot parameters (sizes, colors etc.).
+    """
+    matplotlib.rcParams.update({
+    'font.size'         : FONT_SIZE,
+    'legend.fontsize'   : LEGEND_FONT_SIZE,
+    'xtick.labelsize'   : FONT_SIZE,
+    'ytick.labelsize'   : FONT_SIZE,
+    'axes.labelsize'    : FONT_SIZE,
+    'axes.titlesize'    : FONT_SIZE, }) if (size == 'large') else matplotlib.rcParams.update({
+    'font.size'         : FONT_SIZE_SMALL,
+    'legend.fontsize'   : LEGEND_FONT_SIZE_SMALL,
+    'xtick.labelsize'   : FONT_SIZE_SMALL,
+    'ytick.labelsize'   : FONT_SIZE_SMALL,
+    'axes.labelsize'    : FONT_SIZE_SMALL,
+    'axes.titlesize'    : FONT_SIZE_SMALL
+    })
+
 
 def clamp (vec: np.array, lowerBnd: float, upperBnd: float) -> np.array:
     """
@@ -76,62 +96,63 @@ def scaleGrid (grid : np.array, lowerBnd=0, upperBnd=100) -> np.array:
     
 def plotScaledGrids (
         modes       = [], # modes to be simulated, e.g. FP, F2P_sr. 
-        cntrSize    = 6,  # of bits, including the sign bit 
+        cntrSize    = 7,  # of bits, including the sign bit 
         hyperSize   = 2,  # size of the hyper-exp, when simulating F2P  
         signed      = False, # when True, plot also negative values (symmetrically w.r.t. 0).
-        verbose     = []  # level of verbose, as defined in settings.py. 
+        zoomXlim    = None,  # when not None, generate the plot zoomed so that x values are up to this value  
+        verbose     = []  # level of verbose, as defined in settings.py.
         ) -> None:
     """
     """
-    # setPltParams = lambda self, size = 'large': matplotlib.rcParams.update({
-    #     'font.size'         : FONT_SIZE,
-    #     'legend.fontsize'   : LEGEND_FONT_SIZE,
-    #     'xtick.labelsize'   : FONT_SIZE,
-    #     'ytick.labelsize'   : FONT_SIZE,
-    #     'axes.labelsize'    : FONT_SIZE,
-    #     'axes.titlesize'    : FONT_SIZE, }) if (size == 'large') else matplotlib.rcParams.update({
-    #     'font.size'         : FONT_SIZE_SMALL,
-    #     'legend.fontsize'   : LEGEND_FONT_SIZE_SMALL,
-    #     'xtick.labelsize'   : FONT_SIZE_SMALL,
-    #     'ytick.labelsize'   : FONT_SIZE_SMALL,
-    #     'axes.labelsize'    : FONT_SIZE_SMALL,
-    #     'axes.titlesize'    : FONT_SIZE_SMALL
-    #     })
-    _, ax = plt.subplots()
-    resRecords = []
+    setPltParams ()
+    _, ax       = plt.subplots()
+    resRecords  = []
     lenGrid     = 2**cntrSize
+    lowerBnd    = 0
+    upperBnd    = 2**cntrSize-1 
     for mode in modes:
         if mode.startswith('FP'):
             expSize = int(mode.split ('_e')[1])
             mode = 'FP'
-            resRecords.append ({
+            resRecord = {
                 'mode'  : mode,
                 'label' : ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-expSize),
-                'grid'  : scaleGrid (getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=signed)), 
-                })
+                'grid'  : scaleGrid (getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=signed), lowerBnd = lowerBnd, upperBnd = upperBnd)
+                }
         elif mode.startswith('F2P'):
             flavor = mode.split('_')[1]
-            resRecords.append ({
+            resRecord = {
                 'mode'  : mode,
                 'label' : ResFileParser.genF2pLabel(flavor=flavor),
-                'grid'  : scaleGrid (getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose, signed=signed)) 
-                })
-
+                'grid'  : scaleGrid (getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose, signed=signed), lowerBnd = lowerBnd, upperBnd = upperBnd) 
+                }
+        elif mode.startswith('int'):
+            mode = 'FP'
+            resRecord = {
+                'mode'  : 'int',
+                'label' : 'int',
+                'grid'  : [i for i in range (lowerBnd, upperBnd+1)] 
+                }
+        else:
+            settings.error (f'In Quantizer.plotScaledGrids(). Sorry, the mode {mode} requested is not supported')
+        resRecords.append (resRecord)
+        
     for i in range(len(resRecords)): 
         resRecord = resRecords[i]     
         ax.plot (resRecord['grid'], 
-                 [len(resRecords)-i for item in range(lenGrid)], 
+                 [i for item in range(lenGrid)], 
                  color      = colorOfLabel[resRecord['label']], 
                  marker     = markerOfMode[mode], 
                  linestyle  = 'None', 
-                 markersize = MARKER_SIZE_SMALL, 
+                 markersize = 2, 
                  label      = resRecord['label'])  # Plot the conf' interval line
     frame1 = plt.gca()
     frame1.axes.get_yaxis().set_visible(False)
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = dict(zip(labels, handles))
     plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
-    plt.xlim (0,5)        
+    if zoomXlim!=None:
+        plt.xlim (0,zoomXlim)        
     plt.show()
 
 def quantize (vec  : np.array, # The vector to quantize 
@@ -165,7 +186,7 @@ def quantize (vec  : np.array, # The vector to quantize
                 idxInGrid += 1
             else:
                idxInGrid -= 1
-               quantVec[idxInVec]= grid[idxInGrid]
+               quantVec[idxInVec] = grid[idxInGrid]
                break
     return [quantVec, scale]
 
@@ -180,13 +201,16 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
     Generate a vector to be quantized, using the requested distribution.
     """
     if dist=='Uniform':
-        Add the outLier here.
-        return np.array([(lowerBnd + i*(upperBnd-lowerBnd)/numPts) for i in range(numPts)])
+        vec = [(lowerBnd + i*(upperBnd-lowerBnd)/numPts) for i in range(numPts)]
     elif dist=='Gaussian':
-        return (np.sort (np.random.randn(numPts) * stdev))
+        vec = np.sort (np.random.randn(numPts) * stdev)
+    elif dist=='int': # vector of integers in the range
+        vec = [i for i in range (lowerBnd, upperBnd+1)]
     else:
         settings.error ('In Quantization.genVec2Quantize(). Sorry. The distribution {dist} you chose is not supported.')
-    
+    if outLier==None:
+        return np.array (vec)
+    return np.array ([-outLier] + vec + [outLier])
     
 def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr. 
                  cntrSize       = 8,  # of bits, including the sign bit 
@@ -291,18 +315,22 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
     plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
     # plt.yscale ('log')
     # plt.ylim (10**(-30), 10**(-2))
-    plt.xlim (-1, 1)
+    # plt.xlim (-1, 1)
     plt.show()
 
 
     
 
-# plotScaledGrids (cntrSize=6, modes=['FP_e1', 'F2P_sr', 'FP_e5', 'F2P_lr'])
-stdev = 1
-simQuantErr (modes          = ['FP_e1', 'F2P_sr'], # 'F2P_sr', 'FP_e1'   
-             numPts         = 1000, 
-             stdev          = stdev,
-             vecLowerBnd    = -4*stdev,
-             vecUpperBnd    =  4*stdev,
-             outLier        = 100*stdev,
-             verbose= [settings.VERBOSE_PLOT, settings.VERBOSE_RES]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
+# stdev = 1
+# simQuantErr (modes          = ['FP_e1', 'F2P_sr'], # 'F2P_sr', 'FP_e1'   
+#              numPts         = 1000, 
+#              stdev          = stdev,
+#              vecLowerBnd    = -4*stdev,
+#              vecUpperBnd    =  4*stdev,
+#              outLier        = 100*stdev,
+#              verbose= [settings.VERBOSE_PLOT, settings.VERBOSE_RES]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
+# plotScaledGrids (cntrSize=7, modes=['FP_e1', 'F2P_sr', 'FP_e6', 'F2P_lr', 'int'])
+plotScaledGrids (cntrSize=7, modes=['FP_e2', 'F2P_sr', 'FP_e6', 'F2P_lr', 'int'])
+
+# print (scaleGrid(getAllValsFP(cntrSize=7, expSize=1, signed=False), lowerBnd=0, upperBnd=127))
+# print (getAllValsFP(cntrSize=7, expSize=1, signed=False))

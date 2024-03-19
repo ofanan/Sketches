@@ -35,10 +35,16 @@ colorOfMode = {
     }
 
 colorOfLabel = {
+    'int'       : 'black',
     'F2P lr'    : 'green',
-    'F2P sr'    : 'black',
-    'F2P li'    : 'purple',
-    'FP 6M1E'   : 'magenta',
+    'F2P lr h1' : 'green',
+    'F2P lr h2' : 'green',
+    'F2P sr'    : 'purple',
+    'F2P sr h1' : 'purple',
+    'F2P sr h2' : 'purple',
+    'F2P sr'    : 'purple',
+    'F2P li'    : 'yellow',
+    'FP 5M2E'   : 'magenta',
     'FP 1M6E'   : 'blue',
     }
 
@@ -62,11 +68,13 @@ def genFpLabel (mantSize : int, expSize : int) -> str:
     """
     return f'FP {mantSize}M{expSize}E'
 
-def genF2pLabel (flavor : str) -> str:
+def genF2pLabel (flavor       : str, # flavor, e.g., 'lr', 'sr', 'li'
+                 hyperExpSize : int = 2 
+                 ) -> str:
     """
     Generates a label string that details the counter's settings (param vals), to be used in plots.
     """
-    return f'F2P {flavor}'
+    return f'F2P {flavor} h{hyperExpSize}'
 
 class ResFileParser (object):
     """
