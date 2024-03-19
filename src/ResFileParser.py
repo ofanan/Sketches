@@ -76,6 +76,14 @@ def genF2pLabel (flavor       : str, # flavor, e.g., 'lr', 'sr', 'li'
     """
     return f'F2P {flavor} h{hyperExpSize}'
 
+def getF2PSettings (mode : str) -> dict:
+    """
+    given the mode string of an F2P counter, get a dictionary detailing its settings (flavor and hyperExp size).
+    """
+    return {'flavor'    : mode.split('F2P_')[1].split('_')[0],
+            'hyperSize' : int(mode.split('_h')[1])}
+
+
 class ResFileParser (object):
     """
     Parse result files, and generate plots from them.

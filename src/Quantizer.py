@@ -1,4 +1,4 @@
-import os, scipy, matplotlib, numpy as np
+import os, scipy, seaborn, matplotlib, numpy as np
 # from datetime import datetime
 from tictoc import tic, toc
 import matplotlib.pyplot as plt
@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from printf import printf, printar, printarFp
 import settings, ResFileParser, F2P_sr, F2P_lr, F2P_li, FP  
 from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
-from ResFileParser import colors, colorOfLabel, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, LEGEND_FONT_SIZE
+from ResFileParser import getF2PSettings, colors, colorOfLabel, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, LEGEND_FONT_SIZE
 
 def setPltParams (size : str = 'large') -> None:
     """
@@ -94,67 +94,6 @@ def scaleGrid (grid : np.array, lowerBnd=0, upperBnd=100) -> np.array:
     return [item*scale for item in grid] 
     
     
-def plotScaledGrids (
-        modes       = [], # modes to be simulated, e.g. FP, F2P_sr. 
-        cntrSize    = 7,  # of bits, including the sign bit 
-        hyperSize   = 2,  # size of the hyper-exp, when simulating F2P  
-        signed      = False, # when True, plot also negative values (symmetrically w.r.t. 0).
-        zoomXlim    = None,  # when not None, generate the plot zoomed so that x values are up to this value  
-        verbose     = []  # level of verbose, as defined in settings.py.
-        ) -> None:
-    """
-    """
-    setPltParams ()
-    _, ax       = plt.subplots()
-    resRecords  = []
-    lenGrid     = 2**cntrSize
-    lowerBnd    = 0
-    upperBnd    = 2**cntrSize-1 
-    for mode in modes:
-        if mode.startswith('FP'):
-            expSize = int(mode.split ('_e')[1])
-            mode = 'FP'
-            resRecord = {
-                'mode'  : mode,
-                'label' : ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-expSize),
-                'grid'  : scaleGrid (getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=signed), lowerBnd = lowerBnd, upperBnd = upperBnd)
-                }
-        elif mode.startswith('F2P'):
-            flavor = mode.split('_')[1]
-            resRecord = {
-                'mode'  : mode,
-                'label' : ResFileParser.genF2pLabel(flavor=flavor),
-                'grid'  : scaleGrid (getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose, signed=signed), lowerBnd = lowerBnd, upperBnd = upperBnd) 
-                }
-        elif mode.startswith('int'):
-            mode = 'FP'
-            resRecord = {
-                'mode'  : 'int',
-                'label' : 'int',
-                'grid'  : [i for i in range (lowerBnd, upperBnd+1)] 
-                }
-        else:
-            settings.error (f'In Quantizer.plotScaledGrids(). Sorry, the mode {mode} requested is not supported')
-        resRecords.append (resRecord)
-        
-    for i in range(len(resRecords)): 
-        resRecord = resRecords[i]     
-        ax.plot (resRecord['grid'], 
-                 [i for item in range(lenGrid)], 
-                 color      = colorOfLabel[resRecord['label']], 
-                 marker     = markerOfMode[mode], 
-                 linestyle  = 'None', 
-                 markersize = 2, 
-                 label      = resRecord['label'])  # Plot the conf' interval line
-    frame1 = plt.gca()
-    frame1.axes.get_yaxis().set_visible(False)
-    handles, labels = plt.gca().get_legend_handles_labels()
-    by_label = dict(zip(labels, handles))
-    plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
-    if zoomXlim!=None:
-        plt.xlim (0,zoomXlim)        
-    plt.show()
-
 def quantize (vec  : np.array, # The vector to quantize 
               grid : np.array  # The quantization grid (all the values that can be represented by the destination number representation
               ) -> [np.array, float]: # [the_quantized_vector, the scale_factor (by which the vector was divided)] 
@@ -261,6 +200,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
                     verbose     = verbose
                     ))
         elif mode.startswith('F2P'):
+            settings = resFile
             flavor = mode.split('_')[1]
             grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=[], signed=True)
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
@@ -318,8 +258,72 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
     # plt.xlim (-1, 1)
     plt.show()
 
-
+def plotScaledGrids (
+        modes       = [], # modes to be simulated, e.g. FP, F2P_sr. 
+        cntrSize    = 7,  # of bits, including the sign bit 
+        hyperSize   = 2,  # size of the hyper-exp, when simulating F2P  
+        signed      = False, # when True, plot also negative values (symmetrically w.r.t. 0).
+        zoomXlim    = None,  # when not None, generate the plot zoomed so that x values are up to this value  
+        verbose     = []  # level of verbose, as defined in settings.py.
+        ) -> None:
+    """
+    """
+    setPltParams ()
+    _, ax       = plt.subplots()
+    resRecords  = []
+    lenGrid     = 2**cntrSize
+    lowerBnd    = 0
+    upperBnd    = 2**cntrSize-1 
+    for mode in modes:
+        if mode.startswith('FP'):
+            expSize = int(mode.split ('_e')[1])
+            mode = 'FP'
+            resRecord = {
+                'mode'  : mode,
+                'label' : ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-expSize),
+                'grid'  : scaleGrid (getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=signed), lowerBnd = lowerBnd, upperBnd = upperBnd)
+                }
+        elif mode.startswith('F2P'):
+            settings = getF2PSettings (mode)
+            flavor = settings['flavor']
+            resRecord = {
+                'mode'  : mode,
+                'label' : ResFileParser.genF2pLabel(flavor=flavor),
+                'grid'  : scaleGrid (getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose, signed=signed), lowerBnd = lowerBnd, upperBnd = upperBnd) 
+                }
+        elif mode.startswith('int'):
+            mode = 'FP'
+            resRecord = {
+                'mode'  : 'int',
+                'label' : 'int',
+                'grid'  : [i for i in range (lowerBnd, upperBnd+1)] 
+                }
+        else:
+            settings.error (f'In Quantizer.plotScaledGrids(). Sorry, the mode {mode} requested is not supported')
+        resRecords.append (resRecord)
+        
+    legends=[]
+    for i in range(len(resRecords)): 
+        resRecord = resRecords[i]     
+        curLine, = ax.plot (resRecord['grid'], 
+                 [i for item in range(lenGrid)], # len(resRecords)-i # Write the y index in reverse order, so that the legends' order will correspond the order of the plots. 
+                 color      = colorOfLabel[resRecord['label']], 
+                 marker     = markerOfMode[mode], 
+                 linestyle  = 'None', 
+                 markersize = 2, 
+                 label      = resRecord['label'])  # Plot the conf' interval line
+        curLegend = ax.legend (handles=[curLine], bbox_to_anchor=(-0.17, i*0.24, 0., .102), loc='lower left', frameon=False)
+        ax.add_artist (curLegend)
     
+    frame = plt.gca()
+    frame.axes.get_yaxis().set_visible(False)
+    frame.axes.get_xaxis().set_visible(True)
+    if zoomXlim!=None:
+        plt.xlim (0, zoomXlim)
+    else:
+        plt.xlim (0, 2**cntrSize-1)        
+    seaborn.despine(left=True, bottom=False, right=True)
+    plt.show()
 
 # stdev = 1
 # simQuantErr (modes          = ['FP_e1', 'F2P_sr'], # 'F2P_sr', 'FP_e1'   
@@ -330,7 +334,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
 #              outLier        = 100*stdev,
 #              verbose= [settings.VERBOSE_PLOT, settings.VERBOSE_RES]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
 # plotScaledGrids (cntrSize=7, modes=['FP_e1', 'F2P_sr', 'FP_e6', 'F2P_lr', 'int'])
-plotScaledGrids (cntrSize=7, modes=['FP_e2', 'F2P_sr', 'FP_e6', 'F2P_lr', 'int'])
+plotScaledGrids (cntrSize=7, modes=['FP_e6', 'F2P_lr_h2','F2P_sr_h2', 'FP_e2', 'int'])
 
 # print (scaleGrid(getAllValsFP(cntrSize=7, expSize=1, signed=False), lowerBnd=0, upperBnd=127))
 # print (getAllValsFP(cntrSize=7, expSize=1, signed=False))
