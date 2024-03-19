@@ -648,5 +648,5 @@ if __name__ == '__main__':
         print('Keyboard interrupt.')
         exit ()
 
-# print (getAllValsF2P (flavor='lr', signed=True, cntrSize=7, hyperSize=2))
+# getAllValsF2P (flavor='lr', signed=False, cntrSize=7, hyperSize=1, verbose=[settings.VERBOSE_RES])
 # print (getAllValsFP (cntrSize=7, expSize=4, signed=True)) #, settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE

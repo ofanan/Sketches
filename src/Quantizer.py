@@ -284,12 +284,12 @@ def plotScaledGrids (
                 'grid'  : scaleGrid (getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=signed), lowerBnd = lowerBnd, upperBnd = upperBnd)
                 }
         elif mode.startswith('F2P'):
-            settings = getF2PSettings (mode)
-            flavor = settings['flavor']
+            F2pSettings = getF2PSettings (mode)
+            flavor    = F2pSettings['flavor'] 
             resRecord = {
                 'mode'  : mode,
-                'label' : ResFileParser.genF2pLabel(flavor=flavor),
-                'grid'  : scaleGrid (getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose, signed=signed), lowerBnd = lowerBnd, upperBnd = upperBnd) 
+                'label' : ResFileParser.genF2pLabel(flavor=flavor, hyperSize=F2pSettings['hyperSize']),
+                'grid'  : scaleGrid (getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=F2pSettings['hyperSize'], verbose=verbose, signed=signed), lowerBnd = lowerBnd, upperBnd = upperBnd) 
                 }
         elif mode.startswith('int'):
             mode = 'FP'
@@ -312,7 +312,7 @@ def plotScaledGrids (
                  linestyle  = 'None', 
                  markersize = 2, 
                  label      = resRecord['label'])  # Plot the conf' interval line
-        curLegend = ax.legend (handles=[curLine], bbox_to_anchor=(-0.17, i*0.24, 0., .102), loc='lower left', frameon=False)
+        curLegend = ax.legend (handles=[curLine], bbox_to_anchor=(-0.17, i*(1.1/len(resRecords)), 0., .102), loc='lower left', frameon=False)
         ax.add_artist (curLegend)
     
     frame = plt.gca()
@@ -333,8 +333,6 @@ def plotScaledGrids (
 #              vecUpperBnd    =  4*stdev,
 #              outLier        = 100*stdev,
 #              verbose= [settings.VERBOSE_PLOT, settings.VERBOSE_RES]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
-# plotScaledGrids (cntrSize=7, modes=['FP_e1', 'F2P_sr', 'FP_e6', 'F2P_lr', 'int'])
-plotScaledGrids (cntrSize=7, modes=['FP_e6', 'F2P_lr_h2','F2P_sr_h2', 'FP_e2', 'int'])
+plotScaledGrids (zoomXlim=1, cntrSize=7, modes=['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int'])
 
-# print (scaleGrid(getAllValsFP(cntrSize=7, expSize=1, signed=False), lowerBnd=0, upperBnd=127))
-# print (getAllValsFP(cntrSize=7, expSize=1, signed=False))
+# scaled 'F2P_lr_h1' is identical to int.

@@ -68,20 +68,20 @@ def genFpLabel (mantSize : int, expSize : int) -> str:
     """
     return f'FP {mantSize}M{expSize}E'
 
-def genF2pLabel (flavor       : str, # flavor, e.g., 'lr', 'sr', 'li'
-                 hyperExpSize : int = 2 
+def genF2pLabel (flavor    : str, # flavor, e.g., 'lr', 'sr', 'li'
+                 hyperSize : int = 2 
                  ) -> str:
     """
     Generates a label string that details the counter's settings (param vals), to be used in plots.
     """
-    return f'F2P {flavor} h{hyperExpSize}'
+    return f'F2P {flavor} h{hyperSize}'
 
 def getF2PSettings (mode : str) -> dict:
     """
     given the mode string of an F2P counter, get a dictionary detailing its settings (flavor and hyperExp size).
     """
     return {'flavor'    : mode.split('F2P_')[1].split('_')[0],
-            'hyperSize' : int(mode.split('_h')[1])}
+            'hyperSize' : int(mode.split('_h')[1].split('_')[0])}
 
 
 class ResFileParser (object):
