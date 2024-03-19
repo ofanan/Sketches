@@ -200,12 +200,12 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
                     verbose     = verbose
                     ))
         elif mode.startswith('F2P'):
-            settings = resFile
-            flavor = mode.split('_')[1]
-            grid = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=[], signed=True)
+            F2pSettings = getF2PSettings (mode)
+            flavor    = F2pSettings['flavor']
+            grid = getAllValsF2P (flavor=F2pSettings['flavor'], cntrSize=cntrSize, hyperSize=F2pSettings['hyperSize'], verbose=[], signed=True)
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
-            label       = ResFileParser.genF2pLabel(flavor=flavor)
+            label       = ResFileParser.genF2pLabel(flavor=F2pSettings['flavor'])
             resRecords.append (calcMse(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
@@ -325,14 +325,14 @@ def plotScaledGrids (
     seaborn.despine(left=True, bottom=False, right=True)
     plt.show()
 
-# stdev = 1
-# simQuantErr (modes          = ['FP_e1', 'F2P_sr'], # 'F2P_sr', 'FP_e1'   
-#              numPts         = 1000, 
-#              stdev          = stdev,
-#              vecLowerBnd    = -4*stdev,
-#              vecUpperBnd    =  4*stdev,
-#              outLier        = 100*stdev,
-#              verbose= [settings.VERBOSE_PLOT, settings.VERBOSE_RES]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
-plotScaledGrids (zoomXlim=1, cntrSize=7, modes=['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int'])
+stdev = 1
+simQuantErr (modes          = ['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2'],   
+             numPts         = 1000, 
+             stdev          = stdev,
+             vecLowerBnd    = -4*stdev,
+             vecUpperBnd    =  4*stdev,
+             # outLier        = 100*stdev,
+             verbose= [settings.VERBOSE_PLOT, settings.VERBOSE_RES]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
+# plotScaledGrids (zoomXlim=1, cntrSize=7, modes=['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int'])
 
 # scaled 'F2P_lr_h1' is identical to int.
