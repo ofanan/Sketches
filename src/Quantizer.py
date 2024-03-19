@@ -205,7 +205,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
             grid = getAllValsF2P (flavor=F2pSettings['flavor'], cntrSize=cntrSize, hyperSize=F2pSettings['hyperSize'], verbose=[], signed=True)
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
-            label       = ResFileParser.genF2pLabel(flavor=F2pSettings['flavor'])
+            label       = ResFileParser.genF2pLabel(flavor=F2pSettings['flavor'], hyperSize=F2pSettings['hyperSize'])
             resRecords.append (calcMse(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
@@ -326,7 +326,7 @@ def plotScaledGrids (
     plt.show()
 
 stdev = 1
-simQuantErr (modes          = ['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2'],   
+simQuantErr (modes          = ['FP_e6', 'F2P_lr_h1', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2'],   
              numPts         = 1000, 
              stdev          = stdev,
              vecLowerBnd    = -4*stdev,
