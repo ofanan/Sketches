@@ -76,6 +76,13 @@ def genF2pLabel (flavor    : str, # flavor, e.g., 'lr', 'sr', 'li'
     """
     return f'F2P {flavor} h{hyperSize}'
 
+def f2pSettingsToLabel (mode : str) -> str:
+    """
+    Given a string detailing F2P's settings, return the corresponding label
+    """
+    F2pSettings = getF2PSettings(mode)
+    return genF2pLabel (flavor = F2pSettings['flavor'], hyperSize=F2pSettings['hyperSize'])
+
 def getF2PSettings (mode : str) -> dict:
     """
     given the mode string of an F2P counter, get a dictionary detailing its settings (flavor and hyperExp size).
