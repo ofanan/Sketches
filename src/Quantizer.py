@@ -74,12 +74,14 @@ def calcMse (orgVec     : np.array, # vector before quantization
         printf (logFile, f'// Label={label}\n')
         for i in range (10):
              printf (logFile, f'i={i}, org={orgVec[i]}, changed={changedVec[i]}, PDF={scipy.stats.norm(0, stdev).pdf(orgVec[i])}, weightedAbsMse={weightedAbsMseVec[i]}\n')
-                    
+    
+    absErrVec = [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))],
     return {
         'label'             : label,
         'scale'             : scale, 
         'avgRelMse'         : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]) / len(orgVec),
-        'absErrVec'         : [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))],
+        'absErrVec'         : absErrVec,
+        'avgAbsErr'         : np.mean (absErrVec),
         'weightedAbsMseVec' : weightedAbsMseVec,
         'avgWeightedAbsMse' : np.mean (weightedAbsMseVec),
         'weightedRelMseVec' : weightedRelMseVec,
@@ -190,7 +192,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
             label                   = ResFileParser.genFpLabel(
                 expSize     = expSize, 
                 mantSize    = (cntrSize-1-expSize))
-            resRecords.append (calcMse(
+            resRecord = calcMse(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
                     label       = label,
@@ -198,7 +200,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
                     scale       = scale,
                     logFile     = logFile,
                     verbose     = verbose
-                    ))
+                    )
         elif mode.startswith('F2P'):
             F2pSettings = getF2PSettings (mode)
             flavor    = F2pSettings['flavor']
@@ -219,24 +221,24 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
             vec2quantize = np.array([-100, -95, -7, 99, 100])
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
-            resRecords.append (calcMse(
+            resRecord = calcMse(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
                     label       = 'shortTest'
-                    ))
+                    )
         else:
             settings.error ('Sorry, the requested mode {mode} is not supported.')
 
-    if settings.VERBOSE_COUT_CNTRLINE in verbose:
-        print (resRecords)
-        
-    if settings.VERBOSE_RES in verbose:
-        for resRecord in resRecords:
+        resRecords.append (resRecord)
+        if settings.VERBOSE_RES in verbose:
             for key, value in resRecord.items():
                 if not key.endswith('Vec'):
                     printf (resFile, f'{key} : {value}\n')
             printf (resFile, '\n\n')
-
+        
+    if settings.VERBOSE_COUT_CNTRLINE in verbose:
+        print (resRecords)
+        
     if settings.VERBOSE_PLOT not in verbose:
         return
      
@@ -245,7 +247,6 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
         ax.plot (vec2quantize, 
                  resRecord['weightedAbsMseVec'], 
                  color      = colorOfLabel[resRecord['label']], 
-                 marker     = markerOfMode[mode], 
                 # linestyle  = 'None', 
                  markersize = 2, 
                  label      = resRecord['label'])  # Plot the conf' interval line
@@ -324,13 +325,14 @@ def plotScaledGrids (
     plt.show()
 
 stdev = 1
-simQuantErr (modes          = ['FP_e6', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2'],   
+simQuantErr (modes          = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2'], #['FP_e5', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lsr_h1', 'F2P_lr_h2', 'FP_e2', 'F2P_sr_h1', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_sr_h2', 'F2P_li_h1', 'F2P_li_h2'],
+             cntrSize       = 16, #   
              numPts         = 1000, 
              stdev          = stdev,
              vecLowerBnd    = -4*stdev,
              vecUpperBnd    =  4*stdev,
              # outLier        = 100*stdev,
-             verbose= [settings.VERBOSE_PLOT, settings.VERBOSE_RES]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
+             verbose= [settings.VERBOSE_RES]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
 # plotScaledGrids (zoomXlim=1, cntrSize=7, modes=['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int'])
 
 # scaled 'F2P_lr_h1' is identical to int.
