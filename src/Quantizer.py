@@ -207,7 +207,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
             grid = getAllValsF2P (flavor=F2pSettings['flavor'], cntrSize=cntrSize, hyperSize=F2pSettings['hyperSize'], verbose=[], signed=True)
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
-            resRecords.append (calcMse(
+            resRecord = calcMse(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
                     label       = ResFileParser.f2pSettingsToLabel (mode),
@@ -215,7 +215,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
                     stdev       = stdev,
                     logFile     = logFile,
                     verbose     = verbose
-                    ))
+                    )
         elif mode=='shortTest':
             grid = np.array([i for i in range(-10, 11)])
             vec2quantize = np.array([-100, -95, -7, 99, 100])
@@ -234,7 +234,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
             for key, value in resRecord.items():
                 if not key.endswith('Vec'):
                     printf (resFile, f'{key} : {value}\n')
-            printf (resFile, '\n\n')
+            printf (resFile, '\n')
         
     if settings.VERBOSE_COUT_CNTRLINE in verbose:
         print (resRecords)
