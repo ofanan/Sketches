@@ -287,11 +287,11 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
         resRecord['stdev']  = stdev
         if dist=='Student':
             resRecord['df'] = df
-        resRecords.append (resRecord)
+        if settings.VERBOSE_PCL in verbose:
+            pickle.dump(resRecord, pclOutputFile)        
+        if settings.VERBOSE_PLOT in verbose:
+            resRecords.append (resRecord)
         
-    if settings.VERBOSE_PCL in verbose:
-        pickle.dump(resRecords, pclOutputFile)        
-    
     if settings.VERBOSE_PLOT not in verbose:
         return
      

@@ -351,11 +351,11 @@ class ResFileParser (object):
         plt.savefig ('../res/resolutionBySettingStrs_n{}_{}.pdf' .format (cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
 
 
-    def plotMse (self):
+    def plotMse (self, dist='Student'):
         """
         """
-        dist = 'Student'
-        pointsOfThisDist = [point for point in self.points] # if point['dist']==dist]
+        pointsOfThisDist = [point for point in self.points if point['dist']==dist]
+        
         print (pointsOfThisDist)
 
 def genResolutionPlot ():
