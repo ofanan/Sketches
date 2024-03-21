@@ -252,7 +252,7 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
                     label       = 'shortTest'
                     )
         else:
-            settings.error ('Sorry, the requested mode {mode} is not supported.')
+            print (f'In Quantizer.simQuantErr(). Sorry, the requested mode {mode} is not supported.')
 
         resRecords.append (resRecord)
         if settings.VERBOSE_RES in verbose:
@@ -353,11 +353,11 @@ stdev           = 1
 cntrSize8modes  = ['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int']
 cntrSize16modes = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2'],  
 simQuantErr (cntrSize       = 8, 
-             modes          = ['FP_e5'],
+             modes          = cntrSize8modes, 
              numPts         = 1000, 
              stdev          = stdev,
              dist           = 'Student',  
-             df             = 9999999, #float('inf'),  # the df (degree of freedom) parameter; relevant only when using the t-student dist'.  
+             df             = 1, #float('inf'),  # the df (degree of freedom) parameter; relevant only when using the t-student dist'.  
              vecLowerBnd    = -4*stdev, 
              vecUpperBnd    =  4*stdev,
              # outLier        = 100*stdev,
