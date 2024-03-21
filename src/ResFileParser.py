@@ -350,6 +350,14 @@ class ResFileParser (object):
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
         plt.savefig ('../res/resolutionBySettingStrs_n{}_{}.pdf' .format (cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
 
+
+    def plotMse (self):
+        """
+        """
+        dist = 'Student'
+        pointsOfThisDist = [point for point in self.points] # if point['dist']==dist]
+        print (pointsOfThisDist)
+
 def genResolutionPlot ():
     """
     """
@@ -380,9 +388,16 @@ def genResolutionPlot ():
 
 def plotMse ():
     """
+    Plot the MSE as a func' of the df value at the Student-t dist'.
     """
+    cntrSize = 8
+    myResFileParser = ResFileParser ()
+    myResFileParser.rdPcl (f'mse_n{cntrSize}.pcl')
+    myResFileParser.plotMse ()
     return
+
  
+# plotMse ()
 # genResolutionPlot ()
 # my_ResFileParser = ResFileParser ()
 # for ErType in ['WrRmse', 'RdRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 

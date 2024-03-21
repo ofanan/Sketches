@@ -49,7 +49,6 @@ def calcMse (orgVec     : np.array, # vector before quantization
              changedVec : np.array, # vector after quantization+dequantization
              weightDist : str = None, # distribution by which the MSE is weighted; when None, do not calculate the weighted MSE
              stdev      : float = 0.01,       # standard variation of the distribution; the expected value is 0.
-             label      = None,        # a string defining the mode (e.g., 'F2P_lr'
              scale      : float = None,       # the scale by which orgVec was quantized
              logFile     = None, # object for the logFile; to be used if the verbose requests for logFile
              verbose    : list = []    # level of verbose, as defined in settings.py 
@@ -61,7 +60,6 @@ def calcMse (orgVec     : np.array, # vector before quantization
     """
     absErrVec = [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))]
     resRecord = {
-            'label'             : label,
             'scale'             : scale, 
             'avgRelMse'         : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]) / len(orgVec),
             'absErrVec'         : absErrVec,
@@ -187,8 +185,13 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
     else:        
         logFile = None
 
+    delPrevPcl = True
     if settings.VERBOSE_PCL in verbose:
-        pclOutputFile = open(f'../res/pcl_files/mse_n{cntrSize}.pcl', 'ab+')
+
+        pclOutputFileName = f'mse_n{cntrSize}.pcl'
+        if delPrevPcl and os.path.exists(f'../res/pcl_files/{pclOutputFileName}.pcl'):
+            os.remove(f'../res/pcl_files/{pclOutputFileName}.pcl')
+        pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}.pcl', 'ab+')
     
     vec2quantize = genVec2Quantize (
         dist        = dist, 
@@ -211,19 +214,17 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
             grid                    = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=True)
             [quantizedVec, scale]   = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec          = dequantize(vec=quantizedVec, scale=scale)
-            label                   = ResFileParser.genFpLabel(
-                expSize     = expSize, 
-                mantSize    = (cntrSize-1-expSize))
             resRecord = calcMse(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
-                    label       = label,
                     stdev       = stdev,
                     scale       = scale,
                     logFile     = logFile,
                     weightDist  = weightDist,
                     verbose     = verbose
                     )
+            resRecord['label'] = ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize)
+                
         elif mode.startswith('F2P'):
             F2pSettings = getF2PSettings (mode)
             flavor    = F2pSettings['flavor']
@@ -233,13 +234,14 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
             resRecord = calcMse(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
-                    label       = ResFileParser.f2pSettingsToLabel (mode),
                     scale       = scale,
                     stdev       = stdev,
                     logFile     = logFile,
                     weightDist  = weightDist,
                     verbose     = verbose
                     )
+            resRecord['label'] = ResFileParser.f2pSettingsToLabel (mode)
+            
         elif mode.startswith('int'):
             grid = np.array ([item for item in range (-2**(cntrSize-1)+1, 2**(cntrSize-1))])
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
@@ -247,13 +249,13 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
             resRecord = calcMse(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
-                    label       = 'int',
                     scale       = scale,
                     stdev       = stdev,
                     logFile     = logFile,
                     weightDist  = weightDist,
                     verbose     = verbose
                     )
+            resRecord['label'] = 'int'
         elif mode=='shortTest':
             grid = np.array([i for i in range(-10, 11)])
             vec2quantize = np.array([-100, -95, -7, 99, 100])
@@ -262,8 +264,8 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
             resRecord = calcMse(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
-                    label       = 'shortTest'
                     )
+            resRecord['label']  = 'shortTest'
         else:
             print (f'In Quantizer.simQuantErr(). Sorry, the requested mode {mode} is not supported.')
             continue
@@ -276,10 +278,15 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
                 if not key.endswith('Vec'):
                     printf (resFile, f'{key} : {value}\n')
             printf (resFile, '\n')
-        resRecords.append (resRecord)
+        
+        resRecord['dist']   = dist
+        resRecord['numPts'] = numPts
+        resRecord['stdev']  = stdev
+        if dist=='Student':
+            resRecord['df'] = df
         
     if settings.VERBOSE_PCL in verbose:
-        pickle.dump(resRecord, pclOutputFile)        
+        pickle.dump(resRecords, pclOutputFile)        
     
     if settings.VERBOSE_PLOT not in verbose:
         return
