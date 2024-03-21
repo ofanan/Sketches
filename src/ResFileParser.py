@@ -19,7 +19,7 @@ LEGEND_FONT_SIZE = 14
 LEGEND_FONT_SIZE_SMALL = 5 
 USE_FRAME              = True # When True, plot a "frame" (box) around the plot 
 
-colors = ['green', 'purple', 'brown', 'black', 'blue']
+colors = ['green', 'purple', 'brown', 'black', 'blue', 'yellow', 'magenta', 'red']
 
 # The colors used for each alg's plot, in the dist' case
 colorOfMode = {
@@ -351,12 +351,32 @@ class ResFileParser (object):
         plt.savefig ('../res/resolutionBySettingStrs_n{}_{}.pdf' .format (cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
 
 
-    def plotMse (self, dist='Student'):
+    def plotMseByDf (self, 
+                     resTypeStr : str = 'avgAbsErr', # a string detailing the y value for which the func' will generate a plot
+                     numPts     : int = None         # num of points in the experiment
+                 ):
         """
         """
-        pointsOfThisDist = [point for point in self.points if point['dist']==dist]
+        points = [point for point in self.points if point['dist']=='Student']
+        if numPts!=None:
+            points = [point for point in points if point['numPts']==numPts]
+        # dfs = [point['df'] for point in points]
         
-        print (pointsOfThisDist)
+        _, ax = plt.subplots()
+        
+        i = 0
+        for label in [point['label'] for point in points]: 
+            pointsOfThisLabel = [point for point in points if point['label']==label]
+            pointsOfThisLabel = sorted (pointsOfThisLabel, key = lambda item : item['df']) # sort the points by their df value
+            dfsWithThisLabel  = [point['df'] for point in pointsOfThisLabel]
+            yVals             = [point[resTypeStr] for point in pointsOfThisLabel] 
+            ax.plot (dfsWithThisLabel, yVals, label=label, color=colors[i])
+            i += 1
+
+        handles, labels = plt.gca().get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
+        plt.show()
 
 def genResolutionPlot ():
     """
@@ -386,20 +406,20 @@ def genResolutionPlot ():
             xLog        = True
             )
 
-def plotMse ():
+def plotMseByDf ():
     """
     Plot the MSE as a func' of the df value at the Student-t dist'.
     """
     cntrSize = 8
     myResFileParser = ResFileParser ()
     myResFileParser.rdPcl (f'mse_n{cntrSize}.pcl')
-    myResFileParser.plotMse ()
+    myResFileParser.plotMseByDf ()
     return
 
  
 if __name__ == '__main__':
     try:
-        plotMse ()
+        plotMseByDf ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 
