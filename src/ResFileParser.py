@@ -397,7 +397,12 @@ def plotMse ():
     return
 
  
-plotMse ()
+if __name__ == '__main__':
+    try:
+        plotMse ()
+    except KeyboardInterrupt:
+        print('Keyboard interrupt.')
+
 # genResolutionPlot ()
 # my_ResFileParser = ResFileParser ()
 # for ErType in ['WrRmse', 'RdRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 

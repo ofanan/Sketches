@@ -189,7 +189,7 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
     if settings.VERBOSE_PCL in verbose:
 
         pclOutputFileName = f'mse_n{cntrSize}.pcl'
-        if delPrevPcl and os.path.exists(f'../res/pcl_files/{pclOutputFileName}.pcl'):
+        if delPrevPcl and os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
             os.remove(f'../res/pcl_files/{pclOutputFileName}')
         pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}', 'ab+')
     
