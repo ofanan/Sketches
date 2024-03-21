@@ -1,10 +1,10 @@
 import os, scipy, seaborn, matplotlib, numpy as np
 # from datetime import datetime
-from tictoc import tic, toc
 import matplotlib.pyplot as plt
 
-from printf import printf, printar, printarFp
 import settings, ResFileParser, F2P_sr, F2P_lr, F2P_li, FP  
+from tictoc import tic, toc
+from printf import printf, printar, printarFp
 from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
 from ResFileParser import getF2PSettings, colors, colorOfLabel, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, LEGEND_FONT_SIZE
 
@@ -144,16 +144,20 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
                      lowerBnd   : float = 0,   # lower bound for the generated points  
                      upperBnd   : float = 10,   # upper bound for the generated points
                      stdev      : float = 1,   # standard variation when generating a Gaussian dist' points
+                     df         : float = 1,   # the df (degree of freedom) parameter; relevant only when using the t-student dist'.
                      numPts     : int   = 1000, # Num of points in the generated vector
                      outLier    : float = None,
                      ) -> np.array:
     """
     Generate a vector to be quantized, using the requested distribution.
     """
+    rng = np.random.default_rng(settings.SEED)
     if dist=='Uniform':
         vec = [(lowerBnd + i*(upperBnd-lowerBnd)/numPts) for i in range(numPts)]
     elif dist=='Gaussian':
-        vec = np.sort (np.random.randn(numPts) * stdev)
+        vec = np.sort (rng.standard_normal(numPts) * stdev)
+    elif dist=='Student':
+        vec = np.sort (np.random.standard_t(df=df, size=numPts) * stdev)
     elif dist=='int': # vector of integers in the range
         vec = [i for i in range (lowerBnd, upperBnd+1)]
     else:
@@ -162,16 +166,17 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
         return np.array (vec)
     return np.array ([-outLier] + vec + [outLier])
     
-def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr. 
-                 cntrSize       = 8,  # of bits, including the sign bit 
-                 hyperSize      = 1,  # size of the hyper-exp, when simulating F2P
-                 dist           = 'Uniform', # distribution of the points to simulate  
-                 numPts         = 1000, # num of points in the quantized vec
-                 verbose        = [],  # level of verbose, as defined in settings.py.
-                 stdev          = 1,   # standard variation of the vector to quantize, when drawn from a Gaussian dist'  
-                 vecLowerBnd    = -float('inf'), # lower Bnd of the generated vector to quantize, if drawn from a uniform dist'  
-                 vecUpperBnd    = float('inf'),   # upper Bnd of the generated vector to quantize, if drawn from a uniform dist'
-                 outLier        = None # Outlier value, to be added to the generated vector
+def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, F2P_sr. 
+                 cntrSize       : int   = 8,  # of bits, including the sign bit 
+                 hyperSize      : int   = 1,  # size of the hyper-exp, when simulating F2P
+                 dist           : str   = 'Gaussiam', # distribution of the points to simulate  
+                 numPts         : int   = 1000, # num of points in the quantized vec
+                 stdev          : float = 1,   # standard variation of the vector to quantize, when drawn from a Gaussian dist'
+                 df             : float = 1,  # the df (degree of freedom) parameter; relevant only when using the t-student dist'.  
+                 vecLowerBnd    : float = -float('inf'), # lower Bnd of the generated vector to quantize, if drawn from a uniform dist'  
+                 vecUpperBnd    : float = float('inf'),   # upper Bnd of the generated vector to quantize, if drawn from a uniform dist'
+                 outLier        : float = None, # Outlier value, to be added to the generated vector
+                 verbose        : list  = [],  # level of verbose, as defined in settings.py.
                  ):
     """
     Simulate the required configuration and output the results (the quantization errors) as defined by the verbose.
@@ -179,7 +184,9 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
     np.random.seed (settings.SEED)
     if settings.VERBOSE_RES in verbose:
         resFile = open (f'../res/quant_n{cntrSize}.res', 'a+')
-        printf (resFile, f'// dist={dist}, stdev={stdev}, numPts={numPts}, vecLowerBnd={vecLowerBnd}, vecUpperBnd={vecUpperBnd}, outLier={outLier}\n')
+        printf (resFile, f'// dist={dist}, stdev={stdev}, numPts={numPts}\n')
+        if dist not in ['Gaussian', 'Student']: 
+            printf (resFile, f'// vecLowerBnd={vecLowerBnd}, vecUpperBnd={vecUpperBnd}, outLier={outLier}\n')
     if settings.VERBOSE_LOG in verbose:
         logFile = open (f'../res/quant_n{cntrSize}.log', 'w')
     else:        
@@ -190,6 +197,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
         upperBnd    = vecUpperBnd,   # upper bound for the generated points
         stdev       = stdev, 
         outLier     = outLier,
+        df          = df,
         numPts      = numPts)
     if dist=='Uniform':
         weightDist = 'Gaussian'
@@ -344,11 +352,12 @@ def plotScaledGrids (
 stdev           = 1
 cntrSize8modes  = ['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int']
 cntrSize16modes = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2'],  
-simQuantErr (cntrSize       = 8, # 
+simQuantErr (cntrSize       = 8, 
              modes          = ['FP_e5'],
-             dist           = 'Gaussian',  
              numPts         = 1000, 
              stdev          = stdev,
+             dist           = 'Student',  
+             df             = 9999999, #float('inf'),  # the df (degree of freedom) parameter; relevant only when using the t-student dist'.  
              vecLowerBnd    = -4*stdev, 
              vecUpperBnd    =  4*stdev,
              # outLier        = 100*stdev,
