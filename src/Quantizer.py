@@ -60,14 +60,15 @@ def calcMse (orgVec     : np.array, # vector before quantization
     - The Mse, weighted by the given distribution and stdev (standard variation). 
     """
     absErrVec = [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))]
-    if weightDist==None: # no
-        return {
+    resRecord = {
             'label'             : label,
             'scale'             : scale, 
             'avgRelMse'         : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]) / len(orgVec),
             'absErrVec'         : absErrVec,
             'avgAbsErr'         : np.mean (absErrVec),
-        }
+        } 
+    if weightDist==None: # no need to calculate weighted Mse
+        return resRecord
 
     if weightDist!='Gaussian':
         settings.error (f'In FPQuantization.calcMse(). Sorry, the distribution {dist} you chose is not supported.')
@@ -85,17 +86,11 @@ def calcMse (orgVec     : np.array, # vector before quantization
         for i in range (10):
              printf (logFile, f'i={i}, org={orgVec[i]}, changed={changedVec[i]}, PDF={scipy.stats.norm(0, stdev).pdf(orgVec[i])}, weightedAbsMse={weightedAbsMseVec[i]}\n')
     
-    return {
-        'label'             : label,
-        'scale'             : scale, 
-        'avgRelMse'         : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]) / len(orgVec),
-        'absErrVec'         : absErrVec,
-        'avgAbsErr'         : np.mean (absErrVec),
-        'weightedAbsMseVec' : weightedAbsMseVec,
-        'avgWeightedAbsMse' : np.mean (weightedAbsMseVec),
-        'weightedRelMseVec' : weightedRelMseVec,
-        'avgWeightedRelMse' : np.mean (weightedRelMseVec)
-        }
+    resRecord['weightedAbsMseVec'] = weightedAbsMseVec
+    resRecord['avgWeightedAbsMse'] = np.mean (weightedAbsMseVec),
+    resRecord['weightedRelMseVec'] = weightedRelMseVec,
+    resRecord['avgWeightedRelMse'] = np.mean (weightedRelMseVec)
+    return resRecord
 
 def scaleGrid (grid : np.array, lowerBnd=0, upperBnd=100) -> np.array:
     """
@@ -284,7 +279,7 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
         resRecords.append (resRecord)
         
     if settings.VERBOSE_PCL in verbose:
-            pickle.dump(dict, pclOutputFile)        
+        pickle.dump(resRecord, pclOutputFile)        
     
     if settings.VERBOSE_PLOT not in verbose:
         return
@@ -383,7 +378,7 @@ simQuantErr (cntrSize       = 8,
              vecLowerBnd    = -4*stdev, 
              vecUpperBnd    =  4*stdev,
              # outLier        = 100*stdev,
-             verbose= [settings.VERBOSE_RES]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
+             verbose= [settings.VERBOSE_PCL]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
 # plotScaledGrids (zoomXlim=1, cntrSize=7, modes=['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int'])
 
 # scaled 'F2P_lr_h1' is identical to int.

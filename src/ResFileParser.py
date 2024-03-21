@@ -378,6 +378,11 @@ def genResolutionPlot ():
             xLog        = True
             )
 
+def plotMse ():
+    """
+    """
+    return
+ 
 # genResolutionPlot ()
 # my_ResFileParser = ResFileParser ()
 # for ErType in ['WrRmse', 'RdRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
