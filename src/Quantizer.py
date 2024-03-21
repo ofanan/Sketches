@@ -47,7 +47,7 @@ def dequantize (vec : np.array, scale : float) -> np.array:
 
 def calcMse (orgVec     : np.array, # vector before quantization 
              changedVec : np.array, # vector after quantization+dequantization
-             dist       : str ='Gaussian', # distribution by which the MSE is weighted
+             weightDist : str = None, # distribution by which the MSE is weighted; when None, do not calculate the weighted MSE
              stdev      : float = 0.01,       # standard variation of the distribution; the expected value is 0.
              label      = None,        # a string defining the mode (e.g., 'F2P_lr'
              scale      : float = None,       # the scale by which orgVec was quantized
@@ -59,7 +59,17 @@ def calcMse (orgVec     : np.array, # vector before quantization
     - MSE (Mean Square Error), both relative and absolute, between the original vector and the changed vector.
     - The Mse, weighted by the given distribution and stdev (standard variation). 
     """
-    if dist!='Gaussian':
+    absErrVec = [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))]
+    if weightDist==None: # no
+        return {
+            'label'             : label,
+            'scale'             : scale, 
+            'avgRelMse'         : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]) / len(orgVec),
+            'absErrVec'         : absErrVec,
+            'avgAbsErr'         : np.mean (absErrVec),
+        }
+
+    if weightDist!='Gaussian':
         settings.error (f'In FPQuantization.calcMse(). Sorry, the distribution {dist} you chose is not supported.')
     weightedAbsMseVec      = [scipy.stats.norm(0, stdev).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
     weightedRelMseVec      = np.empty(len([item for item in orgVec if item!=0]))
@@ -75,7 +85,6 @@ def calcMse (orgVec     : np.array, # vector before quantization
         for i in range (10):
              printf (logFile, f'i={i}, org={orgVec[i]}, changed={changedVec[i]}, PDF={scipy.stats.norm(0, stdev).pdf(orgVec[i])}, weightedAbsMse={weightedAbsMseVec[i]}\n')
     
-    absErrVec = [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))],
     return {
         'label'             : label,
         'scale'             : scale, 
@@ -155,7 +164,8 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
     
 def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr. 
                  cntrSize       = 8,  # of bits, including the sign bit 
-                 hyperSize      = 1,  # size of the hyper-exp, when simulating F2P  
+                 hyperSize      = 1,  # size of the hyper-exp, when simulating F2P
+                 dist           = 'Uniform', # distribution of the points to simulate  
                  numPts         = 1000, # num of points in the quantized vec
                  verbose        = [],  # level of verbose, as defined in settings.py.
                  stdev          = 1,   # standard variation of the vector to quantize, when drawn from a Gaussian dist'  
@@ -169,17 +179,22 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
     np.random.seed (settings.SEED)
     if settings.VERBOSE_RES in verbose:
         resFile = open (f'../res/quant_n{cntrSize}.res', 'a+')
+        printf (resFile, f'// dist={dist}, stdev={stdev}, numPts={numPts}, vecLowerBnd={vecLowerBnd}, vecUpperBnd={vecUpperBnd}, outLier={outLier}\n')
     if settings.VERBOSE_LOG in verbose:
         logFile = open (f'../res/quant_n{cntrSize}.log', 'w')
     else:        
         logFile = None
     vec2quantize = genVec2Quantize (
-        dist        = 'Uniform', 
+        dist        = dist, 
         lowerBnd    = vecLowerBnd,   # lower bound for the generated points  
         upperBnd    = vecUpperBnd,   # upper bound for the generated points
         stdev       = stdev, 
         outLier     = outLier,
         numPts      = numPts)
+    if dist=='Uniform':
+        weightDist = 'Gaussian'
+    else:
+        weightDist = None
     _, ax = plt.subplots()
     resRecords = []
     for mode in modes:
@@ -199,6 +214,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
                     stdev       = stdev,
                     scale       = scale,
                     logFile     = logFile,
+                    weightDist  = weightDist,
                     verbose     = verbose
                     )
         elif mode.startswith('F2P'):
@@ -214,6 +230,7 @@ def simQuantErr (modes          = [], # modes to be simulated, e.g. FP, F2P_sr.
                     scale       = scale,
                     stdev       = stdev,
                     logFile     = logFile,
+                    weightDist  = weightDist,
                     verbose     = verbose
                     )
         elif mode=='shortTest':
@@ -324,12 +341,15 @@ def plotScaledGrids (
     seaborn.despine(left=True, bottom=False, right=True)
     plt.show()
 
-stdev = 1
-simQuantErr (modes          = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2'], #['FP_e5', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lsr_h1', 'F2P_lr_h2', 'FP_e2', 'F2P_sr_h1', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_sr_h2', 'F2P_li_h1', 'F2P_li_h2'],
-             cntrSize       = 16, #   
+stdev           = 1
+cntrSize8modes  = ['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int']
+cntrSize16modes = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2'],  
+simQuantErr (cntrSize       = 8, # 
+             modes          = ['FP_e5'],
+             dist           = 'Gaussian',  
              numPts         = 1000, 
              stdev          = stdev,
-             vecLowerBnd    = -4*stdev,
+             vecLowerBnd    = -4*stdev, 
              vecUpperBnd    =  4*stdev,
              # outLier        = 100*stdev,
              verbose= [settings.VERBOSE_RES]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
