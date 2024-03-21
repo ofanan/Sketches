@@ -397,7 +397,7 @@ def plotMse ():
     return
 
  
-# plotMse ()
+plotMse ()
 # genResolutionPlot ()
 # my_ResFileParser = ResFileParser ()
 # for ErType in ['WrRmse', 'RdRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
