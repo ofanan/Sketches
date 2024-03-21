@@ -51,6 +51,7 @@ def calcMse (orgVec     : np.array, # vector before quantization
              stdev      : float = 0.01,       # standard variation of the distribution; the expected value is 0.
              scale      : float = None,       # the scale by which orgVec was quantized
              logFile     = None, # object for the logFile; to be used if the verbose requests for logFile
+             recordErrVec = False, # When True, add absErrVec to the returned resRecord.
              verbose    : list = []    # level of verbose, as defined in settings.py 
              ):
     """
@@ -62,9 +63,11 @@ def calcMse (orgVec     : np.array, # vector before quantization
     resRecord = {
             'scale'             : scale, 
             'avgRelMse'         : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]) / len(orgVec),
-            'absErrVec'         : absErrVec,
             'avgAbsErr'         : np.mean (absErrVec),
         } 
+    
+    if recordErrVec:
+        resRecord['absErrVec'] = absErrVec
     if weightDist==None: # no need to calculate weighted Mse
         return resRecord
 
@@ -284,6 +287,7 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
         resRecord['stdev']  = stdev
         if dist=='Student':
             resRecord['df'] = df
+        resRecords.append (resRecord)
         
     if settings.VERBOSE_PCL in verbose:
         pickle.dump(resRecords, pclOutputFile)        
