@@ -1,4 +1,4 @@
-import os, scipy, seaborn, matplotlib, numpy as np
+import os, scipy, seaborn, matplotlib, pickle, numpy as np
 # from datetime import datetime
 import matplotlib.pyplot as plt
 
@@ -191,6 +191,10 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
         logFile = open (f'../res/quant_n{cntrSize}.log', 'w')
     else:        
         logFile = None
+
+    if settings.VERBOSE_PCL in verbose:
+        pclOutputFile = open(f'../res/pcl_files/mse_n{cntrSize}.pcl', 'ab+')
+    
     vec2quantize = genVec2Quantize (
         dist        = dist, 
         lowerBnd    = vecLowerBnd,   # lower bound for the generated points  
@@ -241,6 +245,20 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
                     weightDist  = weightDist,
                     verbose     = verbose
                     )
+        elif mode.startswith('int'):
+            grid = np.array ([item for item in range (-2**(cntrSize-1)+1, 2**(cntrSize-1))])
+            [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
+            dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
+            resRecord = calcMse(
+                    orgVec      = vec2quantize, 
+                    changedVec  = dequantizedVec, 
+                    label       = 'int',
+                    scale       = scale,
+                    stdev       = stdev,
+                    logFile     = logFile,
+                    weightDist  = weightDist,
+                    verbose     = verbose
+                    )
         elif mode=='shortTest':
             grid = np.array([i for i in range(-10, 11)])
             vec2quantize = np.array([-100, -95, -7, 99, 100])
@@ -253,17 +271,21 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
                     )
         else:
             print (f'In Quantizer.simQuantErr(). Sorry, the requested mode {mode} is not supported.')
+            continue
 
-        resRecords.append (resRecord)
+        if settings.VERBOSE_COUT_CNTRLINE in verbose:
+            print (resRecord)
+        
         if settings.VERBOSE_RES in verbose:
             for key, value in resRecord.items():
                 if not key.endswith('Vec'):
                     printf (resFile, f'{key} : {value}\n')
             printf (resFile, '\n')
+        resRecords.append (resRecord)
         
-    if settings.VERBOSE_COUT_CNTRLINE in verbose:
-        print (resRecords)
-        
+    if settings.VERBOSE_PCL in verbose:
+            pickle.dump(dict, pclOutputFile)        
+    
     if settings.VERBOSE_PLOT not in verbose:
         return
      
@@ -353,7 +375,7 @@ stdev           = 1
 cntrSize8modes  = ['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int']
 cntrSize16modes = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2'],  
 simQuantErr (cntrSize       = 8, 
-             modes          = cntrSize8modes, 
+             modes          = ['int'], #cntrSize8modes, 
              numPts         = 1000, 
              stdev          = stdev,
              dist           = 'Student',  
