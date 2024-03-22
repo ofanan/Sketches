@@ -356,28 +356,36 @@ class ResFileParser (object):
 
 
     def plotMseByDf (self,
-                     cntrSize   : int = 8,
-                     resTypeStr : str = 'abs', # a string detailing the y value for which the func' will generate a plot
-                     numPts     : int = None         # num of points in the experiment
+                     cntrSize   : int  = 8,
+                     resTypeStr : str  = 'abs', # a string detailing the y value for which the func' will generate a plot
+                     numPts     : int  = None,         # num of points in the experiment
+                     verbose    : list =[]
                  ):
         """
+        Generate and save a plot of the Mean Square Error as a function of the Student's distribution df (degree of freedom) parameter. 
         """
         points = [point for point in self.points if point['dist']=='Student']
         if numPts!=None:
             points = [point for point in points if point['numPts']==numPts]
-        # dfs = [point['df'] for point in points]
         
+        if settings.VERBOSE_RES in verbose:
+            resFile = open (f'../res/Mse.res', 'a+')
+            printf (resFile, f'// cntrSize={cntrSize}, errType={resTypeStr}\n')
         _, ax = plt.subplots()
-        
         i = 0
         for label in [point['label'] for point in points]: 
             pointsOfThisLabel = [point for point in points if point['label']==label]
             pointsOfThisLabel = sorted (pointsOfThisLabel, key = lambda item : item['df']) # sort the points by their df value
             dfsWithThisLabel  = [point['df'] for point in pointsOfThisLabel]
-            yVals             = [point[f'{resTypeStr}Mse'] for point in pointsOfThisLabel] 
-            ax.plot (dfsWithThisLabel, yVals, label=label)
+            yVals             = [point[f'{resTypeStr}Mse'] for point in pointsOfThisLabel]
+            # if settings.VERBOSE_RES in verbose:
+                 
+            if settings.VERBOSE_PLOT in verbose: 
+                ax.plot (dfsWithThisLabel, yVals, label=label)
             i += 1
 
+        if settings.VERBOSE_PLOT not in verbose:
+            return
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=10, frameon=False)
@@ -418,12 +426,12 @@ def plotMseByDf ():
     """
     Plot the MSE as a func' of the df value at the Student-t dist'.
     """
-    for cntrSize in [8, 16]:
+    for cntrSize in [19]:
         myResFileParser = ResFileParser ()
         pclFileName = genMsePclFileName (cntrSize) 
         myResFileParser.rdPcl (pclFileName)
-        myResFileParser.plotMseByDf (cntrSize=cntrSize, resTypeStr='abs')
-        myResFileParser.plotMseByDf (cntrSize=cntrSize, resTypeStr='rel')
+        myResFileParser.plotMseByDf (cntrSize=cntrSize, resTypeStr='abs', verbose=[settings.VERBOSE_RES])
+        # myResFileParser.plotMseByDf (cntrSize=cntrSize, resTypeStr='rel', verbose=[settings.VERBOSE_RES])
 
  
 if __name__ == '__main__':
@@ -439,3 +447,4 @@ if __name__ == '__main__':
 #     my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=1, maxCntrSize=16) # 50
     # my_ResFileParser.printAllPoints (cntrSize=8, cntrMaxVal=1488888, printToScreen=True)
 
+# print ('{:.2e}' .format (0.000056))

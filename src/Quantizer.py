@@ -379,12 +379,15 @@ def plotScaledGrids (
 stdev           = 1
 cntrSize8modes  = ['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int']
 cntrSize16modes = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2'],  
-cntrSize = 8
+cntrSize = 19
 if cntrSize==16:
     modes = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2', 'int']  
-else:
+elif cntrSize==19: ## tensorFloat
+    modes = ['int', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2']
+elif cntrSize==8:
     modes  = ['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int', 'F2P_li_h1', 'F2P_li_h2']
-
+else:
+    settings.error (f'In Quantizer.py. Please pick the configurations to run for cntrSize={cntrSize} that you chose.')
 verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
 if settings.VERBOSE_PCL in verbose:
     pclOutputFileName = ResFileParser.genMsePclFileName (cntrSize)
