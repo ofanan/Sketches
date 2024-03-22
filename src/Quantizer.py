@@ -61,9 +61,9 @@ def calcMse (orgVec     : np.array, # vector before quantization
     """
     absErrVec = [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))]
     resRecord = {
-            'scale'             : scale, 
-            'avgRelMse'         : sum ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]) / len(orgVec),
-            'avgAbsErr'         : np.mean (absErrVec),
+            'scale'  : scale, 
+            'relMse' : np.mean ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]),
+            'absMse' : np.mean (absErrVec),
         } 
     
     if recordErrVec:
@@ -181,6 +181,8 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
     if settings.VERBOSE_RES in verbose:
         resFile = open (f'../res/quant_n{cntrSize}.res', 'a+')
         printf (resFile, f'// dist={dist}, stdev={stdev}, numPts={numPts}\n')
+        if dist=='Student':
+            printf (resFile, f'// df={df}\n')
         if dist not in ['Gaussian', 'Student']: 
             printf (resFile, f'// vecLowerBnd={vecLowerBnd}, vecUpperBnd={vecUpperBnd}, outLier={outLier}\n')
     if settings.VERBOSE_LOG in verbose:
@@ -188,7 +190,7 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
     else:        
         logFile = None
 
-    delPrevPcl = True
+    delPrevPcl = False
     if settings.VERBOSE_PCL in verbose:
 
         pclOutputFileName = f'mse_n{cntrSize}.pcl'
@@ -380,16 +382,18 @@ def plotScaledGrids (
 stdev           = 1
 cntrSize8modes  = ['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int']
 cntrSize16modes = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2'],  
-simQuantErr (cntrSize       = 8, 
-             modes          = ['int'], #cntrSize8modes, 
-             numPts         = 1000, 
-             stdev          = stdev,
-             dist           = 'Student',  
-             df             = 1, #float('inf'),  # the df (degree of freedom) parameter; relevant only when using the t-student dist'.  
-             vecLowerBnd    = -4*stdev, 
-             vecUpperBnd    =  4*stdev,
-             # outLier        = 100*stdev,
-             verbose= [settings.VERBOSE_PCL]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
+
+for df in [1, 10, 100, 1000]:
+    simQuantErr (cntrSize       = 8, 
+                 modes          = cntrSize8modes, 
+                 numPts         = 1000, 
+                 stdev          = stdev,
+                 dist           = 'Student',  
+                 df             = df, #float('inf'),  # the df (degree of freedom) parameter; relevant only when using the t-student dist'.  
+                 vecLowerBnd    = -4*stdev, 
+                 vecUpperBnd    =  4*stdev,
+                 # outLier        = 100*stdev,
+                 verbose= [settings.VERBOSE_PCL]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
 # plotScaledGrids (zoomXlim=1, cntrSize=7, modes=['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int'])
 
 # scaled 'F2P_lr_h1' is identical to int.

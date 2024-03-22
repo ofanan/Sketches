@@ -19,7 +19,7 @@ LEGEND_FONT_SIZE = 14
 LEGEND_FONT_SIZE_SMALL = 5 
 USE_FRAME              = True # When True, plot a "frame" (box) around the plot 
 
-colors = ['green', 'purple', 'brown', 'black', 'blue', 'yellow', 'magenta', 'red']
+colors = ['green', 'purple', 'brown', 'black', 'blue', 'yellow', 'magenta', 'red', 'green', 'purple', 'brown', 'black']
 
 # The colors used for each alg's plot, in the dist' case
 colorOfMode = {
@@ -370,12 +370,14 @@ class ResFileParser (object):
             pointsOfThisLabel = sorted (pointsOfThisLabel, key = lambda item : item['df']) # sort the points by their df value
             dfsWithThisLabel  = [point['df'] for point in pointsOfThisLabel]
             yVals             = [point[resTypeStr] for point in pointsOfThisLabel] 
-            ax.plot (dfsWithThisLabel, yVals, label=label, color=colors[i])
+            ax.plot (dfsWithThisLabel, yVals, label=label)
             i += 1
 
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
+        plt.xlim (1, 100)
+        plt.yscale ('log')
         plt.show()
 
 def genResolutionPlot ():
@@ -413,7 +415,7 @@ def plotMseByDf ():
     cntrSize = 8
     myResFileParser = ResFileParser ()
     myResFileParser.rdPcl (f'mse_n{cntrSize}.pcl')
-    myResFileParser.plotMseByDf ()
+    myResFileParser.plotMseByDf (resTypeStr='absMse')
     return
 
  
