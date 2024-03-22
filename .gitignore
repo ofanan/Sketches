@@ -19,3 +19,4 @@ build.xml
 /res/log_files/*
 /res/ZZZ*
 /res/pcl_files/spares/*
+/res/pcl_files/bkp/*

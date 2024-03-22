@@ -371,21 +371,36 @@ class ResFileParser (object):
         if settings.VERBOSE_RES in verbose:
             resFile = open (f'../res/Mse.res', 'a+')
             printf (resFile, f'// cntrSize={cntrSize}, errType={resTypeStr}\n')
+            printedDfs = False
         _, ax = plt.subplots()
-        i = 0
-        for label in [point['label'] for point in points]: 
+        printedDFs = False
+        labels = sorted(list(set([point['label'] for point in points])))
+        for label in labels: 
             pointsOfThisLabel = [point for point in points if point['label']==label]
             pointsOfThisLabel = sorted (pointsOfThisLabel, key = lambda item : item['df']) # sort the points by their df value
             dfsWithThisLabel  = [point['df'] for point in pointsOfThisLabel]
             yVals             = [point[f'{resTypeStr}Mse'] for point in pointsOfThisLabel]
-            # if settings.VERBOSE_RES in verbose:
-                 
+            if settings.VERBOSE_RES in verbose:
+                if not printedDFs:
+                    printf (resFile, '\t\t\t')
+                    for df in dfsWithThisLabel:
+                        printf (resFile, f'{df}\t\t\t')
+                    printf (resFile, '\n')
+                    printedDFs = True
+                printf (resFile, f'{label}\t')
+                if label=='int':
+                    printf (resFile, '\t\t')
+                for yVal in yVals:
+                    printf (resFile, '{:.2e}\t' .format (yVal))
+                printf (resFile, '\n')
             if settings.VERBOSE_PLOT in verbose: 
                 ax.plot (dfsWithThisLabel, yVals, label=label)
-            i += 1
 
+        if settings.VERBOSE_RES in verbose:
+            printf (resFile, '\n')
         if settings.VERBOSE_PLOT not in verbose:
             return
+        
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=10, frameon=False)
@@ -426,12 +441,12 @@ def plotMseByDf ():
     """
     Plot the MSE as a func' of the df value at the Student-t dist'.
     """
-    for cntrSize in [19]:
+    for cntrSize in [8, 16]:
         myResFileParser = ResFileParser ()
         pclFileName = genMsePclFileName (cntrSize) 
         myResFileParser.rdPcl (pclFileName)
         myResFileParser.plotMseByDf (cntrSize=cntrSize, resTypeStr='abs', verbose=[settings.VERBOSE_RES])
-        # myResFileParser.plotMseByDf (cntrSize=cntrSize, resTypeStr='rel', verbose=[settings.VERBOSE_RES])
+        myResFileParser.plotMseByDf (cntrSize=cntrSize, resTypeStr='rel', verbose=[settings.VERBOSE_RES])
 
  
 if __name__ == '__main__':
