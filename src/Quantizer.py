@@ -379,13 +379,13 @@ def plotScaledGrids (
 stdev           = 1
 cntrSize8modes  = ['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int']
 cntrSize16modes = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2'],  
-cntrSize = 16
+cntrSize = 8
 if cntrSize==16:
     modes = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2', 'int']  
 else:
     modes  = ['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int', 'F2P_li_h1', 'F2P_li_h2']
 
-verbose = [settings.VERBOSE_PCL]
+verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
 if settings.VERBOSE_PCL in verbose:
     pclOutputFileName = ResFileParser.genMsePclFileName (cntrSize)
     if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
@@ -393,7 +393,7 @@ if settings.VERBOSE_PCL in verbose:
 for df in [1, 10, 100, 1000]:
     simQuantErr (cntrSize       = cntrSize, 
                  modes          = modes, 
-                 numPts         = 1000, 
+                 numPts         = 1000000, 
                  stdev          = stdev,
                  dist           = 'Student',  
                  df             = df, #float('inf'),  # the df (degree of freedom) parameter; relevant only when using the t-student dist'.  

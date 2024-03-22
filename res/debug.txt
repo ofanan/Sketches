@@ -1,0 +1,2 @@
+printf (logFile, f'i={i}, org={orgVec[i]}, changed={changedVec[i]}')
+printf (logFile, f'PDF={scipy.stats.norm(0, stdev).pdf(orgVec[i])}, weightedAbsMse={weightedAbsMseVec[i]}\n')

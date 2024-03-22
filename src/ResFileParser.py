@@ -394,8 +394,6 @@ def genResolutionPlot ():
     
     my_ResFileParser = ResFileParser ()
     byModes = False
-    # modes   = ['F2P_lr', 'FP']
-    # minCntrVal  = 0
     if byModes:
         my_ResFileParser.rdPcl (pclFileName=f'resolutionByModes.pcl')
         for cntrSize in [8]:  # , 12, 16]:

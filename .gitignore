@@ -14,5 +14,7 @@ b_*
 build.xml
 /log/
 /log/*
-/res/*
+/res/old/*
 /res/*.pdf
+/res/log_files/*
+/res/ZZZ*

@@ -1,0 +1,42 @@
+********************************************************************************
+Uniform distribution on [ -1.0 , 1.0 ]
+FP8 5 E 2 M Quantization: expected MSE 6.78e-04  SQNR  3.17e+01
+            Dot product:  expected MSE 4.53e-04  SQNR  3.34e+01
+FP8 4 E 3 M Quantization: expected MSE 1.78e-04  SQNR  3.75e+01
+            Dot product:  expected MSE 1.18e-04  SQNR  3.93e+01
+FP8 3 E 4 M Quantization: expected MSE 4.55e-05  SQNR  4.34e+01
+            Dot product:  expected MSE 3.03e-05  SQNR  4.52e+01
+FP8 2 E 5 M Quantization: expected MSE 1.20e-05  SQNR  4.92e+01
+            Dot product:  expected MSE 7.98e-06  SQNR  5.10e+01
+FP8 0 E 7 M Quantization: expected MSE 5.20e-06  SQNR  5.28e+01
+            Dot product:  expected MSE 3.47e-06  SQNR  5.46e+01
+F2P 1 H 	Quantization: ...
+            Dot product:  ...
+
+
+********************************************************************************
+Gaussian distr  , mu =  0.0 , sigma =  1.0  clipped at [ -10.0 , 10.0 ]
+FP8 5 E 2 M Quantization: expected MSE 2.77e-03  SQNR  2.56e+01
+            Dot product:  expected MSE 5.53e-03  SQNR  2.26e+01
+FP8 4 E 3 M Quantization: expected MSE 6.99e-04  SQNR  3.16e+01
+            Dot product:  expected MSE 1.40e-03  SQNR  2.85e+01
+FP8 3 E 4 M Quantization: expected MSE 1.75e-04  SQNR  3.76e+01
+            Dot product:  expected MSE 3.51e-04  SQNR  3.46e+01
+FP8 2 E 5 M Quantization: expected MSE 5.41e-05  SQNR  4.27e+01
+            Dot product:  expected MSE 1.08e-04  SQNR  3.97e+01
+FP8 0 E 7 M Quantization: expected MSE 8.77e-05  SQNR  4.06e+01
+            Dot product:  expected MSE 1.75e-04  SQNR  3.76e+01
+********************************************************************************
+Student's-t distr , nu =  8.0  clipped at [ -100.0 , 100.0 ]
+FP8 5 E 2 M Quantization: expected MSE 3.71e-03  SQNR  2.43e+01
+            Dot product:  expected MSE 9.87e-03  SQNR  2.01e+01
+FP8 4 E 3 M Quantization: expected MSE 9.36e-04  SQNR  3.03e+01
+            Dot product:  expected MSE 2.50e-03  SQNR  2.60e+01
+FP8 3 E 4 M Quantization: expected MSE 2.38e-04  SQNR  3.62e+01
+            Dot product:  expected MSE 6.35e-04  SQNR  3.20e+01
+FP8 2 E 5 M Quantization: expected MSE 1.92e-04  SQNR  3.72e+01
+            Dot product:  expected MSE 5.11e-04  SQNR  3.29e+01
+FP8 0 E 7 M Quantization: expected MSE 4.83e-04  SQNR  3.32e+01
+            Dot product:  expected MSE 1.29e-03  SQNR  2.89e+01
+
+Process finished with exit code 0
