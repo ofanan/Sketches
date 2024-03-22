@@ -62,6 +62,12 @@ markerOfMode = {'F2P_li'    : 'o',
                      'Morris'    : '>',
                      'AEE'       : 'o'}
 
+def genMsePclFileName (cntrSize : int) -> str:
+    """
+    Given the counter's size, generate the .pcl filename.
+    """
+    return f'mse_n{cntrSize}.pcl'
+
 def genFpLabel (mantSize : int, expSize : int) -> str:
     """
     Generates a label string that details the counter's settings (param vals), to be used in plots.
@@ -351,7 +357,8 @@ class ResFileParser (object):
         plt.savefig ('../res/resolutionBySettingStrs_n{}_{}.pdf' .format (cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
 
 
-    def plotMseByDf (self, 
+    def plotMseByDf (self,
+                     cntrSize   : int = 8,
                      resTypeStr : str = 'avgAbsErr', # a string detailing the y value for which the func' will generate a plot
                      numPts     : int = None         # num of points in the experiment
                  ):
@@ -376,9 +383,9 @@ class ResFileParser (object):
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
-        plt.xlim (1, 100)
+        # plt.xlim (1, 100)
         plt.yscale ('log')
-        plt.show()
+        plt.savefig (f'../res/Mse_n{cntrSize}_{resTypeStr}.pdf', bbox_inches='tight')        
 
 def genResolutionPlot ():
     """
@@ -414,9 +421,10 @@ def plotMseByDf ():
     """
     myResFileParser = ResFileParser ()
     for cntrSize in [8, 16]:
-        myResFileParser.rdPcl (f'mse_n{cntrSize}.pcl')
-        myResFileParser.plotMseByDf (resTypeStr='absMse')
-        myResFileParser.plotMseByDf (resTypeStr='relMse')
+        pclFileName = genMsePclFileName (cntrSize) 
+        myResFileParser.rdPcl (pclFileName)
+        myResFileParser.plotMseByDf (cntrSize=cntrSize, resTypeStr='absMse')
+        myResFileParser.plotMseByDf (cntrSize=cntrSize, resTypeStr='relMse')
 
  
 if __name__ == '__main__':
