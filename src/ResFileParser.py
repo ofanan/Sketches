@@ -125,9 +125,7 @@ class ResFileParser (object):
         """
         # List of algorithms' names, used in the plots' legend, for the dist' case
         self.labelOfMode = {}
-
         self.markers = ['o', 'v', '^', 's', 'p', 'X']
-
         self.points = []
         
     def rdPcl (self, pclFileName):
@@ -359,7 +357,7 @@ class ResFileParser (object):
 
     def plotMseByDf (self,
                      cntrSize   : int = 8,
-                     resTypeStr : str = 'avgAbsErr', # a string detailing the y value for which the func' will generate a plot
+                     resTypeStr : str = 'abs', # a string detailing the y value for which the func' will generate a plot
                      numPts     : int = None         # num of points in the experiment
                  ):
         """
@@ -376,15 +374,18 @@ class ResFileParser (object):
             pointsOfThisLabel = [point for point in points if point['label']==label]
             pointsOfThisLabel = sorted (pointsOfThisLabel, key = lambda item : item['df']) # sort the points by their df value
             dfsWithThisLabel  = [point['df'] for point in pointsOfThisLabel]
-            yVals             = [point[resTypeStr] for point in pointsOfThisLabel] 
+            yVals             = [point[f'{resTypeStr}Mse'] for point in pointsOfThisLabel] 
             ax.plot (dfsWithThisLabel, yVals, label=label)
             i += 1
 
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
-        plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
-        # plt.xlim (1, 100)
+        plt.legend (by_label.values(), by_label.keys(), fontsize=10, frameon=False)
+        plt.xlim (1, 100)
+        plt.xlabel (f'df')
+        plt.ylabel (f'{resTypeStr} MSE')
         plt.yscale ('log')
+        # plt.show ()
         plt.savefig (f'../res/Mse_n{cntrSize}_{resTypeStr}.pdf', bbox_inches='tight')        
 
 def genResolutionPlot ():
@@ -419,12 +420,12 @@ def plotMseByDf ():
     """
     Plot the MSE as a func' of the df value at the Student-t dist'.
     """
-    myResFileParser = ResFileParser ()
     for cntrSize in [8, 16]:
+        myResFileParser = ResFileParser ()
         pclFileName = genMsePclFileName (cntrSize) 
         myResFileParser.rdPcl (pclFileName)
-        myResFileParser.plotMseByDf (cntrSize=cntrSize, resTypeStr='absMse')
-        myResFileParser.plotMseByDf (cntrSize=cntrSize, resTypeStr='relMse')
+        myResFileParser.plotMseByDf (cntrSize=cntrSize, resTypeStr='abs')
+        myResFileParser.plotMseByDf (cntrSize=cntrSize, resTypeStr='rel')
 
  
 if __name__ == '__main__':
