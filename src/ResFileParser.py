@@ -412,11 +412,11 @@ def plotMseByDf ():
     """
     Plot the MSE as a func' of the df value at the Student-t dist'.
     """
-    cntrSize = 8
     myResFileParser = ResFileParser ()
-    myResFileParser.rdPcl (f'mse_n{cntrSize}.pcl')
-    myResFileParser.plotMseByDf (resTypeStr='absMse')
-    return
+    for cntrSize in [8, 16]:
+        myResFileParser.rdPcl (f'mse_n{cntrSize}.pcl')
+        myResFileParser.plotMseByDf (resTypeStr='absMse')
+        myResFileParser.plotMseByDf (resTypeStr='relMse')
 
  
 if __name__ == '__main__':

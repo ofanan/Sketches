@@ -8,6 +8,12 @@ from printf import printf, printar, printarFp
 from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
 from ResFileParser import getF2PSettings, colors, colorOfLabel, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, LEGEND_FONT_SIZE
 
+def genPclOutputFileName (cntrSize : int) -> str:
+    """
+    Given the counter's size, generate the .pcl filename.
+    """
+    return f'mse_n{cntrSize}.pcl'
+
 def setPltParams (size : str = 'large') -> None:
     """
     Set the plot parameters (sizes, colors etc.).
@@ -190,12 +196,9 @@ def simQuantErr (modes          : list  = [], # modes to be simulated, e.g. FP, 
     else:        
         logFile = None
 
-    delPrevPcl = False
     if settings.VERBOSE_PCL in verbose:
 
-        pclOutputFileName = f'mse_n{cntrSize}.pcl'
-        if delPrevPcl and os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
-            os.remove(f'../res/pcl_files/{pclOutputFileName}')
+        pclOutputFileName = genPclOutputFileName (cntrSize)
         pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}', 'ab+')
     
     vec2quantize = genVec2Quantize (
@@ -382,10 +385,20 @@ def plotScaledGrids (
 stdev           = 1
 cntrSize8modes  = ['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int']
 cntrSize16modes = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2'],  
+cntrSize = 8
+if cntrSize==16:
+    modes = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2', 'int']  
+else:
+    modes  = ['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int', 'F2P_li_h1', 'F2P_li_h2']
 
+verbose = [settings.VERBOSE_PCL]
+if settings.VERBOSE_PCL in verbose:
+    pclOutputFileName = genPclOutputFileName (cntrSize)
+    if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
+        os.remove(f'../res/pcl_files/{pclOutputFileName}')
 for df in [1, 10, 100, 1000]:
-    simQuantErr (cntrSize       = 8, 
-                 modes          = cntrSize8modes, 
+    simQuantErr (cntrSize       = 16, 
+                 modes          = modes, 
                  numPts         = 1000, 
                  stdev          = stdev,
                  dist           = 'Student',  
@@ -393,7 +406,7 @@ for df in [1, 10, 100, 1000]:
                  vecLowerBnd    = -4*stdev, 
                  vecUpperBnd    =  4*stdev,
                  # outLier        = 100*stdev,
-                 verbose= [settings.VERBOSE_PCL]) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
+                 verbose = verbose) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
 # plotScaledGrids (zoomXlim=1, cntrSize=7, modes=['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int'])
 
 # scaled 'F2P_lr_h1' is identical to int.
