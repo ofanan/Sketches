@@ -18,3 +18,4 @@ build.xml
 /res/*.pdf
 /res/log_files/*
 /res/ZZZ*
+/res/pcl_files/spares/*
