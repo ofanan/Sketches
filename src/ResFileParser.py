@@ -504,10 +504,25 @@ def genMseByDfGraph ():
         myResFileParser.genMseByDfGraph (cntrSize=cntrSize, resTypeStr='abs', verbose=[settings.VERBOSE_RES])
         myResFileParser.genMseByDfGraph (cntrSize=cntrSize, resTypeStr='rel', verbose=[settings.VERBOSE_RES])
 
+def genMseByDistBar ():
+    """
+    """
+    for cntrSize in [8]:
+        myResFileParser = ResFileParser ()
+        pclFileName = genMsePclFileName (cntrSize) 
+        myResFileParser.genMseByDistBar (
+            stdev       = 1,
+            dist        = 'Student_1',
+            resTypeStr  = 'abs', # a string detailing the y value for which the func' will generate a plot
+            numPts      = None,         # num of points in the experiment
+            verbose     =[settings.VERBOSE_RES, settings.VERBOSE_PLOT]
+        )
+    
  
 if __name__ == '__main__':
     try:
-        genMseByDfGraph ()
+        genMseByDistBar ()
+        # genMseByDfGraph ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 
