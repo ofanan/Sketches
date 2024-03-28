@@ -414,10 +414,10 @@ class ResFileParser (object):
     def genMseByDistBar (
             self,
             stdev       : float = 1,
-            dist        : str  = 'Student_5',
-            resTypeStr  : str  = 'abs', # a string detailing the y value for which the func' will generate a plot
-            numPts      : int  = None,         # num of points in the experiment
-            verbose     : list =[]
+            dist        : str   = 'Student_5',
+            resTypeStr  : str   = 'abs', # a string detailing the y value for which the func' will generate a plot
+            numPts      : int   = None,         # num of points in the experiment
+            verbose     : list  = []
             ):
         """
         Generate and save a bar-plot of the Mean Square Error for the requested distribution. 
@@ -428,13 +428,13 @@ class ResFileParser (object):
         
         if settings.VERBOSE_RES in verbose:
             resFile = open (f'../res/Mse_dists.res', 'a+')
-            printf (resFile, f'// cntrSize={cntrSize}, errType={resTypeStr}\n')
+            printf (resFile, f'// errType={resTypeStr}\n')
             printedDfs = False
 
         _, ax = plt.subplots()
         printedDFs = False
         
-        if dist.startsWith('Student'): # For a student distribution, need to pick the points with the desired df
+        if dist.startswith('Student'): # For a student distribution, need to pick the points with the desired df
             dist_split = dist.split('_')
             if len(dist_split)<1:
                 settings.error ('In ResFileParser.genMseByDistBar(): Student dist name should be in the format Student_df')
