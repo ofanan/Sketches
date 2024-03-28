@@ -452,19 +452,20 @@ class ResFileParser (object):
                 continue
             yVals[i] = pointsOfThisLabel[0][f'{resTypeStr}Mse']
             if settings.VERBOSE_RES in verbose:
-                printf (resFile, f'{label}\t')
-                if label=='int':
+                printf (resFile, f'{label}\t\t')
+                if label=='int' or label.startswith('FP'):
                     printf (resFile, '\t\t')
-                for yVal in yVals:
-                    printf (resFile, '{:.2e}\t' .format (yVals[i]))
-                printf (resFile, '\n')
+                printf (resFile, '\t{:.2e}\n' .format (yVals[i]))
+            plt.bar (label, yVals[i])
+
 
         if settings.VERBOSE_RES in verbose:
             printf (resFile, '\n')
         if settings.VERBOSE_PLOT not in verbose:
             return
         
-        plt.bar (labels, yVals)
+        # plt.bar (labels, yVals)
+        plt.ylabel(f'{resTypeStr} MSE')
         plt.show ()
 
 def genResolutionPlot ():
