@@ -450,7 +450,7 @@ class ResFileParser (object):
             if len(pointsOfThisLabel)<1:
                 print (f'In genMseByDistBar(): no points for dist Student, df={df}, label={label}')
                 continue
-            yVals[i] = [point[f'{resTypeStr}Mse'] for point in pointsOfThisLabel]
+            yVals[i] = pointsOfThisLabel[0][f'{resTypeStr}Mse']
             if settings.VERBOSE_RES in verbose:
                 printf (resFile, f'{label}\t')
                 if label=='int':
@@ -509,7 +509,8 @@ def genMseByDistBar ():
     """
     for cntrSize in [8]:
         myResFileParser = ResFileParser ()
-        pclFileName = genMsePclFileName (cntrSize) 
+        pclFileName = 'mse_n8_more_pts.pcl'  
+        myResFileParser.rdPcl (pclFileName)
         myResFileParser.genMseByDistBar (
             stdev       = 1,
             dist        = 'Student_1',
