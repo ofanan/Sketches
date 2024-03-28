@@ -149,7 +149,7 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
     """
     rng = np.random.default_rng(settings.SEED)
     if dist=='Uniform':
-        vec = [(lowerBnd + i*(upperBnd-lowerBnd)/numPts) for i in range(numPts)]
+        vec = [(lowerBnd + i*(upperBnd-lowerBnd)/(numPts-1)) for i in range(numPts)]
     elif dist=='Gaussian':
         vec = np.sort (rng.standard_normal(numPts) * stdev)
     elif dist=='Student':
@@ -378,7 +378,7 @@ def plotScaledGrids (
 
 stdev   = 1
 modes   = settings.F2Pmodes 
-cntrSize = 16
+cntrSize = 8
 if cntrSize==19:
     modes = ['int'] + settings.FP19modes + modes
 elif cntrSize==19: ## tensorFloat
@@ -387,21 +387,25 @@ elif cntrSize==8:
     modes = ['int'] + settings.FP8modes + modes
 else:
     settings.error (f'In Quantizer.py. Please pick the configurations to run for cntrSize={cntrSize} that you chose.')
-settings.error (modes)    
 verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
 if settings.VERBOSE_PCL in verbose:
     pclOutputFileName = ResFileParser.genMsePclFileName (cntrSize)
     if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
         os.remove(f'../res/pcl_files/{pclOutputFileName}')
-for df in [5, 8]:
+for distStr in ['Uniform', 'Student_5', 'Student_8' 'Gaussian']:
+    dist = distStr.split ('_')[0]
+    if distStr.startswith('Student'):
+        df = float(distStr.split('_')[1])
+    else:
+        df = None
     simQuantErr (cntrSize       = cntrSize, 
                  modes          = modes, 
                  numPts         = 1000000, 
                  stdev          = stdev,
-                 dist           = 'Student',  
-                 df             = df, #float('inf'),  # the df (degree of freedom) parameter; relevant only when using the t-student dist'.  
-                 vecLowerBnd    = -4*stdev, 
-                 vecUpperBnd    =  4*stdev,
+                 dist           = dist, 
+                 df             = df, 
+                 vecLowerBnd    = -stdev, 
+                 vecUpperBnd    = stdev,
                  # outLier        = 100*stdev,
                  verbose = verbose) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
 # plotScaledGrids (zoomXlim=1, cntrSize=7, modes=['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int'])

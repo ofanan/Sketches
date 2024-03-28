@@ -917,3 +917,7 @@ relMse : 0.0005106378501834684
 absMse : 0.010315033110442216
 label : F2P li h2
 
+// dist=Uniform, stdev=1, numPts=3
+// vecLowerBnd=-1, vecUpperBnd=1, outLier=None
+// dist=Uniform, stdev=1, numPts=5
+// vecLowerBnd=-1, vecUpperBnd=1, outLier=None
