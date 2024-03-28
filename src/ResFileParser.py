@@ -19,6 +19,16 @@ LEGEND_FONT_SIZE = 14
 LEGEND_FONT_SIZE_SMALL = 5 
 USE_FRAME              = True # When True, plot a "frame" (box) around the plot 
 
+# Color-blind friendly pallette
+BLACK       = '#000000' 
+ORANGE      = '#E69F00'
+SKY_BLUE    = '#56B4E9'
+GREEN       = '#009E73'
+YELLOW      = '#F0E442'
+BLUE        = '#0072B2'
+VERMILION   = '#D55E00'
+PURPLE      = '#CC79A7'
+
 colors = ['green', 'purple', 'brown', 'black', 'blue', 'yellow', 'magenta', 'red', 'green', 'purple', 'brown', 'black']
 
 # The colors used for each alg's plot, in the dist' case
@@ -507,18 +517,20 @@ def genMseByDfGraph ():
 
 def genMseByDistBar ():
     """
+    Generate and save a bar-plot of the Mean Square Error for the various distributions. 
     """
     for cntrSize in [8]:
-        myResFileParser = ResFileParser ()
-        pclFileName = 'mse_n8_more_pts.pcl'  
-        myResFileParser.rdPcl (pclFileName)
-        myResFileParser.genMseByDistBar (
-            stdev       = 1,
-            dist        = 'Student_1',
-            resTypeStr  = 'abs', # a string detailing the y value for which the func' will generate a plot
-            numPts      = None,         # num of points in the experiment
-            verbose     =[settings.VERBOSE_RES, settings.VERBOSE_PLOT]
-        )
+        for dist in ['Student_1']:
+            myResFileParser = ResFileParser ()
+            pclFileName = 'mse_n8_more_pts.pcl'  
+            myResFileParser.rdPcl (pclFileName)
+            myResFileParser.genMseByDistBar (
+                stdev       = 1,
+                dist        = dist,
+                resTypeStr  = 'abs', # a string detailing the y value for which the func' will generate a plot
+                numPts      = None,         # num of points in the experiment
+                verbose     =[settings.VERBOSE_RES, settings.VERBOSE_PLOT]
+            )
     
  
 if __name__ == '__main__':

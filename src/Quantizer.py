@@ -392,7 +392,7 @@ if settings.VERBOSE_PCL in verbose:
     pclOutputFileName = ResFileParser.genMsePclFileName (cntrSize)
     if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
         os.remove(f'../res/pcl_files/{pclOutputFileName}')
-for distStr in ['Uniform', 'Student_5', 'Student_8' 'Gaussian']:
+for distStr in ['Uniform', 'Student_5', 'Student_8', 'Gaussian']:
     dist = distStr.split ('_')[0]
     if distStr.startswith('Student'):
         df = float(distStr.split('_')[1])
