@@ -376,24 +376,24 @@ def plotScaledGrids (
     seaborn.despine(left=True, bottom=False, right=True)
     plt.show()
 
-stdev           = 1
-cntrSize8modes  = ['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int']
-cntrSize16modes = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2'],  
-cntrSize = 19
-if cntrSize==16:
-    modes = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2', 'int']  
+stdev   = 1
+modes   = settings.F2Pmodes 
+cntrSize = 16
+if cntrSize==19:
+    modes = ['int'] + settings.FP19modes + modes
 elif cntrSize==19: ## tensorFloat
-    modes = ['int', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2']
+    modes = ['int'] + settings.FP16modes + modes
 elif cntrSize==8:
-    modes  = ['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int', 'F2P_li_h1', 'F2P_li_h2']
+    modes = ['int'] + settings.FP8modes + modes
 else:
     settings.error (f'In Quantizer.py. Please pick the configurations to run for cntrSize={cntrSize} that you chose.')
+settings.error (modes)    
 verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
 if settings.VERBOSE_PCL in verbose:
     pclOutputFileName = ResFileParser.genMsePclFileName (cntrSize)
     if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
         os.remove(f'../res/pcl_files/{pclOutputFileName}')
-for df in [1, 10, 100, 1000]:
+for df in [5, 8]:
     simQuantErr (cntrSize       = cntrSize, 
                  modes          = modes, 
                  numPts         = 1000000, 

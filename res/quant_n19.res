@@ -334,3 +334,15 @@ relMse : 1.5766263848515532e-09
 absMse : 5.0108127887174155e-06
 label : F2P li h2
 
+// dist=Student, stdev=1, numPts=1000000
+// df=1
+scale : 2.930586609981129
+relMse : 0.6757964689603865
+absMse : 0.6633891449270779
+label : int
+
+scale : 2.2587360889741064e-33
+relMse : 4.301962242305754e-08
+absMse : 0.0014889609314813724
+label : FP 10M8E
+

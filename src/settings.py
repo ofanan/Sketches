@@ -23,6 +23,18 @@ VERBOSE_PROGRESS        = 12 # Print periodical output notifying the progress. U
 VERBOSE_LOG_CNTRLINE    = 14  
 VERBOSE_PLOT            = 15
 
+F2Pmodes  = ['F2P_lr_h1', 'F2P_lr_h2', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_li_h1', 'F2P_li_h2'] 
+FP8modes  = ['FP_e5', 'FP_e3', 'FP_e2']
+FP16modes = ['FP_e5', 'FP_e8', 'F2P_li_h1', 'F2P_li_h2']
+FP19modes = ['FP_e5', 'FP_e8']
+
+cntrSize = 19
+if cntrSize==16:
+    modes = ['FP_e5', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2', 'int']  
+elif cntrSize==19: ## tensorFloat
+    modes = ['int', 'FP_e8', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_li_h1', 'F2P_li_h2']
+
+
 # Configurations to be run. 
 # For cntrSize<8, the conf' the values are unrealistically small, and used only for checks and debugging.
 # For cntrSize>=8, cntrMaxVal is calculated by that reached by F2P stat, and hyperSize is the corresponding hyper-exponent field size in F2P stat.

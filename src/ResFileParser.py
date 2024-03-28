@@ -355,7 +355,7 @@ class ResFileParser (object):
         plt.savefig ('../res/resolutionBySettingStrs_n{}_{}.pdf' .format (cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
 
 
-    def plotMseByDf (self,
+    def genMseByDfGraph (self,
                      cntrSize   : int  = 8,
                      resTypeStr : str  = 'abs', # a string detailing the y value for which the func' will generate a plot
                      numPts     : int  = None,         # num of points in the experiment
@@ -369,7 +369,7 @@ class ResFileParser (object):
             points = [point for point in points if point['numPts']==numPts]
         
         if settings.VERBOSE_RES in verbose:
-            resFile = open (f'../res/Mse.res', 'a+')
+            resFile = open (f'../res/Mse_student.res', 'a+')
             printf (resFile, f'// cntrSize={cntrSize}, errType={resTypeStr}\n')
             printedDfs = False
         _, ax = plt.subplots()
@@ -411,6 +411,62 @@ class ResFileParser (object):
         # plt.show ()
         plt.savefig (f'../res/Mse_n{cntrSize}_{resTypeStr}.pdf', bbox_inches='tight')        
 
+    def genMseByDistBar (
+            self,
+            stdev       : float = 1,
+            dist        : str  = 'Student_5',
+            resTypeStr  : str  = 'abs', # a string detailing the y value for which the func' will generate a plot
+            numPts      : int  = None,         # num of points in the experiment
+            verbose     : list =[]
+            ):
+        """
+        Generate and save a bar-plot of the Mean Square Error for the requested distribution. 
+        """
+        points = [point for point in self.points if point['stdev']==stdev]
+        if numPts!=None:
+            points = [point for point in points if point['numPts']==numPts]
+        
+        if settings.VERBOSE_RES in verbose:
+            resFile = open (f'../res/Mse_dists.res', 'a+')
+            printf (resFile, f'// cntrSize={cntrSize}, errType={resTypeStr}\n')
+            printedDfs = False
+
+        _, ax = plt.subplots()
+        printedDFs = False
+        
+        if dist.startsWith('Student'): # For a student distribution, need to pick the points with the desired df
+            dist_split = dist.split('_')
+            if len(dist_split)<1:
+                settings.error ('In ResFileParser.genMseByDistBar(): Student dist name should be in the format Student_df')
+            df   = int(dist_split[1])
+            pointsOfThisDist = [point for point in points if point['dist']=='Student' and point['df']==df]  
+        else: # For distributions others than "Student", need to pick the points belonging to that dist'
+            pointsOfThisDist = [point for point in points if point['dist']==dist]  
+        labels = list(set([point['label'] for point in pointsOfThisDist]))
+        yVals = np.empty (len(labels))
+        for i in range(len(labels)):
+            label = labels[i]
+            pointsOfThisLabel = [point for point in pointsOfThisDist if point['label']==label]
+            if len(pointsOfThisLabel)<1:
+                print (f'In genMseByDistBar(): no points for dist Student, df={df}, label={label}')
+                continue
+            yVals[i] = [point[f'{resTypeStr}Mse'] for point in pointsOfThisLabel]
+            if settings.VERBOSE_RES in verbose:
+                printf (resFile, f'{label}\t')
+                if label=='int':
+                    printf (resFile, '\t\t')
+                for yVal in yVals:
+                    printf (resFile, '{:.2e}\t' .format (yVals[i]))
+                printf (resFile, '\n')
+
+        if settings.VERBOSE_RES in verbose:
+            printf (resFile, '\n')
+        if settings.VERBOSE_PLOT not in verbose:
+            return
+        
+        plt.bar (labels, yVals)
+        plt.show ()
+
 def genResolutionPlot ():
     """
     """
@@ -437,7 +493,7 @@ def genResolutionPlot ():
             xLog        = True
             )
 
-def plotMseByDf ():
+def genMseByDfGraph ():
     """
     Plot the MSE as a func' of the df value at the Student-t dist'.
     """
@@ -445,13 +501,13 @@ def plotMseByDf ():
         myResFileParser = ResFileParser ()
         pclFileName = genMsePclFileName (cntrSize) 
         myResFileParser.rdPcl (pclFileName)
-        myResFileParser.plotMseByDf (cntrSize=cntrSize, resTypeStr='abs', verbose=[settings.VERBOSE_RES])
-        myResFileParser.plotMseByDf (cntrSize=cntrSize, resTypeStr='rel', verbose=[settings.VERBOSE_RES])
+        myResFileParser.genMseByDfGraph (cntrSize=cntrSize, resTypeStr='abs', verbose=[settings.VERBOSE_RES])
+        myResFileParser.genMseByDfGraph (cntrSize=cntrSize, resTypeStr='rel', verbose=[settings.VERBOSE_RES])
 
  
 if __name__ == '__main__':
     try:
-        plotMseByDf ()
+        genMseByDfGraph ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 
