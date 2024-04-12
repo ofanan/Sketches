@@ -1,0 +1,17 @@
+alias .="pwd"
+alias py="python"
+alias c="clear"
+alias l="less"
+alias so="source"
+alias ltr="c; ls -ltr"
+alias ltres="c; ls -ltr ../res"
+alias ltra="c; ls -ltra"
+alias la="ls -a"
+alias g="grep"
+alias h=history
+alias commit='c; git add -A; git commit'
+alias na='nano'
+alias qs='qsub PBS_runner.sh'
+alias qq='c; qstat -a | grep itamarc'
+alias compush='c; commit; pusher'
+source ../../.alias_pusher_Sketches.txt

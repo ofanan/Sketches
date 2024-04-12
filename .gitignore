@@ -1,0 +1,17 @@
+b_*
+/src/b_*
+.project
+/.vscode/*
+/old/*
+/src/_pycache_/*
+/.pydevproject
+/src/tmp.txt
+/nbproject/*
+/build/*
+/build/classes/*
+/bin/*
+.classpath
+build.xml
+/log/
+/log/*
+/res/*
