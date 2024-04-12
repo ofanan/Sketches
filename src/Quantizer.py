@@ -1,0 +1,414 @@
+import os, scipy, matplotlib, pickle, numpy as np, seaborn as sns
+# from datetime import datetime
+import matplotlib.pyplot as plt
+import pandas as pd
+from fitter import Fitter, get_common_distributions, get_distributions
+
+import settings, ResFileParser, F2P_sr, F2P_lr, F2P_li, FP  
+from tictoc import tic, toc
+from printf import printf, printar, printarFp
+from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
+from ResFileParser import genRndErrFileName, getF2PSettings, colors, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, LEGEND_FONT_SIZE
+
+
+
+MAX_DF = 30
+
+def myFitter (
+        vec : np.array,
+        ) -> str:
+    """
+    Find the distribution that best fits the given vector.
+    If all fit tests agree, return a string that represents the distribution they all agree on.
+    Else, return None
+    """
+    f = Fitter (vec, 
+                distributions = ['t', 'uniform', 'norm'] # distributions to consider
+                )
+    f.fit ()
+
+    likelihoodTests = ['sumsquare_error', 'bic', 'ks_statistic']
+    suggestedDists  = [None]*len(likelihoodTests) # suggestedDists[i] will get the best-fit distributions accordingy to test i 
+    for i in range(len(likelihoodTests)):   
+        for distByThisTest in f.get_best(likelihoodTests[i]):
+            suggestedDists[i] = distByThisTest
+    c = Counter (suggestedDists)
+    dist, numTests = c.most_common(1)[0]
+    if numTests==len(likelihoodTests): # all tests agree
+        distDict = f.get_best(likelihoodTests[0])
+        for distName in distDict:
+            if distName!='t': # For distributions other than Student-t, no need additional parameters
+                return distName
+            # Now we know that the distribution found is 't'. 
+            df = distDict['t']['df']
+            if df > MAX_DF:
+                return 'norm'
+            return f't_{df}'
+    else:
+        return None
+
+def setPltParams (size : str = 'large') -> None:
+    """
+    Set the plot parameters (sizes, colors etc.).
+    """
+    matplotlib.rcParams.update({
+    'font.size'         : FONT_SIZE,
+    'legend.fontsize'   : LEGEND_FONT_SIZE,
+    'xtick.labelsize'   : FONT_SIZE,
+    'ytick.labelsize'   : FONT_SIZE,
+    'axes.labelsize'    : FONT_SIZE,
+    'axes.titlesize'    : FONT_SIZE, }) if (size == 'large') else matplotlib.rcParams.update({
+    'font.size'         : FONT_SIZE_SMALL,
+    'legend.fontsize'   : LEGEND_FONT_SIZE_SMALL,
+    'xtick.labelsize'   : FONT_SIZE_SMALL,
+    'ytick.labelsize'   : FONT_SIZE_SMALL,
+    'axes.labelsize'    : FONT_SIZE_SMALL,
+    'axes.titlesize'    : FONT_SIZE_SMALL
+    })
+
+
+def clamp (vec: np.array, lowerBnd: float, upperBnd: float) -> np.array:
+    """
+    Clamp a the input vector vec, as follows.
+    For each item in vec:
+    - if x<min(grid), assign x=lowrBnd
+    - if x>max(grid), assign x=upperBnd
+    """
+    vec[vec < lowerBnd] = lowerBnd
+    vec[vec > upperBnd] = upperBnd
+    return vec 
+
+def dequantize (vec : np.array, scale : float) -> np.array:
+    """
+    Dequantize the given vector, namely, multiply each element in it by the given scale.
+    """
+    return [item*scale for item in vec] 
+
+def calcMse (orgVec         : np.array, # vector before quantization 
+             changedVec     : np.array, # vector after quantization+dequantization
+             weightDist     : str = None, # distribution by which the MSE is weighted; when None, do not calculate the weighted MSE
+             stdev          : float = 0.01,       # standard variation of the distribution; the expected value is 0.
+             scale          : float = None,       # the scale by which orgVec was quantized
+             logFile        = None, # object for the logFile; to be used if the verbose requests for logFile
+             recordErrVecs  = False, # When True, add the error vector (and not only their means) to the returned resRecord.
+             verbose        : list = []    # level of verbose, as defined in settings.py 
+             ):
+    """
+    Calculate the: 
+    - MSE (Mean Square Error), both relative and absolute, between the original vector and the changed vector.
+    - The Mse, weighted by the given distribution and stdev (standard variation). 
+    """
+    absErrVec = [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))]
+    resRecord = {
+            'scale'  : scale, 
+            'relMse' : np.mean ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]),
+            'absMse' : np.mean (absErrVec),
+        } 
+    
+    if recordErrVecs:
+        resRecord['absErrVec'] = absErrVec
+    if weightDist==None: # no need to calculate weighted Mse
+        return resRecord
+
+    if weightDist!='norm':
+        settings.error (f'In FPQuantization.calcMse(). Sorry, the distribution {dist} you chose is not supported.')
+    weightedAbsMseVec      = [scipy.stats.norm(0, stdev).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
+    weightedRelMseVec      = np.empty(len([item for item in orgVec if item!=0]))
+    idxInweightedRelMseVec = 0
+    for i in range(len(orgVec)):
+        if orgVec[i]==0:
+            continue
+        weightedRelMseVec[idxInweightedRelMseVec] = scipy.stats.norm(0, stdev).pdf(orgVec[i])*((orgVec[i]-changedVec[i])/orgVec[i])**2 
+        idxInweightedRelMseVec += 1
+
+    if settings.VERBOSE_LOG in verbose:
+        printf (logFile, f'// mode={mode}\n')
+        for i in range (10):
+             printf (logFile, f'i={i}, org={orgVec[i]}, changed={changedVec[i]}, PDF={scipy.stats.norm(0, stdev).pdf(orgVec[i])}, weightedAbsMse={weightedAbsMseVec[i]}\n')
+    
+    resRecord['avgWeightedAbsMse'] = np.mean (weightedAbsMseVec)
+    resRecord['avgWeightedRelMse'] = np.mean (weightedRelMseVec)
+    if recordErrVecs:
+        resRecord['weightedAbsMseVec'] = weightedAbsMseVec
+        resRecord['weightedRelMseVec'] = weightedRelMseVec
+    return resRecord
+
+def scaleGrid (grid : np.array, lowerBnd=0, upperBnd=100) -> np.array:
+    """
+    Scale the given sorted grid into the given range [lowerBnd, upperBnd]
+    """
+    scale = (upperBnd-lowerBnd) / (grid[-1]-grid[0])
+    return [item*scale for item in grid] 
+    
+    
+def quantize (vec  : np.array, # The vector to quantize 
+              grid : np.array  # The quantization grid (all the values that can be represented by the destination number representation
+              ) -> [np.array, float]: # [the_quantized_vector, the scale_factor (by which the vector was divided)] 
+    """
+    Quantize an input vector, using symmetric Min-max quantization. 
+    This is done by:
+    - Quantizing the vector, namely:
+      - Clamping and scaling the vector. The scaling method is minMax.
+      - Rounding the vector to the nearest values in the grid.
+    """
+    upperBnd    = max (abs(vec[0]), abs(vec[-1])) # The upper bound is the largest absolute value in the vector to quantize.
+    lowerBnd    = -upperBnd
+    scaledVec   = clamp (vec, lowerBnd, upperBnd)
+    scale       = (upperBnd-lowerBnd) / (grid[-1]-grid[0])
+    scaledVec   = [item/scale for item in vec] # The vector after scaling and clamping (still w/o rounding)  
+    quantVec    = np.empty (len(vec)) # The quantized vector (after rounding scaledVec) 
+    idxInGrid = int(0)
+    for idxInVec in range(len(scaledVec)):
+        if idxInGrid==len(grid): # already reached the max grid val --> all next items in q should be the last item in the grid 
+            quantVec[idxInVec] = grid[-1]
+            continue
+        quantVec[idxInVec]= grid[idxInGrid]
+        minAbsErr = abs (scaledVec[idxInVec]-quantVec[idxInVec])
+        while (idxInGrid < len(grid)):
+            quantVec[idxInVec]= grid[idxInGrid]
+            absErr = abs (scaledVec[idxInVec]-quantVec[idxInVec])
+            if absErr <= minAbsErr:
+                minAbsErr = absErr
+                idxInGrid += 1
+            else:
+               idxInGrid -= 1
+               quantVec[idxInVec] = grid[idxInGrid]
+               break
+    return [quantVec, scale]
+
+def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which points are drawn  
+                     lowerBnd   : float = 0,   # lower bound for the generated points  
+                     upperBnd   : float = 10,   # upper bound for the generated points
+                     stdev      : float = 1,   # standard variation when generating a Gaussian dist' points
+                     numPts     : int   = 1000, # Num of points in the generated vector
+                     outLier    : float = None,
+                     ) -> np.array:
+    """
+    Generate a vector to be quantized, using the requested distribution.
+    """
+    if dist=='uniform':
+        vec = [(lowerBnd + i*(upperBnd-lowerBnd)/(numPts-1)) for i in range(numPts)]
+    elif dist=='norm':
+        rng = np.random.default_rng(settings.SEED)
+        vec = np.sort (rng.standard_normal(numPts) * stdev)
+    elif dist.startswith('t_'):
+        vec = np.sort (np.random.standard_t(df=settings.getDf(dist), size=numPts) * stdev)
+    elif dist=='int': # vector of integers in the range
+        vec = [i for i in range (lowerBnd, upperBnd+1)]
+    else:
+        settings.error (f'In Quantization.genVec2Quantize(). Sorry. The distribution {dist} you chose is not supported.')
+    if outLier==None:
+        return np.array (vec)
+    return np.array ([-outLier] + vec + [outLier])
+    
+def simQuantRndErr (modes          : list  = [], # modes to be simulated, e.g. FP, F2P_sr. 
+                 cntrSize       : int   = 8,  # of bits, including the sign bit 
+                 hyperSize      : int   = 1,  # size of the hyper-exp, when simulating F2P
+                 dist           : str   = 'norm', # distribution of the points to simulate  
+                 numPts         : int   = 1000, # num of points in the quantized vec
+                 stdev          : float = 1,   # standard variation of the vector to quantize, when drawn from a Gaussian dist'
+                 vecLowerBnd    : float = -float('inf'), # lower Bnd of the generated vector to quantize, if drawn from a uniform dist'  
+                 vecUpperBnd    : float = float('inf'),   # upper Bnd of the generated vector to quantize, if drawn from a uniform dist'
+                 outLier        : float = None, # Outlier value, to be added to the generated vector
+                 verbose        : list  = [],  # level of verbose, as defined in settings.py.
+                 ):
+    """
+    Simulate the required configuration and output the results (the quantization rounding errors) as defined by the verbose.
+    """
+    np.random.seed (settings.SEED)
+    if settings.VERBOSE_RES in verbose:
+        resFile = open (f'../res/{genRndErrFileName(cntrSize)}.res', 'a+')
+        printf (resFile, f'// dist={dist}, stdev={stdev}, numPts={numPts}\n')
+        if dist!='norm' and (not(dist.startswith('t_'))): 
+            printf (resFile, f'// vecLowerBnd={vecLowerBnd}, vecUpperBnd={vecUpperBnd}, outLier={outLier}\n')
+    if settings.VERBOSE_LOG in verbose:
+        logFile = open (f'../res/quant_n{cntrSize}.log', 'w')
+    else:        
+        logFile = None
+
+    if settings.VERBOSE_PCL in verbose:
+
+        outputFileName = ResFileParser.genRndErrFileName (cntrSize)
+        pclOutputFile = open(f'../res/pcl_files/{outputFileName}.pcl', 'ab+')
+    
+    vec2quantize = genVec2Quantize (
+        dist        = dist, 
+        lowerBnd    = vecLowerBnd,   # lower bound for the generated points  
+        upperBnd    = vecUpperBnd,   # upper bound for the generated points
+        stdev       = stdev, 
+        outLier     = outLier,
+        numPts      = numPts)
+    weightDist = None
+    resRecords = []
+    for mode in modes:
+        if mode.startswith('FP'):
+            expSize = int(mode.split ('_e')[1])
+            grid                    = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=True)
+            [quantizedVec, scale]   = quantize(vec=vec2quantize, grid=grid)
+            dequantizedVec          = dequantize(vec=quantizedVec, scale=scale)
+            resRecord = calcMse(
+                    orgVec      = vec2quantize, 
+                    changedVec  = dequantizedVec, 
+                    stdev       = stdev,
+                    scale       = scale,
+                    logFile     = logFile,
+                    weightDist  = weightDist,
+                    verbose     = verbose
+                    )
+            resRecord['mode'] = mode #ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize)
+                
+        elif mode.startswith('F2P'):
+            F2pSettings = getF2PSettings (mode)
+            flavor    = F2pSettings['flavor']
+            grid = getAllValsF2P (flavor=F2pSettings['flavor'], cntrSize=cntrSize, hyperSize=F2pSettings['hyperSize'], verbose=[], signed=True)
+            [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
+            dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
+            resRecord = calcMse(
+                    orgVec      = vec2quantize, 
+                    changedVec  = dequantizedVec, 
+                    scale       = scale,
+                    stdev       = stdev,
+                    logFile     = logFile,
+                    weightDist  = weightDist,
+                    verbose     = verbose
+                    )
+            resRecord['mode'] = mode #ResFileParser.f2pSettingsToLabel (mode)
+            
+        elif mode.startswith('int'):
+            grid = np.array ([item for item in range (-2**(cntrSize-1)+1, 2**(cntrSize-1))])
+            [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
+            dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
+            resRecord = calcMse(
+                    orgVec      = vec2quantize, 
+                    changedVec  = dequantizedVec, 
+                    scale       = scale,
+                    stdev       = stdev,
+                    logFile     = logFile,
+                    weightDist  = weightDist,
+                    verbose     = verbose
+                    )
+            resRecord['mode'] = 'int'
+        elif mode=='shortTest':
+            grid = np.array([i for i in range(-10, 11)])
+            vec2quantize = np.array([-100, -95, -7, 99, 100])
+            [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)
+            dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
+            resRecord = calcMse(
+                    orgVec      = vec2quantize, 
+                    changedVec  = dequantizedVec, 
+                    )
+            resRecord['mode']  = 'shortTest'
+        else:
+            print (f'In Quantizer.simQuantRndErr(). Sorry, the requested mode {mode} is not supported.')
+            continue
+
+        if settings.VERBOSE_COUT_CNTRLINE in verbose:
+            print (resRecord)
+        
+        if settings.VERBOSE_RES in verbose:
+            for key, value in resRecord.items():
+                if not key.endswith('Vec'):
+                    printf (resFile, f'{key} : {value}\n')
+            printf (resFile, '\n')
+        
+        resRecord['dist']   = dist
+        resRecord['numPts'] = numPts
+        resRecord['stdev']  = stdev
+        if dist=='t':
+            resRecord['df'] = df
+        if settings.VERBOSE_PCL in verbose:
+            pickle.dump(resRecord, pclOutputFile)        
+        if settings.VERBOSE_PLOT in verbose:
+            resRecords.append (resRecord)
+        
+
+def plotScaledGrids (
+        modes       = [], # modes to be simulated, e.g. FP, F2P_sr. 
+        cntrSize    = 7,  # of bits, including the sign bit 
+        hyperSize   = 2,  # size of the hyper-exp, when simulating F2P  
+        signed      = False, # when True, plot also negative values (symmetrically w.r.t. 0).
+        zoomXlim    = None,  # when not None, generate the plot zoomed so that x values are up to this value  
+        verbose     = []  # level of verbose, as defined in settings.py.
+        ) -> None:
+    """
+    """
+    setPltParams ()
+    _, ax       = plt.subplots()
+    resRecords  = []
+    lenGrid     = 2**cntrSize
+    lowerBnd    = 0
+    upperBnd    = 2**cntrSize-1 
+    for mode in modes:
+        if mode.startswith('FP'):
+            expSize = int(mode.split ('_e')[1])
+            resRecord = {
+                'mode'  : mode,
+                'grid'  : scaleGrid (getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=signed), lowerBnd = lowerBnd, upperBnd = upperBnd)
+                }
+        elif mode.startswith('F2P'):
+            F2pSettings = getF2PSettings (mode)
+            flavor    = F2pSettings['flavor'] 
+            resRecord = {
+                'mode'  : mode,
+                'grid'  : scaleGrid (getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=F2pSettings['hyperSize'], verbose=verbose, signed=signed), lowerBnd = lowerBnd, upperBnd = upperBnd) 
+                }
+        elif mode.startswith('int'):
+            mode = 'FP'
+            resRecord = {
+                'mode'  : 'int',
+                'grid'  : [i for i in range (lowerBnd, upperBnd+1)] 
+                }
+        else:
+            settings.error (f'In Quantizer.plotScaledGrids(). Sorry, the mode {mode} requested is not supported')
+        resRecords.append (resRecord)
+        
+    legends=[]
+    for i in range(len(resRecords)): 
+        resRecord = resRecords[i]     
+        curLine, = ax.plot (resRecord['grid'], 
+                 [i for item in range(lenGrid)], # len(resRecords)-i # Write the y index in reverse order, so that the legends' order will correspond the order of the plots. 
+                 color      = colorOfMode [resRecord['mode']], 
+                 marker     = markerOfMode[mode], 
+                 linestyle  = 'None', 
+                 markersize = 2, 
+                 mode       = resRecord['mode'])  # Plot the conf' interval line
+        curLegend = ax.legend (handles=[curLine], bbox_to_anchor=(-0.17, i*(1.1/len(resRecords)), 0., .102), loc='lower left', frameon=False)
+        ax.add_artist (curLegend)
+    
+    frame = plt.gca()
+    frame.axes.get_yaxis().set_visible(False)
+    frame.axes.get_xaxis().set_visible(True)
+    if zoomXlim!=None:
+        plt.xlim (0, zoomXlim)
+    else:
+        plt.xlim (0, 2**cntrSize-1)        
+    seaborn.despine(left=True, bottom=False, right=True)
+    plt.show()
+
+if __name__ == '__main__':
+    try:
+        verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
+        stdev   = 1
+        for cntrSize in [8]:
+            if settings.VERBOSE_PCL in verbose:
+                pclOutputFileName = f'{ResFileParser.genRndErrFileName (cntrSize)}.pcl'
+                # if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
+                #     os.remove(f'../res/pcl_files/{pclOutputFileName}')
+            for distStr in ['uniform', 'norm']: #['t_2', 't_4', 't_5', 't_6', 't_8', 't_10', 't_20', 'uniform', 'norm']:
+                simQuantRndErr (cntrSize       = cntrSize, 
+                             modes          = settings.modesOfCntrSize(cntrSize), 
+                             numPts         = 1000000, 
+                             stdev          = stdev,
+                             dist           = distStr, 
+                             vecLowerBnd    = -stdev, 
+                             vecUpperBnd    = stdev,
+                             # outLier        = 100*stdev,
+                             verbose = verbose) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
+
+    except KeyboardInterrupt:
+        print('Keyboard interrupt.')
+# plotScaledGrids (zoomXlim=1, cntrSize=7, modes=['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int'])
+
+# scaled 'F2P_lr_h1' is identical to int.
+
+ 
