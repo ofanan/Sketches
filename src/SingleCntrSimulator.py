@@ -645,8 +645,8 @@ if __name__ == '__main__':
     try:
         # printAllCntrMaxValsF2P (flavor='lr', hyperSizeRange=[2], cntrSizeRange=[7], verbose=[settings.VERBOSE_RES])
         # printAllValsF2P (cntrSize=7, hyperSize=2, verbose=[settings.VERBOSE_RES], flavor='lr') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
-        # main ()
-        getAllValsF2P (flavor='si', signed=False, cntrSize=6, hyperSize=2, verbose=[settings.VERBOSE_RES])
+        main ()
+        # getAllValsF2P (flavor='si', signed=False, cntrSize=6, hyperSize=1, verbose=[settings.VERBOSE_RES])
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
         exit ()

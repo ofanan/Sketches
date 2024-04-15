@@ -202,8 +202,8 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
     return np.array ([-outLier] + vec + [outLier])
     
 def simQuantRndErr (modes          : list  = [], # modes to be simulated, e.g. FP, F2P_sr. 
-                 cntrSize       : int   = 8,  # of bits, including the sign bit 
-                 hyperSize      : int   = 1,  # size of the hyper-exp, when simulating F2P
+                 cntrSize       : int   = 8,  # of bits, including the sign bit
+                 vec2quantize   : list  = None, # The vector quantize. When None, randomly-generate the vector, where the distribution is drawn as specified by other input parameters. 
                  dist           : str   = 'norm', # distribution of the points to simulate  
                  numPts         : int   = 1000, # num of points in the quantized vec
                  stdev          : float = 1,   # standard variation of the vector to quantize, when drawn from a Gaussian dist'
@@ -231,13 +231,14 @@ def simQuantRndErr (modes          : list  = [], # modes to be simulated, e.g. F
         outputFileName = ResFileParser.genRndErrFileName (cntrSize)
         pclOutputFile = open(f'../res/pcl_files/{outputFileName}.pcl', 'ab+')
     
-    vec2quantize = genVec2Quantize (
-        dist        = dist, 
-        lowerBnd    = vecLowerBnd,   # lower bound for the generated points  
-        upperBnd    = vecUpperBnd,   # upper bound for the generated points
-        stdev       = stdev, 
-        outLier     = outLier,
-        numPts      = numPts)
+    if vec2quantize==None: # No given vector to quanitze - generate it yourself
+        vec2quantize = genVec2Quantize (
+            dist        = dist, 
+            lowerBnd    = vecLowerBnd,   # lower bound for the generated points  
+            upperBnd    = vecUpperBnd,   # upper bound for the generated points
+            stdev       = stdev, 
+            outLier     = outLier,
+            numPts      = numPts)
     weightDist = None
     resRecords = []
     for mode in modes:
@@ -389,14 +390,14 @@ if __name__ == '__main__':
     try:
         verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
         stdev   = 1
-        for cntrSize in [8]:
+        for cntrSize in [8, 16]:
             if settings.VERBOSE_PCL in verbose:
                 pclOutputFileName = f'{ResFileParser.genRndErrFileName (cntrSize)}.pcl'
                 # if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
                 #     os.remove(f'../res/pcl_files/{pclOutputFileName}')
-            for distStr in ['uniform', 'norm']: #['t_2', 't_4', 't_5', 't_6', 't_8', 't_10', 't_20', 'uniform', 'norm']:
+            for distStr in ['uniform', 'norm', 't_2', 't_4', 't_5', 't_6', 't_8', 't_10', 't_20', 'uniform', 'norm']:
                 simQuantRndErr (cntrSize       = cntrSize, 
-                             modes          = settings.modesOfCntrSize(cntrSize), 
+                             modes          = ['F2P_si_h1', 'F2P_si_h2'], #settings.modesOfCntrSize(cntrSize), 
                              numPts         = 1000000, 
                              stdev          = stdev,
                              dist           = distStr, 
