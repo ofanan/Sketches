@@ -54,13 +54,13 @@ def quantizeByPyTorch (model):
 #     return prec     
 
 
-def quantizeModels (models):
+def quantizeModels ():
     """
     Quanitze the model using my quantization function
     """
     # weights = resnet18.layer4[0].bn1.running_var[:settings.VECTOR_SIZE] # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
     model        = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1)
-    vec2quantize = resnet18.layer4[0].bn1.running_var[:settings.VECTOR_SIZE] # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
+    vec2quantize = model.layer4[0].bn1.running_var[:settings.VECTOR_SIZE] # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
     settings.error (f'len={len(vec2quantize)}')
     # vec2quantize = model.layer1[0].bn1.running_var[:settings.VECTOR_SIZE] # Get the weights for a specific layer (e.g., layer 3)
     # verbose = [settings.VERBOSE_RES] #, settings.VERBOSE_PLOT]
@@ -75,7 +75,7 @@ def quantizeModels (models):
     
 if __name__ == '__main__':
     try:
-        quantizeModels(model)
+        quantizeModels()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 # resnet18 = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1)
