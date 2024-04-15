@@ -203,7 +203,7 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
     
 def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g. FP, F2P_sr. 
                  cntrSize       : int   = 8,  # of bits, including the sign bit
-                 vec2quantize   : list  = None, # The vector quantize. When None, randomly-generate the vector, where the distribution is drawn as specified by other input parameters. 
+                 vec2quantize   : list  = [], # The vector quantize. When None, randomly-generate the vector, where the distribution is drawn as specified by other input parameters. 
                  dist           : str   = 'norm', # distribution of the points to simulate  
                  numPts         : int   = 1000, # num of points in the quantized vec
                  stdev          : float = 1,   # standard variation of the vector to quantize, when drawn from a Gaussian dist'
@@ -231,7 +231,7 @@ def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g.
         outputFileName = ResFileParser.genRndErrFileName (cntrSize)
         pclOutputFile = open(f'../res/pcl_files/{outputFileName}.pcl', 'ab+')
     
-    if vec2quantize==None: # No given vector to quanitze - generate it yourself
+    if vec2quantize==[]: # No given vector to quanitze - generate it yourself
         vec2quantize = genVec2Quantize (
             dist        = dist, 
             lowerBnd    = vecLowerBnd,   # lower bound for the generated points  
