@@ -62,7 +62,6 @@ def calcQuantRoundErrOfModels (model, verbose):
     vec2quantize = np.append (vec2quantize, np.array(model.layer2[0].bn1.running_var))
     vec2quantize = np.append (vec2quantize, np.array(model.layer3[0].bn1.running_var))
     vec2quantize = np.append (vec2quantize, np.array(model.layer4[0].bn1.running_var))
-    settings.error (f'len={len(vec2quantize)}')
     
     for cntrSize in [8]:
         Quantizer.simQuantRndErr(
