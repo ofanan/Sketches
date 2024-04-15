@@ -315,8 +315,6 @@ def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g.
         resRecord['dist']   = dist
         resRecord['numPts'] = numPts
         resRecord['stdev']  = stdev
-        if dist=='t':
-            resRecord['df'] = df
         if settings.VERBOSE_PCL in verbose:
             pickle.dump(resRecord, pclOutputFile)        
         if settings.VERBOSE_PLOT in verbose:
