@@ -201,7 +201,7 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
         return np.array (vec)
     return np.array ([-outLier] + vec + [outLier])
     
-def simQuantRndErr (modes          : list  = [], # modes to be simulated, e.g. FP, F2P_sr. 
+def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g. FP, F2P_sr. 
                  cntrSize       : int   = 8,  # of bits, including the sign bit
                  vec2quantize   : list  = None, # The vector quantize. When None, randomly-generate the vector, where the distribution is drawn as specified by other input parameters. 
                  dist           : str   = 'norm', # distribution of the points to simulate  
@@ -213,7 +213,7 @@ def simQuantRndErr (modes          : list  = [], # modes to be simulated, e.g. F
                  verbose        : list  = [],  # level of verbose, as defined in settings.py.
                  ):
     """
-    Simulate the required configuration and output the results (the quantization rounding errors) as defined by the verbose.
+    Simulate the required configurations, and calculate the rounding quantization errors. Output the results (the quantization rounding errors) as defined by the verbose.
     """
     np.random.seed (settings.SEED)
     if settings.VERBOSE_RES in verbose:
@@ -300,7 +300,7 @@ def simQuantRndErr (modes          : list  = [], # modes to be simulated, e.g. F
                     )
             resRecord['mode']  = 'shortTest'
         else:
-            print (f'In Quantizer.simQuantRndErr(). Sorry, the requested mode {mode} is not supported.')
+            print (f'In Quantizer.simQuantRoundErr(). Sorry, the requested mode {mode} is not supported.')
             continue
 
         if settings.VERBOSE_COUT_CNTRLINE in verbose:
@@ -396,7 +396,7 @@ if __name__ == '__main__':
                 # if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
                 #     os.remove(f'../res/pcl_files/{pclOutputFileName}')
             for distStr in ['uniform', 'norm', 't_2', 't_4', 't_5', 't_6', 't_8', 't_10', 't_20', 'uniform', 'norm']:
-                simQuantRndErr (cntrSize       = cntrSize, 
+                simQuantRoundErr (cntrSize       = cntrSize, 
                              modes          = ['F2P_si_h1', 'F2P_si_h2'], #settings.modesOfCntrSize(cntrSize), 
                              numPts         = 1000000, 
                              stdev          = stdev,

@@ -53,18 +53,17 @@ def quantizeByPyTorch (model):
 #     print(prec*100,"%")
 #     return prec     
 
-
-def quantizeModels ():
+def calcQuantRoundErrOfModels (model, verbose):
     """
-    Quanitze the model using my quantization function
+    calculate the quantization round error obtained for the given model.
+    Output the results as detailed in verbose. 
     """
-    # weights = resnet18.layer4[0].bn1.running_var[:settings.VECTOR_SIZE] # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
-    model        = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1)
-    vec2quantize = model.layer4[0].bn1.running_var[:settings.VECTOR_SIZE] # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
+    vec2quantize = np.array(model.layer1[0].bn1.running_var) # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
+    vec2quantize = np.append (vec2quantize, np.array(model.layer2[0].bn1.running_var))
+    vec2quantize = np.append (vec2quantize, np.array(model.layer3[0].bn1.running_var))
+    vec2quantize = np.append (vec2quantize, np.array(model.layer4[0].bn1.running_var))
     settings.error (f'len={len(vec2quantize)}')
-    # vec2quantize = model.layer1[0].bn1.running_var[:settings.VECTOR_SIZE] # Get the weights for a specific layer (e.g., layer 3)
-    # verbose = [settings.VERBOSE_RES] #, settings.VERBOSE_PLOT]
-
+    
     for cntrSize in [8]:
         Quantizer.simQuantRndErr(
             cntrSize        = cntrSize,
@@ -72,14 +71,21 @@ def quantizeModels ():
             vec2quantize    = vec2quantize,  
             verbose         = [settings.VERBOSE_RES, settings.VERBOSE_PLOT],
         )  
-    
+
+def ModelsQuantRoundErr ():
+    """
+    calculate the quantization round error obtained by several models and counter sizes. 
+    """
+    calcQuantRoundErrOfModels (
+        model   = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1),
+        verbose = [settings.VERBOSE_RES], # settings.VERBOSE_PCL, 
+        )   
+
 if __name__ == '__main__':
     try:
-        quantizeModels()
+        ModelsQuantRoundErr ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
-# resnet18 = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1)
-# weights = resnet18.layer4[0].bn1.running_var[:settings.VECTOR_SIZE] # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights. 
 
 
 # img = Image.open("dog.jpg")
