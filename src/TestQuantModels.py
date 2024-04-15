@@ -53,7 +53,11 @@ def quantizeByPyTorch (model):
 #     print(prec*100,"%")
 #     return prec     
 
-def calcQuantRoundErrOfModels (model, verbose):
+def calcQuantRoundErrOfModels (
+        model, # the AI model to simulate 
+        modelStr, # a string defining the model
+        verbose   # enum detailing which outputs to write. The enums are defined at settings.py
+        ):
     """
     calculate the quantization round error obtained for the given model.
     Output the results as detailed in verbose. 
@@ -66,6 +70,7 @@ def calcQuantRoundErrOfModels (model, verbose):
     for cntrSize in [8]:
         Quantizer.simQuantRoundErr(
             cntrSize        = cntrSize,
+            dist            = modelStr,
             modes           = ['F2P_si_h1'],
             vec2quantize    = vec2quantize,  
             verbose         = [settings.VERBOSE_RES, settings.VERBOSE_PLOT],
@@ -76,8 +81,9 @@ def ModelsQuantRoundErr ():
     calculate the quantization round error obtained by several models and counter sizes. 
     """
     calcQuantRoundErrOfModels (
-        model   = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1),
-        verbose = [settings.VERBOSE_RES], # settings.VERBOSE_PCL, 
+        model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1),
+        modelStr = 'Resnet18',
+        verbose  = [settings.VERBOSE_RES], # settings.VERBOSE_PCL, 
         )   
 
 if __name__ == '__main__':
