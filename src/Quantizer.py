@@ -98,7 +98,7 @@ def calcMse (orgVec         : np.array, # vector before quantization
     - MSE (Mean Square Error), both relative and absolute, between the original vector and the changed vector.
     - The Mse, weighted by the given distribution and stdev (standard variation). 
     """
-    absErrVec = [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))]
+    absErrVec = [(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
     resRecord = {
             'scale'  : scale, 
             'relMse' : np.mean ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]),
