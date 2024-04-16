@@ -151,10 +151,12 @@ def quantize (vec  : np.array, # The vector to quantize
       - Clamping and scaling the vector. The scaling method is minMax.
       - Rounding the vector to the nearest values in the grid.
     """
-    upperBnd    = max (abs(vec[0]), abs(vec[-1])) # The upper bound is the largest absolute value in the vector to quantize.
-    lowerBnd    = -upperBnd
+    vec         = np.sort (vec)
+    upperBnd    = vec[-1] # The upper bound is the largest absolute value in the vector to quantize.
+    lowerBnd    = vec[0] # The lower bound is the largest absolute value in the vector to quantize.
     scaledVec   = clamp (vec, lowerBnd, upperBnd)
-    scale       = (upperBnd-lowerBnd) / (grid[-1]-grid[0])
+    grid        = np.sort (grid)
+    scale       = (upperBnd-lowerBnd) / (max(grid)-min(grid))
     scaledVec   = [item/scale for item in vec] # The vector after scaling and clamping (still w/o rounding)  
     quantVec    = np.empty (len(vec)) # The quantized vector (after rounding scaledVec) 
     idxInGrid = int(0)
@@ -388,14 +390,14 @@ if __name__ == '__main__':
     try:
         verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
         stdev   = 1
-        for cntrSize in [8, 16]:
+        for cntrSize in [8]:
             if settings.VERBOSE_PCL in verbose:
                 pclOutputFileName = f'{ResFileParser.genRndErrFileName (cntrSize)}.pcl'
                 # if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
                 #     os.remove(f'../res/pcl_files/{pclOutputFileName}')
-            for distStr in ['uniform', 'norm', 't_2', 't_4', 't_5', 't_6', 't_8', 't_10', 't_20', 'uniform', 'norm']:
+            for distStr in ['uniform', 'norm', 't_5', 't_8']:
                 simQuantRoundErr (cntrSize       = cntrSize, 
-                             modes          = ['F2P_si_h1', 'F2P_si_h2'], #settings.modesOfCntrSize(cntrSize), 
+                             modes          = settings.modesOfCntrSize(cntrSize), 
                              numPts         = 1000000, 
                              stdev          = stdev,
                              dist           = distStr, 

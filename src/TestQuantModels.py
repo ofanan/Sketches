@@ -63,9 +63,9 @@ def calcQuantRoundErrOfModel (
     Output the results as detailed in verbose. 
     """
     vec2quantize = np.array(model.layer1[0].bn1.running_var) # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
-    vec2quantize = np.append (vec2quantize, np.array(model.layer2[0].bn1.running_var))
-    vec2quantize = np.append (vec2quantize, np.array(model.layer3[0].bn1.running_var))
-    vec2quantize = np.append (vec2quantize, np.array(model.layer4[0].bn1.running_var))
+    # vec2quantize = np.append (vec2quantize, np.array(model.layer2[0].bn1.running_var))
+    # vec2quantize = np.append (vec2quantize, np.array(model.layer3[0].bn1.running_var))
+    # vec2quantize = np.append (vec2quantize, np.array(model.layer4[0].bn1.running_var))
     
     for cntrSize in [8, 16]:
         Quantizer.simQuantRoundErr(
@@ -81,11 +81,11 @@ def ModelsQuantRoundErr ():
     calculate the quantization round error obtained by several models and counter sizes. 
     """
     verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]
-    calcQuantRoundErrOfModel (
-        model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1),
-        modelStr = 'Resnet18',
-        verbose  = verbose, 
-        )   
+    # calcQuantRoundErrOfModel (
+    #     model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1),
+    #     modelStr = 'Resnet18',
+    #     verbose  = verbose, 
+    #     )   
 
     calcQuantRoundErrOfModel (
         model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V1),
