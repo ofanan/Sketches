@@ -71,7 +71,7 @@ def calcQuantRoundErrOfModel (
         Quantizer.simQuantRoundErr(
             cntrSize        = cntrSize,
             dist            = modelStr,
-            modes           = settings.modesOfCntrSize(cntrSize),
+            modes           = ['int', 'FP_e2', 'FP_e3'], #settings.modesOfCntrSize(cntrSize),
             vec2quantize    = vec2quantize,  
             verbose         = verbose,
         )  

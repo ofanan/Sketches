@@ -109,10 +109,10 @@ def calcErr (orgVec         : np.array, # vector before quantization
         } 
 
     if settings.VERBOSE_DEBUG in verbose:
-        debugFile = open ('../res/debug.txt', 'w')
+        debugFile = open ('../res/debug.txt', 'a+')
         for i in range(len(absErrVec)):
             printf (debugFile, f'i={i}, orgVec[i]={orgVec[i]}, changedVec[i]={changedVec[i]}, absErr={absErrVec[i]}\n')
-        exit ()
+        printf (debugFile, '\n')
         
     if recordErrVecs:
         resRecord['absErrVec'] = absErrVec
@@ -254,6 +254,9 @@ def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g.
     resRecords = []
     for mode in modes:
         if mode.startswith('FP'):
+            if settings.VERBOSE_DEBUG in verbose:
+                debugFile = open ('../res/debug.txt', 'a+')
+                printf (debugFile, f'// mode={mode}\n')
             expSize = int(mode.split ('_e')[1])
             grid                    = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=True)
             [quantizedVec, scale]   = quantize(vec=vec2quantize, grid=grid)
