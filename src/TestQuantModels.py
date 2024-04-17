@@ -67,7 +67,7 @@ def calcQuantRoundErrOfModel (
     # vec2quantize = np.append (vec2quantize, np.array(model.layer3[0].bn1.running_var))
     # vec2quantize = np.append (vec2quantize, np.array(model.layer4[0].bn1.running_var))
     
-    for cntrSize in [8, 16]:
+    for cntrSize in [8]:
         Quantizer.simQuantRoundErr(
             cntrSize        = cntrSize,
             dist            = modelStr,
@@ -80,7 +80,7 @@ def ModelsQuantRoundErr ():
     """
     calculate the quantization round error obtained by several models and counter sizes. 
     """
-    verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]
+    verbose = [] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
     # calcQuantRoundErrOfModel (
     #     model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1),
     #     modelStr = 'Resnet18',

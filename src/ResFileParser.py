@@ -360,7 +360,7 @@ class ResFileParser (object):
         plt.savefig ('../res/resolutionBySettingStrs_n{}_{}.pdf' .format (cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
 
 
-    def genMseByDfGraph (self,
+    def genErrByDfGraph (self,
                      cntrSize   : int  = 8,
                      resTypeStr : str  = 'abs', # a string detailing the y value for which the func' will generate a plot
                      numPts     : int  = None,         # num of points in the experiment
@@ -384,7 +384,7 @@ class ResFileParser (object):
             pointsOfThisMode  = [point for point in points if point['mode']==mode]
             pointsOfThisMode  = sorted (pointsOfThisMode, key = lambda item : item['df']) # sort the points by their df value
             dfsWithThisMode   = [point['df'] for point in pointsOfThisMode]
-            yVals             = [point[f'{resTypeStr}Mse'] for point in pointsOfThisMode]
+            yVals             = [point[f'{resTypeStr}'] for point in pointsOfThisMode]
             if settings.VERBOSE_RES in verbose:
                 if not printedDFs:
                     printf (resFile, '\t\t\t')
@@ -411,12 +411,12 @@ class ResFileParser (object):
         plt.legend (by_label.values(), by_label.keys(), fontsize=10, frameon=False)
         plt.xlim (1, 100)
         plt.xlabel (f'df')
-        plt.ylabel (f'{resTypeStr} MSE')
+        plt.ylabel (f'{resTypeStr}')
         plt.yscale ('log')
         # plt.show ()
         plt.savefig (f'../res/student_rndErr_n{cntrSize}_{resTypeStr}.pdf', bbox_inches='tight')        
 
-    def MseByDistBar (
+    def ErrByDistBar (
             self,
             stdev       : float = 1,
             dist        : str   = 't_5',
@@ -445,7 +445,7 @@ class ResFileParser (object):
         if dist.startswith('t'): # For a student distribution, need to pick the points with the desired df
             dist_split = dist.split('_')
             if len(dist_split)<1:
-                settings.error ('In ResFileParser.MseByDistBar(): Student dist name should be in the format Student_df')
+                settings.error ('In ResFileParser.ErrByDistBar(): Student dist name should be in the format Student_df')
             df   = int(dist_split[1])
             pointsOfThisDist = [point for point in points if point['dist']=='t' and point['df']==df]  
         else: # For distributions others than "Student", need to pick the points belonging to that dist'
@@ -457,9 +457,9 @@ class ResFileParser (object):
                 continue
             pointsOfThisMode = [point for point in pointsOfThisDist if point['mode']==mode]
             if len(pointsOfThisMode)<1:
-                print (f'In MseByDistBar(): no points for dist Student, df={df}, mode={mode}')
+                print (f'In ErrByDistBar(): no points for dist Student, df={df}, mode={mode}')
                 continue
-            yVals[i] = pointsOfThisMode[0][f'{resTypeStr}Mse']
+            yVals[i] = pointsOfThisMode[0][f'{resTypeStr}']
             if settings.VERBOSE_RES in verbose:
                 printf (resFile, f'{mode}\t\t')
                 if mode=='int' or mode.startswith('FP'):
@@ -503,11 +503,11 @@ class ResFileParser (object):
             points = [point for point in points if point['mode'].startswith('F2P')]
         elif onlyNonF2P:
             points = [point for point in points if not(point['mode'].startswith('F2P'))]
-        points = sorted (points, key = lambda item : item[f'{errType}Mse'])
+        points = sorted (points, key = lambda item : item[f'{errType}'])
         if len(points)==0:
             print (f'In ResFileParser.optModeOfDist(). No points found for cntrSize={cntrSize}, errType={errType}, dist={distStr}')
             return None
-        return ([points[0]['mode'], points[0][f'{errType}Mse']])
+        return ([points[0]['mode'], points[0][f'{errType}']])
 
 def genResolutionPlot ():
     """
@@ -535,18 +535,18 @@ def genResolutionPlot ():
             xLog        = True
             )
 
-def genMseByDfGraph ():
+def genErrByDfGraph ():
     """
-    Plot the MSE as a func' of the df value at the Student-t dist'.
+    Plot the Err as a func' of the df value at the Student-t dist'.
     """
     for cntrSize in [8, 16]:
         myResFileParser = ResFileParser ()
         pclFileName = genRndErrFileName (cntrSize) 
         myResFileParser.rdPcl (pclFileName)
-        myResFileParser.genMseByDfGraph (cntrSize=cntrSize, resTypeStr='abs', verbose=[settings.VERBOSE_RES])
-        myResFileParser.genMseByDfGraph (cntrSize=cntrSize, resTypeStr='rel', verbose=[settings.VERBOSE_RES])
+        myResFileParser.genErrByDfGraph (cntrSize=cntrSize, resTypeStr='abs', verbose=[settings.VERBOSE_RES])
+        myResFileParser.genErrByDfGraph (cntrSize=cntrSize, resTypeStr='relMse', verbose=[settings.VERBOSE_RES])
 
-def genMseByDistBar ():
+def genErrByDistBar ():
     """
     Generate and save a bar-plot of the Mean Square Error for the various distributions. 
     """
@@ -555,7 +555,7 @@ def genMseByDistBar ():
         myResFileParser.rdPcl (f'{genRndErrFileName(cntrSize)}.pcl')
         for dist in ['uniform']: #, 'Gaussian', 't_5', 't_8']:
             for resTypeStr in ['rel']: #, 'abs']: # a string detailing the y value for which the func' will generate a plot
-                myResFileParser.genMseByDistBar (
+                myResFileParser.genErrByDistBar (
                     stdev       = 1,
                     dist        = dist,
                     cntrSize    = cntrSize,
@@ -570,12 +570,12 @@ def printAllOptModes ():
     Print the optimal modes for all the given modes.
     Find in the .pcl files the mode (e.g., FP_2e, F2P_li_h2) that minimizes the error for the given distribution.
     """
-    myResFileParser = ResFileParser ()
     resFile = open ('../res/allOptModes.res', 'w')
     for cntrSize in [8, 16]:
-        for errType in ['abs', 'rel']:
+        myResFileParser = ResFileParser ()
+        for errType in ['abs']:
             printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
-            for distStr in ['Resnet18', 'Resnet50', 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10', 't_20', ]:
+            for distStr in ['Resnet18', 'Resnet50', 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10', 't_20']: 
                 bestF2PPoint    = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=True,  onlyNonF2P=False)
                 bestNonF2PPoint = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=False, onlyNonF2P=True)
                 if bestF2PPoint==None or bestNonF2PPoint==None:
@@ -587,8 +587,8 @@ if __name__ == '__main__':
     try:
         printAllOptModes ()
         # calcOptModeByDist ()
-        # genMseByDistBar ()
-        # genMseByDfGraph ()
+        # genErrByDistBar ()
+        # genErrByDfGraph ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 

@@ -84,7 +84,7 @@ def dequantize (vec : np.array, scale : float) -> np.array:
     """
     return [item*scale for item in vec] 
 
-def calcMse (orgVec         : np.array, # vector before quantization 
+def calcErr (orgVec         : np.array, # vector before quantization 
              changedVec     : np.array, # vector after quantization+dequantization
              weightDist     : str = None, # distribution by which the MSE is weighted; when None, do not calculate the weighted MSE
              stdev          : float = 0.01,       # standard variation of the distribution; the expected value is 0.
@@ -94,24 +94,27 @@ def calcMse (orgVec         : np.array, # vector before quantization
              verbose        : list = []    # level of verbose, as defined in settings.py 
              ):
     """
-    Calculate the: 
-    - MSE (Mean Square Error), both relative and absolute, between the original vector and the changed vector.
+    Calculate the errors between the original vector and the changed vector.
+    The errors consider are:
+    - absolute/relative.
+    - Regular - MSE (Mean Square Error).
     - The Mse, weighted by the given distribution and stdev (standard variation). 
     """
-    absErrVec = [(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
+    absErrVec = [orgVec[i]-changedVec[i] for i in range(len(orgVec))]
     resRecord = {
             'scale'  : scale, 
+            'abs'    : np.mean (absErrVec),
+            'absMse' : np.mean ([item**2 for item in absErrVec]),
             'relMse' : np.mean ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]),
-            'absMse' : np.mean (absErrVec),
         } 
-    
+
     if recordErrVecs:
         resRecord['absErrVec'] = absErrVec
     if weightDist==None: # no need to calculate weighted Mse
         return resRecord
 
     if weightDist!='norm':
-        settings.error (f'In FPQuantization.calcMse(). Sorry, the distribution {dist} you chose is not supported.')
+        settings.error (f'In FPQuantization.calcErr(). Sorry, the distribution {dist} you chose is not supported.')
     weightedAbsMseVec      = [scipy.stats.norm(0, stdev).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
     weightedRelMseVec      = np.empty(len([item for item in orgVec if item!=0]))
     idxInweightedRelMseVec = 0
@@ -249,7 +252,7 @@ def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g.
             grid                    = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=True)
             [quantizedVec, scale]   = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec          = dequantize(vec=quantizedVec, scale=scale)
-            resRecord = calcMse(
+            resRecord = calcErr(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
                     stdev       = stdev,
@@ -266,7 +269,7 @@ def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g.
             grid = getAllValsF2P (flavor=F2pSettings['flavor'], cntrSize=cntrSize, hyperSize=F2pSettings['hyperSize'], verbose=[], signed=True)
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
-            resRecord = calcMse(
+            resRecord = calcErr(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
                     scale       = scale,
@@ -281,7 +284,7 @@ def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g.
             grid = np.array ([item for item in range (-2**(cntrSize-1)+1, 2**(cntrSize-1))])
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
-            resRecord = calcMse(
+            resRecord = calcErr(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
                     scale       = scale,
@@ -296,7 +299,7 @@ def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g.
             vec2quantize = np.array([-100, -95, -7, 99, 100])
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
-            resRecord = calcMse(
+            resRecord = calcErr(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
                     )
@@ -395,7 +398,8 @@ if __name__ == '__main__':
                 pclOutputFileName = f'{ResFileParser.genRndErrFileName (cntrSize)}.pcl'
                 # if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
                 #     os.remove(f'../res/pcl_files/{pclOutputFileName}')
-            for distStr in ['uniform', 'norm', 't_5', 't_8']:
+            # for distStr in ['uniform', 'norm', 't_5', 't_8']:
+            for distStr in ['t_2', 't_4', 't_6', 't_10']:
                 simQuantRoundErr (cntrSize       = cntrSize, 
                              modes          = settings.modesOfCntrSize(cntrSize), 
                              numPts         = 1000000, 
