@@ -253,10 +253,10 @@ def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g.
     weightDist = None
     resRecords = []
     for mode in modes:
+        if settings.VERBOSE_DEBUG in verbose:
+            debugFile = open ('../res/debug.txt', 'a+')
+            printf (debugFile, f'// mode={mode}\n')
         if mode.startswith('FP'):
-            if settings.VERBOSE_DEBUG in verbose:
-                debugFile = open ('../res/debug.txt', 'a+')
-                printf (debugFile, f'// mode={mode}\n')
             expSize = int(mode.split ('_e')[1])
             grid                    = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=True)
             [quantizedVec, scale]   = quantize(vec=vec2quantize, grid=grid)
