@@ -80,12 +80,12 @@ def ModelsQuantRoundErr ():
     """
     calculate the quantization round error obtained by several models and counter sizes. 
     """
-    verbose = [] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
-    # calcQuantRoundErrOfModel (
-    #     model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1),
-    #     modelStr = 'Resnet18',
-    #     verbose  = verbose, 
-    #     )   
+    verbose = [settings.VERBOSE_DEBUG] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
+    calcQuantRoundErrOfModel (
+        model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1),
+        modelStr = 'Resnet18',
+        verbose  = verbose, 
+        )   
 
     calcQuantRoundErrOfModel (
         model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V1),

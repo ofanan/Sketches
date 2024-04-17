@@ -100,7 +100,7 @@ def calcErr (orgVec         : np.array, # vector before quantization
     - Regular - MSE (Mean Square Error).
     - The Mse, weighted by the given distribution and stdev (standard variation). 
     """
-    absErrVec = [orgVec[i]-changedVec[i] for i in range(len(orgVec))]
+    absErrVec = [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))]
     resRecord = {
             'scale'  : scale, 
             'abs'    : np.mean (absErrVec),
@@ -108,6 +108,12 @@ def calcErr (orgVec         : np.array, # vector before quantization
             'relMse' : np.mean ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]),
         } 
 
+    if settings.VERBOSE_DEBUG in verbose:
+        debugFile = open ('../res/debug.txt', 'w')
+        for i in range(len(absErrVec)):
+            printf (debugFile, f'i={i}, orgVec[i]={orgVec[i]}, changedVec[i]={changedVec[i]}, absErr={absErrVec[i]}\n')
+        exit ()
+        
     if recordErrVecs:
         resRecord['absErrVec'] = absErrVec
     if weightDist==None: # no need to calculate weighted Mse
