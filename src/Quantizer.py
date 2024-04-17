@@ -78,11 +78,14 @@ def clamp (vec: np.array, lowerBnd: float, upperBnd: float) -> np.array:
     vec[vec > upperBnd] = upperBnd
     return vec 
 
-def dequantize (vec : np.array, scale : float) -> np.array:
+def dequantize (vec     : np.array, # vector to dequantize 
+                scale   : float,    # scale factor5
+                z       : float,    # the zero-point
+                ) -> np.array:
     """
     Dequantize the given vector, namely, multiply each element in it by the given scale.
     """
-    return [item*scale for item in vec] 
+    return [(item-z)*scale for item in vec] 
 
 def calcErr (orgVec         : np.array, # vector before quantization 
              changedVec     : np.array, # vector after quantization+dequantization
@@ -108,12 +111,6 @@ def calcErr (orgVec         : np.array, # vector before quantization
             'relMse' : np.mean ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]),
         } 
 
-    if settings.VERBOSE_DEBUG in verbose:
-        debugFile = open ('../res/debug.txt', 'a+')
-        for i in range(len(absErrVec)):
-            printf (debugFile, f'i={i}, orgVec[i]={orgVec[i]}, changedVec[i]={changedVec[i]}, absErr={absErrVec[i]}\n')
-        printf (debugFile, '\n')
-        
     if recordErrVecs:
         resRecord['absErrVec'] = absErrVec
     if weightDist==None: # no need to calculate weighted Mse
@@ -188,7 +185,7 @@ def quantize (vec  : np.array, # The vector to quantize
                idxInGrid -= 1
                quantVec[idxInVec] = grid[idxInGrid]
                break
-    return [quantVec, scale]
+    return [quantVec, scale, z]
 
 def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which points are drawn  
                      lowerBnd   : float = 0,   # lower bound for the generated points  
@@ -231,6 +228,8 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
     Simulate the required configurations, and calculate the rounding quantization errors. Output the results (the quantization rounding errors) as defined by the verbose.
     """
     np.random.seed (settings.SEED)
+    if settings.VERBOSE_DEBUG in verbose:
+        numPts = 64
     if settings.VERBOSE_RES in verbose:
         resFile = open (f'../res/{genRndErrFileName(cntrSize)}.res', 'a+')
         printf (resFile, f'// dist={dist}, stdev={stdev}, numPts={numPts}\n')
@@ -263,9 +262,10 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
             printf (debugFile, f'// mode={mode}\n')
         if mode.startswith('FP'):
             expSize = int(mode.split ('_e')[1])
-            grid                    = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=signed)
-            [quantizedVec, scale]   = quantize(vec=vec2quantize, grid=grid)
-            dequantizedVec          = dequantize(vec=quantizedVec, scale=scale)
+            grid                     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=signed)
+            [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
+            dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
+            
             resRecord = calcErr(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
@@ -281,8 +281,8 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
             F2pSettings = getF2PSettings (mode)
             flavor    = F2pSettings['flavor']
             grid = getAllValsF2P (flavor=F2pSettings['flavor'], cntrSize=cntrSize, hyperSize=F2pSettings['hyperSize'], verbose=[], signed=signed)
-            [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
-            dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
+            [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
+            dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
             resRecord = calcErr(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
@@ -299,8 +299,8 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
                 grid = np.array ([item for item in range (-2**(cntrSize-1)+1, 2**(cntrSize-1))])
             else:
                 grid = np.array ([item for item in range (0, 2**cntrSize-1)])
-            [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
-            dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
+            [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
+            dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
             resRecord = calcErr(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
@@ -314,8 +314,8 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
         elif mode=='shortTest':
             grid = np.array([i for i in range(-10, 11)])
             vec2quantize = np.array([-100, -95, -7, 99, 100])
-            [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)
-            dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
+            [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
+            dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
             resRecord = calcErr(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
@@ -324,6 +324,13 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
         else:
             print (f'In Quantizer.calcQuantRoundErr(). Sorry, the requested mode {mode} is not supported.')
             continue
+
+        if settings.VERBOSE_DEBUG in verbose:
+            debugFile = open ('../res/debug.txt', 'a+')
+            for i in range(len(vec2quantize)):
+                printf (debugFile, f'i={i}, vec[i]={vec2quantize[i]}, quantizedVec[i]={quantizedVec[i]}, dequantizedVec={dequantizedVec[i]}\n')
+            printf (debugFile, '\n')
+            exit ()
 
         if settings.VERBOSE_COUT_CNTRLINE in verbose:
             print (resRecord)
@@ -408,7 +415,7 @@ def plotScaledGrids (
 
 if __name__ == '__main__':
     try:
-        verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
+        verbose = [settings.VERBOSE_DEBUG] #settings.VERBOSE_PCL, settings.VERBOSE_RES]
         stdev   = 1
         for cntrSize in [8, 16]:
             if settings.VERBOSE_PCL in verbose:

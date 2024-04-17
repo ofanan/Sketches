@@ -12,27 +12,27 @@ import os, scipy, pickle, numpy as np
 
 import Quantizer, settings
 
-def preprocessImage(imagePath):
-    # Define the transformations to be applied to the input image
-    transform = transforms.Compose([
-        transforms.Resize((255, 255)),
-        transforms.ToTensor(),
-        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
-    ])
-    # Load the image and apply the defined transformations
-    settings.checkIfInputFileExists (imagePath)
-    image = Image.open(imagePath)
-    image = transform(image).unsqueeze(0)
-    return image
+# def preprocessImage(imagePath):
+#     # Define the transformations to be applied to the input image
+#     transform = transforms.Compose([
+#         transforms.Resize((255, 255)),
+#         transforms.ToTensor(),
+#         transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225])
+#     ])
+#     # Load the image and apply the defined transformations
+#     settings.checkIfInputFileExists (imagePath)
+#     image = Image.open(imagePath)
+#     image = transform(image).unsqueeze(0)
+#     return image
 
-def quantizeByPyTorch (model):
-    """
-    Quantized the model using PyTorach's quantize_dynamic function
-    """
-    quantizedModel = torch.ao.quantization.quantize_dynamic(
-    model,  # the original model  # a set of layers to dynamically quantize
-    dtype=torch.qint8)  # the target dtype for quantized weights
-    return quantizedModel
+# def quantizeByPyTorch (model):
+#     """
+#     Quantized the model using PyTorach's quantize_dynamic function
+#     """
+#     quantizedModel = torch.ao.quantization.quantize_dynamic(
+#     model,  # the original model  # a set of layers to dynamically quantize
+#     dtype=torch.qint8)  # the target dtype for quantized weights
+#     return quantizedModel
 
 # def testModel (model, filesToTest):
 #     preds = []
@@ -55,10 +55,15 @@ def quantizeByPyTorch (model):
 #     print(prec*100,"%")
 #     return prec     
 
-def extractWeightsOfResnetModel (model) -> np.array:
+def extractWeightsOfResnetModel (
+        model,
+        verbose = []
+        ) -> np.array:
     """
     """
     vec2quantize = np.array(model.layer1[0].bn1.running_var) # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
+    if settings.VERBOSE_DEBUG in verbose:
+        return vec2quantize
     vec2quantize = np.append (vec2quantize, np.array(model.layer2[0].bn1.running_var))
     vec2quantize = np.append (vec2quantize, np.array(model.layer3[0].bn1.running_var))
     vec2quantize = np.append (vec2quantize, np.array(model.layer4[0].bn1.running_var))
@@ -91,15 +96,15 @@ def ModelsQuantRoundErr (modelStrs=[]):
     # weights = get_weight("MobileNet_V3_Large_QuantizedWeights.DEFAULT")
     # model    = MobileNet_V3 (weights=ResNet50_Weights.IMAGENET1K_V2),
     # settings.error (weights)
-    verbose = [] #settings.VERBOSE_RES] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
+    verbose = [settings.VERBOSE_DEBUG] #[settings.VERBOSE_RES, settings.VERBOSE_PCL] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
     for modelStr in modelStrs:
         if modelStr=='Resnet18':
             model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1)
-            vec2quantize = extractWeightsOfResnetModel (model)
+            vec2quantize = extractWeightsOfResnetModel (model, verbose=verbose)
             weights  = extractWeightsOfResnetModel(model)
         elif modelStr=='Resnet50':
-            model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V2),
-            vec2quantize = extractWeightsOfResnetModel (model[0])
+            model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V2)
+            vec2quantize = extractWeightsOfResnetModel (model[0], verbose=verbose)
         elif modelStr=='MobileNet_V3':
             # model    = mobilenet_v3_large (weights=MobileNet_V3_Large_Weights.DEFAULT),
             model = tf.keras.applications.mobilenet_v2.MobileNetV2()
@@ -115,15 +120,7 @@ def ModelsQuantRoundErr (modelStrs=[]):
 
 if __name__ == '__main__':
     try:
-        ModelsQuantRoundErr (['Resnet50'])
-        # model = tf.keras.applications.mobilenet_v2.MobileNetV2()
-        # vec2quantize = np.array (model.layers[1].weights).flatten() # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
-        # vec2quantize = np.append (vec2quantize, np.array (model.layers[2].weights).flatten()) # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
-        # # vec2quantize = np.append (np.array(model.layers[2].weights))
-        # # vec2quantize = np.append (vec2quantize, np.array(model.layer3[0].bn1.running_var))
-        # # vec2quantize = np.append (vec2quantize, np.array(model.layer4[0].bn1.running_var))
-        # settings.error (len(vec2quantize))
-        # ModelsQuantRoundErr (['MobileNet_V3'])
+        ModelsQuantRoundErr (['Resnet18', 'Resnet50'])
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 
