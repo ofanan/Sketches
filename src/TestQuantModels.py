@@ -96,15 +96,16 @@ def ModelsQuantRoundErr (modelStrs=[]):
     # weights = get_weight("MobileNet_V3_Large_QuantizedWeights.DEFAULT")
     # model    = MobileNet_V3 (weights=ResNet50_Weights.IMAGENET1K_V2),
     # settings.error (weights)
-    verbose = [settings.VERBOSE_DEBUG] #[settings.VERBOSE_RES, settings.VERBOSE_PCL] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
+    verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
     for modelStr in modelStrs:
+        model = None
         if modelStr=='Resnet18':
             model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1)
             vec2quantize = extractWeightsOfResnetModel (model, verbose=verbose)
             weights  = extractWeightsOfResnetModel(model)
         elif modelStr=='Resnet50':
             model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V2)
-            vec2quantize = extractWeightsOfResnetModel (model[0], verbose=verbose)
+            vec2quantize = extractWeightsOfResnetModel (model, verbose=verbose)
         elif modelStr=='MobileNet_V3':
             # model    = mobilenet_v3_large (weights=MobileNet_V3_Large_Weights.DEFAULT),
             model = tf.keras.applications.mobilenet_v2.MobileNetV2()
