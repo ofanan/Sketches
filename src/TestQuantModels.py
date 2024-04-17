@@ -4,7 +4,9 @@ Test a model
 import torch
 import torchvision.transforms as transforms
 import torchvision.models as models, torchvision.datasets as datasets
-from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_Weights 
+from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_Weights, mobilenet_v3_large, MobileNet_V3_Large_Weights 
+import tensorflow as tf
+from tensorflow.keras.applications import imagenet_utils
 from PIL import Image
 import os, scipy, pickle, numpy as np
 
@@ -77,29 +79,38 @@ def calcQuantRoundErrOfModel (
             verbose         = verbose,
         )  
 
-def ModelsQuantRoundErr ():
+def ModelsQuantRoundErr (modelStrs=[]):
     """
     calculate the quantization round error obtained by several models and counter sizes. 
     """
-    verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
-    calcQuantRoundErrOfModel (
-        model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1),
-        modelStr = 'Resnet18',
-        verbose  = verbose, 
-        )   
-
-    calcQuantRoundErrOfModel (
-        model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V1),
-        modelStr = 'Resnet50',
-        verbose  = verbose, 
-        )   
+    # weights = get_weight("MobileNet_V3_Large_QuantizedWeights.DEFAULT")
+    # model    = MobileNet_V3 (weights=ResNet50_Weights.IMAGENET1K_V2),
+    # settings.error (weights)
+    verbose = [settings.VERBOSE_RES] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
+    for modelStr in modelStrs:
+        if modelStr=='Resnet18':
+            model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1)
+        elif modelStr=='Resnet50':
+            model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V2),
+        elif modelStr=='MobileNet_V3':
+            model    = mobilenet_v3_large (weights=MobileNet_V3_Large_Weights.DEFAULT),
+        else:
+            print ('In TestQauntModels.ModelsQuantRoundErr(). Sorry, the model {modelStr} you choose is not support yet.')
+        calcQuantRoundErrOfModel (
+            model    = model,
+            modelStr = modelStr,
+            verbose  = verbose, 
+            )   
 
 if __name__ == '__main__':
     try:
-        ModelsQuantRoundErr ()
+        model = tf.keras.applications.mobilenet_v2.MobileNetV2()
+        vec2quantize = np.array (model.layers[1].weights) # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
+        vec2quantize = vec2quantize.flatten() 
+        settings.error (vec2quantize[100])
+        ModelsQuantRoundErr (['MobileNet_V3'])
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
-
 
 # img = Image.open("dog.jpg")
 # model.eval ()
