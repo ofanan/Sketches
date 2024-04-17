@@ -214,6 +214,7 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
     
 def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g. FP, F2P_sr. 
                  cntrSize       : int   = 8,  # of bits, including the sign bit
+                 signed         : bool  = True, # When True, consider a signed counter
                  vec2quantize   : list  = [], # The vector quantize. When None, randomly-generate the vector, where the distribution is drawn as specified by other input parameters. 
                  dist           : str   = 'norm', # distribution of the points to simulate  
                  numPts         : int   = 1000, # num of points in the quantized vec
@@ -258,7 +259,7 @@ def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g.
             printf (debugFile, f'// mode={mode}\n')
         if mode.startswith('FP'):
             expSize = int(mode.split ('_e')[1])
-            grid                    = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=True)
+            grid                    = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=signed)
             [quantizedVec, scale]   = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec          = dequantize(vec=quantizedVec, scale=scale)
             resRecord = calcErr(
@@ -275,7 +276,7 @@ def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g.
         elif mode.startswith('F2P'):
             F2pSettings = getF2PSettings (mode)
             flavor    = F2pSettings['flavor']
-            grid = getAllValsF2P (flavor=F2pSettings['flavor'], cntrSize=cntrSize, hyperSize=F2pSettings['hyperSize'], verbose=[], signed=True)
+            grid = getAllValsF2P (flavor=F2pSettings['flavor'], cntrSize=cntrSize, hyperSize=F2pSettings['hyperSize'], verbose=[], signed=signed)
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
             resRecord = calcErr(

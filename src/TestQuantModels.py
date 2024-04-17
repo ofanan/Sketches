@@ -70,6 +70,7 @@ def calcQuantRoundErrOfModel (
     for cntrSize in [8]:
         Quantizer.simQuantRoundErr(
             cntrSize        = cntrSize,
+            signed          = False,
             dist            = modelStr,
             modes           = ['int', 'FP_e2', 'FP_e3'], #settings.modesOfCntrSize(cntrSize),
             vec2quantize    = vec2quantize,  
@@ -80,18 +81,18 @@ def ModelsQuantRoundErr ():
     """
     calculate the quantization round error obtained by several models and counter sizes. 
     """
-    verbose = [settings.VERBOSE_DEBUG] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
+    verbose = [settings.VERBOSE_DEBUG, settings.VERBOSE_RES] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
     calcQuantRoundErrOfModel (
         model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1),
         modelStr = 'Resnet18',
         verbose  = verbose, 
         )   
 
-    calcQuantRoundErrOfModel (
-        model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V1),
-        modelStr = 'Resnet50',
-        verbose  = verbose, 
-        )   
+    # calcQuantRoundErrOfModel (
+    #     model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V1),
+    #     modelStr = 'Resnet50',
+    #     verbose  = verbose, 
+    #     )   
 
 if __name__ == '__main__':
     try:
