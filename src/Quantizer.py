@@ -164,9 +164,12 @@ def quantize (vec  : np.array, # The vector to quantize
     upperBnd    = vec[-1] # The upper bound is the largest absolute value in the vector to quantize.
     lowerBnd    = vec[0] # The lower bound is the largest absolute value in the vector to quantize.
     scaledVec   = clamp (vec, lowerBnd, upperBnd)
+    if (any([vec[i]!=scaledVec[i] for i in range(len(vec))])):
+        settings.error ('in Quantizer.quantize(). vec!=clamped vec.')
     grid        = np.sort (grid)
-    scale       = (upperBnd-lowerBnd) / (max(grid)-min(grid))
-    scaledVec   = [item/scale for item in vec] # The vector after scaling and clamping (still w/o rounding)  
+    scale       = (vec[-1]-vec[0]) / (max(grid)-min(grid))
+    z           = -vec[0]/scale
+    scaledVec   = [item/scale + z for item in vec] # The vector after scaling and clamping (still w/o rounding)  
     quantVec    = np.empty (len(vec)) # The quantized vector (after rounding scaledVec) 
     idxInGrid = int(0)
     for idxInVec in range(len(scaledVec)):
@@ -212,9 +215,9 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
         return np.array (vec)
     return np.array ([-outLier] + vec + [outLier])
     
-def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g. FP, F2P_sr. 
+def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g. FP, F2P_sr. 
                  cntrSize       : int   = 8,  # of bits, including the sign bit
-                 signed         : bool  = True, # When True, consider a signed counter
+                 signed         : bool  = False, # When True, consider a signed counter
                  vec2quantize   : list  = [], # The vector quantize. When None, randomly-generate the vector, where the distribution is drawn as specified by other input parameters. 
                  dist           : str   = 'norm', # distribution of the points to simulate  
                  numPts         : int   = 1000, # num of points in the quantized vec
@@ -251,6 +254,7 @@ def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g.
             stdev       = stdev, 
             outLier     = outLier,
             numPts      = numPts)
+    vec2quantize = np.sort (vec2quantize)
     weightDist = None
     resRecords = []
     for mode in modes:
@@ -318,7 +322,7 @@ def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g.
                     )
             resRecord['mode']  = 'shortTest'
         else:
-            print (f'In Quantizer.simQuantRoundErr(). Sorry, the requested mode {mode} is not supported.')
+            print (f'In Quantizer.calcQuantRoundErr(). Sorry, the requested mode {mode} is not supported.')
             continue
 
         if settings.VERBOSE_COUT_CNTRLINE in verbose:
@@ -406,14 +410,13 @@ if __name__ == '__main__':
     try:
         verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
         stdev   = 1
-        for cntrSize in [8]:
+        for cntrSize in [8, 16]:
             if settings.VERBOSE_PCL in verbose:
                 pclOutputFileName = f'{ResFileParser.genRndErrFileName (cntrSize)}.pcl'
                 # if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
                 #     os.remove(f'../res/pcl_files/{pclOutputFileName}')
-            # for distStr in ['uniform', 'norm', 't_5', 't_8']:
-            for distStr in ['t_2', 't_4', 't_6', 't_10']:
-                simQuantRoundErr (cntrSize       = cntrSize, 
+            for distStr in ['uniform', 'norm', 't_2', 't_10', 't_4', 't_5', 't_6', 't_8']:
+                calcQuantRoundErr (cntrSize       = cntrSize, 
                              modes          = settings.modesOfCntrSize(cntrSize), 
                              numPts         = 1000000, 
                              stdev          = stdev,

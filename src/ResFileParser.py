@@ -573,9 +573,9 @@ def printAllOptModes ():
     resFile = open ('../res/allOptModes.res', 'w')
     for cntrSize in [8, 16]:
         myResFileParser = ResFileParser ()
-        for errType in ['abs']:
+        for errType in ['abs', 'absMse']:
             printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
-            for distStr in ['Resnet18', 'Resnet50', 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10', 't_20']: 
+            for distStr in ['Resnet18', 'Resnet50', 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: 
                 bestF2PPoint    = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=True,  onlyNonF2P=False)
                 bestNonF2PPoint = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=False, onlyNonF2P=True)
                 if bestF2PPoint==None or bestNonF2PPoint==None:

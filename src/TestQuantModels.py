@@ -63,16 +63,16 @@ def calcQuantRoundErrOfModel (
     Output the results as detailed in verbose. 
     """
     vec2quantize = np.array(model.layer1[0].bn1.running_var) # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
-    # vec2quantize = np.append (vec2quantize, np.array(model.layer2[0].bn1.running_var))
-    # vec2quantize = np.append (vec2quantize, np.array(model.layer3[0].bn1.running_var))
-    # vec2quantize = np.append (vec2quantize, np.array(model.layer4[0].bn1.running_var))
+    vec2quantize = np.append (vec2quantize, np.array(model.layer2[0].bn1.running_var))
+    vec2quantize = np.append (vec2quantize, np.array(model.layer3[0].bn1.running_var))
+    vec2quantize = np.append (vec2quantize, np.array(model.layer4[0].bn1.running_var))
     
-    for cntrSize in [8]:
-        Quantizer.simQuantRoundErr(
+    for cntrSize in [8, 16]:
+        Quantizer.calcQuantRoundErr(
             cntrSize        = cntrSize,
             signed          = False,
             dist            = modelStr,
-            modes           = ['int', 'FP_e2', 'FP_e3'], #settings.modesOfCntrSize(cntrSize),
+            modes           = settings.modesOfCntrSize(cntrSize),
             vec2quantize    = vec2quantize,  
             verbose         = verbose,
         )  
@@ -81,18 +81,18 @@ def ModelsQuantRoundErr ():
     """
     calculate the quantization round error obtained by several models and counter sizes. 
     """
-    verbose = [settings.VERBOSE_DEBUG, settings.VERBOSE_RES] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
+    verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
     calcQuantRoundErrOfModel (
         model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1),
         modelStr = 'Resnet18',
         verbose  = verbose, 
         )   
 
-    # calcQuantRoundErrOfModel (
-    #     model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V1),
-    #     modelStr = 'Resnet50',
-    #     verbose  = verbose, 
-    #     )   
+    calcQuantRoundErrOfModel (
+        model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V1),
+        modelStr = 'Resnet50',
+        verbose  = verbose, 
+        )   
 
 if __name__ == '__main__':
     try:
