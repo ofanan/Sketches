@@ -291,7 +291,10 @@ def simQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g.
             resRecord['mode'] = mode #ResFileParser.f2pSettingsToLabel (mode)
             
         elif mode.startswith('int'):
-            grid = np.array ([item for item in range (-2**(cntrSize-1)+1, 2**(cntrSize-1))])
+            if signed: 
+                grid = np.array ([item for item in range (-2**(cntrSize-1)+1, 2**(cntrSize-1))])
+            else:
+                grid = np.array ([item for item in range (0, 2**cntrSize-1)])
             [quantizedVec, scale] = quantize(vec=vec2quantize, grid=grid)                
             dequantizedVec = dequantize(vec=quantizedVec, scale=scale)
             resRecord = calcErr(
