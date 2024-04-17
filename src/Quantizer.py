@@ -10,9 +10,7 @@ from printf import printf, printar, printarFp
 from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
 from ResFileParser import genRndErrFileName, getF2PSettings, colors, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, LEGEND_FONT_SIZE
 
-
-
-MAX_DF = 30
+MAX_DF = 20
 
 def myFitter (
         vec : np.array,
@@ -415,14 +413,14 @@ def plotScaledGrids (
 
 if __name__ == '__main__':
     try:
-        verbose = [settings.VERBOSE_DEBUG] #settings.VERBOSE_PCL, settings.VERBOSE_RES]
+        verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
         stdev   = 1
-        for cntrSize in [8, 16]:
+        for cntrSize in [16]:
             if settings.VERBOSE_PCL in verbose:
                 pclOutputFileName = f'{ResFileParser.genRndErrFileName (cntrSize)}.pcl'
                 # if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
                 #     os.remove(f'../res/pcl_files/{pclOutputFileName}')
-            for distStr in ['uniform', 'norm', 't_2', 't_10', 't_4', 't_5', 't_6', 't_8']:
+            for distStr in ['uniform', 'norm', 't_5', 't_8']: #'t_2', 't_10', 't_4', 't_5', 't_6', 't_8']:
                 calcQuantRoundErr (cntrSize       = cntrSize, 
                              modes          = settings.modesOfCntrSize(cntrSize), 
                              numPts         = 1000000, 

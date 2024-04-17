@@ -23,9 +23,9 @@ VERBOSE_PROGRESS        = 12 # Print periodical output notifying the progress. U
 VERBOSE_LOG_CNTRLINE    = 14  
 VERBOSE_PLOT            = 15
 
-F2Pmodes  = ['F2P_lr_h1', 'F2P_lr_h2', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_li_h1', 'F2P_li_h2'] 
+F2Pmodes  = ['F2P_lr_h1', 'F2P_lr_h2', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_li_h1', 'F2P_li_h2', 'F2P_li_h1', 'F2P_li_h2'] 
 FP8modes  = ['FP_e2', 'FP_e3', 'FP_e4', 'FP_e5']
-FP16modes = ['FP_e5', 'FP_e8', 'FP_e10']
+FP16modes = ['FP_e5', 'FP_e8', 'FP_e10'] # 'FP_e2', 'FP_e3', 'FP_e4'
 FP19modes = ['FP_e5'] #, 'FP_e8' is very bad --> removing it.
 
 VECTOR_SIZE = 1000

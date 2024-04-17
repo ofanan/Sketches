@@ -503,6 +503,7 @@ class ResFileParser (object):
             points = [point for point in points if point['mode'].startswith('F2P')]
         elif onlyNonF2P:
             points = [point for point in points if not(point['mode'].startswith('F2P'))]
+            points = [point for point in points if point['mode'] not in ['FP_e2', 'FP_e3', 'FP_e4', 'FP_e10']]
         points = sorted (points, key = lambda item : item[f'{errType}'])
         if len(points)==0:
             print (f'In ResFileParser.optModeOfDist(). No points found for cntrSize={cntrSize}, errType={errType}, dist={distStr}')
@@ -546,6 +547,11 @@ def genErrByDfGraph ():
         myResFileParser.genErrByDfGraph (cntrSize=cntrSize, resTypeStr='abs', verbose=[settings.VERBOSE_RES])
         myResFileParser.genErrByDfGraph (cntrSize=cntrSize, resTypeStr='relMse', verbose=[settings.VERBOSE_RES])
 
+# def delPointsFromPcl ():
+#     """
+#     Delete points from a .pcl file
+#     """
+
 def genErrByDistBar ():
     """
     Generate and save a bar-plot of the Mean Square Error for the various distributions. 
@@ -571,11 +577,11 @@ def printAllOptModes ():
     Find in the .pcl files the mode (e.g., FP_2e, F2P_li_h2) that minimizes the error for the given distribution.
     """
     resFile = open ('../res/allOptModes.res', 'w')
-    for cntrSize in [8, 16]:
+    for cntrSize in [16, 19]:
         myResFileParser = ResFileParser ()
-        for errType in ['abs', 'absMse']:
+        for errType in ['absMse']:
             printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
-            for distStr in ['Resnet18', 'Resnet50', 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: 
+            for distStr in ['MobileNet_V2', 'MobileNet_V3']: #'Resnet18', 'Resnet50', 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: 
                 bestF2PPoint    = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=True,  onlyNonF2P=False)
                 bestNonF2PPoint = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=False, onlyNonF2P=True)
                 if bestF2PPoint==None or bestNonF2PPoint==None:

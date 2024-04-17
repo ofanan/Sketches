@@ -4,7 +4,7 @@ Test a model
 import torch
 import torchvision.transforms as transforms
 import torchvision.models as models, torchvision.datasets as datasets
-from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_Weights, mobilenet_v3_large, MobileNet_V3_Large_Weights 
+from torchvision.models import resnet18, ResNet18_Weights, resnet50, ResNet50_Weights, mobilenet_v2, MobileNet_V2_Weights, mobilenet_v3_large, MobileNet_V3_Large_Weights 
 import tensorflow as tf
 from tensorflow.keras.applications import imagenet_utils
 from PIL import Image
@@ -79,13 +79,13 @@ def calcQuantRoundErrOfModel (
     Output the results as detailed in verbose. 
     """
     
-    for cntrSize in [8, 16]:
+    for cntrSize in [16]:
         Quantizer.calcQuantRoundErr(
             cntrSize        = cntrSize,
             signed          = False,
             dist            = modelStr,
             modes           = settings.modesOfCntrSize(cntrSize),
-            vec2quantize    = vec2quantize,  
+            vec2quantize    = vec2quantize[:1000000],  
             verbose         = verbose,
         )  
 
@@ -106,11 +106,19 @@ def ModelsQuantRoundErr (modelStrs=[]):
         elif modelStr=='Resnet50':
             model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V2)
             vec2quantize = extractWeightsOfResnetModel (model, verbose=verbose)
-        elif modelStr=='MobileNet_V3':
-            # model    = mobilenet_v3_large (weights=MobileNet_V3_Large_Weights.DEFAULT),
+        elif modelStr=='MobileNet_V2':
             model = tf.keras.applications.mobilenet_v2.MobileNetV2()
             vec2quantize = np.array (model.layers[1].weights).flatten() # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
-            vec2quantize = np.append (vec2quantize, np.array (model.layers[2].weights).flatten()) # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
+            for i in range(2, 100): #133): # 100: 374720 weights. 133: 1040064 weights
+                vec2quantize = np.append (vec2quantize, np.array (model.layers[i].weights).flatten()) 
+            # print (f'V2. i={i}, len={len(vec2quantize)}')
+        elif modelStr=='MobileNet_V3':
+            model = tf.keras.applications.MobileNetV3Large()
+            vec2quantize = np.array (model.layers[2].weights).flatten()
+            for layerNum in range (100): # 100: 112976 weights
+                # print (f'V3. i={i}, len={len(vec2quantize)}')
+                for i in range(len(model.layers[layerNum].weights)):
+                    vec2quantize = np.append (vec2quantize, np.array (model.layers[layerNum].weights[i]).flatten()) 
         else:
             print ('In TestQauntModels.ModelsQuantRoundErr(). Sorry, the model {modelStr} you choose is not support yet.')
         calcQuantRoundErrOfModel (
@@ -121,7 +129,7 @@ def ModelsQuantRoundErr (modelStrs=[]):
 
 if __name__ == '__main__':
     try:
-        ModelsQuantRoundErr (['Resnet18', 'Resnet50'])
+        ModelsQuantRoundErr (['MobileNet_V2', 'MobileNet_V3']) #'MobileNet_V2', 'Resnet18', 'Resnet50'])
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 
