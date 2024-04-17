@@ -105,9 +105,12 @@ def ModelsQuantRoundErr (modelStrs=[]):
 if __name__ == '__main__':
     try:
         model = tf.keras.applications.mobilenet_v2.MobileNetV2()
-        vec2quantize = np.array (model.layers[1].weights) # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
-        vec2quantize = vec2quantize.flatten() 
-        settings.error (vec2quantize[100])
+        vec2quantize = np.array (model.layers[1].weights).flatten() # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
+        vec2quantize = np.append (vec2quantize, np.array (model.layers[2].weights).flatten()) # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
+        # vec2quantize = np.append (np.array(model.layers[2].weights))
+        # vec2quantize = np.append (vec2quantize, np.array(model.layer3[0].bn1.running_var))
+        # vec2quantize = np.append (vec2quantize, np.array(model.layer4[0].bn1.running_var))
+        settings.error (len(vec2quantize))
         ModelsQuantRoundErr (['MobileNet_V3'])
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
