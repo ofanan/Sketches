@@ -69,6 +69,24 @@ markerOfMode = {'F2P_li'    : 'o',
                      'Morris'    : '>',
                      'AEE'       : 'o'}
 
+def labelOfDist (dist : str) -> str:
+    """
+    Given a distribution, return a label-string for it, to appear in the paper's plots. 
+    """
+    if dist=='uniform':
+        return 'Uniform'
+    elif dist=='norm':
+        return 'Normal'
+    elif dist.startswith('t_'):
+        nu = int(dist.split('_')[1])
+        return f't, $\\nu={nu}$'
+    elif dist=='MobileNet_V2':
+        return 'MNet\_V2'
+    elif dist=='MobileNet_V3':
+        return 'MNet\_V3'
+    else:
+        return dist
+
 def genRndErrFileName (cntrSize : int) -> str:
     """
     Given the counter's size, generate the .pcl filename.
@@ -530,8 +548,8 @@ class ResFileParser (object):
         for dist in distStrs:
             pointsOfThisDist = [point for point in points if point['dist']==dist]
             minErr = min ([point[errType] for point in pointsOfThisDist])
+            printf (resFile, f'{labelOfDist(dist)} & ') 
             for mode in modes:
-                printf (resFile, 'mode & ') 
                 pointsOfThisDistAndMode = [point for point in pointsOfThisDist if point['mode']==mode]
                 if len(pointsOfThisDistAndMode)==0:
                     print (f'In ResFileParser.optModeOfDist(). No points found for cntrSize={cntrSize}, errType={errType}, dist={distStr}')
@@ -539,11 +557,14 @@ class ResFileParser (object):
                     continue
                 val = pointsOfThisDistAndMode[0][errType]/minErr
                 if val<1.01:
-                    printf (resFile, '\\green\{')
+                    printf (resFile, '\\green{')
                     printf (resFile, '{:.1f}' .format (val))
-                    printf (resFile, '\}')
+                    printf (resFile, '}')
                 else:
-                    printf (resFile, '{:.1f}' .format (val))
+                    if val<100:
+                        printf (resFile, '{:.1f}' .format (val))
+                    else:
+                        printf (resFile, '{:.0f}' .format (val))
                 if mode!=modes[-1]:
                     printf (resFile, ' & ' .format (pointsOfThisDistAndMode[0][errType]/minErr))
             printf (resFile, ' \\\\ \n')
@@ -614,7 +635,7 @@ def genErrTable ():
     Print a formatted table with the results.
     """
     resFile = open ('../res/errTable.dat', 'w')
-    for cntrSize in [8]: #, 16, 19]:
+    for cntrSize in [19]: #, 16, 19]:
         errType = 'absMse'
         printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
         myResFileParser = ResFileParser ()

@@ -25,7 +25,7 @@ VERBOSE_PLOT            = 15
 
 F2Pmodes  = ['F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_si_h1', 'F2P_si_h2', 'F2P_li_h1', 'F2P_li_h2', ] 
 FP8modes  = ['FP_e2', 'FP_e3', 'FP_e4', 'FP_e5']
-FP16modes = ['FP_e5', 'FP_e8', 'FP_e10'] # 'FP_e5' is FP16. 'FP_e8' is BFloat.
+FP16modes = ['FP_e5', 'FP_e8'] #, 'FP_e10'] # 'FP_e5' is FP16. 'FP_e8' is BFloat.
 FP19modes = ['FP_e5'] #, 'FP_e8' is very bad --> removing it.
 
 VECTOR_SIZE = 1000
