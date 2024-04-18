@@ -487,9 +487,10 @@ class ResFileParser (object):
     
     def optModeOfDist (
             self,
-            cntrSize    : int = 8,
-            errType     : str = 'abs', # Currently, either 'abs' (absolute) or 'rel' (relative
-            distStr     : str = 'uniform', 
+            cntrSize    : int  = 8,
+            errType     : str  = 'abs', # Currently, either 'abs' (absolute) or 'rel' (relative
+            distStr     : str  = 'uniform', 
+            ignoreModes : list = [], # list of modes to ignore when extracting the results 
             onlyF2P     : bool = False, # When True, consider only F2P flavors
             onlyNonF2P  : bool = False, # When True, consider only non-F2P flavors
             ) -> list:
@@ -503,7 +504,7 @@ class ResFileParser (object):
             points = [point for point in points if point['mode'].startswith('F2P')]
         elif onlyNonF2P:
             points = [point for point in points if not(point['mode'].startswith('F2P'))]
-            points = [point for point in points if point['mode'] not in ['FP_e2', 'FP_e3', 'FP_e4', 'FP_e10']]
+            points = [point for point in points if point['mode'] not in ignoreModes] 
         points = sorted (points, key = lambda item : item[f'{errType}'])
         if len(points)==0:
             print (f'In ResFileParser.optModeOfDist(). No points found for cntrSize={cntrSize}, errType={errType}, dist={distStr}')
@@ -577,13 +578,22 @@ def printAllOptModes ():
     Find in the .pcl files the mode (e.g., FP_2e, F2P_li_h2) that minimizes the error for the given distribution.
     """
     resFile = open ('../res/allOptModes.res', 'w')
-    for cntrSize in [16, 19]:
+    for cntrSize in [8]:
         myResFileParser = ResFileParser ()
-        for errType in ['absMse']:
+        for errType in ['relMse']:
             printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
-            for distStr in ['MobileNet_V2', 'MobileNet_V3']: #'Resnet18', 'Resnet50', 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: 
+            for distStr in ['MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50']:#, 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: 
                 bestF2PPoint    = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=True,  onlyNonF2P=False)
                 bestNonF2PPoint = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=False, onlyNonF2P=True)
+                if bestF2PPoint==None or bestNonF2PPoint==None:
+                    continue
+                printf (resFile, f'distStr={distStr}\t bestNonF2P={bestNonF2PPoint[0]}\t, bestNonF2PVal={bestNonF2PPoint[1]}\tbestF2PFlavor={bestF2PPoint[0]}\t, bestF2P/bestNonF2P={bestF2PPoint[1]/bestNonF2PPoint[1]}\n')   
+            ignoreModes=['FP_e2', 'FP_e3', 'FP_e4', 'FP_e10']
+            printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
+            printf (resFile, f'// Ignoring modes {ignoreModes}\n')
+            for distStr in ['MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50']:#, 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: 
+                bestF2PPoint    = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=True,  onlyNonF2P=False)
+                bestNonF2PPoint = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=False, onlyNonF2P=True, ignoreModes=ignoreModes)
                 if bestF2PPoint==None or bestNonF2PPoint==None:
                     continue
                 printf (resFile, f'distStr={distStr}\t bestNonF2P={bestNonF2PPoint[0]}\t, bestNonF2PVal={bestNonF2PPoint[1]}\tbestF2PFlavor={bestF2PPoint[0]}\t, bestF2P/bestNonF2P={bestF2PPoint[1]/bestNonF2PPoint[1]}\n')   

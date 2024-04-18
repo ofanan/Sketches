@@ -79,7 +79,7 @@ def calcQuantRoundErrOfModel (
     Output the results as detailed in verbose. 
     """
     
-    for cntrSize in [16]:
+    for cntrSize in [8, 16, 19]:
         Quantizer.calcQuantRoundErr(
             cntrSize        = cntrSize,
             signed          = False,
@@ -129,7 +129,7 @@ def ModelsQuantRoundErr (modelStrs=[]):
 
 if __name__ == '__main__':
     try:
-        ModelsQuantRoundErr (['MobileNet_V2', 'MobileNet_V3']) #'MobileNet_V2', 'Resnet18', 'Resnet50'])
+        ModelsQuantRoundErr (['Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3']) #'MobileNet_V2', 'Resnet18', 'Resnet50'])
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 
