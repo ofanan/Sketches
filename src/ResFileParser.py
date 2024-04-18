@@ -517,6 +517,7 @@ class ResFileParser (object):
             resFile,
             distStrs : list = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
             cntrSize : int  = 8,
+            errType  : str  = 'absMse'
             ):
         """
         Print a row in the table of errors.
@@ -524,7 +525,7 @@ class ResFileParser (object):
         
         self.rdPcl (f'{genRndErrFileName(cntrSize)}.pcl')
         points = [point for point in self.points if point['mode'] in settings.modesOfCntrSize(cntrSize)]
-        minErr = min ([point['absErr'] for point in points]) 
+        minErr = min ([point[errType] for point in points]) 
         
         for dist in distStrs:
             pointsOfThisDist = [point for point in points if point['dist']==dist]
@@ -532,7 +533,7 @@ class ResFileParser (object):
                 print (f'In ResFileParser.optModeOfDist(). No points found for cntrSize={cntrSize}, errType={errType}, dist={distStr}')
                 printf (resFile, 'None & ')
                 continue
-                printf (resFile, '{:.2f} & ' .format (pointsOfThisDist[0]['absErr']))
+                printf (resFile, '{:.2f} & ' .format (pointsOfThisDist[0][errType]/minErr))
         printf (resFile, '\n')
 
 def genResolutionPlot ():
