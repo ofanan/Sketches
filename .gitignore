@@ -15,3 +15,6 @@ build.xml
 /log/
 /log/*
 /res/*
+!/res/res2publish/
+!/res/res2publish/*
+

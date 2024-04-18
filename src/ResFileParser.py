@@ -577,27 +577,31 @@ def printAllOptModes ():
     Print the optimal modes for all the given modes.
     Find in the .pcl files the mode (e.g., FP_2e, F2P_li_h2) that minimizes the error for the given distribution.
     """
-    resFile = open ('../res/allOptModes.res', 'w')
-    for cntrSize in [8]:
+    resFile = open ('../res/allOptModes.res', 'a')
+    for cntrSize in [8, 16, 19]:
         myResFileParser = ResFileParser ()
-        for errType in ['relMse']:
-            printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
-            for distStr in ['MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50']:#, 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: 
-                bestF2PPoint    = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=True,  onlyNonF2P=False)
-                bestNonF2PPoint = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=False, onlyNonF2P=True)
-                if bestF2PPoint==None or bestNonF2PPoint==None:
-                    continue
-                printf (resFile, f'distStr={distStr}\t bestNonF2P={bestNonF2PPoint[0]}\t, bestNonF2PVal={bestNonF2PPoint[1]}\tbestF2PFlavor={bestF2PPoint[0]}\t, bestF2P/bestNonF2P={bestF2PPoint[1]/bestNonF2PPoint[1]}\n')   
-            ignoreModes=['FP_e2', 'FP_e3', 'FP_e4', 'FP_e10']
-            printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
-            printf (resFile, f'// Ignoring modes {ignoreModes}\n')
-            for distStr in ['MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50']:#, 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: 
-                bestF2PPoint    = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=True,  onlyNonF2P=False)
-                bestNonF2PPoint = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=False, onlyNonF2P=True, ignoreModes=ignoreModes)
-                if bestF2PPoint==None or bestNonF2PPoint==None:
-                    continue
-                printf (resFile, f'distStr={distStr}\t bestNonF2P={bestNonF2PPoint[0]}\t, bestNonF2PVal={bestNonF2PPoint[1]}\tbestF2PFlavor={bestF2PPoint[0]}\t, bestF2P/bestNonF2P={bestF2PPoint[1]/bestNonF2PPoint[1]}\n')   
-            printf (resFile, f'\n')
+        # for errType in ['relMse']:
+        errType = 'absMse'
+        printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
+        for distStr in ['uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: #'MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50']:#, 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: 
+            bestF2PPoint    = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=True,  onlyNonF2P=False)
+            bestNonF2PPoint = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=False, onlyNonF2P=True)
+            if bestF2PPoint==None or bestNonF2PPoint==None:
+                continue
+            printf (resFile, f'distStr={distStr}\t bestNonF2P={bestNonF2PPoint[0]}\t, bestNonF2PVal={bestNonF2PPoint[1]}\tbestF2PFlavor={bestF2PPoint[0]}\t, bestF2P/bestNonF2P={bestF2PPoint[1]/bestNonF2PPoint[1]}\n')
+        if cntrSize in [8, 19]:
+            continue
+        elif cntrSize==16:
+            ignoreModes=['FP_e10']
+        printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
+        printf (resFile, f'// Ignoring modes {ignoreModes}\n')
+        for distStr in ['MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50']:#, 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: 
+            bestF2PPoint    = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=True,  onlyNonF2P=False)
+            bestNonF2PPoint = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=False, onlyNonF2P=True, ignoreModes=ignoreModes)
+            if bestF2PPoint==None or bestNonF2PPoint==None:
+                continue
+            printf (resFile, f'distStr={distStr}\t bestNonF2P={bestNonF2PPoint[0]}\t, bestNonF2PVal={bestNonF2PPoint[1]}\tbestF2PFlavor={bestF2PPoint[0]}\t, bestF2P/bestNonF2P={bestF2PPoint[1]/bestNonF2PPoint[1]}\n')   
+        printf (resFile, f'\n')
 
 if __name__ == '__main__':
     try:
