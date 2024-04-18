@@ -52,6 +52,7 @@ colorOfMode = {
     'F2P sr'    : 'purple',
     'F2P li'    : 'yellow',
     'FP 5M2E'   : 'magenta',
+    'FP 2M5E'   : 'blue',
     'FP 1M6E'   : 'blue',
     }
 
@@ -557,14 +558,15 @@ class ResFileParser (object):
                     continue
                 val = pointsOfThisDistAndMode[0][errType]/minErr
                 if val<1.01:
-                    printf (resFile, '\\green{')
+                    printf (resFile, '\\green{\\textbf{')
                     printf (resFile, '{:.1f}' .format (val))
-                    printf (resFile, '}')
+                    printf (resFile, '}}')
+                elif val<100:
+                    printf (resFile, '{:.1f}' .format (val))
+                elif val<10000:
+                    printf (resFile, '{:.0f}' .format (val))
                 else:
-                    if val<100:
-                        printf (resFile, '{:.1f}' .format (val))
-                    else:
-                        printf (resFile, '{:.0f}' .format (val))
+                    printf (resFile, '{:.1e}' .format (val))
                 if mode!=modes[-1]:
                     printf (resFile, ' & ' .format (pointsOfThisDistAndMode[0][errType]/minErr))
             printf (resFile, ' \\\\ \n')
@@ -635,7 +637,7 @@ def genErrTable ():
     Print a formatted table with the results.
     """
     resFile = open ('../res/errTable.dat', 'w')
-    for cntrSize in [19]: #, 16, 19]:
+    for cntrSize in [8, 16, 19]:
         errType = 'absMse'
         printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
         myResFileParser = ResFileParser ()
@@ -644,6 +646,7 @@ def genErrTable ():
             cntrSize = cntrSize,
             resFile  = resFile
             )
+        printf (resFile, '\n')
 
 def printAllOptModes ():
     """

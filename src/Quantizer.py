@@ -8,7 +8,7 @@ import settings, ResFileParser, F2P_sr, F2P_lr, F2P_li, FP
 from tictoc import tic, toc
 from printf import printf, printar, printarFp
 from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
-from ResFileParser import genRndErrFileName, getF2PSettings, colors, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, LEGEND_FONT_SIZE
+from ResFileParser import genRndErrFileName, getF2PSettings, colors, colorOfMode, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, LEGEND_FONT_SIZE
 
 MAX_DF = 20
 
@@ -394,10 +394,9 @@ def plotScaledGrids (
         curLine, = ax.plot (resRecord['grid'], 
                  [i for item in range(lenGrid)], # len(resRecords)-i # Write the y index in reverse order, so that the legends' order will correspond the order of the plots. 
                  color      = colorOfMode [resRecord['mode']], 
-                 marker     = markerOfMode[mode], 
                  linestyle  = 'None', 
                  markersize = 2, 
-                 mode       = resRecord['mode'])  # Plot the conf' interval line
+                 label      = resRecord['mode'])  # Plot the conf' interval line
         curLegend = ax.legend (handles=[curLine], bbox_to_anchor=(-0.17, i*(1.1/len(resRecords)), 0., .102), loc='lower left', frameon=False)
         ax.add_artist (curLegend)
     
@@ -413,7 +412,8 @@ def plotScaledGrids (
 
 if __name__ == '__main__':
     try:
-        None 
+        plotScaledGrids (zoomXlim=1, cntrSize=7, modes=['int', 'FP_e2', 'F2P_lr_h2', 'F2P_sr_h2', 'FP_e5'])
+        # None 
         # verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
         # stdev   = 1
         # for cntrSize in [8]:
@@ -434,7 +434,6 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
-# plotScaledGrids (zoomXlim=1, cntrSize=7, modes=['FP_e6', 'F2P_lr_h2', 'F2P_lr_h1', 'F2P_sr_h2', 'F2P_sr_h1', 'FP_e2', 'int'])
 
 # scaled 'F2P_lr_h1' is identical to int.
 
