@@ -511,6 +511,30 @@ class ResFileParser (object):
             return None
         return ([points[0]['mode'], points[0][f'{errType}']])
 
+
+    def printErrTableRow (
+            self,
+            distStrs = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
+            cntrSize = cntrSize,
+            resFile  = resFile
+            ):
+        """
+        Print a row in the table of errors.
+        """
+        
+        self.rdPcl (f'{genRndErrFileName(cntrSize)}.pcl')
+        points = [point for point in self.points if point['mode'] in settings.modesOfCntrSize(cntrSize)]
+        minErr = min ([point['absErr'] for point in points]) 
+        
+        for dist in distStrs:
+            pointsOfThisDist = [point for point in points if point['dist']==dist]
+            if len(points)==0:
+                print (f'In ResFileParser.optModeOfDist(). No points found for cntrSize={cntrSize}, errType={errType}, dist={distStr}')
+                printf (resFile, 'None & ')
+                continue
+                printf (resFile, f'{:.2f} & ' .format (pointsOfThisDist[0]['absErr']))
+        printf (resFile, '\n')
+
 def genResolutionPlot ():
     """
     """
@@ -572,6 +596,21 @@ def genErrByDistBar ():
                     verbose     =[settings.VERBOSE_RES, settings.VERBOSE_PLOT]
                 )
     
+def genErrTable ():
+    """
+    Print a formatted table with the results.
+    """
+    resFile = open ('../res/errTable.dat', 'a')
+    for cntrSize in [8]: #, 16, 19]:
+        errType = 'absMse'
+        printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
+        myResFileParser = ResFileParser ()
+        myResFileParser.printErrTableRow (
+            distStr  = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
+            cntrSize = cntrSize,
+            resFile  = resFile
+            )
+
 def printAllOptModes ():
     """
     Print the optimal modes for all the given modes.

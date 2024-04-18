@@ -23,7 +23,7 @@ VERBOSE_PROGRESS        = 12 # Print periodical output notifying the progress. U
 VERBOSE_LOG_CNTRLINE    = 14  
 VERBOSE_PLOT            = 15
 
-F2Pmodes  = ['F2P_lr_h1', 'F2P_lr_h2', 'F2P_sr_h1', 'F2P_sr_h2', 'F2P_li_h1', 'F2P_li_h2', 'F2P_si_h1', 'F2P_si_h2'] 
+F2Pmodes  = ['F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_si_h1', 'F2P_si_h2', 'F2P_li_h1', 'F2P_li_h2', ] 
 FP8modes  = ['FP_e2', 'FP_e3', 'FP_e4', 'FP_e5']
 FP16modes = ['FP_e5', 'FP_e8', 'FP_e10'] # 'FP_e5' is FP16. 'FP_e8' is BFloat.
 FP19modes = ['FP_e5'] #, 'FP_e8' is very bad --> removing it.
@@ -63,11 +63,11 @@ def modesOfCntrSize (cntrSize):
     Return a list of modes to consider given the counter's size.
     """
     if cntrSize==19:
-        return ['int'] + FP19modes  + F2Pmodes 
+        return F2Pmodes + ['int'] + FP19modes   
     elif cntrSize==16: ## tensorFloat
-        return ['int'] + FP16modes + F2Pmodes
+        return F2Pmodes + ['int'] + FP16modes 
     elif cntrSize==8:
-        return ['int'] + FP8modes + F2Pmodes
+        return F2Pmodes + ['int'] + FP8modes
     else:
         error (f'In settings.modesOfCntrSize(). No hard-coded list of modes for cntrSize={cntrSize}.')
 
