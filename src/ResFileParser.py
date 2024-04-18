@@ -524,17 +524,29 @@ class ResFileParser (object):
         """
         
         self.rdPcl (f'{genRndErrFileName(cntrSize)}.pcl')
-        points = [point for point in self.points if point['mode'] in settings.modesOfCntrSize(cntrSize)]
-        minErr = min ([point[errType] for point in points]) 
+        modes = settings.modesOfCntrSize(cntrSize)
+        points = [point for point in self.points if point['mode'] in modes]
         
         for dist in distStrs:
             pointsOfThisDist = [point for point in points if point['dist']==dist]
-            if len(points)==0:
-                print (f'In ResFileParser.optModeOfDist(). No points found for cntrSize={cntrSize}, errType={errType}, dist={distStr}')
-                printf (resFile, 'None & ')
-                continue
-                printf (resFile, '{:.2f} & ' .format (pointsOfThisDist[0][errType]/minErr))
-        printf (resFile, '\n')
+            minErr = min ([point[errType] for point in pointsOfThisDist])
+            for mode in modes:
+                printf (resFile, 'mode & ') 
+                pointsOfThisDistAndMode = [point for point in pointsOfThisDist if point['mode']==mode]
+                if len(pointsOfThisDistAndMode)==0:
+                    print (f'In ResFileParser.optModeOfDist(). No points found for cntrSize={cntrSize}, errType={errType}, dist={distStr}')
+                    printf (resFile, 'None & ')
+                    continue
+                val = pointsOfThisDistAndMode[0][errType]/minErr
+                if val<1.01:
+                    printf (resFile, '\\green\{')
+                    printf (resFile, '{:.1f}' .format (val))
+                    printf (resFile, '\}')
+                else:
+                    printf (resFile, '{:.1f}' .format (val))
+                if mode!=modes[-1]:
+                    printf (resFile, ' & ' .format (pointsOfThisDistAndMode[0][errType]/minErr))
+            printf (resFile, ' \\\\ \n')
 
 def genResolutionPlot ():
     """
@@ -601,7 +613,7 @@ def genErrTable ():
     """
     Print a formatted table with the results.
     """
-    resFile = open ('../res/errTable.dat', 'a')
+    resFile = open ('../res/errTable.dat', 'w')
     for cntrSize in [8]: #, 16, 19]:
         errType = 'absMse'
         printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
