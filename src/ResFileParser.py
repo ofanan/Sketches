@@ -514,9 +514,9 @@ class ResFileParser (object):
 
     def printErrTableRow (
             self,
-            distStrs = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
-            cntrSize = cntrSize,
-            resFile  = resFile
+            resFile,
+            distStrs : list = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
+            cntrSize : int  = 8,
             ):
         """
         Print a row in the table of errors.
@@ -532,7 +532,7 @@ class ResFileParser (object):
                 print (f'In ResFileParser.optModeOfDist(). No points found for cntrSize={cntrSize}, errType={errType}, dist={distStr}')
                 printf (resFile, 'None & ')
                 continue
-                printf (resFile, f'{:.2f} & ' .format (pointsOfThisDist[0]['absErr']))
+                printf (resFile, '{:.2f} & ' .format (pointsOfThisDist[0]['absErr']))
         printf (resFile, '\n')
 
 def genResolutionPlot ():
@@ -606,7 +606,7 @@ def genErrTable ():
         printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
         myResFileParser = ResFileParser ()
         myResFileParser.printErrTableRow (
-            distStr  = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
+            distStrs = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
             cntrSize = cntrSize,
             resFile  = resFile
             )
@@ -644,7 +644,8 @@ def printAllOptModes ():
 
 if __name__ == '__main__':
     try:
-        printAllOptModes ()
+        genErrTable ()
+        # printAllOptModes ()
         # calcOptModeByDist ()
         # genErrByDistBar ()
         # genErrByDfGraph ()

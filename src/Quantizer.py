@@ -413,23 +413,24 @@ def plotScaledGrids (
 
 if __name__ == '__main__':
     try:
-        verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
-        stdev   = 1
-        for cntrSize in [8]:
-            if settings.VERBOSE_PCL in verbose:
-                pclOutputFileName = f'{ResFileParser.genRndErrFileName (cntrSize)}.pcl'
-                # if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
-                #     os.remove(f'../res/pcl_files/{pclOutputFileName}')
-            for distStr in ['uniform', 'norm', 't_5', 't_8', 't_2', 't_10', 't_4', 't_6', 't_8']:
-                calcQuantRoundErr (cntrSize       = cntrSize, 
-                             modes          = settings.modesOfCntrSize(cntrSize), 
-                             numPts         = 1000000, 
-                             stdev          = stdev,
-                             dist           = distStr, 
-                             vecLowerBnd    = -stdev, 
-                             vecUpperBnd    = stdev,
-                             # outLier        = 100*stdev,
-                             verbose = verbose) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
+        None 
+        # verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
+        # stdev   = 1
+        # for cntrSize in [8]:
+        #     if settings.VERBOSE_PCL in verbose:
+        #         pclOutputFileName = f'{ResFileParser.genRndErrFileName (cntrSize)}.pcl'
+        #         # if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
+        #         #     os.remove(f'../res/pcl_files/{pclOutputFileName}')
+        #     for distStr in ['uniform', 'norm', 't_5', 't_8', 't_2', 't_10', 't_4', 't_6', 't_8']:
+        #         calcQuantRoundErr (cntrSize       = cntrSize, 
+        #                      modes          = settings.modesOfCntrSize(cntrSize), 
+        #                      numPts         = 1000000, 
+        #                      stdev          = stdev,
+        #                      dist           = distStr, 
+        #                      vecLowerBnd    = -stdev, 
+        #                      vecUpperBnd    = stdev,
+        #                      # outLier        = 100*stdev,
+        #                      verbose = verbose) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
 
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
