@@ -59,6 +59,15 @@ colorOfMode = {
     'FP 1M6E'   : 'blue',
     }
 
+labelOfMode = {
+    'F2P_lr_h2' : 'F2P lr h2',
+    'F2P_sr_h2' :  r'$\alpha$',
+    'FP_e2'     : '5M2E',
+    'FP_e5'     : '2M5E',
+    'int'       : 'INT8',   
+    }
+
+
 # The markers used for each alg', in the dist' case
 markerOfMode = {'F2P_li'    : 'o',
                      'F2P_lr'    : 'o',
@@ -153,7 +162,6 @@ class ResFileParser (object):
         Initialize a Res_file_parser, used to parse result files, and generate plots. 
         """
         # List of algorithms' names, used in the plots' legend, for the dist' case
-        self.labelOfMode = {}
         self.markers = ['o', 'v', '^', 's', 'p', 'X']
         self.points = []
         

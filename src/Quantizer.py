@@ -8,7 +8,7 @@ import settings, ResFileParser, F2P_sr, F2P_lr, F2P_li, FP
 from tictoc import tic, toc
 from printf import printf, printar, printarFp
 from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
-from ResFileParser import genRndErrFileName, getF2PSettings, colors, colorOfMode, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, LEGEND_FONT_SIZE
+from ResFileParser import genRndErrFileName, getF2PSettings, colors, colorOfMode, labelOfMode, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, LEGEND_FONT_SIZE
 
 MAX_DF = 20
 
@@ -348,13 +348,13 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
             resRecords.append (resRecord)
         
 
-def plotScaledGrids (
+def plotGrids (
         modes       = [], # modes to be simulated, e.g. FP, F2P_sr. 
         cntrSize    = 7,  # of bits, including the sign bit 
         hyperSize   = 2,  # size of the hyper-exp, when simulating F2P  
         signed      = False, # when True, plot also negative values (symmetrically w.r.t. 0).
         zoomXlim    = None,  # when not None, generate the plot zoomed so that x values are up to this value
-        scale       = True, # When True, scale the grid by the int's range.  
+        scale       = False, # When True, scale the grid by the int's range.  
         verbose     = []  # level of verbose, as defined in settings.py.
         ) -> None:
     """
@@ -379,8 +379,11 @@ def plotScaledGrids (
             F2pSettings = getF2PSettings (mode)
             flavor    = F2pSettings['flavor'] 
             grid    = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=F2pSettings['hyperSize'], verbose=verbose, signed=signed)
+            # print (f'b4: {grid}')
             if scale:
                 grid = scaleGrid (grid, lowerBnd = lowerBnd, upperBnd = upperBnd)
+            # print (f'after: {grid}')
+            # exit ()
             resRecord = {
                 'mode'  : mode,
                 'grid'  : grid 
@@ -392,9 +395,7 @@ def plotScaledGrids (
                 'grid'  : [i for i in range (lowerBnd, upperBnd+1)] 
                 }
         else:
-            settings.error (f'In Quantizer.plotScaledGrids(). Sorry, the mode {mode} requested is not supported')
-        if scale:
-            grid = scaleGrid (grid, lowerBnd = lowerBnd, upperBnd = upperBnd)
+            settings.error (f'In Quantizer.plotGrids(). Sorry, the mode {mode} requested is not supported')
         resRecords.append (resRecord)
         
     legends=[]
@@ -406,7 +407,7 @@ def plotScaledGrids (
                  linestyle  = 'None', 
                  marker     = 'o',
                  markersize = 2, 
-                 label      = resRecord['mode'])  # Plot the conf' interval line
+                 label      = labelOfMode[resRecord['mode']])  # Plot the conf' interval line
         curLegend = ax.legend (handles=[curLine], bbox_to_anchor=(-0.17, i*(1.1/len(resRecords)), 0., .102), loc='lower left', frameon=False)
         ax.add_artist (curLegend)
     
@@ -416,13 +417,16 @@ def plotScaledGrids (
     if zoomXlim!=None:
         plt.xlim (0, zoomXlim)
     else:
-        plt.xlim (0, 2**cntrSize-1)        
+        if scale:
+            plt.xlim (0, 2**cntrSize-1)
+        else:
+            plt.xscale ('log')               
     sns.despine(left=True, bottom=False, right=True)
     plt.show()
 
 if __name__ == '__main__':
     try:
-        plotScaledGrids (zoomXlim=None, cntrSize=7, modes=['F2P_lr_h2', 'F2P_sr_h2', 'FP_e2', 'FP_e5', 'int'])
+        plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_lr_h2', 'F2P_sr_h2', 'FP_e2', 'FP_e5', 'int'])
         # None 
         # verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
         # stdev   = 1
