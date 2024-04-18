@@ -46,13 +46,16 @@ colorOfMode = {
     'F2P lr'    : 'green',
     'F2P lr h1' : 'green',
     'F2P lr h2' : 'green',
+    'F2P_lr_h2' : 'green',
     'F2P sr'    : 'purple',
     'F2P sr h1' : 'purple',
     'F2P sr h2' : 'purple',
+    'F2P_sr_h2' : 'purple',
     'F2P sr'    : 'purple',
     'F2P li'    : 'yellow',
     'FP 5M2E'   : 'magenta',
-    'FP 2M5E'   : 'blue',
+    'FP_e2'     : 'magenta',
+    'FP_e5'     : 'blue',
     'FP 1M6E'   : 'blue',
     }
 
