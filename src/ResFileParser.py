@@ -1,13 +1,13 @@
-import matplotlib, seaborn
+import matplotlib, seaborn, pickle, os
 import matplotlib.pyplot as plt
 import matplotlib.ticker
 import matplotlib.pylab as pylab
-import numpy as np, pandas as pd
+import os, numpy as np, pandas as pd
 from pandas._libs.tslibs import period
 from printf import printf, printFigToPdf 
-import pickle
-import settings
 from nltk.corpus.reader import lin
+
+import settings
 
 # Color-blind friendly pallette
 BLACK       = '#000000' 
@@ -232,25 +232,31 @@ class ResFileParser (object):
     def rmvFromPcl (
             self,
             pclFileName : str  = None,
-            listOfDict  : list = [],            
+            listOfDicts : list = [],
+            verbose     : list = []            
         ):
         """
         Remove entries from a given .pcl. file
         """   
         self.rdPcl (pclFileName)
 
-        listOfDicts = [{'a'  : 1},{'b'  : 2}]
-        self.points = [ {'a' : 1,
-                        'b' : 3},
-                        {'a' : 2,
-                        'b' : 3},
-                        {'a' : 7,
-                        'b' : 2}]
-        print (self.points)
+        if settings.VERBOSE_RES in verbose:
+            resFile = open ('../res/{}.res' .format (pclFileName.split('.pcl')), 'w')
+            for point in self.points:
+                printf (resFile, f'{point}\n')
+
         for dict in listOfDicts:
             for key, value in dict.items():
                 self.points = [point for point in self.points if point[key]!=value]
-        print (self.points)
+        # os.remove(f'../res/pcl_files/{pclFileName}')
+        
+        pclOutputFile = open ('../res/pcl_files/{}_.pcl' .format (pclFileName.split('.pcl')), 'wb+')
+        for point in self.points:
+            pickle.dump(point, pclOutputFile) 
+        if settings.VERBOSE_RES in verbose:
+            resFile = open ('../res/{}_.res' .format (pclFileName.split('.pcl')), 'w')
+            for point in self.points:
+                printf (resFile, f'{point}\n')
 
     def printAllPoints (self, cntrSize=None, cntrMaxVal=None, printToScreen=False):
         """
@@ -708,14 +714,14 @@ def genErrTable ():
     Print a formatted table with the results.
     """
     resFile = open ('../res/errTable.dat', 'w')
-    for cntrSize in [8, 16, 19]:
+    for cntrSize in [19]:
         errType = 'absMse'
         printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
         myResFileParser = ResFileParser ()
         myResFileParser.printErrTableRow (
             distStrs = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
             cntrSize = cntrSize,
-            resFile  = resFile
+            resFile  = resFile,
             )
         printf (resFile, '\n')
 
@@ -763,9 +769,14 @@ def plotErVsCntrSize ():
 if __name__ == '__main__':
     try:
         myResFileParser = ResFileParser()
-        myResFileParser.rmvFromPcl()
+        # genErrTable (verbose=[settings.VERBOSE_RES])
+        myResFileParser.rmvFromPcl(
+            pclFileName = '‏‏rndErr_n16.pcl',
+            listOfDicts = [{'mode' : 'F2P_li_h2'},
+                           {'mode' : 'F2P_si_h2'}],
+            verbose     = [settings.VERBOSE_RES]
+            )
         # plotErVsCntrSize ()
-        # genErrTable ()
         # printAllOptModes ()
         # calcOptModeByDist ()
         # genErrByDistBar ()
