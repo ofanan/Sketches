@@ -56,6 +56,7 @@ colorOfMode = {
     'F2P lr h2' : GREEN,
     'F2P_lr_h2' : GREEN,
     'F2P_li_h2' : GREEN,
+    'F2P_li'    : GREEN,
     'F2P sr'    : PURPLE,
     'F2P sr h1' : PURPLE,
     'F2P sr h2' : PURPLE,

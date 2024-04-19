@@ -565,7 +565,7 @@ def getAllValsF2P (flavor='',
     for i in range (2**cntrSize):
         cntr = np.binary_repr(i, cntrSize) 
         val = myCntrMaster.cntr2num(cntr=cntr)
-        if flavor=='li':
+        if flavor in ['si', 'li']:
             val = int(val)
         listOfVals.append ({'cntrVec' : cntr, 'val' : val})
     listOfVals = sorted (listOfVals, key=lambda item : item['val'])
@@ -615,40 +615,38 @@ def printAllCntrMaxValsF2P (flavor='sr', hyperSizeRange=None, cntrSizeRange=[], 
                 printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), cntrMaxVal))
 
 
-def main ():
-    simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
-    # simController.runSingleCntr \
-    #     (dwnSmple       = False,  
-    #      modes          = ['F2Pli', 'Morris', ], #, 'SEAD stat', 'F2Pli', 'Morris', 'CEDAR'], #[],
-    #      cntrSize       = 6, 
-    #      numOfExps      = 1,
-    #      erTypes        = ['WrRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
-    #      cntrMaxVal     = None, 
-    #      )
-    
-    # simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
-    # simController.measureResolutionsByModes (
-    #     cntrSizes   = [8], 
-    #     expSize     = 2, 
-    #     modes       = ['SEAD stat', 'Morris', 'F2Pli'],
-    #     delPrevPcl  = True
-    #     ) 
-    # printAllValsF2P (cntrSize=8, hyperSize=3, verbose=[settings.VERBOSE_RES], flavor='li') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
-    simController.measureResolutionsBySettingStrs (
-        delPrevPcl  = False, # When True, delete the previous .pcl file, if exists
-        settingStrs = ['FP_n15_m10_e5'], # 'FP_n15_m2_e13'],  # 'FP_n7_m5_e2'# Concrete settings for which the measurements will be done 
-        # settingStrs = ['F2Plr_n15_h2', 'F2Psr_n15_h2'],  # 'FP_n7_m5_e2'# Concrete settings for which the measurements will be done 
-        # settingStrs = ['F2Plr_n7_h1', 'F2Psr_n7_h1'],  # 'FP_n7_m5_e2'# Concrete settings for which the measurements will be done 
-        )    
-
 if __name__ == '__main__':
     try:
-        # printAllCntrMaxValsF2P (flavor='lr', hyperSizeRange=[2], cntrSizeRange=[7], verbose=[settings.VERBOSE_RES])
-        # printAllValsF2P (cntrSize=7, hyperSize=2, verbose=[settings.VERBOSE_RES], flavor='lr') #, , settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE
-        main ()
-        # getAllValsF2P (flavor='si', signed=False, cntrSize=6, hyperSize=1, verbose=[settings.VERBOSE_RES])
+        getAllValsF2P (flavor='li', 
+                   cntrSize     = 6, # size of the counter, WITHOUT the sign bit (if exists).  
+                   hyperSize    = 2, # size of the hyper-exp field. 
+                   verbose      = [settings.VERBOSE_RES], #verbose level. See settings.py for details.
+                   signed       = False # When True, assume an additional bit for the  
+                   )
+        # simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+        # simController.runSingleCntr \
+        #     (dwnSmple       = False,  
+        #      modes          = ['F2Pli', 'Morris', ], #, 'SEAD stat', 'F2Pli', 'Morris', 'CEDAR'], #[],
+        #      cntrSize       = 6, 
+        #      numOfExps      = 1,
+        #      erTypes        = ['WrRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+        #      cntrMaxVal     = None, 
+        #      )
+        
+        # simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+        # simController.measureResolutionsByModes (
+        #     cntrSizes   = [8], 
+        #     expSize     = 2, 
+        #     modes       = ['SEAD stat', 'Morris', 'F2Pli'],
+        #     delPrevPcl  = True
+        #     ) 
+        # simController.measureResolutionsBySettingStrs (
+        #     delPrevPcl  = False, # When True, delete the previous .pcl file, if exists
+        #     settingStrs = ['FP_n15_m10_e5'], # 'FP_n15_m2_e13'],  # 'FP_n7_m5_e2'# Concrete settings for which the measurements will be done 
+        #     # settingStrs = ['F2Plr_n15_h2', 'F2Psr_n15_h2'],  # 'FP_n7_m5_e2'# Concrete settings for which the measurements will be done 
+        #     # settingStrs = ['F2Plr_n7_h1', 'F2Psr_n7_h1'],  # 'FP_n7_m5_e2'# Concrete settings for which the measurements will be done 
+        #     )    
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
         exit ()
 
-# print (getAllValsFP (cntrSize=7, expSize=4, signed=True)) #, settings.VERBOSE_COUT_CONF, settings.VERBOSE_COUT_CNTRLINE

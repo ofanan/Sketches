@@ -18,7 +18,7 @@ class CntrMaster (F2P_lr.CntrMaster):
     flavor = lambda self : 'li'
     
     # Given the vector of the exponent, calculate the value it represents 
-    expVec2expVal  = lambda self, expVec, expSize : (2**expSize - 1 + int (expVec, base=2)) if expSize>0 else 0    
+    expVec2expVal  = lambda self, expVec, expSize : -(2**expSize - 1 + int (expVec, base=2)) if expSize>0 else 0    
 
     def setFlavorParams (self):
         """
