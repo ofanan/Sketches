@@ -240,8 +240,9 @@ class ResFileParser (object):
         """   
         self.rdPcl (pclFileName)
 
+        pclFileNameWoExtension = pclFileName.split('.pcl')[0]
         if settings.VERBOSE_RES in verbose:
-            resFile = open ('../res/{}.res' .format (pclFileName.split('.pcl')), 'w')
+            resFile = open (f'../res/{pclFileNameWoExtension}.res', 'w')
             for point in self.points:
                 printf (resFile, f'{point}\n')
 
@@ -250,11 +251,11 @@ class ResFileParser (object):
                 self.points = [point for point in self.points if point[key]!=value]
         # os.remove(f'../res/pcl_files/{pclFileName}')
         
-        pclOutputFile = open ('../res/pcl_files/{}_.pcl' .format (pclFileName.split('.pcl')), 'wb+')
+        pclOutputFile = open (f'../res/pcl_files/{pclFileNameWoExtension}_.pcl', 'wb+')
         for point in self.points:
             pickle.dump(point, pclOutputFile) 
         if settings.VERBOSE_RES in verbose:
-            resFile = open ('../res/{}_.res' .format (pclFileName.split('.pcl')), 'w')
+            resFile = open (f'../res/{pclFileNameWoExtension}_.res', 'w')
             for point in self.points:
                 printf (resFile, f'{point}\n')
 
@@ -771,9 +772,11 @@ if __name__ == '__main__':
         myResFileParser = ResFileParser()
         # genErrTable (verbose=[settings.VERBOSE_RES])
         myResFileParser.rmvFromPcl(
-            pclFileName = '‏‏rndErr_n16.pcl',
+            pclFileName = 'rndErr_n8.pcl',
             listOfDicts = [{'mode' : 'F2P_li_h2'},
-                           {'mode' : 'F2P_si_h2'}],
+                           {'mode' : 'F2P_si_h2'},
+                           {'mode' : 'F2P_li_h1'},
+                           {'mode' : 'F2P_si_h1'}],
             verbose     = [settings.VERBOSE_RES]
             )
         # plotErVsCntrSize ()
