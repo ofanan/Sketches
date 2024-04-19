@@ -9,13 +9,23 @@ import pickle
 import settings
 from nltk.corpus.reader import lin
 
+# Color-blind friendly pallette
+BLACK       = '#000000' 
+ORANGE      = '#E69F00'
+SKY_BLUE    = '#56B4E9'
+GREEN       = '#009E73'
+YELLOW      = '#F0E442'
+BLUE        = '#0072B2'
+VERMILION   = '#D55E00'
+PURPLE      = '#CC79A7'
+
 MARKER_SIZE = 16
 MARKER_SIZE_SMALL = 1
 LINE_WIDTH = 3 
 LINE_WIDTH_SMALL = 2 
-FONT_SIZE = 20
+FONT_SIZE = 10
 FONT_SIZE_SMALL = 5
-LEGEND_FONT_SIZE = 14
+LEGEND_FONT_SIZE = 10
 LEGEND_FONT_SIZE_SMALL = 5 
 USE_FRAME              = True # When True, plot a "frame" (box) around the plot 
 
@@ -29,39 +39,43 @@ BLUE        = '#0072B2'
 VERMILION   = '#D55E00'
 PURPLE      = '#CC79A7'
 
-colors = ['green', 'purple', 'brown', 'black', 'blue', 'yellow', 'magenta', 'red', 'green', 'purple', 'brown', 'black']
-
 # The colors used for each alg's plot, in the dist' case
 colorOfMode = {
-    'F3P'       : 'purple',
-    'SEAD stat' : 'brown',
-    'SEAD dyn'  : 'yellow',
-    'FP'        : 'blue',
-    'Tetra stat': 'blue',
-    'Tetra dyn' : 'black',
-    'CEDAR'     : 'magenta',
-    'Morris'    : 'red',
-    'AEE'       : 'blue',
+    'F3P'       : PURPLE,
+    'SEAD stat' : VERMILION,
+    'SEAD dyn'  : VERMILION,
+    'FP'        : BLUE,
+    'Tetra stat': BLUE,
+    'Tetra dyn' : BLUE,
+    'CEDAR'     : BLUE,
+    'Morris'    : ORANGE,
+    'AEE'       : YELLOW,
     'int'       : 'black',
-    'F2P lr'    : 'green',
-    'F2P lr h1' : 'green',
-    'F2P lr h2' : 'green',
-    'F2P_lr_h2' : 'green',
-    'F2P sr'    : 'purple',
-    'F2P sr h1' : 'purple',
-    'F2P sr h2' : 'purple',
-    'F2P_sr_h2' : 'purple',
-    'F2P sr'    : 'purple',
-    'F2P li'    : 'yellow',
-    'FP 5M2E'   : 'magenta',
-    'FP_e2'     : 'magenta',
-    'FP_e5'     : 'blue',
-    'FP 1M6E'   : 'blue',
+    'F2P lr'    : GREEN,
+    'F2P lr h1' : GREEN,
+    'F2P lr h2' : GREEN,
+    'F2P_lr_h2' : GREEN,
+    'F2P_li_h2' : GREEN,
+    'F2P sr'    : PURPLE,
+    'F2P sr h1' : PURPLE,
+    'F2P sr h2' : PURPLE,
+    'F2P_sr_h2' : PURPLE,
+    'F2P_si_h2' : PURPLE,
+    'F2P sr'    : PURPLE,
+    'F2P li'    : YELLOW,
+    'FP 5M2E'   : VERMILION,
+    'FP_e2'     : VERMILION,
+    'FP_e5'     : BLUE,
+    'FP 1M6E'   : BLUE,
     }
 
+colors = ['green', 'purple', 'brown', 'black', 'blue', 'yellow', 'magenta', 'red', 'green', 'purple', 'brown', 'black']
+
 labelOfMode = {
-    'F2P_lr_h2' : 'F2P lr h2',
-    'F2P_sr_h2' :  r'$\alpha$',
+    'F2P_lr_h2' : r'F2P$_{LR}^2$',
+    'F2P_sr_h2' : r'F2P$_{SR}^2$',
+    'F2P_li_h2' : r'F2P$_{LI}^2$',
+    'F2P_si_h2' : r'F2P$_{SI}^2$',
     'FP_e2'     : '5M2E',
     'FP_e5'     : '2M5E',
     'int'       : 'INT8',   
@@ -213,13 +227,14 @@ class ResFileParser (object):
                 for point in pointsOfThisMode:
                     print (point)
 
-    def genErVsCntrSizePlot (self,
-                             erType,
-                             numOfExps      = 50,
-                             modes          = ['F2P_li', 'CEDAR', 'Morris'],
-                             minCntrSize    = 8,
-                             maxCntrSize    = 64,
-                             ):
+    def genErVsCntrSizePlot (
+            self,
+            erType,
+            numOfExps      = 50,
+            modes          = ['F2P_li', 'CEDAR', 'Morris'],
+            minCntrSize    = 8,
+            maxCntrSize    = 64,
+        ):
         """
         Generate a plot showing the error as a function of the counter's size.
         """
@@ -618,11 +633,6 @@ def genErrByDfGraph ():
         myResFileParser.rdPcl (pclFileName)
         myResFileParser.genErrByDfGraph (cntrSize=cntrSize, resTypeStr='abs', verbose=[settings.VERBOSE_RES])
         myResFileParser.genErrByDfGraph (cntrSize=cntrSize, resTypeStr='relMse', verbose=[settings.VERBOSE_RES])
-
-# def delPointsFromPcl ():
-#     """
-#     Delete points from a .pcl file
-#     """
 
 def genErrByDistBar ():
     """

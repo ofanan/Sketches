@@ -8,7 +8,7 @@ import settings, ResFileParser, F2P_sr, F2P_lr, F2P_li, FP
 from tictoc import tic, toc
 from printf import printf, printar, printarFp
 from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
-from ResFileParser import genRndErrFileName, getF2PSettings, colors, colorOfMode, labelOfMode, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, LEGEND_FONT_SIZE
+from ResFileParser import genRndErrFileName, getF2PSettings, colors, colorOfMode, labelOfMode, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, FONT_SIZE_SMALL, LEGEND_FONT_SIZE, LEGEND_FONT_SIZE_SMALL
 
 MAX_DF = 20
 
@@ -363,14 +363,23 @@ def plotGrids (
     _, ax       = plt.subplots()
     resRecords  = []
     lenGrid     = 2**cntrSize
-    lowerBnd    = 0
-    upperBnd    = 2**cntrSize-1 
+    
+    # Set lowerBnd and upperBnd of the range to be plotted
+    if scale:
+        lowerBnd    = 0
+        upperBnd = 2**cntrSize-1 # scale by int range
+    else: # Do not scale the grids; lowerBnd, upperBnd will be assigned the smallest, largest value to be plotted
+        lowerBnd = 1
+        upperBnd = 0 
     for mode in modes:
         if mode.startswith('FP'):
             expSize = int(mode.split ('_e')[1])
             grid = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=verbose, signed=signed)
             if scale:
                 grid = scaleGrid (grid, lowerBnd = lowerBnd, upperBnd = upperBnd)
+            else:
+                lowerBnd = min (lowerBnd, grid[1])
+                upperBnd = max (upperBnd, grid[-1])
             resRecord = {
                 'mode'  : mode,
                 'grid'  : grid
@@ -382,8 +391,9 @@ def plotGrids (
             # print (f'b4: {grid}')
             if scale:
                 grid = scaleGrid (grid, lowerBnd = lowerBnd, upperBnd = upperBnd)
-            # print (f'after: {grid}')
-            # exit ()
+            else:
+                lowerBnd = min (lowerBnd, grid[1])
+                upperBnd = max (upperBnd, grid[-1])
             resRecord = {
                 'mode'  : mode,
                 'grid'  : grid 
@@ -392,8 +402,10 @@ def plotGrids (
             mode = 'FP'
             resRecord = {
                 'mode'  : 'int',
-                'grid'  : [i for i in range (lowerBnd, upperBnd+1)] 
+                'grid'  : [i for i in range (0, 2**cntrSize)] 
                 }
+            if not scale:
+                upperBnd = max (upperBnd, grid[-1])
         else:
             settings.error (f'In Quantizer.plotGrids(). Sorry, the mode {mode} requested is not supported')
         resRecords.append (resRecord)
@@ -406,9 +418,9 @@ def plotGrids (
                  color      = colorOfMode [resRecord['mode']], 
                  linestyle  = 'None', 
                  marker     = 'o',
-                 markersize = 2, 
+                 markersize = 1, 
                  label      = labelOfMode[resRecord['mode']])  # Plot the conf' interval line
-        curLegend = ax.legend (handles=[curLine], bbox_to_anchor=(-0.17, i*(1.1/len(resRecords)), 0., .102), loc='lower left', frameon=False)
+        curLegend = ax.legend (handles=[curLine], bbox_to_anchor=(-0.2, i*(1.1/len(resRecords)), 0., .102), loc='lower left', frameon=False)
         ax.add_artist (curLegend)
     
     frame = plt.gca()
@@ -417,16 +429,17 @@ def plotGrids (
     if zoomXlim!=None:
         plt.xlim (0, zoomXlim)
     else:
-        if scale:
-            plt.xlim (0, 2**cntrSize-1)
+        if (scale):
+            plt.xlim (lowerBnd, upperBnd)
         else:
+            plt.xlim (lowerBnd, upperBnd)
             plt.xscale ('log')               
     sns.despine(left=True, bottom=False, right=True)
-    plt.show()
+    plt.savefig (f'../res/Grids_n{cntrSize}_R.pdf', bbox_inches='tight')
 
 if __name__ == '__main__':
     try:
-        plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_lr_h2', 'F2P_sr_h2', 'FP_e2', 'FP_e5', 'int'])
+        plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_lr_h2', 'F2P_sr_h2', 'FP_e5', 'FP_e2', 'int'])
         # None 
         # verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
         # stdev   = 1
