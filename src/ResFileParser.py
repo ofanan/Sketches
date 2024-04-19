@@ -71,17 +71,6 @@ colorOfMode = {
 
 colors = ['green', 'purple', 'brown', 'black', 'blue', 'yellow', 'magenta', 'red', 'green', 'purple', 'brown', 'black']
 
-labelOfMode = {
-    'F2P_lr_h2' : r'F2P$_{LR}^2$',
-    'F2P_sr_h2' : r'F2P$_{SR}^2$',
-    'F2P_li_h2' : r'F2P$_{LI}^2$',
-    'F2P_si_h2' : r'F2P$_{SI}^2$',
-    'FP_e2'     : '5M2E',
-    'FP_e5'     : '2M5E',
-    'int'       : 'INT8',   
-    }
-
-
 # The markers used for each alg', in the dist' case
 markerOfMode = {'F2P_li'    : 'o',
                      'F2P_lr'    : 'o',
@@ -120,6 +109,23 @@ def genRndErrFileName (cntrSize : int) -> str:
     """
     return f'rndErr_n{cntrSize}'
 
+def labelOfMode (
+        mode     : str,
+        cntrSize : int = 8,
+        ):
+    """
+    Generates a label string that details the counter's settings (param vals), to be used in plots.
+    """
+    if mode.startswith('F2P'):
+        return genF2pLabel(mode)
+    elif mode.startswith('FP'):
+        expSize  = int(mode.split('_e')[1])
+        mantSize = cntrSize - expSize - 1 
+        return genFpLabel (expSize=expSize, mantSize=mantSize)
+    elif mode=='int':
+        return f'INT{cntrSize}'
+    settings.error (f'In ResFileParer.labelOfMode(). Sorry, the mode {mode} is not supported')
+
 def genFpLabel (mantSize : int, expSize : int) -> str:
     """
     Generates a label string that details the counter's settings (param vals), to be used in plots.
@@ -130,9 +136,47 @@ def genF2pLabel (flavor    : str, # flavor, e.g., 'lr', 'sr', 'li'
                  hyperSize : int = 2 
                  ) -> str:
     """
-    Generates a label string that details the counter's settings (param vals), to be used in plots.
+    Given F2P's params, generates a label string that details the counter's settings (param vals), to be used in plots.
     """
     return f'F2P {flavor} h{hyperSize}'
+
+def genF2pLabel (mode : str): # a mode describing the mode flavors
+    """
+    Given a string that details F2P's params, generate a label string to be used in plots.
+    """
+    labelOfMode = {
+    'F2P_lr_h2' : r'F2P$_{LR}^2$',
+    'F2P_sr_h2' : r'F2P$_{SR}^2$',
+    'F2P_li_h2' : r'F2P$_{LI}^2$',
+    'F2P_si_h2' : r'F2P$_{SI}^2$',
+    }
+    return labelOfMode[mode]
+
+    # flavor      = str(mode.split('_')[1]).upper()
+    # hyperSize   = int(mode.split ('_h')[1])
+    # print (f'flavor={flavor}, hyperSize={hyperSize}')
+    # if flavor=='SR':
+    #     if hyperSize==1:
+    #         return r'F2P$_{SR}^1$'
+    #     elif hyperSize==2:
+    #         return r'F2P$_{SR}^2$'
+    # elif flavor=='LR':
+    #     if hyperSize==1:
+    #         return r'F2P$_{LR}^1$'
+    #     elif hyperSize==2:
+    #         return r'F2P$_{LR}^2$'
+    # if flavor=='SI':
+    #     if hyperSize==1:
+    #         return r'F2P$_{SI}^1$'
+    #     elif hyperSize==2:
+    #         return r'F2P$_{SI}^2$'
+    # elif flavor=='LI':
+    #     if hyperSize==1:
+    #         return r'F2P$_{LI}^1$'
+    #     elif hyperSize==2:
+    #         return r'F2P$_{LI}^2$'
+
+
 
 def f2pSettingsToLabel (mode : str) -> str:
     """
@@ -702,6 +746,7 @@ def printAllOptModes ():
 
 if __name__ == '__main__':
     try:
+        # print (genF2pLabel ('F2P_SR_h2'))
         genErrTable ()
         # printAllOptModes ()
         # calcOptModeByDist ()

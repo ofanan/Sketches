@@ -413,14 +413,16 @@ def plotGrids (
     legends=[]
     for i in range(len(resRecords)): 
         resRecord = resRecords[i]     
-        curLine, = ax.plot (resRecord['grid'], 
-                 [i for item in range(lenGrid)], # len(resRecords)-i # Write the y index in reverse order, so that the legends' order will correspond the order of the plots. 
-                 color      = colorOfMode [resRecord['mode']], 
-                 linestyle  = 'None', 
-                 marker     = 'o',
-                 markersize = 1, 
-                 label      = labelOfMode[resRecord['mode']])  # Plot the conf' interval line
-        curLegend = ax.legend (handles=[curLine], bbox_to_anchor=(-0.2, i*(1.1/len(resRecords)), 0., .102), loc='lower left', frameon=False)
+        curLine, = ax.plot (
+            resRecord['grid'], 
+            [i for item in range(lenGrid)], # len(resRecords)-i # Write the y index in reverse order, so that the legends' order will correspond the order of the plots. 
+            color      = colorOfMode [resRecord['mode']], 
+            linestyle  = 'None', 
+            marker     = 'o',
+            markersize = 1, 
+            label      = labelOfMode(resRecord['mode'])
+        )  # Plot the conf' interval line
+        curLegend = ax.legend (handles=[curLine], bbox_to_anchor=(-0.24, i*(1.1/len(resRecords)), 0., .102), loc='lower left', frameon=False)
         ax.add_artist (curLegend)
     
     frame = plt.gca()
