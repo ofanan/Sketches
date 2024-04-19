@@ -229,6 +229,32 @@ class ResFileParser (object):
     #         point['erType'] = erType
     #         pickle.dump(point, pclOutputFile) 
 
+    def rmvFromPcl (
+            self,
+            pclFileName : str  = None,
+            listOfDict  : list = [],            
+        ):
+        """
+        Remove entries from a given .pcl. file
+        """   
+        # self.rdPcl (pclFileName)
+
+        listOfDicts = {'a'  : 1} #,{'b'  : 2}]
+        self.points = [ {'a' : 1,
+                        'b' : 3},
+                        {'a' : 2,
+                        'b' : 3},
+                        {'a' : 7,
+                        'b' : 2}]
+        print (self.points)
+        for key, value in listOfDicts.items():
+            self.points = [point for point in self.points if point[key]!=value]
+        print (self.points)
+        # os.remove(f'../res/pcl_files/{pclFileName}')
+        # pclOutputFile = open('../res/pcl_files/{pclFileName}', 'w')
+        # for point in self.points:
+        #     pickle.dump(point, pclOutputFile) 
+
     def printAllPoints (self, cntrSize=None, cntrMaxVal=None, printToScreen=False):
         """
         Format-print data found in self.points.
@@ -739,7 +765,9 @@ def plotErVsCntrSize ():
 
 if __name__ == '__main__':
     try:
-        plotErVsCntrSize ()
+        myResFileParser = ResFileParser()
+        myResFileParser.rmvFromPcl()
+        # plotErVsCntrSize ()
         # genErrTable ()
         # printAllOptModes ()
         # calcOptModeByDist ()
