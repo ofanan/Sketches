@@ -378,6 +378,7 @@ def plotGrids (
             if scale:
                 grid = scaleGrid (grid, lowerBnd = lowerBnd, upperBnd = upperBnd)
             else:
+                print (f'in FP: grid[1]={grid[1]}')
                 lowerBnd = min (lowerBnd, grid[1])
                 upperBnd = max (upperBnd, grid[-1])
             resRecord = {
@@ -388,10 +389,10 @@ def plotGrids (
             F2pSettings = getF2PSettings (mode)
             flavor    = F2pSettings['flavor'] 
             grid    = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=F2pSettings['hyperSize'], verbose=verbose, signed=signed)
-            # print (f'b4: {grid}')
             if scale:
                 grid = scaleGrid (grid, lowerBnd = lowerBnd, upperBnd = upperBnd)
             else:
+                print (f'in {mode}: grid[1]={grid[1]}')
                 lowerBnd = min (lowerBnd, grid[1])
                 upperBnd = max (upperBnd, grid[-1])
             resRecord = {
@@ -434,14 +435,15 @@ def plotGrids (
         if (scale):
             plt.xlim (lowerBnd, upperBnd)
         else:
+            print (f'lowerBnd={lowerBnd}, upperBnd={upperBnd}') #$$$
             plt.xlim (lowerBnd, upperBnd)
             plt.xscale ('log')               
     sns.despine(left=True, bottom=False, right=True)
-    plt.savefig (f'../res/Grids_n{cntrSize}_R.pdf', bbox_inches='tight')
+    plt.savefig (f'../res/Grids_n{cntrSize}_I.pdf', bbox_inches='tight')
 
 if __name__ == '__main__':
     try:
-        plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_lr_h2', 'F2P_sr_h2', 'FP_e5', 'FP_e2', 'int'])
+        plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_li_h2', 'F2P_si_h2', 'FP_e5', 'FP_e2', 'int'], scale=False)
         # None 
         # verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
         # stdev   = 1

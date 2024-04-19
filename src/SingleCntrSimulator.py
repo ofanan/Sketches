@@ -615,10 +615,9 @@ def printAllCntrMaxValsF2P (flavor='sr', hyperSizeRange=None, cntrSizeRange=[], 
                 printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), cntrMaxVal))
 
 
-if __name__ == '__main__':
-    try:
-        getAllValsF2P (flavor='li', 
-                   cntrSize     = 6, # size of the counter, WITHOUT the sign bit (if exists).  
+def main ():
+        getAllValsF2P (flavor='si', 
+                   cntrSize     = 7, # size of the counter, WITHOUT the sign bit (if exists).  
                    hyperSize    = 2, # size of the hyper-exp field. 
                    verbose      = [settings.VERBOSE_RES], #verbose level. See settings.py for details.
                    signed       = False # When True, assume an additional bit for the  
@@ -646,7 +645,12 @@ if __name__ == '__main__':
         #     # settingStrs = ['F2Plr_n15_h2', 'F2Psr_n15_h2'],  # 'FP_n7_m5_e2'# Concrete settings for which the measurements will be done 
         #     # settingStrs = ['F2Plr_n7_h1', 'F2Psr_n7_h1'],  # 'FP_n7_m5_e2'# Concrete settings for which the measurements will be done 
         #     )    
+    
+
+if __name__ == '__main__':
+    try:
+        main ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
         exit ()
-
+        

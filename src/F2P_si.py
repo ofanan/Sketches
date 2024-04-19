@@ -17,6 +17,9 @@ class CntrMaster (F2P_li.CntrMaster):
 
     flavor = lambda self : 'si'
     
+    # Given the vector of the exponent, calculate the value it represents 
+    expVec2expVal  = lambda self, expVec, expSize : 2**expSize - 1 + int (expVec, base=2) if expSize>0 else 0    
+
     def setFlavorParams (self):
         """
         set variables that are unique for 'si' flavor of F2P.
