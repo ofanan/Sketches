@@ -237,9 +237,9 @@ class ResFileParser (object):
         """
         Remove entries from a given .pcl. file
         """   
-        # self.rdPcl (pclFileName)
+        self.rdPcl (pclFileName)
 
-        listOfDicts = {'a'  : 1} #,{'b'  : 2}]
+        listOfDicts = [{'a'  : 1},{'b'  : 2}]
         self.points = [ {'a' : 1,
                         'b' : 3},
                         {'a' : 2,
@@ -247,13 +247,10 @@ class ResFileParser (object):
                         {'a' : 7,
                         'b' : 2}]
         print (self.points)
-        for key, value in listOfDicts.items():
-            self.points = [point for point in self.points if point[key]!=value]
+        for dict in listOfDicts:
+            for key, value in dict.items():
+                self.points = [point for point in self.points if point[key]!=value]
         print (self.points)
-        # os.remove(f'../res/pcl_files/{pclFileName}')
-        # pclOutputFile = open('../res/pcl_files/{pclFileName}', 'w')
-        # for point in self.points:
-        #     pickle.dump(point, pclOutputFile) 
 
     def printAllPoints (self, cntrSize=None, cntrMaxVal=None, printToScreen=False):
         """
