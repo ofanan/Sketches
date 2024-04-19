@@ -151,32 +151,14 @@ def genF2pLabel (mode : str): # a mode describing the mode flavors
     'F2P_si_h2' : r'F2P$_{SI}^2$',
     }
     return labelOfMode[mode]
-
+    # Trying to automate the code above:
     # flavor      = str(mode.split('_')[1]).upper()
     # hyperSize   = int(mode.split ('_h')[1])
     # print (f'flavor={flavor}, hyperSize={hyperSize}')
     # if flavor=='SR':
     #     if hyperSize==1:
     #         return r'F2P$_{SR}^1$'
-    #     elif hyperSize==2:
-    #         return r'F2P$_{SR}^2$'
-    # elif flavor=='LR':
-    #     if hyperSize==1:
-    #         return r'F2P$_{LR}^1$'
-    #     elif hyperSize==2:
-    #         return r'F2P$_{LR}^2$'
-    # if flavor=='SI':
-    #     if hyperSize==1:
-    #         return r'F2P$_{SI}^1$'
-    #     elif hyperSize==2:
-    #         return r'F2P$_{SI}^2$'
-    # elif flavor=='LI':
-    #     if hyperSize==1:
-    #         return r'F2P$_{LI}^1$'
-    #     elif hyperSize==2:
-    #         return r'F2P$_{LI}^2$'
-
-
+    #         ...
 
 def f2pSettingsToLabel (mode : str) -> str:
     """
@@ -744,10 +726,20 @@ def printAllOptModes ():
             printf (resFile, f'distStr={distStr}\t bestNonF2P={bestNonF2PPoint[0]}\t, bestNonF2PVal={bestNonF2PPoint[1]}\tbestF2PFlavor={bestF2PPoint[0]}\t, bestF2P/bestNonF2P={bestF2PPoint[1]/bestNonF2PPoint[1]}\n')   
         printf (resFile, f'\n')
 
+def plotErVsCntrSize (): 
+    """
+    Plot the error as a function of the counter's size.
+    """
+    my_ResFileParser = ResFileParser ()
+    for ErType in ['WrRmse', 'RdRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
+        my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
+        my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=1, maxCntrSize=16) # 50
+
+
 if __name__ == '__main__':
     try:
-        # print (genF2pLabel ('F2P_SR_h2'))
-        genErrTable ()
+        plotErVsCntrSize ()
+        # genErrTable ()
         # printAllOptModes ()
         # calcOptModeByDist ()
         # genErrByDistBar ()
