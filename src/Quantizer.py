@@ -443,25 +443,26 @@ def plotGrids (
 
 if __name__ == '__main__':
     try:
-        plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_li_h2', 'F2P_si_h2', 'FP_e5', 'FP_e2', 'int'], scale=False)
+        # plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_li_h2', 'F2P_si_h2', 'FP_e5', 'FP_e2', 'int'], scale=False)
         # None 
-        # verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
-        # stdev   = 1
-        # for cntrSize in [8]:
-        #     if settings.VERBOSE_PCL in verbose:
-        #         pclOutputFileName = f'{ResFileParser.genRndErrFileName (cntrSize)}.pcl'
-        #         # if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
-        #         #     os.remove(f'../res/pcl_files/{pclOutputFileName}')
-        #     for distStr in ['uniform', 'norm', 't_5', 't_8', 't_2', 't_10', 't_4', 't_6', 't_8']:
-        #         calcQuantRoundErr (cntrSize       = cntrSize, 
-        #                      modes          = settings.modesOfCntrSize(cntrSize), 
-        #                      numPts         = 1000000, 
-        #                      stdev          = stdev,
-        #                      dist           = distStr, 
-        #                      vecLowerBnd    = -stdev, 
-        #                      vecUpperBnd    = stdev,
-        #                      # outLier        = 100*stdev,
-        #                      verbose = verbose) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
+        verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
+        stdev   = 1
+        for cntrSize in [19]:
+            if settings.VERBOSE_PCL in verbose:
+                pclOutputFileName = f'{ResFileParser.genRndErrFileName (cntrSize)}.pcl'
+                # if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
+                #     os.remove(f'../res/pcl_files/{pclOutputFileName}')
+            for distStr in ['uniform', 'norm', 't_5', 't_8']:
+            # for distStr in ['uniform', 'norm', 't_5', 't_8', 't_2', 't_10', 't_4', 't_6', 't_8']:
+                calcQuantRoundErr (cntrSize       = cntrSize, 
+                             modes          = settings.modesOfCntrSize(cntrSize), 
+                             numPts         = 1000000, 
+                             stdev          = stdev,
+                             dist           = distStr, 
+                             vecLowerBnd    = -stdev, 
+                             vecUpperBnd    = stdev,
+                             # outLier        = 100*stdev,
+                             verbose = verbose) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
 
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

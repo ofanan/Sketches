@@ -368,7 +368,9 @@ class SingleCntrSimulator (object):
         """
         verbose = settings.VERBOSE_LOG_CNTRLINE
         # Set self.cntrRecord, which holds the counter to run
-        if (self.mode=='F2Pli'):
+        if (self.mode=='F2P_si'):
+            self.cntrRecord = {'mode' : 'F2P_si', 'cntr' : F2P_si.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
+        elif (self.mode=='F2P_li'):
             self.cntrRecord = {'mode' : 'F2P_li', 'cntr' : F2P_li.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
         elif (self.mode=='F2Plr'):
             self.cntrRecord = {'mode' : 'F2P_lr', 'cntr' : F2P_lr.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
@@ -616,27 +618,28 @@ def printAllCntrMaxValsF2P (flavor='sr', hyperSizeRange=None, cntrSizeRange=[], 
 
 
 def main ():
-        getAllValsF2P (flavor='si', 
-                   cntrSize     = 7, # size of the counter, WITHOUT the sign bit (if exists).  
-                   hyperSize    = 2, # size of the hyper-exp field. 
-                   verbose      = [settings.VERBOSE_RES], #verbose level. See settings.py for details.
-                   signed       = False # When True, assume an additional bit for the  
-                   )
-        # simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
-        # simController.runSingleCntr \
-        #     (dwnSmple       = False,  
-        #      modes          = ['F2Pli', 'Morris', ], #, 'SEAD stat', 'F2Pli', 'Morris', 'CEDAR'], #[],
-        #      cntrSize       = 6, 
-        #      numOfExps      = 1,
-        #      erTypes        = ['WrRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
-        #      cntrMaxVal     = None, 
-        #      )
+        # getAllValsF2P (flavor='si', 
+        #            cntrSize     = 7, # size of the counter, WITHOUT the sign bit (if exists).  
+        #            hyperSize    = 2, # size of the hyper-exp field. 
+        #            verbose      = [settings.VERBOSE_RES], #verbose level. See settings.py for details.
+        #            signed       = False # When True, assume an additional bit for the  
+        #            )
+        simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+        simController.runSingleCntr \
+            (dwnSmple       = False,  
+             modes          = ['F2P_si', 'Morris', 'CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
+             cntrSize       = 8, 
+             hyperSize      = 2,
+             numOfExps      = 1,
+             erTypes        = ['RdRmse', 'WrRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+             cntrMaxVal     = 983040, 
+             )
         
         # simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
         # simController.measureResolutionsByModes (
         #     cntrSizes   = [8], 
         #     expSize     = 2, 
-        #     modes       = ['SEAD stat', 'Morris', 'F2Pli'],
+        #     modes       = ['SEAD stat', 'Morris', 'F2P_li'],
         #     delPrevPcl  = True
         #     ) 
         # simController.measureResolutionsBySettingStrs (

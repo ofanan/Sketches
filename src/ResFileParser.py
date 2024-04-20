@@ -218,16 +218,15 @@ class ResFileParser (object):
             except EOFError:
                 break
             
-    # def addToPcl (self, erType, pclOutputFileName):
-    #     """
-    #     Dump all the points in self.points to a .pcl. file
-    #     """
-    #
-    #     pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}', 'ab+')
-    #
-    #     for point in self.points:
-    #         point['erType'] = erType
-    #         pickle.dump(point, pclOutputFile) 
+    def dumpToPcl (self, pclOutputFileName):
+        """
+        Dump all the points in self.points to a .pcl. file
+        """
+    
+        pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}', 'ab+')
+    
+        for point in self.points:
+            pickle.dump(point, pclOutputFile) 
 
     def rmvFromPcl (
             self,
@@ -631,25 +630,27 @@ class ResFileParser (object):
         
         for dist in distStrs:
             pointsOfThisDist = [point for point in points if point['dist']==dist]
-            minErr = min ([point[errType] for point in pointsOfThisDist])
+            if len(pointsOfThisDist)==0:
+                settings.error (f'In ResFileParser.optModeOfDist(). No points found for cntrSize={cntrSize}, errType={errType}, dist={dist}')
+            minErr = 1 #$$$ min ([point[errType] for point in pointsOfThisDist])
             printf (resFile, f'{labelOfDist(dist)} & ') 
             for mode in modes:
                 pointsOfThisDistAndMode = [point for point in pointsOfThisDist if point['mode']==mode]
                 if len(pointsOfThisDistAndMode)==0:
-                    print (f'In ResFileParser.optModeOfDist(). No points found for cntrSize={cntrSize}, errType={errType}, dist={distStr}')
+                    print (f'In ResFileParser.optModeOfDist(). No points found for cntrSize={cntrSize}, errType={errType}, dist={dist}, mode={mode}')
                     printf (resFile, 'None & ')
                     continue
                 val = pointsOfThisDistAndMode[0][errType]/minErr
-                if val<1.01:
-                    printf (resFile, '\\green{\\textbf{')
-                    printf (resFile, '{:.1f}' .format (val))
-                    printf (resFile, '}}')
-                elif val<100:
-                    printf (resFile, '{:.1f}' .format (val))
-                elif val<10000:
-                    printf (resFile, '{:.0f}' .format (val))
-                else:
-                    printf (resFile, '{:.1e}' .format (val))
+                # if val<1.01:
+                #     printf (resFile, '\\green{\\textbf{')
+                #     printf (resFile, '{:.1f}' .format (val))
+                #     printf (resFile, '}}')
+                # elif val<100:
+                #     printf (resFile, '{:.1f}' .format (val))
+                # elif val<10000:
+                #     printf (resFile, '{:.0f}' .format (val))
+                # else:
+                printf (resFile, '{:.1e}' .format (val))
                 if mode!=modes[-1]:
                     printf (resFile, ' & ' .format (pointsOfThisDistAndMode[0][errType]/minErr))
             printf (resFile, ' \\\\ \n')
@@ -714,15 +715,17 @@ def genErrTable ():
     """
     Print a formatted table with the results.
     """
-    resFile = open ('../res/errTable.dat', 'w')
-    for cntrSize in [19]:
-        errType = 'absMse'
+    resFile = open ('../res/errTable.dat', 'a+')
+    for cntrSize in [8, 16, 19]:
+        errType = 'relMse'
         printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
         myResFileParser = ResFileParser ()
         myResFileParser.printErrTableRow (
+            # distStrs = ['Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
             distStrs = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
             cntrSize = cntrSize,
             resFile  = resFile,
+            errType  = errType,
             )
         printf (resFile, '\n')
 
@@ -769,16 +772,16 @@ def plotErVsCntrSize ():
 
 if __name__ == '__main__':
     try:
-        myResFileParser = ResFileParser()
-        # genErrTable (verbose=[settings.VERBOSE_RES])
-        myResFileParser.rmvFromPcl(
-            pclFileName = 'rndErr_n8.pcl',
-            listOfDicts = [{'mode' : 'F2P_li_h2'},
-                           {'mode' : 'F2P_si_h2'},
-                           {'mode' : 'F2P_li_h1'},
-                           {'mode' : 'F2P_si_h1'}],
-            verbose     = [settings.VERBOSE_RES]
-            )
+        genErrTable ()
+        # myResFileParser = ResFileParser()
+        # myResFileParser.rmvFromPcl(
+        #     pclFileName = 'rndErr_n19_wrong_si_li.pcl',
+        #     listOfDicts = [{'mode' : 'F2P_li_h2'},
+        #                    {'mode' : 'F2P_si_h2'},
+        #                    {'mode' : 'F2P_li_h1'},
+        #                    {'mode' : 'F2P_si_h1'}],
+        #     verbose     = [settings.VERBOSE_RES]
+        #     )
         # plotErVsCntrSize ()
         # printAllOptModes ()
         # calcOptModeByDist ()
