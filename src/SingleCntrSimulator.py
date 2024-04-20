@@ -368,7 +368,7 @@ class SingleCntrSimulator (object):
         """
         verbose = settings.VERBOSE_LOG_CNTRLINE
         # Set self.cntrRecord, which holds the counter to run
-        if (self.mode=='F2P_si'):
+        if (self.mode.startswith('F2P_si')):
             self.cntrRecord = {'mode' : 'F2P_si', 'cntr' : F2P_si.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
         elif (self.mode=='F2P_li'):
             self.cntrRecord = {'mode' : 'F2P_li', 'cntr' : F2P_li.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
@@ -404,6 +404,8 @@ class SingleCntrSimulator (object):
             self.hyperSize    = self.conf['hyperSize'] 
             self.hyperMaxSize = self.conf['hyperMaxSize'] 
                     
+        settings.error (self.hyperSize) #$$$
+        
         
         self.genCntrRecord () # Set self.cntrRecord, which holds the counter to run
         self.maxRealVal         = self.cntrMaxVal if (self.maxRealVal==None) else self.maxRealVal
@@ -627,7 +629,7 @@ def main ():
         simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
         simController.runSingleCntr \
             (dwnSmple       = False,  
-             modes          = ['F2P_si', 'Morris', 'CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
+             modes          = ['F2P_si_h2', 'Morris', 'CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
              cntrSize       = 8, 
              hyperSize      = 2,
              numOfExps      = 1,

@@ -632,7 +632,7 @@ class ResFileParser (object):
             pointsOfThisDist = [point for point in points if point['dist']==dist]
             if len(pointsOfThisDist)==0:
                 settings.error (f'In ResFileParser.optModeOfDist(). No points found for cntrSize={cntrSize}, errType={errType}, dist={dist}')
-            minErr = 1 #$$$ min ([point[errType] for point in pointsOfThisDist])
+            minErr = min ([point[errType] for point in pointsOfThisDist])
             printf (resFile, f'{labelOfDist(dist)} & ') 
             for mode in modes:
                 pointsOfThisDistAndMode = [point for point in pointsOfThisDist if point['mode']==mode]
@@ -641,16 +641,16 @@ class ResFileParser (object):
                     printf (resFile, 'None & ')
                     continue
                 val = pointsOfThisDistAndMode[0][errType]/minErr
-                # if val<1.01:
-                #     printf (resFile, '\\green{\\textbf{')
-                #     printf (resFile, '{:.1f}' .format (val))
-                #     printf (resFile, '}}')
-                # elif val<100:
-                #     printf (resFile, '{:.1f}' .format (val))
-                # elif val<10000:
-                #     printf (resFile, '{:.0f}' .format (val))
-                # else:
-                printf (resFile, '{:.1e}' .format (val))
+                if val<1.01:
+                    printf (resFile, '\\green{\\textbf{')
+                    printf (resFile, '{:.1f}' .format (val))
+                    printf (resFile, '}}')
+                elif val<100:
+                    printf (resFile, '{:.1f}' .format (val))
+                elif val<100000:
+                    printf (resFile, '{:.0f}' .format (val))
+                else:
+                    printf (resFile, '{:.1e}' .format (val))
                 if mode!=modes[-1]:
                     printf (resFile, ' & ' .format (pointsOfThisDistAndMode[0][errType]/minErr))
             printf (resFile, ' \\\\ \n')
