@@ -8,7 +8,7 @@ from printf import printf, printFigToPdf
 from nltk.corpus.reader import lin
 
 import settings
-from settings import warning
+from settings import warning, error
 
 # Color-blind friendly pallette
 BLACK       = '#000000' 
@@ -352,6 +352,8 @@ class ResFileParser (object):
             printf (datOutputFile, f'{cntrSize} & ')
             for erType in erTypes:
                 pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize if point['erType'] == erType]
+                if pointsOfThisCntrSizeErType == []:
+                    error (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}')
                 minVal = min ([point['Avg'] for point in pointsOfThisCntrSizeErType])
                 for mode in modes:
                     pointsToPrint = [point for point in pointsOfThisCntrSizeErType if point['mode'] == mode]
@@ -819,8 +821,9 @@ if __name__ == '__main__':
         my_ResFileParser = ResFileParser ()
         for ErType in ['RdRmse', 'WrRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
             my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
-            my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}_li.pcl')
-        my_ResFileParser.genErVsCntrSizeTable(erTypes=['RdRmse', 'WrRmse'], numOfExps=1, cntrSizes=[8, 10, 12, 14, 16])
+            # my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}_li.pcl')
+            my_ResFileParser.rdPcl (pclFileName=f'1cntr_HPC_{ErType}.pcl')
+        my_ResFileParser.genErVsCntrSizeTable(erTypes=['RdRmse', 'WrRmse'], numOfExps=10, cntrSizes=[16]) #[8, 10, 12, 14, 16])
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 

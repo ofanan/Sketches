@@ -179,7 +179,7 @@ def error (str2print):
     """
     Print an error msg and exit.
     """
-    print (f'Error: {str2print}')
+    print (f'{STDOUT_FAIL}Error: {str2print}{STDOUT_ENDC}')
     exit  ()
 
 def checkIfInputFileExists (relativePathToInputFile):
