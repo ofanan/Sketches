@@ -201,6 +201,7 @@ class SingleCntrSimulator (object):
                 realValCntr += 1
                 if (self.cntrRecord['sampleProb']==1 or random.random() < self.cntrRecord['sampleProb']): # sample w.p. self.cntrRecord['sampleProb']
                     cntrValAfterInc = self.cntrRecord['cntr'].incCntrBy1GetVal ()
+                    print (f'cntrValAfterInc={cntrValAfterInc}') #$$$
                     cntrNewVal      = cntrValAfterInc / self.cntrRecord['sampleProb']
                     if (settings.VERBOSE_DETAILS in self.verbose): 
                         print ('realVal={:.0f} oldVal={:.0f}, cntrWoScaling={:.0f}, cntrNewValScaled={:.0f}, maxRealVal={:.0f}'
@@ -368,9 +369,9 @@ class SingleCntrSimulator (object):
         """
         verbose = settings.VERBOSE_LOG_CNTRLINE
         # Set self.cntrRecord, which holds the counter to run
-        if (self.mode.startswith('F2P_si')):
+        if self.mode.startswith('F2P_si'):
             self.cntrRecord = {'mode' : 'F2P_si', 'cntr' : F2P_si.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
-        elif (self.mode=='F2P_li'):
+        elif self.mode.startswith('F2P_li'):
             self.cntrRecord = {'mode' : 'F2P_li', 'cntr' : F2P_li.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
         elif (self.mode=='F2Plr'):
             self.cntrRecord = {'mode' : 'F2P_lr', 'cntr' : F2P_lr.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
@@ -404,9 +405,6 @@ class SingleCntrSimulator (object):
             self.hyperSize    = self.conf['hyperSize'] 
             self.hyperMaxSize = self.conf['hyperMaxSize'] 
                     
-        settings.error (self.hyperSize) #$$$
-        
-        
         self.genCntrRecord () # Set self.cntrRecord, which holds the counter to run
         self.maxRealVal         = self.cntrMaxVal if (self.maxRealVal==None) else self.maxRealVal
         if self.cntrRecord['cntr'].cntrMaxVal < self.maxRealVal and (not(self.dwnSmple)):
@@ -631,7 +629,7 @@ def main ():
             (dwnSmple       = False,  
              modes          = ['F2P_si_h2', 'Morris', 'CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
              cntrSize       = 8, 
-             hyperSize      = 2,
+             hyperSize      = 3,
              numOfExps      = 1,
              erTypes        = ['RdRmse', 'WrRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
              cntrMaxVal     = 983040, 

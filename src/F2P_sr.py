@@ -1,9 +1,10 @@
 # This file implements F2P LR, namely, F2P flavor that focuses on improved accuracy on large reals. 
 # For futher details, see "main.tex" in Cntr's Overleaf project.
-import math, random, pickle
-from printf import printf
+import math, random, pickle, numpy as np
+
 import settings
-import numpy as np
+from settings import warning #STDOUT_FAIL, STDOUT_ENDC
+from printf import printf
 
 class CntrMaster (object):
     """
@@ -124,12 +125,12 @@ class CntrMaster (object):
         - If not - print an error msg and return False
         """
         if (hyperSize<1 or hyperSize>self.cntrSize-2):
-            print ('Requested hyperSize {} is not feasible for counter size {}' .format (hyperSize, self.cntrSize))
+            warning (f'Requested hyperSize {hyperSize} is not feasible for counter size {self.cntrSize}')
             return False
         self.hyperSize     = hyperSize
         self.expMaxSize    = 2**(self.hyperSize)-1 # the maximum value that can be represented by self.hyperSize bits, using standard binary representation. 
         if (self.hyperSize + self.expMaxSize > self.cntrSize-1):
-            print ('Requested hyperSize {} is not feasible for counter size {}' .format (hyperSize, self.cntrSize))
+            warning (f'Requested hyperSize {hyperSize} is not feasible for counter size {self.cntrSize}')
             return False
         return True
 

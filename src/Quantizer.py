@@ -435,7 +435,6 @@ def plotGrids (
         if (scale):
             plt.xlim (lowerBnd, upperBnd)
         else:
-            print (f'lowerBnd={lowerBnd}, upperBnd={upperBnd}') #$$$
             plt.xlim (lowerBnd, upperBnd)
             plt.xscale ('log')               
     sns.despine(left=True, bottom=False, right=True)

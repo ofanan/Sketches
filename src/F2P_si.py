@@ -43,14 +43,16 @@ class CntrMaster (F2P_li.CntrMaster):
         self.probOfInc1[self.Vmax-1] = 1 # Fix the special case, where ExpVal==expMinVal and the resolution is also 1 (namely, prob' of increment is also 1).
         
         # 
-        self.cntrppOfAbsExpVal = ['']*(self.Vmax)
-        for expSize in range(self.expMaxSize, 0, -1):
+        self.cntrppOfAbsExpVal = [np.binary_repr(num=1, width=self.hyperSize) + '0'*(self.cntrSize-self.hyperSize)]*(self.Vmax-1)
+        expVal = 1
+        for expSize in range(1, self.expMaxSize+1):
             hyperVec = np.binary_repr (expSize, self.hyperSize) 
             mantSize = self.cntrSize - self.hyperSize - expSize
-            for i in range (2**expSize-1, 0, -1): 
+            for i in range (2**expSize-1): 
                 expVec = np.binary_repr(num=i, width=expSize)
-                expVal = self.expVec2expVal (expVec=expVec, expSize=expSize)
-                self.cntrppOfAbsExpVal[abs(expVal)] = hyperVec + np.binary_repr(num=i-1, width=expSize) + '0'*mantSize 
-            expVal = self.expVec2expVal (expVec='0'*expSize, expSize=expSize)
-            self.cntrppOfAbsExpVal[abs(expVal)] = np.binary_repr (expSize-1, self.hyperSize) + ('1'*(expSize-1) if expSize>1 else '') + '0'*(mantSize+1)
-
+                self.cntrppOfAbsExpVal[expVal] = hyperVec + np.binary_repr(num=i+1, width=expSize) + '0'*mantSize 
+                expVal += 1
+            if expSize<self.expMaxSize:
+                self.cntrppOfAbsExpVal[expVal] = np.binary_repr (expSize+1, self.hyperSize) + '0'*(self.cntrSize - self.hyperSize)
+                expVal += 1
+        settings.error (f'self.expMaxSize={self.expMaxSize}, cntrppOfAbsExpVal={self.cntrppOfAbsExpVal}') #$$$$

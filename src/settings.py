@@ -7,6 +7,20 @@ SEED    = 42
 INF_INT = 999999999
 MAX_NUM_OF_FLOWS = 2**32
 
+# Colors for print-out messages
+STDOUT_FAIL     = '\033[91m'
+STDOUT_ENDC     = '\033[0m'
+# Other bcolors:
+#     HEADER = '\033[95m'
+#     OKBLUE = '\033[94m'
+#     OKCYAN = '\033[96m'
+#     OKGREEN = '\033[92m'
+#     WARNING = '\033[93m'
+#     FAIL = '\033[91m'
+#     ENDC = '\033[0m'
+#     BOLD = '\033[1m'
+#     UNDERLINE = '\033[4m'
+   
 VERBOSE_COUT_CONF       = 0 # print to stdout details about the configuration, e.g., cntrSize, hyperSize, Vmax, bias.
 VERBOSE_COUT_CNTRLINE   = 1 # print to stdout details about the concrete counter and its fields.
 VERBOSE_DEBUG           = 2 # perform checks and debug operations during the run.
@@ -154,6 +168,12 @@ def RmseOfVec (vec):
     given a vector of errors, calculate the RMSE
     """
     return (math.sqrt (sum([item**2 for item in vec])/len(vec)))/len(vec)
+
+def warning (str2print):
+    """
+    Print an error msg and exit.
+    """
+    print (f'{STDOUT_FAIL}Error: {str2print}{STDOUT_ENDC}')
 
 def error (str2print):
     """
