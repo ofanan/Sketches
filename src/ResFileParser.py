@@ -8,6 +8,7 @@ from printf import printf, printFigToPdf
 from nltk.corpus.reader import lin
 
 import settings
+from settings import warning
 
 # Color-blind friendly pallette
 BLACK       = '#000000' 
@@ -330,6 +331,35 @@ class ResFileParser (object):
         if not(USE_FRAME):
             seaborn.despine(left=True, bottom=True, right=True)
         plt.savefig ('../res/{}.pdf' .format (outputFileName), bbox_inches='tight')        
+    
+    def genErVsCntrSizeTable (
+            self,
+            erTypes     : list = ['absRdErAvg'], # Error types to consider    
+            numOfExps   : int  = 50,
+            modes       : list = ['F2P_li', 'CEDAR', 'Morris'],
+            cntrSizes   : list = [8],
+        ):
+        """
+        Generate a table showing the error as a function of the counter's size.
+        """
+
+        outputFileName = f'1cntr.dat' 
+        datOutputFile = open (f'../res{outputFileName}', 'w')
+        points = [point for point in self.points if point['numOfExps'] == numOfExps]
+
+        for cntrSize in cntrSizes:
+            pointsOfThisCntrSize = [point for point in points if point['cntrSize']==cntrSize]
+            for erType in erTypes:
+                pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize if point['erType'] == erType]
+                for mode in modes:
+                    pointsToPrint = [point for point in pointsOfThisCntrSizeErType if point['mode'] == mode]
+                    if pointsToPrint == []:
+                        warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}, mode={mode}')
+                        continue
+                    printf (datOutputFile, '{:.2e}' .format(pointsToPrint[0][erType]))
+                    if mode!=modes[-1]:
+                        printf (datOutputFile, ' & ' .format(pointsToPrint[0][erType]))
+                printf (datOutputFile, '\n')
     
     def genErVsCntrMaxValPlot (self, cntrSize=8, plotAbsEr=True):
         """
