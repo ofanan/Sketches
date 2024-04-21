@@ -352,6 +352,7 @@ class ResFileParser (object):
             printf (datOutputFile, f'{cntrSize} & ')
             for erType in erTypes:
                 pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize if point['erType'] == erType]
+                minVal = min ([point['Avg'] for point in pointsOfThisCntrSizeErType])
                 for mode in modes:
                     pointsToPrint = [point for point in pointsOfThisCntrSizeErType if point['mode'] == mode]
                     if pointsToPrint == []:
@@ -361,12 +362,17 @@ class ResFileParser (object):
                         continue
                     if len(pointsToPrint)>1:
                         warning (f'found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}, mode={mode}')
-                    printf (datOutputFile, '{:.2e}' .format(pointsToPrint[0]['Avg']))
+                    if pointsToPrint[0]['Avg']<=minVal*1.01:
+                        printf (datOutputFile, '\\green{\\textbf{')
+                        printf (datOutputFile, '{:.2e}' .format(pointsToPrint[0]['Avg']))
+                        printf (datOutputFile, '}}')
+                    else:
+                        printf (datOutputFile, '{:.2e}' .format(pointsToPrint[0]['Avg']))
                     if mode!=modes[-1]:
                         printf (datOutputFile, ' & ')
                 if erType!=erTypes[-1]:
                     printf (datOutputFile, ' & ')
-            printf (datOutputFile, '\n')
+            printf (datOutputFile, ' \\\\\n')
     
     def genErVsCntrMaxValPlot (self, cntrSize=8, plotAbsEr=True):
         """
@@ -682,10 +688,10 @@ class ResFileParser (object):
                     printf (resFile, '\\green{\\textbf{')
                     printf (resFile, '{:.1f}' .format (val))
                     printf (resFile, '}}')
-                elif val<100:
-                    printf (resFile, '{:.1f}' .format (val))
+                # elif val<100:
+                #     printf (resFile, '{:.1f}' .format (val))
                 elif val<100000:
-                    printf (resFile, '{:.0f}' .format (val))
+                    printf (resFile, '{:.1f}' .format (val))
                 else:
                     printf (resFile, '{:.1e}' .format (val))
                 if mode!=modes[-1]:
@@ -809,6 +815,7 @@ def plotErVsCntrSize ():
 
 if __name__ == '__main__':
     try:
+        # genErrTable ()
         my_ResFileParser = ResFileParser ()
         for ErType in ['RdRmse', 'WrRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
             my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
@@ -817,7 +824,6 @@ if __name__ == '__main__':
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 
-# genErrTable ()
 # genResolutionPlot ()
     # my_ResFileParser.printAllPoints (cntrSize=8, cntrMaxVal=1488888, printToScreen=True)
 
