@@ -631,20 +631,17 @@ def main ():
         #            verbose      = [settings.VERBOSE_RES], #verbose level. See settings.py for details.
         #            signed       = False # When True, assume an additional bit for the  
         #            )
-        cntrSize       = 8 
-        hyperSize      = 2
-        cntrMaster = F2P_si.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize)
-        cntrMaxVal = cntrMaster.cntrMaxVal
-        simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
-        simController.runSingleCntr \
-            (dwnSmple       = False,  
-             modes          = ['F2P_si_h2', 'Morris', 'CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
-             cntrSize       = cntrSize, 
-             hyperSize      = hyperSize,
-             numOfExps      = 1,
-             erTypes        = ['RdRmse', 'WrRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
-             cntrMaxVal     = cntrMaxVal,#  983040, 
-             )
+        hyperSize  = 2
+        for cntrSize in [8, 10]:
+            simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+            simController.runSingleCntr \
+                (dwnSmple       = False,  
+                 modes          = ['F2P_li_h2', 'Morris', 'CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
+                 cntrSize       = cntrSize, 
+                 hyperSize      = hyperSize,
+                 numOfExps      = 10,
+                 erTypes        = ['RdRmse', 'WrRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+            )
         
 
         # simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
