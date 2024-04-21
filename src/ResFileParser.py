@@ -361,7 +361,7 @@ class ResFileParser (object):
                         warning ('found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}, mode={mode}')
                     printf (datOutputFile, '{:.2e}' .format(pointsToPrint[0]['Avg']))
                     if mode!=modes[-1]:
-                        printf (datOutputFile, ' & ' .format(pointsToPrint[0][erType]))
+                        printf (datOutputFile, ' & ')
                 printf (datOutputFile, '\n')
     
     def genErVsCntrMaxValPlot (self, cntrSize=8, plotAbsEr=True):
