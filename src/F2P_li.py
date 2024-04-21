@@ -76,7 +76,6 @@ class CntrMaster (F2P_lr.CntrMaster):
         
         cntr       = self.cntrs[cntrIdx]
         hyperVec   = cntr [0:self.hyperSize]
-        print (f'cntr={cntr}, hyperVec={hyperVec}') #$$$$
         expSize    = int(hyperVec, base=2)
         expVec     = cntr[self.hyperSize:self.hyperSize+expSize]
         expVal     = int (self.expVec2expVal(expVec, expSize))
