@@ -53,7 +53,6 @@ class CntrMaster (F2P_lr.CntrMaster):
                 self.cntrppOfAbsExpVal[abs(expVal)] = hyperVec + np.binary_repr(num=i-1, width=expSize) + '0'*mantSize 
             expVal = self.expVec2expVal (expVec='0'*expSize, expSize=expSize)
             self.cntrppOfAbsExpVal[abs(expVal)] = np.binary_repr (expSize-1, self.hyperSize) + ('1'*(expSize-1) if expSize>1 else '') + '0'*(mantSize+1)
-        # settings.error (f'self.expMaxSize={self.expMaxSize}, cntrppOfAbsExpVal={self.cntrppOfAbsExpVal}') #$$$$
 
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
         """
@@ -101,10 +100,6 @@ class CntrMaster (F2P_lr.CntrMaster):
             print (f'b4 inc: cntrVec={cntr}, cntrVal={int(cntrCurVal)}')
         if mantVec == '1'*mantSize: # the mantissa overflowed
             self.cntrs[cntrIdx] = self.cntrppOfAbsExpVal[abs(expVal)]
-            # for i in range(len(self.cntrppOfAbsExpVal)):
-            #     print (f'i={i}, cntrppOfAbsExpVal={self.cntrppOfAbsExpVal[i]}')
-            # settings.error (f'expVal={expVal}, incrementing to {self.cntrs[cntrIdx]}') 
-            # settings.error (f'cntr={self.cntrs[cntrIdx]}, expVal={expVal}, cntrpp={self.cntrppOfAbsExpVal[expVal]}') #$$$
         else:
             self.cntrs[cntrIdx] = hyperVec + expVec + np.binary_repr(num=mantIntVal+1, width=mantSize) 
         if settings.VERBOSE_COUT_CNTRLINE in self.verbose:

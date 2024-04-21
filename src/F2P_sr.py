@@ -64,7 +64,7 @@ class CntrMaster (object):
         self.isFeasible = True
         self.cntrSize   = cntrSize
         if (self.cntrSize<3):
-            print ('error: cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
+            warning ('cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
             self.isFeasible = False
             return 
         self.numCntrs   = numCntrs

@@ -173,7 +173,7 @@ def warning (str2print):
     """
     Print an error msg and exit.
     """
-    print (f'{STDOUT_FAIL}Error: {str2print}{STDOUT_ENDC}')
+    print (f'{STDOUT_FAIL}Warning: {str2print}{STDOUT_ENDC}')
 
 def error (str2print):
     """

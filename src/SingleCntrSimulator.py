@@ -201,7 +201,6 @@ class SingleCntrSimulator (object):
                 realValCntr += 1
                 if (self.cntrRecord['sampleProb']==1 or random.random() < self.cntrRecord['sampleProb']): # sample w.p. self.cntrRecord['sampleProb']
                     cntrValAfterInc = self.cntrRecord['cntr'].incCntrBy1GetVal ()
-                    print (f'cntrValAfterInc={cntrValAfterInc}') #$$$
                     cntrNewVal      = cntrValAfterInc / self.cntrRecord['sampleProb']
                     if (settings.VERBOSE_DETAILS in self.verbose): 
                         print ('realVal={:.0f} oldVal={:.0f}, cntrWoScaling={:.0f}, cntrNewValScaled={:.0f}, maxRealVal={:.0f}'
@@ -594,9 +593,15 @@ def coutConfDataF2P (cntrSize, hyperSize, flavor='', verbose=[]):
     """
     genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=[settings.VERBOSE_COUT_CONF])
 
-def printAllCntrMaxValsF2P (flavor='sr', hyperSizeRange=None, cntrSizeRange=[], verbose=[settings.VERBOSE_RES]):
+def printAllCntrMaxValsF2P (
+        flavor          : str  = 'sr', 
+        hyperSizeRange  : list = [], # list of hyper-sizes to consider  
+        cntrSizeRange   : list = [], # list of cntrSizes to consider
+        verbose         : list =[settings.VERBOSE_RES]
+        ):
     """
-    print the maximum value a cntr reach for several "configurations" -- namely, all combinations of cntrSize and hyperSize. 
+    print the maximum value a cntr reach for several "configurations" -- namely, all combinations of cntrSize and hyperSize.
+    Returns the cntrMaxVal of the last conf' it was called with  
     """
 
     for cntrSize in cntrSizeRange:
@@ -609,13 +614,15 @@ def printAllCntrMaxValsF2P (flavor='sr', hyperSizeRange=None, cntrSizeRange=[], 
             if not(myCntrMaster.isFeasible): # This combination of cntrSize and hyperSize is infeasible
                 continue
             cntrMaxVal = myCntrMaster.cntrMaxVal
-            if flavor=='li':
+            if flavor in ['si', 'li']:
                 cntrMaxVal = int(cntrMaxVal)
+            if (settings.VERBOSE_RES not in verbose):
+                continue
             if (cntrMaxVal < 10**8):
                 printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), cntrMaxVal))
             else:
                 printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), cntrMaxVal))
-
+    return cntrMaxVal
 
 def main ():
         # getAllValsF2P (flavor='si', 
@@ -624,17 +631,29 @@ def main ():
         #            verbose      = [settings.VERBOSE_RES], #verbose level. See settings.py for details.
         #            signed       = False # When True, assume an additional bit for the  
         #            )
-        simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
-        simController.runSingleCntr \
-            (dwnSmple       = False,  
-             modes          = ['F2P_si_h2', 'Morris', 'CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
-             cntrSize       = 8, 
-             hyperSize      = 3,
-             numOfExps      = 1,
-             erTypes        = ['RdRmse', 'WrRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
-             cntrMaxVal     = 983040, 
-             )
+        printAllCntrMaxValsF2P (
+            flavor          = 'sr', 
+            hyperSizeRange  = [1], # list of hyper-sizes to consider  
+            cntrSizeRange   = [4], # largest cntrSizes to consider
+            verbose         = [settings.VERBOSE_RES]
+        )
+
+        # cntrSize       = 8 
+        # hyperSize      = 2
+        # cntrMaster = F2P_si.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize)
+        # cntrMaxVal = cntrMaster.cntrMaxVal
+        # simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+        # simController.runSingleCntr \
+        #     (dwnSmple       = False,  
+        #      modes          = ['F2P_si_h2', 'Morris', 'CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
+        #      cntrSize       = cntrSize, 
+        #      hyperSize      = hyperSize,
+        #      numOfExps      = 1,
+        #      erTypes        = ['RdRmse', 'WrRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+        #      cntrMaxVal     = cntrMaxVal,#  983040, 
+        #      )
         
+
         # simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
         # simController.measureResolutionsByModes (
         #     cntrSizes   = [8], 
