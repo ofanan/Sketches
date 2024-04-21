@@ -349,6 +349,7 @@ class ResFileParser (object):
 
         for cntrSize in cntrSizes:
             pointsOfThisCntrSize = [point for point in points if point['cntrSize']==cntrSize]
+            printf (datOutputFile, '{cntrSize} & ')
             for erType in erTypes:
                 pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize if point['erType'] == erType]
                 for mode in modes:
@@ -356,6 +357,8 @@ class ResFileParser (object):
                     if pointsToPrint == []:
                         warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}, mode={mode}')
                         continue
+                    if len(pointsToPrint)>1:
+                        warning ('found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}, mode={mode}')
                     printf (datOutputFile, '{:.2e}' .format(pointsToPrint[0][erType]))
                     if mode!=modes[-1]:
                         printf (datOutputFile, ' & ' .format(pointsToPrint[0][erType]))
@@ -804,9 +807,9 @@ if __name__ == '__main__':
     try:
         my_ResFileParser = ResFileParser ()
         for ErType in ['RdRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
-            # my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
+            my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
             my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}_li.pcl')
-            my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=1, maxCntrSize=16) # 50
+        my_ResFileParser.genErVsCntrSizeTable(erTypes=['absRdErAvg'], numOfExps=1, cntrSizes=[8])
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 
