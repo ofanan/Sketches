@@ -630,16 +630,16 @@ def main ():
         #            signed       = False # When True, assume an additional bit for the  
         #            )
         hyperSize  = 2
-        for cntrSize in [16]: #, 12, 14, 16]:
+        for cntrSize in [16]:
             simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
             simController.runSingleCntr \
                 (dwnSmple       = False,  
                  # modes          = ['F2P_li_h2', 'Morris', 'CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
-                 modes          = ['CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
+                 modes          = ['SEAD stat'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
                  cntrSize       = cntrSize, 
                  hyperSize      = hyperSize,
                  numOfExps      = 50,
-                 erTypes        = ['RdRmse', 'WrRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+                 erTypes        = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
             )
         
 

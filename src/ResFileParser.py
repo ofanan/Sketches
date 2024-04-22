@@ -349,7 +349,7 @@ class ResFileParser (object):
     
         for cntrSize in cntrSizes:
             pointsOfThisCntrSize = [point for point in points if point['cntrSize']==cntrSize]
-            printf (datOutputFile, f'{cntrSize} & ')
+            # printf (datOutputFile, f'{cntrSize} & ')
             for erType in erTypes:
                 pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize if point['erType'] == erType]
                 if pointsOfThisCntrSizeErType == []:
@@ -828,7 +828,8 @@ def genErVsCntrSizeTable ():
 
 if __name__ == '__main__':
     try:
-        plotErVsCntrSize ()
+        genErVsCntrSizeTable ()
+        # plotErVsCntrSize ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 

@@ -55,11 +55,11 @@ Confs = [{'cntrSize' : 3,  'cntrMaxVal' : 10,       'hyperSize' : 2, 'hyperMaxSi
          {'cntrSize' : 9,  'cntrMaxVal' : 261120,   'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
          {'cntrSize' : 10, 'cntrMaxVal' : 523264,   'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
          {'cntrSize' : 11, 'cntrMaxVal' : 1047552,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
-         {'cntrSize' : 12, 'cntrMaxVal' : 2096128,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
-         {'cntrSize' : 13, 'cntrMaxVal' : 4193280,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
-         {'cntrSize' : 14, 'cntrMaxVal' : 8387584,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
-         {'cntrSize' : 15, 'cntrMaxVal' : 16776192, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4},
-         {'cntrSize' : 16, 'cntrMaxVal' : 33553408, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 4}]
+         {'cntrSize' : 12, 'cntrMaxVal' : 2096128,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
+         {'cntrSize' : 13, 'cntrMaxVal' : 4193280,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
+         {'cntrSize' : 14, 'cntrMaxVal' : 8387584,  'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
+         {'cntrSize' : 15, 'cntrMaxVal' : 16776192, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5},
+         {'cntrSize' : 16, 'cntrMaxVal' : 33553408, 'hyperSize' : 2, 'hyperMaxSize' : 3, 'seadExpSize' : 5}]
 
 # Calculate the confidence interval of an array of values ar, given its avg. Based on 
 # https://stackoverflow.com/questions/15033511/compute-a-confidence-interval-from-sample-data
