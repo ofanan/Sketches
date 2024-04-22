@@ -640,7 +640,7 @@ def main ():
             simController.runSingleCntr \
                 (dwnSmple       = False,  
                  # modes          = ['F2P_li_h2', 'Morris', 'CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
-                 modes          = ['F2P_li', 'Morris,', 'CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
+                 modes          = ['F2P_li', 'Morris', 'CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
                  cntrSize       = cntrSize, 
                  hyperSize      = hyperSize,
                  numOfExps      = 50,
