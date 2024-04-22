@@ -334,9 +334,9 @@ class ResFileParser (object):
     
     def genErVsCntrSizeTable (
             self,
-            erTypes     : list = ['absRdErAvg'], # Error types to consider    
+            erTypes     : list = ['RdRmse'], # Error types to consider    
             numOfExps   : int  = 50,
-            modes       : list = ['F2P_li', 'CEDAR', 'Morris'],
+            modes       : list = ['F2P_li', 'CEDAR', 'Morris', 'SEAD stat'],
             cntrSizes   : list = [8],
         ):
         """
@@ -820,11 +820,12 @@ def genErVsCntrSizeTable ():
         Generate a table showing the error as a function of the counter's size.
         """
         my_ResFileParser = ResFileParser ()
-        for ErType in ['RdRmse', 'WrRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
-            # my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
+        erTypes = ['RdRmse']
+        for ErType in erTypes: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
+            my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
             # my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}_li.pcl')
             my_ResFileParser.rdPcl (pclFileName=f'1cntr_HPC_{ErType}.pcl')
-        my_ResFileParser.genErVsCntrSizeTable(erTypes=['RdRmse', 'WrRmse'], numOfExps=50, cntrSizes=[8, 10, 12, 14, ]) #[8, 10, 12, 14, 16])
+        my_ResFileParser.genErVsCntrSizeTable(erTypes=erTypes, numOfExps=50, cntrSizes=[8, 10, 12, 14, ]) #[8, 10, 12, 14, 16])
 
 if __name__ == '__main__':
     try:

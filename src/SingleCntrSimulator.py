@@ -209,7 +209,10 @@ class SingleCntrSimulator (object):
                         self.cntrRecord['sampleProb'] /= 2
                         if (settings.VERBOSE_DETAILS in self.verbose): 
                             print ('smplProb={}' .format (self.cntrRecord['sampleProb'])) 
-                self.cntrRecord['sumSqEr'][expNum] += (((realValCntr - cntrVal)/realValCntr)**2)
+                if self.rel_abs_n:
+                    self.cntrRecord['sumSqEr'][expNum] += (((realValCntr - cntrVal)/realValCntr)**2)
+                else:
+                    self.cntrRecord['sumSqEr'][expNum] += (realValCntr - cntrVal)**2
         if (settings.VERBOSE_LOG in self.verbose):
             printf (self.log_file, 'diff vector={}\n\n' .format (self.cntrRecord['wrErVar']))
     
@@ -408,12 +411,12 @@ class SingleCntrSimulator (object):
             settings.error ('The counter of type {}, cntrSize={}, hyperSize={}, can reach max val={} which is smaller than the requested maxRealVal {}, and no dwn smpling was used' . format (self.cntrRecord['mode'], self.cntrSize, self.hyperSize, self.cntrRecord['cntr'].cntrMaxVal, self.maxRealVal))
 
         # open output files
-        outputFileStr = '1cntr_{}{}' .format (self.machineStr, '_w_dwnSmpl' if self.dwnSmple else '')
+        outputFileStr = '{}_1cntr_{}{}' .format ('rel' if self.rel_abs_n else 'abs', self.machineStr, '_w_dwnSmpl' if self.dwnSmple else '')
         if (settings.VERBOSE_RES in self.verbose):
             self.resFile = open (f'../res/{outputFileStr}.res', 'a+')
             
-        print ('Started running runSingleCntr at t={}. mode={}, cntrSize={}, maxRealVal={}, cntrMaxVal={}' .format (
-                datetime.now().strftime("%H:%M:%S"), self.mode, self.cntrSize, self.maxRealVal, self.cntrRecord['cntr'].cntrMaxVal))
+        print ('Started running runSingleCntr at t={}. erTypes={} mode={}, cntrSize={}, maxRealVal={}, cntrMaxVal={}' .format (
+                datetime.now().strftime("%H:%M:%S"), self.erTypes, self.mode, self.cntrSize, self.maxRealVal, self.cntrRecord['cntr'].cntrMaxVal))
         
         # run the simulation          
         for self.erType in self.erTypes:
@@ -459,7 +462,8 @@ class SingleCntrSimulator (object):
                        expSize      = None, # Size of the exponent. Relevant only for Static SEAD counter. If cntrMaxVal==None (default), take expSize from settings.Confs global parameter (found in this file). 
                        numOfExps    = 1,    # number of experiments to run. 
                        dwnSmple     = False,# When True, down-sample each time the counter's maximum value is reached.
-                       erTypes      = [],
+                       erTypes      = [],   # either 'RdEr', 'WrEr', 'RdRmse' or 'WrRmse'.
+                       rel_abs_n    = True, # When True, consider rel err. Else, consider abs err.
                        ):
         """
         run a single counter of each given mode for the requested numOfExps.
@@ -483,6 +487,7 @@ class SingleCntrSimulator (object):
         self.numOfExps      = numOfExps
         self.dwnSmple       = dwnSmple
         self.erTypes        = erTypes # the error modes to calculate. See possible erTypes in the documentation above.
+        self.rel_abs_n      = rel_abs_n
         if (settings.VERBOSE_DETAILED_LOG in self.verbose): # a detailed log include also all the prints of a simple log
             verbose.append(settings.VERBOSE_LOG)
         for self.mode in modes:
@@ -630,7 +635,7 @@ def main ():
         #            signed       = False # When True, assume an additional bit for the  
         #            )
         hyperSize  = 2
-        for cntrSize in [16]:
+        for cntrSize in [8, 10, 12, 14]:
             simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
             simController.runSingleCntr \
                 (dwnSmple       = False,  
@@ -639,6 +644,7 @@ def main ():
                  cntrSize       = cntrSize, 
                  hyperSize      = hyperSize,
                  numOfExps      = 50,
+                 rel_abs_n      = False,
                  erTypes        = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
             )
         
