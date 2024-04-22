@@ -320,7 +320,7 @@ class ResFileParser (object):
                 ax.plot ((cntrSize, cntrSize), (y_lo, y_hi), color=colorOfMode[mode])  # Plot the conf' interval line
                 y.append (y_avg)
             ax.plot (cntrSizes, y, color=colorOfMode[mode], marker=markerOfMode[mode],
-                     markersize=MARKER_SIZE, linewidth=LINE_WIDTH, label=point['mode'], mfc='none') 
+                     markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH, label=point['mode'], mfc='none') 
 
         plt.xlabel('Counter Size [bits]')
         plt.ylabel('RMSE')
@@ -811,19 +811,24 @@ def plotErVsCntrSize ():
     """
     my_ResFileParser = ResFileParser ()
     for ErType in ['WrRmse', 'RdRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
-        my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
-        my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=1, maxCntrSize=16) # 50
+        my_ResFileParser.rdPcl (pclFileName=f'1cntr_HPC_{ErType}.pcl')
+        my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=50, maxCntrSize=16) # 50
 
+
+def genErVsCntrSizeTable ():
+        """
+        Generate a table showing the error as a function of the counter's size.
+        """
+        my_ResFileParser = ResFileParser ()
+        for ErType in ['RdRmse', 'WrRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
+            # my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
+            # my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}_li.pcl')
+            my_ResFileParser.rdPcl (pclFileName=f'1cntr_HPC_{ErType}.pcl')
+        my_ResFileParser.genErVsCntrSizeTable(erTypes=['RdRmse', 'WrRmse'], numOfExps=50, cntrSizes=[8, 10, 12, 14, ]) #[8, 10, 12, 14, 16])
 
 if __name__ == '__main__':
     try:
-        # genErrTable ()
-        my_ResFileParser = ResFileParser ()
-        for ErType in ['RdRmse', 'WrRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
-            my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
-            # my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}_li.pcl')
-            my_ResFileParser.rdPcl (pclFileName=f'1cntr_HPC_{ErType}.pcl')
-        my_ResFileParser.genErVsCntrSizeTable(erTypes=['RdRmse', 'WrRmse'], numOfExps=10, cntrSizes=[16]) #[8, 10, 12, 14, 16])
+        plotErVsCntrSize ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 
