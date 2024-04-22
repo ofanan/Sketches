@@ -78,7 +78,6 @@ class SingleCntrSimulator (object):
                                .format (realValCntr, cntrVal, cntrAfterInc['val'], cntrNewVal, self.maxRealVal))
                     if (cntrNewVal != cntrVal): # the counter was incremented
                         cntrVal = cntrNewVal
-                        # curRelativeErr = abs(realValCntr - cntrVal)/realValCntr
                         self.cntrRecord['wrEr'][expNum] += abs(realValCntr - cntrVal)/realValCntr
                         self.numOfPoints       [expNum] += 1  
                     if self.dwnSmple:
@@ -155,7 +154,6 @@ class SingleCntrSimulator (object):
                                .format (realValCntr, cntrVal, cntrValAfterInc, cntrNewVal))
                     if (cntrNewVal != cntrVal): # the counter was incremented
                         cntrVal = cntrNewVal
-                        # curRelativeErr = ((realValCntr - cntrVal)/realValCntr)**2
                         self.cntrRecord['sumSqEr'][expNum] += (((realValCntr - cntrVal)/realValCntr)**2)
                         self.numOfPoints          [expNum] += 1
                         if settings.VERBOSE_LOG in self.verbose:
@@ -632,7 +630,7 @@ def main ():
         #            signed       = False # When True, assume an additional bit for the  
         #            )
         hyperSize  = 2
-        for cntrSize in [8, 10, 12, 14, 16]:
+        for cntrSize in [8, 10]: #, 12, 14, 16]:
             simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
             simController.runSingleCntr \
                 (dwnSmple       = False,  
