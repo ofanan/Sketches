@@ -349,7 +349,7 @@ class ResFileParser (object):
     
         for cntrSize in cntrSizes:
             pointsOfThisCntrSize = [point for point in points if point['cntrSize']==cntrSize]
-            # printf (datOutputFile, f'{cntrSize} & ')
+            printf (datOutputFile, f'{cntrSize} & ')
             for erType in erTypes:
                 pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize if point['erType'] == erType]
                 if pointsOfThisCntrSizeErType == []:
@@ -820,12 +820,12 @@ def genErVsCntrSizeTable ():
         Generate a table showing the error as a function of the counter's size.
         """
         my_ResFileParser = ResFileParser ()
-        erTypes = ['RdRmse']
+        erTypes = ['RdRmse', 'WrRmse']
         for ErType in erTypes: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
-            my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
+            # my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
             # my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}_li.pcl')
             my_ResFileParser.rdPcl (pclFileName=f'1cntr_HPC_{ErType}.pcl')
-        my_ResFileParser.genErVsCntrSizeTable(erTypes=erTypes, numOfExps=50, cntrSizes=[8, 10, 12, 14, ]) #[8, 10, 12, 14, 16])
+        my_ResFileParser.genErVsCntrSizeTable(erTypes=erTypes, numOfExps=50, cntrSizes=[8, 10, 12, 14, 16]) #[8, 10, 12, 14, 16])
 
 if __name__ == '__main__':
     try:
