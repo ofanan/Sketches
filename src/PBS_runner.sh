@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ### PBS -q [WD, RGB, RTX]
-#PBS -q WD
+#PBS -q RGB
 #PBS -k eod
 #PBS -e log.err
 #PBS -o log.out
