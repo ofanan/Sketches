@@ -288,7 +288,7 @@ class ResFileParser (object):
             self,
             erType,
             numOfExps      = 50,
-            modes          = ['F2P_li', 'CEDAR', 'Morris'],
+            modes          = ['F2P_li', 'CEDAR', 'Morris', 'SEAD stat'],
             minCntrSize    = 8,
             maxCntrSize    = 64,
         ):
@@ -334,6 +334,7 @@ class ResFileParser (object):
     
     def genErVsCntrSizeTable (
             self,
+            datOutputFile,
             erTypes     : list = ['RdRmse'], # Error types to consider    
             numOfExps   : int  = 50,
             modes       : list = ['F2P_li', 'CEDAR', 'Morris', 'SEAD stat'],
@@ -343,8 +344,6 @@ class ResFileParser (object):
         Generate a table showing the error as a function of the counter's size.
         """
     
-        outputFileName = f'1cntr.dat' 
-        datOutputFile = open (f'../res/{outputFileName}', 'w')
         points = [point for point in self.points if point['numOfExps'] == numOfExps]
     
         for cntrSize in cntrSizes:
@@ -820,12 +819,16 @@ def genErVsCntrSizeTable ():
         Generate a table showing the error as a function of the counter's size.
         """
         my_ResFileParser = ResFileParser ()
-        erTypes = ['RdRmse', 'WrRmse']
-        for ErType in erTypes: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
-            # my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}.pcl')
+        erTypes = ['RdRmse'] #, 'WrRmse']
+        outputFileName = f'1cntr.dat' 
+        datOutputFile = open (f'../res/{outputFileName}', 'w')
+        abs = True
+        for erType in erTypes: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
             # my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}_li.pcl')
-            my_ResFileParser.rdPcl (pclFileName=f'1cntr_HPC_{ErType}.pcl')
-        my_ResFileParser.genErVsCntrSizeTable(erTypes=erTypes, numOfExps=50, cntrSizes=[8, 10, 12, 14, 16]) #[8, 10, 12, 14, 16])
+            my_ResFileParser.rdPcl (pclFileName='{}1cntr_HPC_{}.pcl' .format ('abs_' if abs else '', erType))
+            my_ResFileParser.rdPcl (pclFileName='{}1cntr_PC_{}.pcl'  .format ('abs_' if abs else '', erType))
+            printf (datOutputFile, '// {}, erType={}\n' .format ('abs ' if abs else 'rel ', erType))
+            my_ResFileParser.genErVsCntrSizeTable(datOutputFile=datOutputFile, erTypes=erTypes, numOfExps=50, cntrSizes=[8, 10, 12, 14, 16]) #[8, 10, 12, 14, 16])
 
 if __name__ == '__main__':
     try:

@@ -12,8 +12,8 @@ class CntrMaster (object):
     genSettingsStr = lambda self : 'SEADstat_n{}_e{}' .format (self.cntrSize, self.expSize) # if self.mode=='stat' else 0)
     
     # print the details of the counter in a convenient way
-    printCntrLine       = lambda self, cntr, expVec, expVal, mantVec, mantVal, cntrVal : print ('expVec={}, expVal={}, mantVec={}, mantVal={}, offset={}, val={}'
-                                                                                               .format (expVec, expVal, mantVec, mantVal, self.offsetOfExpVal[expVal], cntrVal))    
+    printCntrLine       = lambda self, cntr, expVec, expVal, mantVec, mantVal, cntrVal : print (f'expVec={expVec}, expVal={expVal}, mantVec={mantVec}, mantVal={mantVal}, offset={self.offsetOfExpVal[expVal]}, val={cntrVal}')
+    
     # returns the value of a cntr given its exp and mant
     valOf = lambda self, mantVal, expVal : self.offsetOfExpVal[expVal] + mantVal*2**expVal
      
@@ -21,7 +21,7 @@ class CntrMaster (object):
     # E.g., given a binary vec "00111", this func' will return "01000"  
     incBinVec = lambda self, vec, delta=1 : np.binary_repr (int(vec, base=2)+delta, len(vec)) 
 
-    # get the mantisa vector  
+    # get the mantissa vector  
     getMantVec = lambda self, cntrIdx : self.cntrs[cntrIdx][self.expSize:]
                 
     # get the exponent vector  
@@ -168,7 +168,7 @@ def printAllVals (cntrSize=4, expSize=1, verbose=[]):
     For each combination, print to file the respective counter, and its value. 
     The prints are sorted in an increasing order of values.
     """
-    print ('running SEAD.printAllVals()')
+    print ('running SEAD_stat.printAllVals()')
     listOfVals = []
     myCntrMaster = CntrMaster(cntrSize=cntrSize, expSize=expSize, verbose=verbose)
     for i in range (2**cntrSize):

@@ -1,8 +1,3 @@
-#import itertools
-# import time, random, sys, os
-# from   pathlib import Path
-# from builtins import True False
-# import pickle
 import math, time, random
 from printf import printf
 import settings
