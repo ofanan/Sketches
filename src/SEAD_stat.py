@@ -32,6 +32,9 @@ class CntrMaster (object):
 
     # get the mantissa value in 'stat' mode  
     getMantVal = lambda self, cntrIdx : int (self.cntrs[cntrIdx][self.expSize:], base=2)
+
+    # Return a range with all the legal combinations for the counter 
+    getAllCombinations = lambda self, cntrSize : range (2**cntrSize)
     
     def calcOffsets (self):
         """
@@ -161,28 +164,44 @@ class CntrMaster (object):
         return cntrppVal
         # return {'cntrVec' : self.cntrs[cntrIdx], 'val' : cntrppVal}    
 
+    def getAllVals (self, verbose=[]):
+        """
+        Loop over all the binary combinations of the given counter size. 
+        For each combination, calculate the respective counter, and its value. 
+        Returns a vector of these values, sorted in an increasing order of the counters' values. 
+        """
+        print ('running SEAD_stat.getAllVals()')
+        listOfVals = []
+        for i in self.getAllCombinations (cntrSize):
+            cntr = np.binary_repr(i, cntrSize) 
+            listOfVals.append ({'cntrVec' : cntr, 'val' : self.cntr2num(cntr)})
+        listOfVals = sorted (listOfVals, key=lambda item : item['val'])
+    
+        if settings.VERBOSE_RES in verbose:
+            outputFile    = open ('../res/log_files/{}.res' .format (self.genSettingsStr()), 'w')
+            for item in listOfVals:
+                printf (outputFile, '{}={}\n' .format (item['cntrVec'], item['val']))
+        return listOfVals
 
-def printAllVals (cntrSize=4, expSize=1, verbose=[]):
-    """
-    Loop over all the binary combinations of the given counter size. 
-    For each combination, print to file the respective counter, and its value. 
-    The prints are sorted in an increasing order of values.
-    """
-    print ('running SEAD_stat.printAllVals()')
-    listOfVals = []
-    myCntrMaster = CntrMaster(cntrSize=cntrSize, expSize=expSize, verbose=verbose)
-    for i in range (2**cntrSize):
-        cntr = np.binary_repr(i, cntrSize) 
-        listOfVals.append ({'cntrVec' : cntr, 'val' : myCntrMaster.cntr2num(cntr)})
-    listOfVals = sorted (listOfVals, key=lambda item : item['val'])
-
-    if (settings.VERBOSE_RES in verbose):
-        myCntrMaster.cntrSize   = cntrSize
-        myCntrMaster.expSize    = expSize
-        outputFile    = open ('../res/log_files/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
-        for item in listOfVals:
-            printf (outputFile, '{}={}\n' .format (item['cntrVec'], item['val']))
-    print ('cntrMaxVal={}' .format (myCntrMaster.cntrMaxVal))
+# def getAllVals (cntrSize=4, expSize=1, verbose=[]):
+#     """
+#     Loop over all the binary combinations of the given counter size. 
+#     For each combination, print to file the respective counter, and its value. 
+#     The prints are sorted in an increasing order of values.
+#     """
+#     print ('running SEAD_stat.getAllVals()')
+#     listOfVals = []
+#     myCntrMaster = CntrMaster(cntrSize=cntrSize, expSize=expSize, verbose=verbose)
+#     for i in self.getAllCombinations (cntrSize):
+#         cntr = np.binary_repr(i, cntrSize) 
+#         listOfVals.append ({'cntrVec' : cntr, 'val' : myCntrMaster.cntr2num(cntr)})
+#     listOfVals = sorted (listOfVals, key=lambda item : item['val'])
+#
+#     if (settings.VERBOSE_RES in verbose):
+#         outputFile    = open ('../res/log_files/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
+#         for item in listOfVals:
+#             printf (outputFile, '{}={}\n' .format (item['cntrVec'], item['val']))
+#     print ('cntrMaxVal={}' .format (myCntrMaster.cntrMaxVal))
 
 def printAllCntrMaxVals (cntrSizes=[], expSizes=None, verbose=[settings.VERBOSE_RES]):
     """
@@ -208,7 +227,7 @@ def checkTimes ():
     
     startTime = time.time ()
     for _ in range (50):
-        for i in range (2**cntrSize):
+        for i in self.getAllCombinations (cntrSize):
             cntr = np.binary_repr(i, cntrSize) 
             for expSize in range (1, 4):
                 expVal  = int (cntr[:expSize], base=2)
@@ -217,7 +236,7 @@ def checkTimes ():
 
     startTime = time.time ()
     for _ in range (50):
-        for i in range (2**cntrSize):
+        for i in self.getAllCombinations (cntrSize):
             cntr = np.binary_repr(i, cntrSize) 
             for expSize in range (1, 4):
                 expVal  = int (cntr[:expSize], base=2)
