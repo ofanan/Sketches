@@ -5,6 +5,7 @@ import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
 import settings, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li, F2P_si, FP, SEAD_stat, SEAD_dyn   
+from settings import warning, error
 from datetime import datetime
 
 class SingleCntrSimulator (object):
@@ -145,7 +146,6 @@ class SingleCntrSimulator (object):
             self.writeProgress (expNum)
             print ('maxRealVal={:.0f}' .format (self.maxRealVal))
             while cntrVal < self.maxRealVal:
-                settings.error (f'self.maxRealVal={self.maxRealVal}') #$$
                 realValCntr += 1
                 if (self.cntrRecord['sampleProb']==1 or random.random() < self.cntrRecord['sampleProb']): # sample w.p. self.cntrRecord['sampleProb']
                     cntrValAfterInc = self.cntrRecord['cntr'].incCntrBy1GetVal ()
@@ -409,7 +409,7 @@ class SingleCntrSimulator (object):
         self.genCntrRecord () # Set self.cntrRecord, which holds the counter to run
         self.maxRealVal         = self.cntrMaxVal if (self.maxRealVal==None) else self.maxRealVal
         if self.cntrRecord['cntr'].cntrMaxVal < self.maxRealVal and (not(self.dwnSmple)):
-            settings.warning ('The counter of type {}, cntrSize={}, hyperSize={}, can reach max val={} which is smaller than the requested maxRealVal {}, and no dwn smpling was used' . format (self.cntrRecord['mode'], self.cntrSize, self.hyperSize, self.cntrRecord['cntr'].cntrMaxVal, self.maxRealVal))
+            warning ('The counter of type {}, cntrSize={}, hyperSize={}, can reach max val={} which is smaller than the requested maxRealVal {}, and no dwn smpling was used' . format (self.cntrRecord['mode'], self.cntrSize, self.hyperSize, self.cntrRecord['cntr'].cntrMaxVal, self.maxRealVal))
 
         # open output files
         outputFileStr = '{}_1cntr_{}{}' .format ('rel' if self.rel_abs_n else 'abs', self.machineStr, '_w_dwnSmpl' if self.dwnSmple else '')

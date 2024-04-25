@@ -148,9 +148,9 @@ class CntrMaster (SEAD_stat.CntrMaster):
         mantVal = self.getMantVal(cntrIdx, expSize=expSize)
         mantSize = self.cntrSize - expSize - 1
         if (mantVal < 2**mantSize-1): # can we further increment the mantissa w/o o/f?
-            self.cntrs[cntrIdx] = '1'* expSize   + '0' + np.binary_repr (mantVal+1, mantSize)
+            self.cntrs[cntrIdx] = '1'* expSize    + '0' + np.binary_repr (mantVal+1, mantSize)
         else:  # need to increase the exponent
-            self.cntrs[cntrIdx] = '1'*(expVal+1) + '0' * mantSize # a single delimiter '0' between the exponent and the mantissa + a shrinked-by-one reset mantissa field.
+            self.cntrs[cntrIdx] = '1'*(expSize+1) + '0' * mantSize # a single delimiter '0' between the exponent and the mantissa + a shrinked-by-one reset mantissa field.
         if settings.VERBOSE_LOG_CNTRLINE in self.verbose:
             printf (self.logFIle, f'After inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={cntrppVal}\n')
         return cntrppVal
