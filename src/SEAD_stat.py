@@ -9,7 +9,7 @@ class CntrMaster (object):
     """
 
     # Generates a strings that details the counter's settings (param vals).    
-    genSettingsStr = lambda self : 'SEADstat_n{}_e{}' .format (self.cntrSize, self.expSize) # if self.mode=='stat' else 0)
+    genSettingsStr = lambda self : f'SEADstat_n{self.cntrSize}_e{self.expSize}' # if self.mode=='stat' else 0)
     
     # print the details of the counter in a convenient way
     printCntrLine       = lambda self, cntr, expVec, expVal, mantVec, mantVal, cntrVal : print (f'expVec={expVec}, expVal={expVal}, mantVec={mantVec}, mantVal={mantVal}, offset={self.offsetOfExpVal[expVal]}, val={cntrVal}')
@@ -169,7 +169,6 @@ class CntrMaster (object):
         For each combination, calculate the respective counter, and its value. 
         Returns a vector of these values, sorted in an increasing order of the counters' values. 
         """
-        print ('running SEAD_stat.getAllVals()')
         listOfVals = []
         for i in self.getAllCombinations (self.cntrSize):
             cntr = np.binary_repr(i, self.cntrSize) 

@@ -4,7 +4,7 @@ Controller that runs single-counter simulations, using various types of counters
 import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
-import settings, SEAD_stat, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li, F2P_si, FP  
+import settings, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li, F2P_si, FP, SEAD_stat, SEAD_dyn   
 from datetime import datetime
 
 class SingleCntrSimulator (object):
@@ -319,9 +319,9 @@ class SingleCntrSimulator (object):
             self.cntrMaxVal   = self.conf['cntrMaxVal'] 
             self.hyperSize    = self.conf['hyperSize'] 
             for self.mode in modes:
-                self.genCntrRecord (expSize=None if self.mode=='SEAD stat' else expSize)
+                self.genCntrRecord (expSize=None if self.mode.startswith('SEAD_stat') else expSize)
                 listOfVals = []
-                for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
+                for i in range (2**self.cntrSize-2 if self.mode.startswith('SEAD_dyn') else (1 << self.cntrSize)):
                     cntrVec = np.binary_repr(i, self.cntrSize) 
                     listOfVals.append (self.cntrRecord['cntr'].cntr2num(cntrVec))           
                 listOfVals = sorted (listOfVals)
@@ -353,7 +353,7 @@ class SingleCntrSimulator (object):
             else: 
                 self.hyperSize   = params['hyperSize']
                 self.genCntrRecord (expSize=None)        
-            for i in range (2**self.cntrSize-2 if self.mode=='SEAD dyn' else (1 << self.cntrSize)):
+            for i in range (2**self.cntrSize-2 if self.mode.startswith('SEAD_dyn') else (1 << self.cntrSize)):
                 cntrVec = np.binary_repr(i, self.cntrSize) 
                 listOfVals.append (self.cntrRecord['cntr'].cntr2num(cntrVec))           
             listOfVals = sorted (listOfVals)
@@ -381,11 +381,11 @@ class SingleCntrSimulator (object):
             if expSize==None:
                 settings.error ('In SingleCntrSimulator.genCntrRecord(). For generating an FP.CntrMaster you must specify an expSize')
             self.cntrRecord = {'mode' : 'FP', 'cntr' : FP.CntrMaster(cntrSize=self.cntrSize, expSize=expSize, verbose=self.verbose)}
-        elif (self.mode=='SEAD stat'):
+        elif (self.mode.startswith('SEAD_stat')):
             self.expSize      = self.conf['seadExpSize'] if expSize==None else expSize
             self.cntrRecord = {'mode' : self.mode, 'cntr' : SEAD_stat.CntrMaster(cntrSize=self.cntrSize, expSize=self.expSize, verbose=self.verbose)}
-        elif (self.mode=='SEAD dyn'):
-            self.cntrRecord = {'mode' : self.mode, 'cntr' : SEAD.CntrMaster(mode='dyn', cntrSize=self.cntrSize)}
+        elif (self.mode.startswith('SEAD_dyn')):
+            self.cntrRecord = {'mode' : self.mode, 'cntr' : SEAD_dyn.CntrMaster(cntrSize=self.cntrSize)}
         elif (self.mode=='CEDAR'):
             self.cntrRecord = {'mode' : self.mode, 'cntr' : CEDAR.CntrMaster(cntrSize=self.cntrSize, cntrMaxVal=self.cntrMaxVal)}
         elif (self.mode=='Morris'):
@@ -638,8 +638,8 @@ def main ():
             simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
             simController.runSingleCntr \
                 (dwnSmple       = False,  
-                 # modes          = ['F2P_li_h2', 'Morris', 'CEDAR'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
-                 modes          = ['SEAD dyn'], #, 'SEAD stat', 'F2P_li', 'Morris', 'CEDAR'], #[],
+                 # modes          = ['F2P_li_h2', 'Morris', 'CEDAR'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
+                 modes          = ['SEAD_dyn'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
                  cntrSize       = cntrSize, 
                  hyperSize      = hyperSize,
                  numOfExps      = 50,

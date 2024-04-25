@@ -10,7 +10,7 @@ class CntrMaster (SEAD_stat.CntrMaster):
     """
 
     # Generates a strings that details the counter's settings (param vals).    
-    genSettingsStr = lambda self : 'SEADdyn_n{self.cntrSize}_e0'
+    genSettingsStr = lambda self : f'SEADdyn_n{self.cntrSize}_e0'
     
     # get the mantissa value in 'stat' mode  
     getMantVal = lambda self, cntrIdx, expSize : int (self.cntrs[cntrIdx][expSize:], base=2)
@@ -154,26 +154,6 @@ class CntrMaster (SEAD_stat.CntrMaster):
         return cntrppVal
 
 
-# def getAllVals (cntrSize=4, verbose=[]):
-#     """
-#     Loop over all the binary combinations of the given counter size. 
-#     For each combination, print to file the respective counter, and its value. 
-#     The prints are sorted in an increasing order of values.
-#     """
-#     print ('running SEAD_dyn.getAllVals()')
-#     listOfVals = []
-#     myCntrMaster = CntrMaster(cntrSize=cntrSize, verbose=verbose)
-#     for i in range (2**cntrSize-2):
-#         cntr = np.binary_repr(i, cntrSize) 
-#         listOfVals.append ({'cntrVec' : cntr, 'val' : myCntrMaster.cntr2num(cntr)})
-#     listOfVals = sorted (listOfVals, key=lambda item : item['val'])
-#
-#     if (settings.VERBOSE_RES in verbose):
-#         outputFile    = open ('../res/log_files/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
-#         for item in listOfVals:
-#             printf (outputFile, '{}={}\n' .format (item['cntrVec'], item['val']))
-#     print ('cntrMaxVal={}' .format (myCntrMaster.cntrMaxVal))
-
 def printAllCntrMaxVals (cntrSizes=[], verbose=[settings.VERBOSE_RES]):
     """
     print the maximum value a cntr reach for several "configurations" -- namely, all combinations of cntrSize and hyperSize. 
@@ -186,3 +166,5 @@ def printAllCntrMaxVals (cntrSizes=[], verbose=[settings.VERBOSE_RES]):
             myCntrMaster = CntrMaster(mode='dyn', cntrSize=cntrSize)
             printf (outputFile, '{} cntrMaxVal={:.0f}\n' .format (myCntrMaster.genSettingsStr (mode='dyn', cntrSize=cntrSize), myCntrMaster.cntrMaxVal))
 
+myCntrMaster = CntrMaster (cntrSize=6)
+myCntrMaster.getAllVals (verbose=[settings.VERBOSE_RES])

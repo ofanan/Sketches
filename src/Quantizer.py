@@ -476,7 +476,7 @@ if __name__ == '__main__':
         # None 
         verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
         stdev   = 1
-        for cntrSize in [19]:
+        for cntrSize in [8, 16, 19]:
             if settings.VERBOSE_PCL in verbose:
                 pclOutputFileName = f'{ResFileParser.genRndErrFileName (cntrSize)}.pcl'
                 # if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
@@ -484,7 +484,7 @@ if __name__ == '__main__':
             for distStr in ['uniform', 'norm', 't_5', 't_8']:
             # for distStr in ['uniform', 'norm', 't_5', 't_8', 't_2', 't_10', 't_4', 't_6', 't_8']:
                 calcQuantRoundErr (cntrSize       = cntrSize, 
-                             modes          = settings.modesOfCntrSize(cntrSize), 
+                             modes          = ['SEAD_dyn'], #settings.modesOfCntrSize(cntrSize), 
                              numPts         = 1000000, 
                              stdev          = stdev,
                              dist           = distStr, 
