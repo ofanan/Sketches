@@ -111,12 +111,10 @@ def ModelsQuantRoundErr (modelStrs=[]):
             vec2quantize = np.array (model.layers[1].weights).flatten() # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
             for i in range(2, 100): #133): # 100: 374720 weights. 133: 1040064 weights
                 vec2quantize = np.append (vec2quantize, np.array (model.layers[i].weights).flatten()) 
-            # print (f'V2. i={i}, len={len(vec2quantize)}')
         elif modelStr=='MobileNet_V3':
             model = tf.keras.applications.MobileNetV3Large()
             vec2quantize = np.array (model.layers[2].weights).flatten()
             for layerNum in range (100): # 100: 112976 weights
-                # print (f'V3. i={i}, len={len(vec2quantize)}')
                 for i in range(len(model.layers[layerNum].weights)):
                     vec2quantize = np.append (vec2quantize, np.array (model.layers[layerNum].weights[i]).flatten()) 
         else:

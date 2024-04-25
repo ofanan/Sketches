@@ -559,7 +559,6 @@ def getAllValsF2P (flavor='',
     If the verbose include settings.VERBOSE_RES, print to an output file the list of cntrVecs and respective values. 
     Return the (sorted) list of values.
     """
-    # print (f'running SingleCntrSimulator.getAllValsF2P().')
     if signed: 
         cntrSize -= 1 
     myCntrMaster = genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)

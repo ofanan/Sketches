@@ -162,7 +162,6 @@ class CntrMaster (object):
         if settings.VERBOSE_LOG_CNTRLINE in self.verbose:
             printf (self.logFIle, f'After inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={cntrppVal}\n')
         return cntrppVal
-        # return {'cntrVec' : self.cntrs[cntrIdx], 'val' : cntrppVal}    
 
     def getAllVals (self, verbose=[]):
         """
