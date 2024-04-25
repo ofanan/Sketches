@@ -171,8 +171,8 @@ class CntrMaster (object):
         """
         print ('running SEAD_stat.getAllVals()')
         listOfVals = []
-        for i in self.getAllCombinations (cntrSize):
-            cntr = np.binary_repr(i, cntrSize) 
+        for i in self.getAllCombinations (self.cntrSize):
+            cntr = np.binary_repr(i, self.cntrSize) 
             listOfVals.append ({'cntrVec' : cntr, 'val' : self.cntr2num(cntr)})
         listOfVals = sorted (listOfVals, key=lambda item : item['val'])
     
@@ -180,7 +180,7 @@ class CntrMaster (object):
             outputFile    = open ('../res/log_files/{}.res' .format (self.genSettingsStr()), 'w')
             for item in listOfVals:
                 printf (outputFile, '{}={}\n' .format (item['cntrVec'], item['val']))
-        return listOfVals
+        return [item['val'] for item in listOfVals]
 
 # def getAllVals (cntrSize=4, expSize=1, verbose=[]):
 #     """

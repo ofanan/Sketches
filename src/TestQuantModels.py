@@ -79,12 +79,12 @@ def calcQuantRoundErrOfModel (
     Output the results as detailed in verbose. 
     """
     
-    for cntrSize in [8, 16, 19]:
+    for cntrSize in [8]: #, 16, 19]:
         Quantizer.calcQuantRoundErr(
             cntrSize        = cntrSize,
             signed          = False,
             dist            = modelStr,
-            modes           = settings.modesOfCntrSize(cntrSize),
+            modes           = ['SEAD_stat_e1'], #settings.modesOfCntrSize(cntrSize),
             vec2quantize    = vec2quantize[:1000000],  
             verbose         = verbose,
         )  
@@ -96,7 +96,7 @@ def ModelsQuantRoundErr (modelStrs=[]):
     # weights = get_weight("MobileNet_V3_Large_QuantizedWeights.DEFAULT")
     # model    = MobileNet_V3 (weights=ResNet50_Weights.IMAGENET1K_V2),
     # settings.error (weights)
-    verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
+    verbose = [settings.VERBOSE_RES] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
     for modelStr in modelStrs:
         model = None
         if modelStr=='Resnet18':
@@ -127,7 +127,7 @@ def ModelsQuantRoundErr (modelStrs=[]):
 
 if __name__ == '__main__':
     try:
-        ModelsQuantRoundErr (['Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3']) #'MobileNet_V2', 'Resnet18', 'Resnet50'])
+        ModelsQuantRoundErr (['Resnet18']) #, 'Resnet50', 'MobileNet_V2', 'MobileNet_V3']) #'MobileNet_V2', 'Resnet18', 'Resnet50'])
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 

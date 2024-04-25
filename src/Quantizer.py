@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from fitter import Fitter, get_common_distributions, get_distributions
 
-import settings, ResFileParser, F2P_sr, F2P_lr, F2P_li, FP  
+import settings, ResFileParser, F2P_sr, F2P_lr, F2P_li, FP, SEAD_stat, SEAD_dyn  
 from tictoc import tic, toc
 from printf import printf, printar, printarFp
 from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
@@ -273,7 +273,6 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
                     weightDist  = weightDist,
                     verbose     = verbose
                     )
-            resRecord['mode'] = mode #ResFileParser.genFpLabel(expSize=expSize, mantSize=cntrSize-1-expSize)
                 
         elif mode.startswith('F2P'):
             F2pSettings = getF2PSettings (mode)
@@ -290,7 +289,6 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
                     weightDist  = weightDist,
                     verbose     = verbose
                     )
-            resRecord['mode'] = mode #ResFileParser.f2pSettingsToLabel (mode)
             
         elif mode.startswith('int'):
             if signed: 
@@ -308,7 +306,23 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
                     weightDist  = weightDist,
                     verbose     = verbose
                     )
-            resRecord['mode'] = 'int'
+        
+        elif mode.startswith ('SEAD_stat'):
+            expSize = int(mode.split('_e')[1].split('_')[0])
+            myCntrMaster = SEAD_stat.CntrMaster (cntrSize=cntrSize, expSize=expSize, verbose=verbose)            
+            grid = myCntrMaster.getAllVals ()
+            [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
+            dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
+            resRecord = calcErr(
+                    orgVec      = vec2quantize, 
+                    changedVec  = dequantizedVec, 
+                    scale       = scale,
+                    stdev       = stdev,
+                    logFile     = logFile,
+                    weightDist  = weightDist,
+                    verbose     = verbose
+                    )
+
         elif mode=='shortTest':
             grid = np.array([i for i in range(-10, 11)])
             vec2quantize = np.array([-100, -95, -7, 99, 100])
@@ -318,11 +332,12 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
                     )
-            resRecord['mode']  = 'shortTest'
         else:
             print (f'In Quantizer.calcQuantRoundErr(). Sorry, the requested mode {mode} is not supported.')
             continue
 
+        resRecord['mode']  = mode
+        
         if settings.VERBOSE_DEBUG in verbose:
             debugFile = open ('../res/debug.txt', 'a+')
             for i in range(len(vec2quantize)):
