@@ -323,6 +323,21 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
                     verbose     = verbose
                     )
 
+        elif mode.startswith ('SEAD_dyn'):
+            myCntrMaster = SEAD_dyn.CntrMaster (cntrSize=cntrSize, verbose=verbose)            
+            grid = myCntrMaster.getAllVals ()
+            [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
+            dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
+            resRecord = calcErr(
+                    orgVec      = vec2quantize, 
+                    changedVec  = dequantizedVec, 
+                    scale       = scale,
+                    stdev       = stdev,
+                    logFile     = logFile,
+                    weightDist  = weightDist,
+                    verbose     = verbose
+                    )
+
         elif mode=='shortTest':
             grid = np.array([i for i in range(-10, 11)])
             vec2quantize = np.array([-100, -95, -7, 99, 100])

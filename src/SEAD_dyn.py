@@ -16,7 +16,7 @@ class CntrMaster (SEAD_stat.CntrMaster):
     getMantVal = lambda self, cntrIdx, expSize : int (self.cntrs[cntrIdx][expSize:], base=2)
     
     # Return a range with all the legal combinations for the counter 
-    getAllCombinations = lambda self, cntrSize : range (2**cntrSize)-2
+    getAllCombinations = lambda self, cntrSize : range (2**cntrSize-2)
     
     # def __init__ (self, 
     #               cntrSize  = 4,   # num of bits in each counter.
@@ -35,7 +35,7 @@ class CntrMaster (SEAD_stat.CntrMaster):
         """
         self.cntrMaxVec = '1' * (self.cntrSize-2) + '0' + '1'
         self.expMaxVal  = self.cntrSize-2
-        self.calcOffsets ()
+        self.offsetOfExpVal = [expVal * 2**(self.cntrSize-1) for expVal in range (self.expMaxVal+1)]
         self.cntrMaxVal = self.valOf (mantVal=1, expVal=self.expMaxVal)                 
    
     def cntr2num (self, 

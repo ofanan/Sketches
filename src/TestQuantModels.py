@@ -84,7 +84,7 @@ def calcQuantRoundErrOfModel (
             cntrSize        = cntrSize,
             signed          = False,
             dist            = modelStr,
-            modes           = ['SEAD_stat_e1'], #settings.modesOfCntrSize(cntrSize),
+            modes           = ['SEAD_dyn'], #settings.modesOfCntrSize(cntrSize),
             vec2quantize    = vec2quantize[:1000000],  
             verbose         = verbose,
         )  
