@@ -145,6 +145,7 @@ class SingleCntrSimulator (object):
             self.writeProgress (expNum)
             print ('maxRealVal={:.0f}' .format (self.maxRealVal))
             while cntrVal < self.maxRealVal:
+                settings.error (f'self.maxRealVal={self.maxRealVal}') #$$
                 realValCntr += 1
                 if (self.cntrRecord['sampleProb']==1 or random.random() < self.cntrRecord['sampleProb']): # sample w.p. self.cntrRecord['sampleProb']
                     cntrValAfterInc = self.cntrRecord['cntr'].incCntrBy1GetVal ()
@@ -182,7 +183,7 @@ class SingleCntrSimulator (object):
         Collect and write statistics about the errors w.r.t. the real cntr (measured) value.
         The error is calculated upon each increment of the real cntr (measured) value, 
         as the difference between the measured value, and the value represented by the cntr.
-        The type of statistic collected is the Round Square Mean Error of such write errors.
+        The type of statistic collected is the Round Mean Square Error of such write errors.
         """
     
         self.cntrRecord['sumSqEr'] = [0] * self.numOfExps # self.cntrRecord['sumSqEr'][j] will hold the sum of the square errors collected at experiment j. 
@@ -408,7 +409,7 @@ class SingleCntrSimulator (object):
         self.genCntrRecord () # Set self.cntrRecord, which holds the counter to run
         self.maxRealVal         = self.cntrMaxVal if (self.maxRealVal==None) else self.maxRealVal
         if self.cntrRecord['cntr'].cntrMaxVal < self.maxRealVal and (not(self.dwnSmple)):
-            settings.error ('The counter of type {}, cntrSize={}, hyperSize={}, can reach max val={} which is smaller than the requested maxRealVal {}, and no dwn smpling was used' . format (self.cntrRecord['mode'], self.cntrSize, self.hyperSize, self.cntrRecord['cntr'].cntrMaxVal, self.maxRealVal))
+            settings.warning ('The counter of type {}, cntrSize={}, hyperSize={}, can reach max val={} which is smaller than the requested maxRealVal {}, and no dwn smpling was used' . format (self.cntrRecord['mode'], self.cntrSize, self.hyperSize, self.cntrRecord['cntr'].cntrMaxVal, self.maxRealVal))
 
         # open output files
         outputFileStr = '{}_1cntr_{}{}' .format ('rel' if self.rel_abs_n else 'abs', self.machineStr, '_w_dwnSmpl' if self.dwnSmple else '')
