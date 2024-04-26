@@ -639,7 +639,7 @@ def main ():
             simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
             simController.runSingleCntr \
                 (dwnSmple       = False,  
-                modes          = ['F2P_li_h2', 'Morris', 'CEDAR'], #, 'SEAD_stat_e4', 'SEAD_dyn'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
+                modes          = ['SEAD_stat_e4', 'SEAD_dyn'], #'F2P_li_h2', 'Morris', 'CEDAR', 'SEAD_stat_e4', 'SEAD_dyn'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
                 cntrSize       = cntrSize, 
                 hyperSize      = hyperSize,
                 numOfExps      = 100,
