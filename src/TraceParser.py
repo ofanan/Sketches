@@ -60,9 +60,6 @@ def parseTrace (
     numFlows    = len(flowSizes)
     printf (statFile, f'// numFlows = {numFlows}\n')
     printf (statFile, '// flowSizes={flowSizes}\n')
-    
-    
-        
     # maxFlowSize = max (flowSizes)
     # numBins = min (100, maxFlowSize+1)
     # binSize = maxFlowSize // (numBins-1)

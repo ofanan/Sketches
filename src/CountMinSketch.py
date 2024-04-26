@@ -285,7 +285,10 @@ class CountMinSketch:
         else: # read trace from a file
             self.traceFileName = traceFileName
             self.incNum     = 0
-            flowRealVal     = [0] * self.numFlows
+            if self.numFlows==None:
+                error ('In CountMinSketch.sim(). Sorry, dynamically calculating the flowNum is not supported yet.')
+            else:
+                flowRealVal = [0] * self.numFlows
             self.sumSqEr    = 0 # self.sumSqEr will hold the sum of the square errors.  
             self.genCntrMaster ()
             if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
@@ -299,11 +302,8 @@ class CountMinSketch:
             settings.checkIfInputFileExists (relativePathToInputFile)
             traceFile = open (relativePathToInputFile, 'r')
             for row in traceFile:            
-            # csvFile = open (relativePathToInputFile, 'r')
-            # csvReader = csv.reader(csvFile) #, delimiter=' ', quotechar='|')
-            # for row in csvReader:
                 flowId = int(row[0]) 
-                error (flowId)
+                print (flowId) #$$$
                 self.incNum  += 1                
                 flowRealVal[flowId]     += 1
                 
@@ -369,7 +369,7 @@ def main(mode, runShortSim=True):
         verbose                 = [settings.VERBOSE_RES] # settings.VERBOSE_LOG, settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
         width, depth, cntrSize  = 1024, 4, 8
-        numFlows                = 4096 # width*depth*16
+        numFlows                = 1000000
         numCntrsPerBkt          = 16
         maxNumIncs              = float ('inf')   
         numOfExps               = 1
