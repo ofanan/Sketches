@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time, csv
 import numpy as np
 from datetime import datetime
-import settings, PerfectCounter, Buckets, NiceBuckets
+import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, Morris, CEDAR
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp
 
@@ -71,6 +71,18 @@ class CountMinSketch:
                                 cntrSize    = self.cntrSize, 
                                 numCntrs    = self.numCntrs, 
                                 verbose     = self.verbose)
+        elif self.mode.startswith('SEAD_stat'):
+            expSize = int(self.mode.split('_e')[1])
+            self.cntrMaster = SEAD_stat.CntrMaster (
+                                cntrSize        = self.cntrSize, 
+                                numCntrs        = self.numCntrs, 
+                                expSize         = expSize,
+                                verbose         = self.verbose)
+        elif self.mode=='SEAD_dyn':
+            self.cntrMaster = SEAD_dyn.CntrMaster (
+                                cntrSize        = self.cntrSize, 
+                                numCntrs        = self.numCntrs, 
+                                verbose         = self.verbose)
         elif self.mode=='IceBuckets':
             self.cntrMaster = Buckets.Buckets (
                                 cntrSize        = self.cntrSize, 
@@ -412,7 +424,7 @@ def main(mode, runShortSim=True):
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
         verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_LOG_END_SIM] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
-         
+    
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
                           numCntrsPerBkt = numCntrsPerBkt,
                           numEpsilonStepsIceBkts    = numEpsilonStepsIceBkts, 
@@ -424,6 +436,6 @@ def main(mode, runShortSim=True):
     
 if __name__ == '__main__':
     try:
-        main (mode='NiceBuckets', runShortSim=True)
+        main (mode='SEAD_stat_e1', runShortSim=True)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

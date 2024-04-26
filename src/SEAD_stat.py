@@ -68,6 +68,13 @@ class CntrMaster (object):
             self.logFIle = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
 
              
+    def setLogFile (self):
+        """
+        An empty function. Implemented only for compatibility with buckets, that do have such a func.
+        """
+        None 
+    
+    
     def rstCntr (self, cntrIdx=0):
         """
         """
@@ -107,15 +114,20 @@ class CntrMaster (object):
         return self.valOf (expVal=int (expVec, base=2), mantVal=int (mantVec, base=2))
 
     
-    def queryCntr (self, cntrIdx=0) -> dict:
+    def queryCntr (self, 
+            cntrIdx  = 0, #  
+            getVal   = True # If True, return only the counter's value. Else, return cntrDic - a dictionary, where cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.
+        ):
         """
         Query a cntr.
         Input: 
-        cntrIdx - the counter's index. 
+         
         Output:
         cntrDic: a dictionary, where: 
             - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.        
         """
+        if getVal:
+            return self.cntr2num(self.cntrs[cntrIdx])
         settings.checkCntrIdx (cntrIdx=cntrIdx, numCntrs=self.numCntrs, cntrType='SEAD')
         return {'cntrVec' : self.cntrs[cntrIdx], 'val' : self.cntr2num(self.cntrs[cntrIdx])}    
         
