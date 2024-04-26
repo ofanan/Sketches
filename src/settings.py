@@ -1,7 +1,8 @@
 # Parameters and accessory functions
 # import math, random, os, pandas as pd
-import os, math, numpy as np, scipy.stats as st 
+import os, math, itertools, numpy as np, scipy.stats as st 
 from printf import printf
+from cplex.lib.python.docplex.cp.modeler import element
 
 SEED    = 42
 INF_INT = 999999999
@@ -246,3 +247,27 @@ def makeSymmetricVec (X):
     """
     reversed_negative_part = [-item for item in X[::-1]]
     return reversed_negative_part[:-1] + X
+
+def first_true(iterable, default=False, pred=None):
+    """
+    Returns the first true value in the iterable.
+    If no true value is found, returns *default*
+    If *pred* is not None, returns the first item
+    for which pred(item) is true.
+
+    """
+    # first_true([a,b,c], x) --> a or b or c or x
+    # first_true([a,b], x, f) --> a if f(a) else b if f(b) else x
+    return next(filter(pred, iterable), default)
+
+def indexOrNone(l : list, 
+                elem):
+    """
+    if elem is found in a list, returns the first index in which it's found.
+    else, return None
+    """
+    try:
+        idx = l.index(elem)
+        return idx
+    except ValueError:
+        return None
