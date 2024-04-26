@@ -67,8 +67,37 @@ class CntrMaster (object):
         if settings.VERBOSE_LOG_CNTRLINE in self.verbose:
             self.logFIle = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
 
+    def printAllCntrs (self, outputFile) -> None:
+        """
+        Format-print all the counters as a single the array, to the given file.
+        Format print the values corresponding to all the counters in self.cntrs.
+        Used for debugging/logging.
+        """        
+        if outputFile==None:
+            print (f'Printing all cntrs.')
+            if printAlsoVec:
+                for idx in range(self.numCntrs):
+                    cntrDict = self.queryCntr (idx, getVal=False)
+                    print ('cntrVec={}, cntrVal={} ' .format (cntrDict['cntrVec'], cntrDict['val']))
+            else:
+                for idx in range(self.numCntrs):
+                    print (f'{self.queryCntr(getVal=True)} ')
+        else:
+            for idx in range(self.numCntrs):
+                printf (outputFile, f'{self.queryCntr(getVal=True)} ')
+
              
-    def setLogFile (self):
+    def printCntrsStat (self, 
+                        outputFile, # file to which the stat will be written
+                        genPlot=False, # when True, plot the stat 
+                        outputFileName=None, # filename to which the .pdf plot will be saved
+                        ) -> None:
+        """
+        An empty function. Implemented only for compatibility with buckets, that do have such a func.
+        """
+        None
+
+    def setLogFile (self, logFile):
         """
         An empty function. Implemented only for compatibility with buckets, that do have such a func.
         """

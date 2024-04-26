@@ -413,7 +413,7 @@ def main(mode, runShortSim=True):
         numEpsilonStepsIceBkts  = 5 
         numEpsilonStepsInRegBkt = 2
         numEpsilonStepsInXlBkt  = 5
-        verbose                 = [settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG] #settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
+        verbose                 = [settings.VERBOSE_RES] # settings.VERBOSE_LOG, settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
         width, depth, cntrSize  = 1024, 4, 8
         numFlows                = 4096 # width*depth*16
@@ -423,7 +423,7 @@ def main(mode, runShortSim=True):
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
-        verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_LOG_END_SIM] # settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
+        verbose                 = [settings.VERBOSE_RES] # settings.VERBOSE_LOG_END_SIM,  settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
                           numCntrsPerBkt = numCntrsPerBkt,
