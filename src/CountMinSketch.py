@@ -370,12 +370,12 @@ def main(mode, runShortSim=True):
         width, depth, cntrSize  = 1024, 4, 8
         numFlows                = 1000000
         numCntrsPerBkt          = 16
-        maxNumIncs              = 1, #float ('inf')   
+        maxNumIncs              = 10, #float ('inf')   
         numOfExps               = 1
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
-        verbose                 = [settings.VERBOSE_RES] # settings.VERBOSE_LOG_END_SIM,  settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
+        verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG_END_SIM,  settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
                           numCntrsPerBkt = numCntrsPerBkt,
@@ -387,6 +387,6 @@ def main(mode, runShortSim=True):
     
 if __name__ == '__main__':
     try:
-        main (mode='SEAD_stat_e1', runShortSim=False)
+        main (mode='SEAD_stat_e3', runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
