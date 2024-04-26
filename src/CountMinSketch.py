@@ -303,7 +303,6 @@ class CountMinSketch:
             traceFile = open (relativePathToInputFile, 'r')
             for row in traceFile:            
                 flowId = int(row[0]) 
-                print (flowId) #$$$
                 self.incNum  += 1                
                 flowRealVal[flowId]     += 1
                 
@@ -359,7 +358,7 @@ def main(mode, runShortSim=True):
     
     if runShortSim:
         width, depth, cntrSize  = 2, 2, 4
-        numFlows                = width*depth*1
+        numFlows                = 10000
         numCntrsPerBkt          = 2
         maxNumIncs              = 4000 #(width * depth * cntrSize**3)/2
         numOfExps               = 1
@@ -369,7 +368,7 @@ def main(mode, runShortSim=True):
         verbose                 = [settings.VERBOSE_RES] # settings.VERBOSE_LOG, settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
         width, depth, cntrSize  = 1024, 4, 8
-        numFlows                = 1000000
+        numFlows                = 10000000
         numCntrsPerBkt          = 16
         maxNumIncs              = float ('inf')   
         numOfExps               = 1

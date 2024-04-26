@@ -78,6 +78,6 @@ def parseTrace (
     
 parseTrace (
     # maxNumRows      = 10000, #float('inf'), # overall number of increments (# of pkts in the trace) 
-    traceFileName   = 'Caida1',
+    traceFileName   = 'Caida2',
     verbose         = [settings.VERBOSE_RES] # verbose level, determined in settings.py.
 )
