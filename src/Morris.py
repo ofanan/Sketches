@@ -13,6 +13,7 @@ import numpy as np
 # To prevent overflows, the search range should be limited. 
 # This is done using the list of dicts below. 
 aSearchRanges = [
+                 {'cntrSize' : 4,    'aLo' : 1,      'aHi' : 1000},
                  {'cntrSize' : 5,    'aLo' : 1,      'aHi' : 1000},
                  {'cntrSize' : 6,    'aLo' : 1,      'aHi' : 1000},
                  {'cntrSize' : 7,    'aLo' : 1,      'aHi' : 1000},

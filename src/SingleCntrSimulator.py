@@ -281,24 +281,31 @@ class SingleCntrSimulator (object):
         Calculate and potentially print to .log and/or .res file (based on self.verbose) the RMSE statistics based on the values measured and stored in self.cntrRecord['sumSqEr'].
         Return a dict of the calculated data.  
         """
-        
-        self.cntrRecord['Rmse']     = [math.sqrt (self.cntrRecord['sumSqEr'][expNum]/self.numOfPoints[expNum]) for expNum in range(self.numOfExps)]
-        self.cntrRecord['normRmse'] = [              self.cntrRecord['Rmse'][expNum]/self.numOfPoints[expNum]  for expNum in range(self.numOfExps)]
+        if self.calc_MSE:
+            expResults = [self.cntrRecord['sumSqEr'][expNum]/self.numOfPoints[expNum] for expNum in range(self.numOfExps)]
+        else:
+            self.cntrRecord['Rmse']     = [math.sqrt (self.cntrRecord['sumSqEr'][expNum]/self.numOfPoints[expNum]) for expNum in range(self.numOfExps)]
+            self.cntrRecord['normRmse'] = [              self.cntrRecord['Rmse'][expNum]/self.numOfPoints[expNum]  for expNum in range(self.numOfExps)]
+            expResults = self.cntrRecord['normRmse']
         if (settings.VERBOSE_LOG in self.verbose):
-            printf (self.log_file, 'normRmse=')
-            printarFp (self.log_file, self.cntrRecord['normRmse'])
+            printf (self.log_file, 'expResults=')
+            printarFp (self.log_file, expResults)
         
-        normRmseAvg          = np.average    (self.cntrRecord['normRmse'])
-        normRmseConfInterval = settings.confInterval (ar=self.cntrRecord['normRmse'], avg=normRmseAvg)
-        return {'erType'        : self.erType,
+        expResultsAvg          = np.average    (expResults)
+        expResultsConfInterval = settings.confInterval (ar=expResults, avg=expResultsAvg)
+        if self.calc_MSE:
+            erType = self.erType.split['Rmse'][0] + 'Mse'
+        else:
+            erType = self.erType
+        return {'erType'        : erType,
                 'numOfExps'     : self.numOfExps,
                 'mode'          : self.cntrRecord['mode'],
                 'cntrSize'      : self.cntrSize, 
                 'cntrMaxVal'    : self.cntrMaxVal,
                 'settingStr'   : self.cntrRecord['cntr'].genSettingsStr(),
-                'Avg'           : normRmseAvg,
-                'Lo'            : normRmseConfInterval[0],
-                'Hi'            : normRmseConfInterval[1]}
+                'Avg'           : expResultsAvg,
+                'Lo'            : expResultsConfInterval[0],
+                'Hi'            : expResultsConfInterval[1]}
 
     def measureResolutionsByModes (
             self, 
@@ -421,7 +428,11 @@ class SingleCntrSimulator (object):
         
         # run the simulation          
         for self.erType in self.erTypes:
-            if not (self.erType in ['WrEr', 'WrRmse', 'RdEr', 'RdRmse']):
+            self.calc_MSE = False # By default, do not calculate the MSE
+            if self.erType=='WrMse':
+                self.calc_MSE = True
+                self.erType = 'WrRmse'
+            if not (self.erType in ['WrEr', 'WrRmse', 'RdEr', 'RdRmse', 'WrMse', 'RdMse']):
                 settings.error ('Sorry, the requested error mode {self.erType} is not supported')
             pclOutputFile = None # default value
             if settings.VERBOSE_PCL in self.verbose:
@@ -635,16 +646,16 @@ def main ():
         #            signed       = False # When True, assume an additional bit for the  
         #            )
         hyperSize  = 2
-        for cntrSize in [16]: #[8, 10, 12]: #, 14, 16]:
-            simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+        for cntrSize in [8]: #[8, 10, 12]: #, 14, 16]:
+            simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES])#, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
             simController.runSingleCntr \
                 (dwnSmple       = False,  
-                modes          = ['SEAD_stat_e4', 'SEAD_dyn'], #'F2P_li_h2', 'Morris', 'CEDAR', 'SEAD_stat_e4', 'SEAD_dyn'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
+                modes          = ['Morris', 'F2P_li_h2'],# 'Morris', 'CEDAR', 'SEAD_stat_e4', 'SEAD_dyn'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
                 cntrSize       = cntrSize, 
                 hyperSize      = hyperSize,
-                numOfExps      = 100,
+                numOfExps      = 2, #100,
                 rel_abs_n      = True,
-                erTypes        = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+                erTypes        = ['RdMse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
             )
         
 

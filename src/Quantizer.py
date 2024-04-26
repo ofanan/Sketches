@@ -376,7 +376,6 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
             pickle.dump(resRecord, pclOutputFile)        
         if settings.VERBOSE_PLOT in verbose:
             resRecords.append (resRecord)
-        
 
 def plotGrids (
         modes       = [], # modes to be simulated, e.g. FP, F2P_sr. 
