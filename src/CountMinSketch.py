@@ -1,6 +1,6 @@
 import matplotlib 
 import matplotlib.pyplot as plt
-import math, random, os, pickle, mmh3, time, csv
+import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, Morris, CEDAR
