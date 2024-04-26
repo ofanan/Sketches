@@ -208,8 +208,8 @@ def getRelativePathToTraceFile (traceFileName):
     Given a trace's file name, get the relative path to this trace file.
     The function also checks whether this trace file exists; otherwise, the run finishes with an appropriate error message.
     """
-    print (f'Note: we currently assume that all traces are in directory {getTracesPath()}, and in .csv format')
-    RelativePathToTraceFile = f'{getTracesPath()}Caida/{traceFileName}.csv'
+    print (f'Note: we currently assume that all traces are in directory {getTracesPath()}, and in .txt format')
+    RelativePathToTraceFile = f'{getTracesPath()}Caida/{traceFileName}.txt'
     checkIfInputFileExists (RelativePathToTraceFile)
     return RelativePathToTraceFile
 

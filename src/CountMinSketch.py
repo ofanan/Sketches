@@ -248,7 +248,7 @@ class CountMinSketch:
         self.maxNumIncs, self.numOfExps = maxNumIncs, numOfExps
         
         tic ()
-        if traceFileName==None:
+        if traceFileName==None: # random input
             self.traceFileName = 'rand'
             flowRealVal     = [0] * self.numFlows
             self.sumSqEr    = [0] * self.numOfExps # self.sumSqEr[j] will hold the sum of the square errors collected at experiment j. 
@@ -354,7 +354,7 @@ class CountMinSketch:
 def main(mode, runShortSim=True):
     """
     """   
-    traceFileName = 'Caida1'
+    traceFileName = 'Caida2'
     
     if runShortSim:
         width, depth, cntrSize  = 2, 2, 4
@@ -368,9 +368,9 @@ def main(mode, runShortSim=True):
         verbose                 = [settings.VERBOSE_RES] # settings.VERBOSE_LOG, settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
         width, depth, cntrSize  = 1024, 4, 8
-        numFlows                = 10000000
+        numFlows                = 1000000
         numCntrsPerBkt          = 16
-        maxNumIncs              = float ('inf')   
+        maxNumIncs              = 1, #float ('inf')   
         numOfExps               = 1
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
@@ -387,6 +387,6 @@ def main(mode, runShortSim=True):
     
 if __name__ == '__main__':
     try:
-        main (mode='SEAD_stat_e1', runShortSim=True)
+        main (mode='SEAD_stat_e1', runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
