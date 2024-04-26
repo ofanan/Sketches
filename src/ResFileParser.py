@@ -691,7 +691,7 @@ class ResFileParser (object):
                     printf (resFile, '}}')
                 # elif val<100:
                 #     printf (resFile, '{:.1f}' .format (val))
-                elif val<100000:
+                elif val<10000:
                     printf (resFile, '{:.1f}' .format (val))
                 else:
                     printf (resFile, '{:.1e}' .format (val))
@@ -832,22 +832,25 @@ def genErVsCntrSizeTable ():
 
 if __name__ == '__main__':
     try:
-        genErVsCntrSizeTable ()
+        # genErVsCntrSizeTable ()
         # plotErVsCntrSize ()
+        genErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 
+def rmvFromPcl ():
+    myResFileParser = ResFileParser()
+    myResFileParser.rmvFromPcl(
+        pclFileName = 'rndErr_n19_wrong_si_li.pcl',
+        listOfDicts = [{'mode' : 'F2P_li_h2'},
+                       {'mode' : 'F2P_si_h2'},
+                       {'mode' : 'F2P_li_h1'},
+                       {'mode' : 'F2P_si_h1'}]
+        )
+        
 # genResolutionPlot ()
     # my_ResFileParser.printAllPoints (cntrSize=8, cntrMaxVal=1488888, printToScreen=True)
 
-# print ('{:.2e}' .format (0.000056))
-        # myResFileParser = ResFileParser()
-        # myResFileParser.rmvFromPcl(
-        #     pclFileName = 'rndErr_n19_wrong_si_li.pcl',
-        #     listOfDicts = [{'mode' : 'F2P_li_h2'},
-        #                    {'mode' : 'F2P_si_h2'},
-        #                    {'mode' : 'F2P_li_h1'},
-        #                    {'mode' : 'F2P_si_h1'}],
         #     verbose     = [settings.VERBOSE_RES]
         #     )
         # plotErVsCntrSize ()
