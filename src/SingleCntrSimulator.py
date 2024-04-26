@@ -126,6 +126,9 @@ class SingleCntrSimulator (object):
         if (settings.VERBOSE_RES in self.verbose):
             printf (self.resFile, f'{dict}\n\n') 
     
+    def runSingleCntrSingleModeWrMse (self, pclOutputFile=None):
+        return runSingleCntrSingleModeWrRmse (pclOutputFile=pclOutputFile)
+
     def runSingleCntrSingleModeWrRmse (self, pclOutputFile=None):
         """
         Run a single counter of mode self.mode (self.mode is the approximation cntr architecture - e.g., 'F2P', 'CEDAR').  
@@ -176,6 +179,16 @@ class SingleCntrSimulator (object):
         self.dumpDictToPcl       (dict, pclOutputFile)
         self.writeDictToResFile  (dict)
 
+
+    def runSingleCntrSingleModeRdMse (self, pclOutputFile=None): 
+        """
+        Run a single counter of mode self.mode (self.mode is the approximation cntr architecture - e.g., 'F2P', 'CEDAR').  
+        Collect and write statistics about the errors w.r.t. the real cntr (measured) value.
+        The error is calculated upon each increment of the real cntr (measured) value, 
+        as the difference between the measured value, and the value represented by the cntr.
+        The type of statistic collected is the Round Mean Square Error of such write errors.
+        """
+        return self.runSingleCntrSingleModeRdRmse (pclOutputFile=pclOutputFile)
 
     def runSingleCntrSingleModeRdRmse (self, pclOutputFile=None): 
         """
