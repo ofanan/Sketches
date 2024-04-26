@@ -4,6 +4,7 @@ import math, random, os, pickle, mmh3, time, csv
 import numpy as np
 from datetime import datetime
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, Morris, CEDAR
+from settings import warning, error
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp
 
@@ -286,10 +287,6 @@ class CountMinSketch:
             self.incNum     = 0
             flowRealVal     = [0] * self.numFlows
             self.sumSqEr    = 0 # self.sumSqEr will hold the sum of the square errors.  
-            relativePathToInputFile = settings.getRelativePathToTraceFile (self.traceFileName)
-            settings.checkIfInputFileExists (relativePathToInputFile)
-            csvFile = open (relativePathToInputFile, 'r')
-            csvReader = csv.reader(csvFile) #, delimiter=' ', quotechar='|')
             self.genCntrMaster ()
             if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
                 infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
@@ -298,8 +295,15 @@ class CountMinSketch:
 
             self.printSimMsg ('Started')
 
-            for row in csvReader:
-                flowId = int(row[0]) % self.numFlows
+            relativePathToInputFile = settings.getRelativePathToTraceFile (self.traceFileName)
+            settings.checkIfInputFileExists (relativePathToInputFile)
+            traceFile = open (relativePathToInputFile, 'r')
+            for row in traceFile:            
+            # csvFile = open (relativePathToInputFile, 'r')
+            # csvReader = csv.reader(csvFile) #, delimiter=' ', quotechar='|')
+            # for row in csvReader:
+                flowId = int(row[0]) 
+                error (flowId)
                 self.incNum  += 1                
                 flowRealVal[flowId]     += 1
                 
