@@ -39,13 +39,13 @@ def parseTrace (
         if len(dictsWithThisFlowKey)>1:
             error ('len(dictsWithThisFlowKey)={len(dictsWithThisFlowKey)}, flowKey={flowKey}')
         elif len(dictsWithThisFlowKey)==1: # This flow already appeared --> inc. its cnt.
-            dictsWithThisFlowKey['cnt'] += 1
+            dictsWithThisFlowKey[0]['cnt'] += 1
         else: # This flow hasn't appeared yet --> insert it into flowsListOfDicts
-            flowsListOfDicts.append [
+            flowsListOfDicts.append (
                 {'key' : flowKey,
                  'id'  : flowId,
                  'cnt' : 1}
-            ]
+            )
         if settings.VERBOSE_RES in verbose:
             printf (traceOutputFile, f'{flowId}\n')
         flowId += 1
