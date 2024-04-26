@@ -41,7 +41,7 @@ def parseTrace (
         elif len(dictsWithThisFlowKey)==1: # This flow already appeared --> inc. its cnt.
             dictsWithThisFlowKey[0]['cnt'] += 1
             if settings.VERBOSE_RES in verbose:
-                printf (traceOutputFile, '{flowId}\n' .format(dictsWithThisFlowKey[0]['id']))
+                printf (traceOutputFile, '{}\n' .format(dictsWithThisFlowKey[0]['id']))
         else: # This flow hasn't appeared yet --> insert it into flowsListOfDicts
             flowsListOfDicts.append (
                 {'key' : flowKey,
@@ -55,10 +55,10 @@ def parseTrace (
         if rowNum > maxNumRows:
             break
 
-    statFile = open (f'../res/{traceFileName}_stat.txt', 'w')
-    numFlows = len(flowSizes)
+    flowSizes   = [item['cnt'] for item in flowsListOfDicts]
+    statFile    = open (f'../res/{traceFileName}_stat.txt', 'w')
+    numFlows    = len(flowSizes)
     printf (statFile, f'// numFlows = {numFlows}\n')
-    flowSizes = [item['cnt'] for item in listOfFlowDicts]
     printf (statFile, '// flowSizes={flowSizes}\n')
     
     
@@ -80,7 +80,7 @@ def parseTrace (
 
     
 parseTrace (
-    maxNumRows = 3, #float('inf'), # overall number of increments (# of pkts in the trace) 
+    # maxNumRows      = 10000, #float('inf'), # overall number of increments (# of pkts in the trace) 
     traceFileName   = 'Caida1',
-    verbose         = [] # verbose level, determined in settings.py.
+    verbose         = [settings.VERBOSE_RES] # verbose level, determined in settings.py.
 )

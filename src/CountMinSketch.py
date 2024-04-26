@@ -337,57 +337,6 @@ class CountMinSketch:
             if settings.VERBOSE_RES in self.verbose:
                 printf (self.resFile, f'{dict}\n\n') 
                 
-    def collectStatOfTrace (self, 
-             maxNumIncs     = float('inf'), # overall number of increments (# of pkts in the trace) 
-             traceFileName  = None
-             ):
-        """
-        Collect statistics about a trace
-        """
-        
-        self.maxNumIncs = maxNumIncs
-        
-        if traceFileName==None:
-            self.traceFileName = 'rand'
-            flowRealVal     = [0] * self.numFlows
-
-            for incNum in range(self.maxNumIncs):
-                flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
-                # flowId = mmh3.hash(str(flowId)) % self.numFlows
-                flowRealVal[flowId]     += 1
-        else: # read trace from a file
-            self.traceFileName = traceFileName
-            self.incNum     = 0
-            flowRealVal     = [0] * self.numFlows
-            relativePathToInputFile = settings.getRelativePathToTraceFile (self.traceFileName)
-            settings.checkIfInputFileExists (relativePathToInputFile)
-            csvFile = open (relativePathToInputFile, 'r')
-            csvReader = csv.reader(csvFile) #, delimiter=' ', quotechar='|')
-            for row in csvReader:
-                flowId = int(row[0]) % self.numFlows
-                flowRealVal[flowId]     += 1
-                self.incNum += 1
-                if incNum==self.maxNumIncs:
-                    break
-        
-        outputFileName = self.genSettingsStr() + f'_{incNum}incs'
-        outputFile = open (f'../res/{outputFileName}.txt', 'w')
-        maxFlowSize = max (flowRealVal)
-        numBins = min (100, maxFlowSize+1)
-        binSize = maxFlowSize // (numBins-1)
-        binVal  = [None] * numBins 
-        for bin in range(numBins):
-            binVal[bin] = len ([flowId for flowId in range(self.numFlows) if (flowRealVal[flowId]//binSize)==bin])
-        binFlowSizes = [binSize*bin for bin in range (numBins)]
-        printf (outputFile, f'numFlows={self.numFlows}, num zero flows={len ([item for item in flowRealVal if item==0])}, num non-zeros flows={len ([item for item in flowRealVal if item>0])}')
-        printf (outputFile, f'\nmaxFlowSize={maxFlowSize}, binVal={binVal}')
-        printf (outputFile, f'\nbinFlowSizes={binFlowSizes}')
-        printf (outputFile, f'\nflowSizes={flowRealVal}')
-        _, ax = plt.subplots()
-        ax.plot ([binSize*bin for bin in range (numBins)], binVal)
-        ax.set_yscale ('log')
-        plt.savefig (f'../res/{outputFileName}.pdf', bbox_inches='tight')        
-        
     def writeProgress (self, infoStr=None):
         """
         If the verbose requires that, report the progress to self.logFile
@@ -432,7 +381,6 @@ def main(mode, runShortSim=True):
                           numEpsilonStepsInXlBkt    = numEpsilonStepsInXlBkt,
                           mode=mode)
     cms.sim (numOfExps=numOfExps, maxNumIncs=maxNumIncs, traceFileName=traceFileName)
-    # cms.collectStatOfTrace(traceFileName=traceFileName, maxNumIncs=100) 
     
 if __name__ == '__main__':
     try:
