@@ -2,7 +2,6 @@
 # import math, random, os, pandas as pd
 import os, math, itertools, numpy as np, scipy.stats as st 
 from printf import printf
-from cplex.lib.python.docplex.cp.modeler import element
 
 SEED    = 42
 INF_INT = 999999999
