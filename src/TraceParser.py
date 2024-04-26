@@ -9,7 +9,7 @@ from printf import printf, printarFp
 from settings import warning, error
 
 def parseTrace (
-        maxNumIncs      = float('inf'), # overall number of increments (# of pkts in the trace) 
+        maxNumRows      = float('inf'), # overall number of increments (# of pkts in the trace) 
         traceFileName   = None,
         verbose         = [] # verbose level, determined in settings.py.
         ):
@@ -25,7 +25,7 @@ def parseTrace (
     csvFile = open (relativePathToInputFile, 'r')
     csvReader = csv.reader(csvFile) 
 
-    incNum              = 0
+    rowNum              = 1
     flowsListOfDicts    = []
     flowId              = int(0)
 
@@ -40,15 +40,20 @@ def parseTrace (
             error ('len(dictsWithThisFlowKey)={len(dictsWithThisFlowKey)}, flowKey={flowKey}')
         elif len(dictsWithThisFlowKey)==1: # This flow already appeared --> inc. its cnt.
             dictsWithThisFlowKey[0]['cnt'] += 1
+            if settings.VERBOSE_RES in verbose:
+                printf (traceOutputFile, '{flowId}\n' .format(dictsWithThisFlowKey[0]['id']))
         else: # This flow hasn't appeared yet --> insert it into flowsListOfDicts
             flowsListOfDicts.append (
                 {'key' : flowKey,
                  'id'  : flowId,
                  'cnt' : 1}
             )
-        if settings.VERBOSE_RES in verbose:
-            printf (traceOutputFile, f'{flowId}\n')
-        flowId += 1
+            if settings.VERBOSE_RES in verbose:
+                printf (traceOutputFile, f'{flowId}\n')
+            flowId += 1
+        rowNum += 1
+        if rowNum > maxNumRows:
+            break
 
     statFile = open (f'../res/{traceFileName}_stat.txt', 'w')
     numFlows = len(flowSizes)
@@ -75,7 +80,7 @@ def parseTrace (
 
     
 parseTrace (
-    maxNumIncs = 3, #float('inf'), # overall number of increments (# of pkts in the trace) 
+    maxNumRows = 3, #float('inf'), # overall number of increments (# of pkts in the trace) 
     traceFileName   = 'Caida1',
     verbose         = [] # verbose level, determined in settings.py.
 )
