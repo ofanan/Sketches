@@ -191,21 +191,26 @@ class CountMinSketch:
         if (settings.VERBOSE_FULL_RES in self.verbose):
             printf (self.fullResFile, f'{dict}\n\n') 
     
-    def calcRmseStat (self) -> dict: 
+    def calcPostSimStat (self, sumSqEr) -> dict: 
         """
-        Calculate and potentially print to .log and/or .res file (based on self.verbose) the RMSE statistics based on the values measured and stored in self.cntrMaster.sumSqEr.
+        Calculate and potentially print to .log and/or .res file (based on self.verbose) 
+        the post-sim stat - e.g., MSE/RMSE. 
+        The stat is based on the values measured and stored in self.cntrMaster.sumSqEr.
         Return a dict of the calculated data.  
         """
         
         self.numOfExps = self.expNum + 1 # Allow writing intermmediate results. Assume we began with expNum=0.
-        Rmse     = [math.sqrt (self.sumSqEr[expNum]/self.incNum) for expNum in range(self.numOfExps)]
-        normRmse = [Rmse[expNum]/self.numIncs  for expNum in range(self.numOfExps)]
-        if (settings.VERBOSE_LOG in self.verbose):
-            printf (self.logFile, '\nnormRmse=')
-            printarFp (self.logFile, normRmse)
+        # Rmse     = [math.sqrt (self.sumSqEr[expNum]/self.incNum) for expNum in range(self.numOfExps)]
+        # normRmse = [Rmse[expNum]/self.numIncs  for expNum in range(self.numOfExps)]
+        # if (settings.VERBOSE_LOG in self.verbose):
+        #     printf (self.logFile, '\nnormRmse=')
+        #     printarFp (self.logFile, normRmse)
         
-        normRmseAvg          = np.average    (normRmse)
-        normRmseConfInterval = settings.confInterval (ar=normRmse, avg=normRmseAvg)
+        # normRmseAvg          = np.average    (normRmse)
+        # normRmseConfInterval = settings.confInterval (ar=normRmse, avg=normRmseAvg)
+        Mse             = [sumSqEr[expNum]/self.incNum for expNum in range(self.numOfExps)]
+        MseAvg          = np.average(Mse)
+        MseConfInterval = settings.confInterval (ar=Mse, avg=MseAvg)
         return {'numOfExps'     : self.numOfExps,
                 'numIncs'       : self.numIncs,
                 'mode'          : self.mode,
@@ -214,10 +219,10 @@ class CountMinSketch:
                 'width'         : self.width,
                 'numFlows'      : self.numFlows,
                 'seed'          : self.seed,
-                'Avg'           : normRmseAvg,
-                'normRmse'      : normRmse,
-                'Lo'            : normRmseConfInterval[0],
-                'Hi'            : normRmseConfInterval[1]}
+                'Avg'           : MseAvg,
+                'Lo'            : MseConfInterval[0],
+                'Hi'            : MseConfInterval[1],
+                'statType'      : 'MSE'}
 
 
     def openOutputFiles (self) -> None:
@@ -317,7 +322,7 @@ class CountMinSketch:
                     self.cntrMaster.printAllCntrs (self.logFile)
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
             if settings.VERBOSE_FULL_RES in self.verbose:
-                printf (self.fullResFile, f'{self.calcRmseStat()}\n\n') 
+                printf (self.fullResFile, f'{self.calcPostSimStat(sumSqEr=self.sumSqAbsEr)}\n\n') 
             
     def sim (
         self, 
@@ -342,7 +347,7 @@ class CountMinSketch:
             self.traceFileName = traceFileName
             self.runSimFromTrace ()
         toc ()
-        dict = self.calcRmseStat    ()
+        dict = self.calcPostSimStat(sumSqEr=self.sumSqAbsEr)
         if settings.VERBOSE_PCL in self.verbose:
             self.dumpDictToPcl    (dict)
         if settings.VERBOSE_RES in self.verbose:
@@ -365,9 +370,10 @@ def main(mode, runShortSim=True):
     """
     """   
     traceFileName   = 'Caida1'
-    numFlows        = 10000
     if traceFileName=='Caida1':
         numFlows = 1276112
+    else:
+        numFlows = 10000
     
     if runShortSim:
         width, depth, cntrSize  = 2, 2, 4
@@ -383,7 +389,7 @@ def main(mode, runShortSim=True):
         width, depth, cntrSize  = 1024, 4, 8
         numFlows                = numFlows
         numCntrsPerBkt          = 16
-        maxNumIncs              = float ('inf')   
+        maxNumIncs              = 100 #$$$$float ('inf')   
         numOfExps               = 2
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5

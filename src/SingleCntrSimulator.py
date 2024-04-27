@@ -315,7 +315,7 @@ class SingleCntrSimulator (object):
                 'mode'          : self.cntrRecord['mode'],
                 'cntrSize'      : self.cntrSize, 
                 'cntrMaxVal'    : self.cntrMaxVal,
-                'settingStr'   : self.cntrRecord['cntr'].genSettingsStr(),
+                'settingStr'    : self.cntrRecord['cntr'].genSettingsStr(),
                 'Avg'           : expResultsAvg,
                 'Lo'            : expResultsConfInterval[0],
                 'Hi'            : expResultsConfInterval[1]}
