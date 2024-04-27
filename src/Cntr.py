@@ -22,8 +22,9 @@ class CntrMaster (object):
         
         if (cntrSize<3):
             settings.error ('error: cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
-        self.cntrSize    = int(cntrSize)
-        self.numCntrs    = int(numCntrs)
+        self.cntrSize   = int(cntrSize)
+        self.numCntrs   = int(numCntrs)
+        self.verbose    = verbose
         
 
     def printAllCntrs (self, outputFile) -> None:
