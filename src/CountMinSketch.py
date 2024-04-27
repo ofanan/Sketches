@@ -198,7 +198,7 @@ class CountMinSketch:
         The stat is based on the values measured and stored in self.cntrMaster.sumSqEr.
         Return a dict of the calculated data.  
         """
-        
+        print (sumSqEr) #$$$$
         self.numOfExps = self.expNum + 1 # Allow writing intermmediate results. Assume we began with expNum=0.
         # Rmse     = [math.sqrt (self.sumSqEr[expNum]/self.incNum) for expNum in range(self.numOfExps)]
         # normRmse = [Rmse[expNum]/self.numIncs  for expNum in range(self.numOfExps)]
@@ -254,7 +254,6 @@ class CountMinSketch:
             error ('In CountMinSketch.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
         else:
             flowRealVal = [0] * self.numFlows
-        self.genCntrMaster ()
         if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
             infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
             self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
@@ -262,17 +261,17 @@ class CountMinSketch:
 
         relativePathToInputFile = settings.getRelativePathToTraceFile (self.traceFileName)
         settings.checkIfInputFileExists (relativePathToInputFile)
-        traceFile = open (relativePathToInputFile, 'r')
         for self.expNum in range (self.numOfExps):
+            self.genCntrMaster ()
             self.incNum     = 0
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
-            self.genCntrMaster ()
 
             if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
                 infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
                 self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
                 self.cntrMaster.setLogFile(self.logFile)
             
+            traceFile = open (relativePathToInputFile, 'r')
             for row in traceFile:            
                 flowId = int(row[0]) 
                 self.incNum  += 1                
@@ -287,6 +286,7 @@ class CountMinSketch:
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
                 if self.incNum==self.maxNumIncs:
                     break
+        traceFile.close ()
     
         if settings.VERBOSE_LOG_END_SIM in self.verbose:
             self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr()) 
@@ -388,7 +388,7 @@ def main(mode, runShortSim=True):
         numFlows                = numFlows
         numCntrsPerBkt          = 16
         maxNumIncs              = 100 #$$$$float ('inf')   
-        numOfExps               = 2
+        numOfExps               = 3
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
