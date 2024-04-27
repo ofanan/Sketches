@@ -84,8 +84,22 @@ class CountMinSketch:
                                 cntrSize        = self.cntrSize, 
                                 numCntrs        = self.numCntrs, 
                                 verbose         = self.verbose)
+        elif self.mode.startswith('F2P_li_'):
+            hyperSize = int(self.mode.split('_h')[1])
+            self.cntrMaster = F2P_li.CntrMaster (
+                                cntrSize        = self.cntrSize, 
+                                numCntrs        = self.numCntrs, 
+                                hyperSize       = hyperSize,
+                                verbose         = self.verbose)
         elif self.mode=='Morris':
-            self.cntrMaster = SEAD_dyn.CntrMaster (
+            # WHAT IS CNTR MAX VAL? #$$$
+            self.cntrMaster = Morris.CntrMaster (
+                                cntrSize        = self.cntrSize, 
+                                numCntrs        = self.numCntrs, 
+                                verbose         = self.verbose)
+        elif self.mode=='CEDAR': 
+            # WHAT IS CNTR MAX VAL? #$$$
+            self.cntrMaster = CEDAR.CntrMaster (
                                 cntrSize        = self.cntrSize, 
                                 numCntrs        = self.numCntrs, 
                                 verbose         = self.verbose)
@@ -129,7 +143,7 @@ class CountMinSketch:
                                 mode            = 'MEC',
                                 verbose         = self.verbose)
         else:
-            print(f'Sorry, the mode {self.mode} that you requested is not supported')
+            warning (f'Sorry, the mode {self.mode} that you requested is not supported')
 
     
     def genOutputDirectories (self):
@@ -363,7 +377,9 @@ class CountMinSketch:
         else:
             printf (self.logFile, f'{infoStr}\n')
     
-def main(mode, runShortSim=True):
+def runCMS (mode, 
+            cntrSize    = 8,
+            runShortSim = True):
     """
     """   
     traceFileName   = 'Caida1'
@@ -383,7 +399,7 @@ def main(mode, runShortSim=True):
         numEpsilonStepsInXlBkt  = 5
         verbose                 = [settings.VERBOSE_RES] # settings.VERBOSE_LOG, settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
-        width, depth, cntrSize  = 1024, 4, 8
+        width, depth, cntrSize  = 1024, 4, cntrSize
         numFlows                = numFlows
         numCntrsPerBkt          = 16
         maxNumIncs              = float ('inf')   
@@ -413,6 +429,9 @@ def main(mode, runShortSim=True):
     
 if __name__ == '__main__':
     try:
-        main (mode='SEAD_dyn', runShortSim=False)
+        for cntrSize in [8, 10, 12, 14, 16]:
+            for mode in ['F2P_li_h1', 'F2P_li_h2', 'SEAD_dyn']: #'Morris', 'CEDAR',  
+            # for mode in ['F2P_li_h1', 'F2P_li_h2', 'Morris', 'CEDAR', 'SEAD_dyn']: 
+                runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
