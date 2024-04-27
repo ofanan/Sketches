@@ -212,7 +212,7 @@ class CountMinSketch:
         MseAvg          = np.average(Mse)
         MseConfInterval = settings.confInterval (ar=Mse, avg=MseAvg)
         return {'numOfExps'     : self.numOfExps,
-                'numIncs'       : self.numIncs,
+                'numIncs'       : self.incNum,
                 'mode'          : self.mode,
                 'cntrSize'      : self.cntrSize, 
                 'depth'         : self.depth,
