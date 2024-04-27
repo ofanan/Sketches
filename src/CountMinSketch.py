@@ -191,7 +191,7 @@ class CountMinSketch:
         if (settings.VERBOSE_FULL_RES in self.verbose):
             printf (self.fullResFile, f'{dict}\n\n') 
     
-    def calcPostSimStat (self, sumSqEr, statType='MSE') -> dict: 
+    def calcPostSimStat (self, sumSqEr, statType='normRmse') -> dict: 
         """
         Calculate and potentially print to .log and/or .res file (based on self.verbose) 
         the post-sim stat - e.g., MSE/RMSE. 
@@ -203,14 +203,14 @@ class CountMinSketch:
             vec = [sumSqEr[expNum]/self.incNum for expNum in range(self.numOfExps)]
         elif statType=='normRmse': # Normalized RMSE
             Rmse     = [math.sqrt (self.sumSqEr[expNum]/self.incNum) for expNum in range(self.numOfExps)]
-            normRmse = [item/self.numIncs  for item in Rmse]
+            vec = [item/self.numIncs  for item in Rmse]
             if (settings.VERBOSE_LOG in self.verbose):
                 printf (self.logFile, '\nnormRmse=')
                 printarFp (self.logFile, normRmse)
         else:
             error (f'In CountMinSketch.calcPostSimStat(). Sorry, the requested statType {statType} is not supported.')
-        avg          = np.average(Mse)
-        confInterval = settings.confInterval (ar=Mse, avg=MseAvg)
+        avg          = np.average(vec)
+        confInterval = settings.confInterval (ar=vec, avg=avg)
         return {'numOfExps'     : self.numOfExps,
                 'numIncs'       : self.incNum,
                 'mode'          : self.mode,

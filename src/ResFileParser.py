@@ -286,9 +286,9 @@ class ResFileParser (object):
 
     def genErVsCntrSizePlot (
             self,
-            erType,
+            erType         = 'RdRmse',
             numOfExps      = 50,
-            modes          = ['F2P_li', 'CEDAR', 'Morris', 'SEAD stat'],
+            modes          = ['F2P_li', 'CEDAR', 'Morris'], # 'SEAD_dyn'],
             minCntrSize    = 8,
             maxCntrSize    = 64,
         ):
@@ -335,7 +335,7 @@ class ResFileParser (object):
     def genErVsCntrSizeTable (
             self,
             datOutputFile,
-            erTypes     : list = ['RdRmse'], # Error types to consider    
+            erType      : str  = 'RdRmse', # Error type to consider    
             numOfExps   : int  = 50,
             modes       : list = ['F2P_li', 'CEDAR', 'Morris', 'SEAD_dyn'],
             cntrSizes   : list = [8],
@@ -355,29 +355,26 @@ class ResFileParser (object):
         for cntrSize in cntrSizes:
             pointsOfThisCntrSize = [point for point in points if point['cntrSize']==cntrSize]
             printf (datOutputFile, f'{cntrSize} & ')
-            for erType in erTypes:
-                pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize if point['erType'] == erType]
-                if pointsOfThisCntrSizeErType == []:
-                    error (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}')
-                minVal = min ([point['Avg'] for point in pointsOfThisCntrSizeErType])
-                for mode in modes:
-                    pointsToPrint = [point for point in pointsOfThisCntrSizeErType if point['mode'] == mode]
-                    if pointsToPrint == []:
-                        warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}, mode={mode}')
-                        if mode!=modes[-1]:
-                            printf (datOutputFile, ' & ')
-                        continue
-                    if len(pointsToPrint)>1:
-                        warning (f'found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}, mode={mode}')
-                    if pointsToPrint[0]['Avg']<=minVal*1.01:
-                        printf (datOutputFile, '\\green{\\textbf{')
-                        printf (datOutputFile, '{:.2e}' .format(pointsToPrint[0]['Avg']))
-                        printf (datOutputFile, '}}')
-                    else:
-                        printf (datOutputFile, '{:.2e}' .format(pointsToPrint[0]['Avg']))
+            pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize if point['erType'] == erType]
+            if pointsOfThisCntrSizeErType == []:
+                error (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}')
+            minVal = min ([point['Avg'] for point in pointsOfThisCntrSizeErType])
+            for mode in modes:
+                pointsToPrint = [point for point in pointsOfThisCntrSizeErType if point['mode'] == mode]
+                if pointsToPrint == []:
+                    warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}, mode={mode}')
                     if mode!=modes[-1]:
                         printf (datOutputFile, ' & ')
-                if erType!=erTypes[-1]:
+                    continue
+                if len(pointsToPrint)>1:
+                    warning (f'found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}, mode={mode}')
+                if pointsToPrint[0]['Avg']<=minVal*1.01:
+                    printf (datOutputFile, '\\green{\\textbf{')
+                    printf (datOutputFile, '{:.2e}' .format(pointsToPrint[0]['Avg']))
+                    printf (datOutputFile, '}}')
+                else:
+                    printf (datOutputFile, '{:.2e}' .format(pointsToPrint[0]['Avg']))
+                if mode!=modes[-1]:
                     printf (datOutputFile, ' & ')
             printf (datOutputFile, ' \\\\\n')
     
@@ -819,7 +816,7 @@ def plotErVsCntrSize ():
     abs = False
     for erType in erTypes: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
         my_ResFileParser.rdPcl (pclFileName='{}_1cntr_HPC_{}.pcl' .format ('abs' if abs else 'rel', erType))
-        my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=100, maxCntrSize=16) 
+        my_ResFileParser.genErVsCntrSizePlot(erType=erType, numOfExps=100, maxCntrSize=16) 
 
 
 def genErVsCntrSizeTable ():
@@ -827,16 +824,14 @@ def genErVsCntrSizeTable ():
         Generate a table showing the error as a function of the counter's size.
         """
         my_ResFileParser = ResFileParser ()
-        erTypes = ['RdMse'] #, 'WrRmse']
+        erTypes = ['RdRmse'] #, 'WrRmse']
         outputFileName = f'1cntr.dat' 
         datOutputFile = open (f'../res/{outputFileName}', 'a+')
         abs = False
         for erType in erTypes: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
-            # my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}_li.pcl')
             my_ResFileParser.rdPcl (pclFileName='{}_1cntr_HPC_{}.pcl' .format ('abs' if abs else 'rel', erType))
-            # my_ResFileParser.rdPcl (pclFileName='{}1cntr_PC_{}.pcl'  .format ('abs_' if abs else '', erType))
             printf (datOutputFile, '\n// {}, erType={}\n' .format ('abs ' if abs else 'rel ', erType))
-            my_ResFileParser.genErVsCntrSizeTable(datOutputFile=datOutputFile, erTypes=erTypes, numOfExps=100, cntrSizes=[8, 10, 12, 14, 16]) #[8, 10, 12, 14, 16])
+            my_ResFileParser.genErVsCntrSizeTable(datOutputFile=datOutputFile, erType=erType, numOfExps=100, cntrSizes=[8, 10, 12, 14, 16]) #[8, 10, 12, 14, 16])
 
 def rmvFromPcl ():
     myResFileParser = ResFileParser()
@@ -850,8 +845,8 @@ def rmvFromPcl ():
         
 if __name__ == '__main__':
     try:
-        # genErVsCntrSizeTable ()
-        plotErVsCntrSize ()
+        genErVsCntrSizeTable ()
+        # plotErVsCntrSize ()
         # genRndErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
