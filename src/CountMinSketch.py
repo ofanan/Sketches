@@ -84,6 +84,11 @@ class CountMinSketch:
                                 cntrSize        = self.cntrSize, 
                                 numCntrs        = self.numCntrs, 
                                 verbose         = self.verbose)
+        elif self.mode=='Morris':
+            self.cntrMaster = SEAD_dyn.CntrMaster (
+                                cntrSize        = self.cntrSize, 
+                                numCntrs        = self.numCntrs, 
+                                verbose         = self.verbose)
         elif self.mode=='IceBuckets':
             self.cntrMaster = Buckets.Buckets (
                                 cntrSize        = self.cntrSize, 
@@ -375,7 +380,7 @@ def main(mode, runShortSim=True):
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
-        verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG_END_SIM,  settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
+        verbose                 = [settings.VERBOSE_RES] #, settings.VERBOSE_PCL] # settings.VERBOSE_LOG_END_SIM,  settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
                           numCntrsPerBkt = numCntrsPerBkt,
@@ -387,6 +392,6 @@ def main(mode, runShortSim=True):
     
 if __name__ == '__main__':
     try:
-        main (mode='SEAD_stat_e3', runShortSim=False)
+        main (mode='SEAD_stat_e1', runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

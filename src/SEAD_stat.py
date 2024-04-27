@@ -1,9 +1,10 @@
-import math, time, random
-from printf import printf
-import settings
-import numpy as np
+import math, time, random, numpy as np
 
-class CntrMaster (object):
+from printf import printf
+import settings, Cntr
+
+
+class CntrMaster (Cntr.CntrMaster):
     """
     Generate, check and parse counters
     """
@@ -33,9 +34,6 @@ class CntrMaster (object):
     # get the mantissa value in 'stat' mode  
     getMantVal = lambda self, cntrIdx : int (self.cntrs[cntrIdx][self.expSize:], base=2)
 
-    # Return a range with all the legal combinations for the counter 
-    getAllCombinations = lambda self, cntrSize : range (2**cntrSize)
-    
     def calcOffsets (self):
         """
         Pre-calculate all the offsets to be added to a counter, according to its exponent value:
@@ -55,6 +53,7 @@ class CntrMaster (object):
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
         """
         
+        super ()
         if (cntrSize<3):
             settings.error ('error: cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
         self.cntrSize    = int(cntrSize)
@@ -67,48 +66,6 @@ class CntrMaster (object):
         if settings.VERBOSE_LOG_CNTRLINE in self.verbose:
             self.logFIle = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
 
-    def printAllCntrs (self, outputFile) -> None:
-        """
-        Format-print all the counters as a single the array, to the given file.
-        Format print the values corresponding to all the counters in self.cntrs.
-        Used for debugging/logging.
-        """        
-        if outputFile==None:
-            print (f'Printing all cntrs.')
-            if printAlsoVec:
-                for idx in range(self.numCntrs):
-                    cntrDict = self.queryCntr (idx, getVal=False)
-                    print ('cntrVec={}, cntrVal={} ' .format (cntrDict['cntrVec'], cntrDict['val']))
-            else:
-                for idx in range(self.numCntrs):
-                    print (f'{self.queryCntr(getVal=True)} ')
-        else:
-            for idx in range(self.numCntrs):
-                printf (outputFile, f'{self.queryCntr(getVal=True)} ')
-
-             
-    def printCntrsStat (self, 
-                        outputFile, # file to which the stat will be written
-                        genPlot=False, # when True, plot the stat 
-                        outputFileName=None, # filename to which the .pdf plot will be saved
-                        ) -> None:
-        """
-        An empty function. Implemented only for compatibility with buckets, that do have such a func.
-        """
-        None
-
-    def setLogFile (self, logFile):
-        """
-        An empty function. Implemented only for compatibility with buckets, that do have such a func.
-        """
-        None 
-    
-    
-    def rstCntr (self, cntrIdx=0):
-        """
-        """
-        self.cntrs[cntrIdx] = self.cntrZeroVec
-        
     def calcParams (self):
         """
         Pre-compute the cntrs' parameters, in case of a static SEAD cntr 
@@ -142,34 +99,6 @@ class CntrMaster (object):
             self.printCntrLine (cntr=cntr, expVec=expVec, expVal=expVal, mantVec=mantVec, mantVal=mantVal, cntrVal=cntrVal)
         return self.valOf (expVal=int (expVec, base=2), mantVal=int (mantVec, base=2))
 
-    
-    def queryCntr (self, 
-            cntrIdx  = 0, #  
-            getVal   = True # If True, return only the counter's value. Else, return cntrDic - a dictionary, where cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.
-        ):
-        """
-        Query a cntr.
-        Input: 
-         
-        Output:
-        cntrDic: a dictionary, where: 
-            - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.        
-        """
-        if getVal:
-            return self.cntr2num(self.cntrs[cntrIdx])
-        settings.checkCntrIdx (cntrIdx=cntrIdx, numCntrs=self.numCntrs, cntrType='SEAD')
-        return {'cntrVec' : self.cntrs[cntrIdx], 'val' : self.cntr2num(self.cntrs[cntrIdx])}    
-        
-    def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=None):
-        """
-        """
-        if verbose!=None:
-            self.verbose = verbose
-        if factor==1 and mult==False:
-            return self.incCntrBy1GetVal (cntrIdx)
-    
-        settings.error ('Sorry. SEAD_stat.inccntr() is currently implemented only as incCntrBy1.')
-    
     def incCntrBy1GetVal (self, cntrIdx=0):
         """
         Increase a counter by 1.
@@ -203,24 +132,6 @@ class CntrMaster (object):
         if settings.VERBOSE_LOG_CNTRLINE in self.verbose:
             printf (self.logFIle, f'After inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={cntrppVal}\n')
         return cntrppVal
-
-    def getAllVals (self, verbose=[]):
-        """
-        Loop over all the binary combinations of the given counter size. 
-        For each combination, calculate the respective counter, and its value. 
-        Returns a vector of these values, sorted in an increasing order of the counters' values. 
-        """
-        listOfVals = []
-        for i in self.getAllCombinations (self.cntrSize):
-            cntr = np.binary_repr(i, self.cntrSize) 
-            listOfVals.append ({'cntrVec' : cntr, 'val' : self.cntr2num(cntr)})
-        listOfVals = sorted (listOfVals, key=lambda item : item['val'])
-    
-        if settings.VERBOSE_RES in verbose:
-            outputFile    = open ('../res/log_files/{}.res' .format (self.genSettingsStr()), 'w')
-            for item in listOfVals:
-                printf (outputFile, '{}={}\n' .format (item['cntrVec'], item['val']))
-        return [item['val'] for item in listOfVals]
 
 # def getAllVals (cntrSize=4, expSize=1, verbose=[]):
 #     """
