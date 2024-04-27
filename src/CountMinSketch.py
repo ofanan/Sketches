@@ -252,8 +252,6 @@ class CountMinSketch:
 
         if self.numFlows==None:
             error ('In CountMinSketch.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
-        else:
-            flowRealVal = [0] * self.numFlows
         if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
             infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
             self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
@@ -263,7 +261,8 @@ class CountMinSketch:
         settings.checkIfInputFileExists (relativePathToInputFile)
         for self.expNum in range (self.numOfExps):
             self.genCntrMaster ()
-            self.incNum     = 0
+            flowRealVal = [0] * self.numFlows
+            self.incNum = 0
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
 
             if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
@@ -286,6 +285,7 @@ class CountMinSketch:
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
                 if self.incNum==self.maxNumIncs:
                     break
+            print (self.sumSqAbsEr[self.expNum]) #$$$
         traceFile.close ()
     
         if settings.VERBOSE_LOG_END_SIM in self.verbose:
@@ -301,6 +301,7 @@ class CountMinSketch:
         
         randInput = True
         for self.expNum in range (self.numOfExps):
+            flowRealVal = [0] * self.numFlows
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
             self.genCntrMaster ()
 
