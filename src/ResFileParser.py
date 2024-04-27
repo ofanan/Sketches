@@ -657,7 +657,7 @@ class ResFileParser (object):
         return ([points[0]['mode'], points[0][f'{errType}']])
 
 
-    def printErrTableRow (
+    def printRndErrTableRow (
             self,
             resFile,
             distStrs : list = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
@@ -665,7 +665,7 @@ class ResFileParser (object):
             errType  : str  = 'absMse'
             ):
         """
-        Print a row in the table of errors.
+        Print a row in the table of quantization's rounding errors.
         """
         
         self.rdPcl (f'{genRndErrFileName(cntrSize)}.pcl')
@@ -755,16 +755,16 @@ def genErrByDistBar ():
                     verbose     =[settings.VERBOSE_RES, settings.VERBOSE_PLOT]
                 )
     
-def genErrTable ():
+def genRndErrTable ():
     """
-    Print a formatted table with the results.
+    Print a formatted table detailing the quantization's rounding  errors.
     """
     resFile = open ('../res/errTable.dat', 'a+')
     for cntrSize in [8, 16, 19]:
         errType = 'relMse'
         printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
         myResFileParser = ResFileParser ()
-        myResFileParser.printErrTableRow (
+        myResFileParser.printRndErrTableRow (
             # distStrs = ['Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
             distStrs = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
             cntrSize = cntrSize,
@@ -819,22 +819,22 @@ def genErVsCntrSizeTable ():
         Generate a table showing the error as a function of the counter's size.
         """
         my_ResFileParser = ResFileParser ()
-        erTypes = ['RdRmse'] #, 'WrRmse']
+        erTypes = ['RdMse'] #, 'WrRmse']
         outputFileName = f'1cntr.dat' 
         datOutputFile = open (f'../res/{outputFileName}', 'w')
-        abs = True
+        abs = False
         for erType in erTypes: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
             # my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}_li.pcl')
-            my_ResFileParser.rdPcl (pclFileName='{}1cntr_HPC_{}.pcl' .format ('abs_' if abs else '', erType))
-            my_ResFileParser.rdPcl (pclFileName='{}1cntr_PC_{}.pcl'  .format ('abs_' if abs else '', erType))
+            my_ResFileParser.rdPcl (pclFileName='{}_1cntr_HPC_{}.pcl' .format ('abs' if abs else 'rel', erType))
+            # my_ResFileParser.rdPcl (pclFileName='{}1cntr_PC_{}.pcl'  .format ('abs_' if abs else '', erType))
             printf (datOutputFile, '// {}, erType={}\n' .format ('abs ' if abs else 'rel ', erType))
-            my_ResFileParser.genErVsCntrSizeTable(datOutputFile=datOutputFile, erTypes=erTypes, numOfExps=50, cntrSizes=[8, 10, 12, 14, 16]) #[8, 10, 12, 14, 16])
+            my_ResFileParser.genErVsCntrSizeTable(datOutputFile=datOutputFile, erTypes=erTypes, numOfExps=100, cntrSizes=[8, 10, 12, 14, 16]) #[8, 10, 12, 14, 16])
 
 if __name__ == '__main__':
     try:
         # genErVsCntrSizeTable ()
         # plotErVsCntrSize ()
-        genErrTable ()
+        genRndErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 
