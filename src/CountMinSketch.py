@@ -219,6 +219,7 @@ class CountMinSketch:
                 'Lo'            : normRmseConfInterval[0],
                 'Hi'            : normRmseConfInterval[1]}
 
+
     def openOutputFiles (self) -> None:
         """
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
@@ -239,6 +240,84 @@ class CountMinSketch:
         print ('{} running sim at t={}. trace={}, numOfExps={}, mode={}, cntrSize={}, depth={}, width={}, numFlows={}' .format (
                         str, datetime.now().strftime('%H:%M:%S'), self.traceFileName, self.numOfExps, self.mode, self.cntrSize, self.depth, self.width, self.numFlows))
 
+    def runSimFromTrace (self):
+        """
+        Run a simulation where the input is taken from self.traceFileName.
+        """
+
+        self.traceFileName = traceFileName
+        if self.numFlows==None:
+            error ('In CountMinSketch.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
+        else:
+            flowRealVal = [0] * self.numFlows
+        self.genCntrMaster ()
+        if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
+            infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
+            self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
+            self.cntrMaster.setLogFile(self.logFile)
+
+        relativePathToInputFile = settings.getRelativePathToTraceFile (self.traceFileName)
+        settings.checkIfInputFileExists (relativePathToInputFile)
+        traceFile = open (relativePathToInputFile, 'r')
+        for self.expNum in range (self.numOfExps):
+            self.incNum     = 0
+            self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
+            self.genCntrMaster ()
+
+            if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
+                infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
+                self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
+                self.cntrMaster.setLogFile(self.logFile)
+            
+            for row in traceFile:            
+                flowId = int(row[0]) 
+                self.incNum  += 1                
+                flowRealVal[flowId]     += 1
+                
+                flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
+                sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
+                self.sumSqAbsEr[self.expNum] += sqEr                
+                self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
+                if settings.VERBOSE_LOG in self.verbose:
+                    self.cntrMaster.printAllCntrs (self.logFile)
+                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
+                if self.incNum==self.maxNumIncs:
+                    break
+    
+        if settings.VERBOSE_LOG_END_SIM in self.verbose:
+            self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr()) 
+            self.cntrMaster.printAllCntrs  (self.logFile)
+    
+    def runSimRandInput (self):
+        """
+        Run a simulation with synthetic, randomly-generated, input.
+        """
+             
+        self.traceFileName  = 'rand'
+        
+        randInput = True
+        for self.expNum in range (self.numOfExps):
+            self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
+            self.genCntrMaster ()
+
+            if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
+                infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
+                self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
+                self.cntrMaster.setLogFile(self.logFile)
+            
+            for self.incNum in range(self.maxNumIncs):
+                flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
+                # flowId = mmh3.hash(str(flowId)) % self.numFlows
+                flowRealVal[flowId]     += 1
+                flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
+                sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
+                self.sumSqAbsEr[self.expNum] += sqEr                
+                self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
+                if settings.VERBOSE_LOG in self.verbose:
+                    self.cntrMaster.printAllCntrs (self.logFile)
+                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
+            if settings.VERBOSE_FULL_RES in self.verbose:
+                printf (self.fullResFile, f'{self.calcRmseStat()}\n\n') 
             
     def sim (
         self, 
@@ -252,99 +331,24 @@ class CountMinSketch:
         
         self.openOutputFiles ()
         self.maxNumIncs, self.numOfExps = maxNumIncs, numOfExps
-        
+        self.flowRealVal = [0] * self.numFlows
+        self.sumSqAbsEr  = [0] * self.numOfExps # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
+        self.sumSqRelEr  = [0] * self.numOfExps # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
+        self.printSimMsg ('Started')
         tic ()
         if traceFileName==None: # random input
-            self.traceFileName = 'rand'
-            flowRealVal     = [0] * self.numFlows
-            self.sumSqEr    = [0] * self.numOfExps # self.sumSqEr[j] will hold the sum of the square errors collected at experiment j. 
-            
-            self.printSimMsg ('Started')
-            for self.expNum in range (self.numOfExps):
-                self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
-                self.genCntrMaster ()
-    
-                if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
-                    infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
-                    self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
-                    self.cntrMaster.setLogFile(self.logFile)
-                
-                for self.incNum in range(self.maxNumIncs):
-                    flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
-                    # flowId = mmh3.hash(str(flowId)) % self.numFlows
-                    flowRealVal[flowId]     += 1
-                    flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
-                    self.sumSqEr[self.expNum] += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)                
-                    if settings.VERBOSE_LOG in self.verbose:
-                        self.cntrMaster.printAllCntrs (self.logFile)
-                        printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
-                if settings.VERBOSE_FULL_RES in self.verbose:
-                    printf (self.fullResFile, f'{self.calcRmseStat()}\n\n') 
-            dict = self.calcRmseStat    ()
-            if settings.VERBOSE_PCL in self.verbose:
-                self.dumpDictToPcl    (dict)
-            if settings.VERBOSE_RES in self.verbose:
-                printf (self.resFile, f'{dict}\n\n') 
-            self.printSimMsg (f'Finished {self.incNum} increments')
-            toc ()
-
+            self.runSimRandInput ()
         else: # read trace from a file
             self.traceFileName = traceFileName
-            self.incNum     = 0
-            if self.numFlows==None:
-                error ('In CountMinSketch.sim(). Sorry, dynamically calculating the flowNum is not supported yet.')
-            else:
-                flowRealVal = [0] * self.numFlows
-            self.sumSqEr    = 0 # self.sumSqEr will hold the sum of the square errors.  
-            self.genCntrMaster ()
-            if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
-                infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
-                self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
-                self.cntrMaster.setLogFile(self.logFile)
+            self.runSimFromTrace ()
+        toc ()
+        dict = self.calcRmseStat    ()
+        if settings.VERBOSE_PCL in self.verbose:
+            self.dumpDictToPcl    (dict)
+        if settings.VERBOSE_RES in self.verbose:
+            printf (self.resFile, f'{dict}\n\n') 
+        self.printSimMsg (f'Finished {self.incNum} increments')
 
-            self.printSimMsg ('Started')
-
-            relativePathToInputFile = settings.getRelativePathToTraceFile (self.traceFileName)
-            settings.checkIfInputFileExists (relativePathToInputFile)
-            traceFile = open (relativePathToInputFile, 'r')
-            for row in traceFile:            
-                flowId = int(row[0]) 
-                self.incNum  += 1                
-                flowRealVal[flowId]     += 1
-                
-                flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
-                self.sumSqEr += (((flowRealVal[flowId] - flowEstimatedVal)/flowRealVal[flowId])**2)
-                if settings.VERBOSE_LOG in self.verbose:
-                    self.cntrMaster.printAllCntrs (self.logFile)
-                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
-                if self.incNum==self.maxNumIncs:
-                    break
-
-            if settings.VERBOSE_LOG_END_SIM in self.verbose:
-                self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr()) 
-                self.cntrMaster.printAllCntrs  (self.logFile)
-
-            self.printSimMsg (f'Finished {self.incNum} increments')
-            toc ()
-
-            Rmse     = math.sqrt (self.sumSqEr/self.incNum)
-            normRmse = Rmse/self.incNum
-            if (settings.VERBOSE_LOG in self.verbose):
-                printf (self.logFile, f'\nnormRmse={normRmse}')
-            
-            dict = {'numOfExps'     : 1,
-                    'numIncs'       : self.incNum,
-                    'mode'          : self.mode,
-                    'cntrSize'      : self.cntrSize, 
-                    'depth'         : self.depth,
-                    'width'         : self.width,
-                    'numFlows'      : self.numFlows,
-                    'seed'          : self.seed,
-                    'Avg'           : normRmse}
-            if settings.VERBOSE_PCL in self.verbose:
-                self.dumpDictToPcl    (dict)
-            if settings.VERBOSE_RES in self.verbose:
-                printf (self.resFile, f'{dict}\n\n') 
                 
     def writeProgress (self, infoStr=None):
         """
