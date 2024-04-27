@@ -667,8 +667,8 @@ def main ():
                 cntrSize       = cntrSize, 
                 hyperSize      = hyperSize,
                 numOfExps      = 100,
-                rel_abs_n      = False,
-                erTypes        = ['RdMse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+                rel_abs_n      = True,
+                erTypes        = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
             )
         
 

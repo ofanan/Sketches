@@ -191,26 +191,26 @@ class CountMinSketch:
         if (settings.VERBOSE_FULL_RES in self.verbose):
             printf (self.fullResFile, f'{dict}\n\n') 
     
-    def calcPostSimStat (self, sumSqEr) -> dict: 
+    def calcPostSimStat (self, sumSqEr, statType='MSE') -> dict: 
         """
         Calculate and potentially print to .log and/or .res file (based on self.verbose) 
         the post-sim stat - e.g., MSE/RMSE. 
         The stat is based on the values measured and stored in self.cntrMaster.sumSqEr.
         Return a dict of the calculated data.  
         """
-        print (sumSqEr) #$$$$
         self.numOfExps = self.expNum + 1 # Allow writing intermmediate results. Assume we began with expNum=0.
-        # Rmse     = [math.sqrt (self.sumSqEr[expNum]/self.incNum) for expNum in range(self.numOfExps)]
-        # normRmse = [Rmse[expNum]/self.numIncs  for expNum in range(self.numOfExps)]
-        # if (settings.VERBOSE_LOG in self.verbose):
-        #     printf (self.logFile, '\nnormRmse=')
-        #     printarFp (self.logFile, normRmse)
-        
-        # normRmseAvg          = np.average    (normRmse)
-        # normRmseConfInterval = settings.confInterval (ar=normRmse, avg=normRmseAvg)
-        Mse             = [sumSqEr[expNum]/self.incNum for expNum in range(self.numOfExps)]
-        MseAvg          = np.average(Mse)
-        MseConfInterval = settings.confInterval (ar=Mse, avg=MseAvg)
+        if statType=='MSE':
+            vec = [sumSqEr[expNum]/self.incNum for expNum in range(self.numOfExps)]
+        elif statType=='normRmse': # Normalized RMSE
+            Rmse     = [math.sqrt (self.sumSqEr[expNum]/self.incNum) for expNum in range(self.numOfExps)]
+            normRmse = [item/self.numIncs  for item in Rmse]
+            if (settings.VERBOSE_LOG in self.verbose):
+                printf (self.logFile, '\nnormRmse=')
+                printarFp (self.logFile, normRmse)
+        else:
+            error (f'In CountMinSketch.calcPostSimStat(). Sorry, the requested statType {statType} is not supported.')
+        avg          = np.average(Mse)
+        confInterval = settings.confInterval (ar=Mse, avg=MseAvg)
         return {'numOfExps'     : self.numOfExps,
                 'numIncs'       : self.incNum,
                 'mode'          : self.mode,
@@ -219,10 +219,10 @@ class CountMinSketch:
                 'width'         : self.width,
                 'numFlows'      : self.numFlows,
                 'seed'          : self.seed,
-                'Avg'           : MseAvg,
-                'Lo'            : MseConfInterval[0],
-                'Hi'            : MseConfInterval[1],
-                'statType'      : 'MSE'}
+                'Avg'           : avg,
+                'Lo'            : confInterval[0],
+                'Hi'            : confInterval[1],
+                'statType'      : statType}
 
 
     def openOutputFiles (self) -> None:
@@ -285,7 +285,6 @@ class CountMinSketch:
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
                 if self.incNum==self.maxNumIncs:
                     break
-            print (self.sumSqAbsEr[self.expNum]) #$$$
         traceFile.close ()
     
         if settings.VERBOSE_LOG_END_SIM in self.verbose:
@@ -322,7 +321,7 @@ class CountMinSketch:
                     self.cntrMaster.printAllCntrs (self.logFile)
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
             if settings.VERBOSE_FULL_RES in self.verbose:
-                printf (self.fullResFile, f'{self.calcPostSimStat(sumSqEr=self.sumSqAbsEr)}\n\n') 
+                printf (self.fullResFile, f'{self.calcPostSimStat(sumSqEr=self.sumSqRelEr)}\n\n') 
             
     def sim (
         self, 
@@ -336,7 +335,6 @@ class CountMinSketch:
         
         self.openOutputFiles ()
         self.maxNumIncs, self.numOfExps, self.traceFileName = maxNumIncs, numOfExps, traceFileName
-        self.flowRealVal = [0] * self.numFlows
         self.sumSqAbsEr  = [0] * self.numOfExps # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
         self.sumSqRelEr  = [0] * self.numOfExps # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
         self.printSimMsg ('Started')
@@ -346,7 +344,7 @@ class CountMinSketch:
         else: # read trace from a file
             self.runSimFromTrace ()
         toc ()
-        dict = self.calcPostSimStat(sumSqEr=self.sumSqAbsEr)
+        dict = self.calcPostSimStat(sumSqEr=self.sumSqRelEr)
         if settings.VERBOSE_PCL in self.verbose:
             self.dumpDictToPcl    (dict)
         if settings.VERBOSE_RES in self.verbose:
@@ -388,8 +386,8 @@ def main(mode, runShortSim=True):
         width, depth, cntrSize  = 1024, 4, 8
         numFlows                = numFlows
         numCntrsPerBkt          = 16
-        maxNumIncs              = 100 #$$$$float ('inf')   
-        numOfExps               = 3
+        maxNumIncs              = float ('inf')   
+        numOfExps               = 2
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7

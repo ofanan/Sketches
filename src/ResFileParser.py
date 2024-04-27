@@ -337,7 +337,7 @@ class ResFileParser (object):
             datOutputFile,
             erTypes     : list = ['RdRmse'], # Error types to consider    
             numOfExps   : int  = 50,
-            modes       : list = ['F2P_li', 'CEDAR', 'Morris', 'SEAD stat'],
+            modes       : list = ['F2P_li', 'CEDAR', 'Morris', 'SEAD_dyn'],
             cntrSizes   : list = [8],
         ):
         """
@@ -346,6 +346,12 @@ class ResFileParser (object):
     
         points = [point for point in self.points if point['numOfExps'] == numOfExps]
     
+        printf (datOutputFile, '\t')
+        for mode in modes:
+            printf (datOutputFile, f'{mode}\t')
+            if mode!=modes[-1]:
+                printf (datOutputFile, '& ')
+        printf (datOutputFile, ' \\\\ \n')
         for cntrSize in cntrSizes:
             pointsOfThisCntrSize = [point for point in points if point['cntrSize']==cntrSize]
             printf (datOutputFile, f'{cntrSize} & ')
@@ -809,9 +815,11 @@ def plotErVsCntrSize ():
     Plot the error as a function of the counter's size.
     """
     my_ResFileParser = ResFileParser ()
-    for ErType in ['WrRmse', 'RdRmse']: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
-        my_ResFileParser.rdPcl (pclFileName=f'1cntr_HPC_{ErType}.pcl')
-        my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=50, maxCntrSize=16) # 50
+    erTypes = ['RdMse'] #, 'WrRmse']
+    abs = False
+    for erType in erTypes: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
+        my_ResFileParser.rdPcl (pclFileName='{}_1cntr_HPC_{}.pcl' .format ('abs' if abs else 'rel', erType))
+        my_ResFileParser.genErVsCntrSizePlot(ErType, numOfExps=100, maxCntrSize=16) 
 
 
 def genErVsCntrSizeTable ():
@@ -821,13 +829,13 @@ def genErVsCntrSizeTable ():
         my_ResFileParser = ResFileParser ()
         erTypes = ['RdMse'] #, 'WrRmse']
         outputFileName = f'1cntr.dat' 
-        datOutputFile = open (f'../res/{outputFileName}', 'w')
+        datOutputFile = open (f'../res/{outputFileName}', 'a+')
         abs = False
         for erType in erTypes: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
             # my_ResFileParser.rdPcl (pclFileName=f'1cntr_PC_{ErType}_li.pcl')
             my_ResFileParser.rdPcl (pclFileName='{}_1cntr_HPC_{}.pcl' .format ('abs' if abs else 'rel', erType))
             # my_ResFileParser.rdPcl (pclFileName='{}1cntr_PC_{}.pcl'  .format ('abs_' if abs else '', erType))
-            printf (datOutputFile, '// {}, erType={}\n' .format ('abs ' if abs else 'rel ', erType))
+            printf (datOutputFile, '\n// {}, erType={}\n' .format ('abs ' if abs else 'rel ', erType))
             my_ResFileParser.genErVsCntrSizeTable(datOutputFile=datOutputFile, erTypes=erTypes, numOfExps=100, cntrSizes=[8, 10, 12, 14, 16]) #[8, 10, 12, 14, 16])
 
 def rmvFromPcl ():
@@ -842,7 +850,8 @@ def rmvFromPcl ():
         
 if __name__ == '__main__':
     try:
-        genErVsCntrSizeTable ()
+        # genErVsCntrSizeTable ()
+        plotErVsCntrSize ()
         # genRndErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
