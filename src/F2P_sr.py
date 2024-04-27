@@ -2,7 +2,7 @@
 # For futher details, see "main.tex" in Cntr's Overleaf project.
 import math, random, pickle, numpy as np
 
-import settings
+import settings, Cntr
 from settings import warning #STDOUT_FAIL, STDOUT_ENDC
 from printf import printf
 
