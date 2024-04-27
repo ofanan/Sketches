@@ -24,7 +24,7 @@ preComputedData = [
                  {'cntrSize' : 16,   'deltaLo' : 0.00001,   'deltaHi' : 0.07},
                  ]
 
-class CntrMaster(object):
+class CntrMaster (Cntr.CntrMaster):
     """
     Generate, check and parse counters
     """
@@ -59,9 +59,9 @@ class CntrMaster(object):
         """
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
         """
-        self.cntrSize, self.numCntrs, self.cntrMaxVal = cntrSize, numCntrs, cntrMaxVal
+        super ()
+        self.cntrMaxVal    = cntrMaxVal
         self.numEstimators = 2**self.cntrSize
-        self.verbose       = verbose
         self.rst () # reset all the counters
         
         if (delta==None):           
@@ -175,15 +175,20 @@ class CntrMaster(object):
             self.cntrs[cntrIdx] += 1
         return self.estimators[self.cntrs[cntrIdx]]
 
-    def queryCntr(self, cntrIdx=0) -> dict:
+    def queryCntr (self, 
+            cntrIdx  = 0, #  
+            getVal   = True # If True, return only the counter's value. Else, return cntrDic - a dictionary, where cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.
+        ):
         """
         Query a cntr.
-        Input:
-        cntrIdx - the counter's index.
+        Input: 
+         
         Output:
-        cntrDic: a dictionary, where:
-            - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.
+        cntrDic: a dictionary, where: 
+            - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.        
         """
+        if getVal:
+            return self.estimators[self.cntrs[cntrIdx]]
         settings.checkCntrIdx(cntrIdx=cntrIdx, numCntrs=self.numCntrs, cntrType='CEDAR')
         return {'cntrVec': np.binary_repr(self.cntrs[cntrIdx], self.cntrSize), 'val': self.estimators[self.cntrs[cntrIdx]]}
 

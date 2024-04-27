@@ -359,11 +359,14 @@ class CountMinSketch:
 def main(mode, runShortSim=True):
     """
     """   
-    traceFileName = 'Caida2'
+    traceFileName   = 'Caida1'
+    numFlows        = 10000
+    if traceFileName=='Caida1':
+        numFlows = 1276112
     
     if runShortSim:
         width, depth, cntrSize  = 2, 2, 4
-        numFlows                = 10000
+        numFlows                = numFlows
         numCntrsPerBkt          = 2
         maxNumIncs              = 4000 #(width * depth * cntrSize**3)/2
         numOfExps               = 1
@@ -373,25 +376,31 @@ def main(mode, runShortSim=True):
         verbose                 = [settings.VERBOSE_RES] # settings.VERBOSE_LOG, settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
         width, depth, cntrSize  = 1024, 4, 8
-        numFlows                = 1000000
+        numFlows                = numFlows
         numCntrsPerBkt          = 16
-        maxNumIncs              = 10, #float ('inf')   
+        maxNumIncs              = float ('inf')   
         numOfExps               = 1
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
         verbose                 = [settings.VERBOSE_RES] #, settings.VERBOSE_PCL] # settings.VERBOSE_LOG_END_SIM,  settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
-    cms = CountMinSketch (width=width, depth=depth, cntrSize=cntrSize, numFlows=numFlows, verbose=verbose, 
-                          numCntrsPerBkt = numCntrsPerBkt,
-                          numEpsilonStepsIceBkts    = numEpsilonStepsIceBkts, 
-                          numEpsilonStepsInRegBkt   = numEpsilonStepsInRegBkt, 
-                          numEpsilonStepsInXlBkt    = numEpsilonStepsInXlBkt,
-                          mode=mode)
+    cms = CountMinSketch (
+        width       = width, 
+        depth       = depth, 
+        cntrSize    = cntrSize, 
+        numFlows    = numFlows, 
+        verbose     = verbose,
+        mode        = mode, 
+        numCntrsPerBkt          = numCntrsPerBkt,
+        numEpsilonStepsIceBkts  = numEpsilonStepsIceBkts, 
+        numEpsilonStepsInRegBkt = numEpsilonStepsInRegBkt, 
+        numEpsilonStepsInXlBkt  = numEpsilonStepsInXlBkt,
+        )
     cms.sim (numOfExps=numOfExps, maxNumIncs=maxNumIncs, traceFileName=traceFileName)
     
 if __name__ == '__main__':
     try:
-        main (mode='SEAD_stat_e1', runShortSim=False)
+        main (mode='SEAD_dyn', runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

@@ -28,7 +28,7 @@ aSearchRanges = [
                  {'cntrSize' : 16,   'aLo' : 1000,   'aHi' : 1000000},
                  ]
 
-class CntrMaster (object):
+class CntrMaster (Cntr.CntrMaster):
     """
     Generate, check and parse counters
     """
@@ -150,16 +150,11 @@ class CntrMaster (object):
         Initialize an array of cntrSize Morris counters at the given mode. The cntrs are initialized to 0.
         """
         
+        super ()
         if estimateAGivenCntrSize:
             self.estimateAGivenCntrSize ()
             exit ()
         
-        if (cntrSize<3):
-            print ('error: cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
-            exit ()
-        self.cntrSize    = int(cntrSize)
-        self.numCntrs    = int(numCntrs)
-        self.verbose     = verbose
         self.cntrZeroVec = '0' * self.cntrSize
         self.cntrs       = [self.cntrZeroVec for i in range (self.numCntrs)]
         self.cntrMaxVec  = '1' * self.cntrSize
@@ -173,23 +168,6 @@ class CntrMaster (object):
         self.cntrZero    = 0
         self.cntrMaxVal  = self.calcCntrMaxVal () #self.cntrInt2num (2**self.cntrSize-1)        
         self.num2cntrNormFactor = 1 / math.log (1 + 1/self.a)
-        
-    def rstCntr (self, cntrIdx=0):
-        """
-        """
-        self.cntrs[cntrIdx] = self.cntrZeroVec
-
-    def queryCntr (self, cntrIdx=0):
-        """
-        Query a cntr.
-        Input: 
-        cntrIdx - the counter's index. 
-        Output:
-        cntrDic: a dictionary, where: 
-            - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.        
-        """
-        settings.checkCntrIdx (cntrIdx=cntrIdx, numCntrs=self.numCntrs, cntrType='Morris')
-        return {'cntrVec' : self.cntrs[cntrIdx], 'val' : self.cntr2num(self.cntrs[cntrIdx])}    
         
     def incCntrBy1GetVal (self, 
                     cntrIdx  = 0, # idx of the concrete counter to increment in the array
@@ -271,16 +249,5 @@ def printAllVals (cntrSize=4, a=None, cntrMaxVal=None, verbose=[]):
         outputFile    = open ('../res/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
         for item in listOfVals:
             printf (outputFile, '{}={:.0f}\n' .format (item['cntrVec'], item['val']))
-
-
-def printAllCntrMaxVals (cntrSizes=[], verbose=[settings.VERBOSE_RES]):
-    """
-    print the maximum value a cntr reach for several "configurations" -- namely, all combinations of cntrSize and hyperSize. 
-    """
-
-    if (settings.VERBOSE_RES in verbose):
-        outputFile    = open ('../res/cntrVals.txt', 'a')
-    return
-
 
 # printAllVals (cntrSize=8, a=None, cntrMaxVal=130048, verbose=[settings.VERBOSE_RES]) #1488888

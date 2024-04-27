@@ -18,17 +18,6 @@ class CntrMaster (SEAD_stat.CntrMaster):
     # Return a range with all the legal combinations for the counter 
     getAllCombinations = lambda self, cntrSize : range (2**cntrSize-2)
     
-    # def __init__ (self, 
-    #               cntrSize  = 4,   # num of bits in each counter.
-    #               numCntrs  = 1,   # number of counters in the array. 
-    #               verbose   = []    # one of the verbose macros, detailed in settings.py
-    #               ):
-    #     """
-    #     Initialize an array of cntrSize counters. The cntrs are initialized to 0.
-    #     """
-    #     super ().__init__(cntrSize=cntrSize, numCntrs=numCntrs, verbose=verbose)
-    #
-
     def calcParams (self):
         """
         Pre-compute the cntrs' parameters, in case of a dynamic SEAD cntr 
