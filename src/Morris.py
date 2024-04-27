@@ -150,7 +150,7 @@ class CntrMaster (Cntr.CntrMaster):
         Initialize an array of cntrSize Morris counters at the given mode. The cntrs are initialized to 0.
         """
         
-        super ()
+        super(CntrMaster, self).__init__ (cntrSize=cntrSize, numCntrs=numCntrs, verbose=verbose)
         if estimateAGivenCntrSize:
             self.estimateAGivenCntrSize ()
             exit ()

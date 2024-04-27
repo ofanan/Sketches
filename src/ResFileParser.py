@@ -830,14 +830,6 @@ def genErVsCntrSizeTable ():
             printf (datOutputFile, '// {}, erType={}\n' .format ('abs ' if abs else 'rel ', erType))
             my_ResFileParser.genErVsCntrSizeTable(datOutputFile=datOutputFile, erTypes=erTypes, numOfExps=100, cntrSizes=[8, 10, 12, 14, 16]) #[8, 10, 12, 14, 16])
 
-if __name__ == '__main__':
-    try:
-        # genErVsCntrSizeTable ()
-        # plotErVsCntrSize ()
-        genRndErrTable ()
-    except KeyboardInterrupt:
-        print('Keyboard interrupt.')
-
 def rmvFromPcl ():
     myResFileParser = ResFileParser()
     myResFileParser.rmvFromPcl(
@@ -848,6 +840,13 @@ def rmvFromPcl ():
                        {'mode' : 'F2P_si_h1'}]
         )
         
+if __name__ == '__main__':
+    try:
+        genErVsCntrSizeTable ()
+        # genRndErrTable ()
+    except KeyboardInterrupt:
+        print('Keyboard interrupt.')
+
 # genResolutionPlot ()
     # my_ResFileParser.printAllPoints (cntrSize=8, cntrMaxVal=1488888, printToScreen=True)
 

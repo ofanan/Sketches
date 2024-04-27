@@ -62,7 +62,7 @@ class CntrMaster (Cntr.CntrMaster):
         If the parameters are invalid (e.g., infeasible cntrSize), return None. 
         """
         
-        super ()
+        super(CntrMaster, self).__init__ (cntrSize=cntrSize, numCntrs=numCntrs, verbose=verbose)
         self.isFeasible = True
         if (not (self.setHyperSize (hyperSize))):
             self.isFeasible = False

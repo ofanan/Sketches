@@ -53,7 +53,7 @@ class CntrMaster (Cntr.CntrMaster):
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
         """
         
-        super ()
+        super(CntrMaster, self).__init__ (cntrSize=cntrSize, numCntrs=numCntrs, verbose=verbose)
         if (cntrSize<3):
             settings.error ('error: cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
         self.cntrSize    = int(cntrSize)
