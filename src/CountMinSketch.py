@@ -250,7 +250,6 @@ class CountMinSketch:
         Run a simulation where the input is taken from self.traceFileName.
         """
 
-        self.traceFileName = traceFileName
         if self.numFlows==None:
             error ('In CountMinSketch.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
         else:
@@ -335,16 +334,15 @@ class CountMinSketch:
         """
         
         self.openOutputFiles ()
-        self.maxNumIncs, self.numOfExps = maxNumIncs, numOfExps
+        self.maxNumIncs, self.numOfExps, self.traceFileName = maxNumIncs, numOfExps, traceFileName
         self.flowRealVal = [0] * self.numFlows
         self.sumSqAbsEr  = [0] * self.numOfExps # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
         self.sumSqRelEr  = [0] * self.numOfExps # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
         self.printSimMsg ('Started')
         tic ()
-        if traceFileName==None: # random input
+        if self.traceFileName==None: # random input
             self.runSimRandInput ()
         else: # read trace from a file
-            self.traceFileName = traceFileName
             self.runSimFromTrace ()
         toc ()
         dict = self.calcPostSimStat(sumSqEr=self.sumSqAbsEr)
