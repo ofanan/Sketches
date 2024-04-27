@@ -200,10 +200,10 @@ class CountMinSketch:
         """
         self.numOfExps = self.expNum + 1 # Allow writing intermmediate results. Assume we began with expNum=0.
         if statType=='MSE':
-            vec = [sumSqEr[expNum]/self.incNum for expNum in range(self.numOfExps)]
+            vec  = [sumSqEr[expNum]/self.incNum for expNum in range(self.numOfExps)]
         elif statType=='normRmse': # Normalized RMSE
-            Rmse     = [math.sqrt (self.sumSqEr[expNum]/self.incNum) for expNum in range(self.numOfExps)]
-            vec = [item/self.numIncs  for item in Rmse]
+            Rmse = [math.sqrt (sumSqEr[expNum]/self.incNum) for expNum in range(self.numOfExps)]
+            vec = [item/self.incNum  for item in Rmse]
             if (settings.VERBOSE_LOG in self.verbose):
                 printf (self.logFile, '\nnormRmse=')
                 printarFp (self.logFile, normRmse)
