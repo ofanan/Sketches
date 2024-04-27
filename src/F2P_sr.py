@@ -1,4 +1,4 @@
-# This file implements F2P LR, namely, F2P flavor that focuses on improved accuracy on large reals. 
+# This file implements F2P SR, namely, F2P flavor that focuses on improved accuracy on small reals. 
 # For futher details, see "main.tex" in Cntr's Overleaf project.
 import math, random, pickle, numpy as np
 
@@ -6,7 +6,7 @@ import settings
 from settings import warning #STDOUT_FAIL, STDOUT_ENDC
 from printf import printf
 
-class CntrMaster (object):
+class CntrMaster (Cntr):
     """
     Generate, check and perform arithmetic operations on F2P counters in SR (Small Reals) flavors.
     The counters are generated as an array with the same format (counterSize and hyperExpSize).
@@ -61,14 +61,9 @@ class CntrMaster (object):
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
         If the parameters are invalid (e.g., infeasible cntrSize), return None. 
         """
+        
+        super ()
         self.isFeasible = True
-        self.cntrSize   = cntrSize
-        if (self.cntrSize<3):
-            warning ('cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
-            self.isFeasible = False
-            return 
-        self.numCntrs   = numCntrs
-        self.verbose    = verbose
         if (not (self.setHyperSize (hyperSize))):
             self.isFeasible = False
             return 
@@ -80,17 +75,6 @@ class CntrMaster (object):
         if settings.VERBOSE_COUT_CONF in self.verbose:
             print (f'F2P{self.flavor()}, cntrSize={self.cntrSize}, hyperSize={self.hyperSize}, Vmax={self.Vmax}, bias={self.bias}, zeroVec={self.cntrZeroVec}, maxVec={self.cntrMaxVec}, maxVal={self.cntrMaxVal}, expMinVec={self.expMinVec}, expMinVal={self.expMinVal}')
         self.rstAllCntrs ()
-        
-    def rstAllCntrs (self):
-        """
-        """
-        self.cntrs = [self.cntrZeroVec for _ in range (self.numCntrs)]
-        
-    def rstCntr (self, cntrIdx=0):
-        """
-        """
-        self.cntrs[cntrIdx] = self.cntrZeroVec
-        
         
     def cntr2num (self, cntr):
         """
@@ -133,17 +117,3 @@ class CntrMaster (object):
             warning (f'Requested hyperSize {hyperSize} is not feasible for counter size {self.cntrSize}')
             return False
         return True
-
-    def queryCntr (self, cntrIdx=0):
-        """
-        Query a cntr.
-        Input: 
-        cntrIdx - the counter's index. 
-        Output:
-        cntrDic: a dictionary, where: 
-            - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.        
-        """
-        settings.checkCntrIdx (cntrIdx=cntrIdx, numCntrs=self.numCntrs, cntrType='F2P_new')        
-        
-        return {'cntrVec' : self.cntrs[cntrIdx], 'val' : self.cntr2num(self.cntrs[cntrIdx])}    
-        

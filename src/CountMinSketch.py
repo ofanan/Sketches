@@ -379,7 +379,7 @@ def main(mode, runShortSim=True):
         numFlows                = numFlows
         numCntrsPerBkt          = 16
         maxNumIncs              = float ('inf')   
-        numOfExps               = 1
+        numOfExps               = 10
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
@@ -397,7 +397,10 @@ def main(mode, runShortSim=True):
         numEpsilonStepsInRegBkt = numEpsilonStepsInRegBkt, 
         numEpsilonStepsInXlBkt  = numEpsilonStepsInXlBkt,
         )
-    cms.sim (numOfExps=numOfExps, maxNumIncs=maxNumIncs, traceFileName=traceFileName)
+    cms.sim (numOfExps      = numOfExps, 
+         maxNumIncs     = maxNumIncs, 
+         traceFileName  = traceFileName
+        )
     
 if __name__ == '__main__':
     try:

@@ -1,8 +1,9 @@
 # This class implements the CEDAR counter.
 # CEDAR is described in the paper: "Estimators also need shared values to grow together", Tsidon, Erez and Hanniel, Iddo and Keslassy, Isaac, Infocom'15.
 import random, math, numpy as np
+
 from printf import printf
-import settings
+import settings, Cntr
 
 # The 'delta' parameter determines CEDAR's accuracy.
 # Given a counter size and maximum value to count, the function findMinDeltaByMaxVal finds the minimal delta. using binary search.

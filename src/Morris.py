@@ -3,10 +3,10 @@
 # from   pathlib import Path
 # from builtins import True False
 # import pickle
-import math, time, random
+import math, time, random, numpy as np
+
 from printf import printf
-import settings
-import numpy as np
+import settings, Cntr
 
 # The 'a' parameter determines Morris counter's accuracy.
 # Given a counter size and maximum value to count, the function estimateAGivenCntrSize finds the optimal a. using binary search.

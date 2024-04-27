@@ -113,5 +113,11 @@ class CntrMaster (object):
                 printf (outputFile, '{}={}\n' .format (item['cntrVec'], item['val']))
         return [item['val'] for item in listOfVals]
 
+    def rstAllCntrs (self):
+        """
+        """
+        self.cntrs = [self.cntrZeroVec]*self.numCntrs
+
+        
         
     
