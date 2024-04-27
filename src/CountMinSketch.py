@@ -240,11 +240,12 @@ class CountMinSketch:
                         str, datetime.now().strftime('%H:%M:%S'), self.traceFileName, self.numOfExps, self.mode, self.cntrSize, self.depth, self.width, self.numFlows))
 
             
-    def sim (self, 
-             maxNumIncs     = 5000, # maximum # of increments (pkts in the trace), after which the simulation will be stopped. 
-             numOfExps      = 1,  # number of repeated experiments. Relevant only for randomly-generated traces.
-             traceFileName  = None
-             ):
+    def sim (
+        self, 
+        maxNumIncs     = 5000, # maximum # of increments (pkts in the trace), after which the simulation will be stopped. 
+        numOfExps      = 1,  # number of repeated experiments. Relevant only for randomly-generated traces.
+        traceFileName  = None
+        ):
         """
         Simulate the count min sketch
         """
@@ -379,7 +380,7 @@ def main(mode, runShortSim=True):
         numFlows                = numFlows
         numCntrsPerBkt          = 16
         maxNumIncs              = float ('inf')   
-        numOfExps               = 10
+        numOfExps               = 2
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
@@ -397,9 +398,10 @@ def main(mode, runShortSim=True):
         numEpsilonStepsInRegBkt = numEpsilonStepsInRegBkt, 
         numEpsilonStepsInXlBkt  = numEpsilonStepsInXlBkt,
         )
-    cms.sim (numOfExps      = numOfExps, 
-         maxNumIncs     = maxNumIncs, 
-         traceFileName  = traceFileName
+    cms.sim (
+        numOfExps      = numOfExps, 
+        maxNumIncs     = maxNumIncs, 
+        traceFileName  = traceFileName
         )
     
 if __name__ == '__main__':
