@@ -6,7 +6,7 @@ import settings, Cntr
 from settings import warning #STDOUT_FAIL, STDOUT_ENDC
 from printf import printf
 
-class CntrMaster (Cntr):
+class CntrMaster (Cntr.CntrMaster):
     """
     Generate, check and perform arithmetic operations on F2P counters in SR (Small Reals) flavors.
     The counters are generated as an array with the same format (counterSize and hyperExpSize).
