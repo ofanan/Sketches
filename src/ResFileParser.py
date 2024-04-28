@@ -339,13 +339,13 @@ class ResFileParser (object):
             numOfExps   : int  = 50,
             modes       : list = ['F2P_li', 'CEDAR', 'Morris', 'SEAD_dyn'],
             cntrSizes   : list = [8],
-            normalizeByPerfectCntr : bool = False # When True, normalize each row w.r.t. 'PerfectCounter'
+            statType    : str  = 'Mse',
         ):
         """
         Generate a table showing the error as a function of the counter's size.
         """
     
-        points = [point for point in self.points if point['numOfExps'] == numOfExps]
+        points = [point for point in self.points if point['numOfExps'] == numOfExps and point['statType']==statType]
     
         printf (datOutputFile, '\t')
         for mode in modes:
@@ -355,8 +355,9 @@ class ResFileParser (object):
         printf (datOutputFile, ' \\\\ \n')
         for cntrSize in cntrSizes:
             pointsOfThisCntrSize = [point for point in points if point['cntrSize']==cntrSize]
+            error (pointsOfThisCntrSize) #$$$
             printf (datOutputFile, f'{cntrSize} & ')
-            pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize if point['erType'] == erType]
+            pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize] # erType is currently not mentioned in the points. 
             if pointsOfThisCntrSizeErType == []:
                 error (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}')
             minVal = min ([point['Avg'] for point in pointsOfThisCntrSizeErType if point['mode']!='PerfectCounter'])
@@ -830,19 +831,44 @@ def plotErVsCntrSize ():
         my_ResFileParser.genErVsCntrSizePlot(erType=erType, numOfExps=100, maxCntrSize=16) 
 
 
-def genErVsCntrSizeTable ():
+def genErVsCntrSizeSingleCntr ():
         """
         Generate a table showing the error as a function of the counter's size.
         """
         my_ResFileParser = ResFileParser ()
-        erTypes = ['RdRmse'] #, 'WrRmse']
         outputFileName = f'1cntr.dat' 
         datOutputFile = open (f'../res/{outputFileName}', 'a+')
-        abs = False
-        for erType in erTypes: #'WrEr', 'WrRmse', 'RdEr', 'RdRmse', 
-            my_ResFileParser.rdPcl (pclFileName='{}_1cntr_HPC_{}.pcl' .format ('abs' if abs else 'rel', erType))
-            printf (datOutputFile, '\n// {}, erType={}\n' .format ('abs ' if abs else 'rel ', erType))
-            my_ResFileParser.genErVsCntrSizeTable(datOutputFile=datOutputFile, erType=erType, numOfExps=100, cntrSizes=[8, 10, 12, 14, 16]) #[8, 10, 12, 14, 16])
+        abs     = False
+        erType  = 'RdRmse' 
+        my_ResFileParser.rdPcl (pclFileName='{}_1cntr_HPC_{}.pcl' .format ('abs' if abs else 'rel', erType))
+        printf (datOutputFile, '\n// {}, erType={}\n' .format ('abs ' if abs else 'rel ', erType))
+        my_ResFileParser.genErVsCntrSizeTable(
+            datOutputFile   = datOutputFile, 
+            erType          = erType, 
+            numOfExps       = 100, 
+            cntrSizes       = [8, 10, 12, 14, 16],
+            normalizeByPerfectCntr = False
+            ) 
+
+def genErVsCntrSizeTableTrace ():
+        """
+        Generate a table showing the error as a function of the counter's size.
+        """
+        my_ResFileParser = ResFileParser ()
+        outputFileName = f'1cntr.dat' 
+        datOutputFile = open (f'../res/{outputFileName}', 'a+')
+        abs     = False
+        erType  = 'RdRmse' 
+        my_ResFileParser.rdPcl (pclFileName='sim_HPC.pcl')
+        printf (datOutputFile, '\n// {}, erType={}\n' .format ('abs ' if abs else 'rel ', erType))
+        my_ResFileParser.genErVsCntrSizeTable(
+            datOutputFile   = datOutputFile, 
+            erType          = erType, 
+            numOfExps       = 2, 
+            cntrSizes       = [8, 10, 12, 14, 16],
+            statType        = 'Mse',
+            normalizeByPerfectCntr = True
+            ) 
 
 def rmvFromPcl ():
     myResFileParser = ResFileParser()
@@ -856,9 +882,9 @@ def rmvFromPcl ():
         
 if __name__ == '__main__':
     try:
-        # genErVsCntrSizeTable ()
+        genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
-        genRndErrTable ()
+        # genRndErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 

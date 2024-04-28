@@ -301,7 +301,7 @@ class CountMinSketch:
             
             traceFile = open (relativePathToInputFile, 'r')
             for row in traceFile:            
-                flowId = int(row[0]) 
+                flowId = int(row) 
                 self.incNum  += 1                
                 flowRealVal[flowId]     += 1
                 
@@ -397,7 +397,7 @@ def runCMS (mode,
             runShortSim = True):
     """
     """   
-    traceFileName   = 'Caida1'
+    traceFileName   = 'Caida1' 
     if traceFileName=='Caida1':
         numFlows = 1276112
     else:
