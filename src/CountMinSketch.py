@@ -75,73 +75,73 @@ class CountMinSketch:
         elif self.mode.startswith('SEAD_stat'):
             expSize = int(self.mode.split('_e')[1])
             self.cntrMaster = SEAD_stat.CntrMaster (
-                                cntrSize        = self.cntrSize, 
-                                numCntrs        = self.numCntrs, 
-                                expSize         = expSize,
-                                verbose         = self.verbose)
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                expSize         = expSize,
+                verbose         = self.verbose)
         elif self.mode=='SEAD_dyn':
             self.cntrMaster = SEAD_dyn.CntrMaster (
-                                cntrSize        = self.cntrSize, 
-                                numCntrs        = self.numCntrs, 
-                                verbose         = self.verbose)
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                verbose         = self.verbose)
         elif self.mode.startswith('F2P_li_'):
             hyperSize = int(self.mode.split('_h')[1])
             self.cntrMaster = F2P_li.CntrMaster (
-                                cntrSize        = self.cntrSize, 
-                                numCntrs        = self.numCntrs, 
-                                hyperSize       = hyperSize,
-                                verbose         = self.verbose)
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                hyperSize       = hyperSize,
+                verbose         = self.verbose)
         elif self.mode=='Morris':
-            # WHAT IS CNTR MAX VAL? #$$$
             self.cntrMaster = Morris.CntrMaster (
-                                cntrSize        = self.cntrSize, 
-                                numCntrs        = self.numCntrs, 
-                                verbose         = self.verbose)
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs,
+                cntrMaxVal      = settings.getCntrMaxValByCntrSize (self.cntrSize),
+                verbose         = self.verbose)
         elif self.mode=='CEDAR': 
-            # WHAT IS CNTR MAX VAL? #$$$
             self.cntrMaster = CEDAR.CntrMaster (
-                                cntrSize        = self.cntrSize, 
-                                numCntrs        = self.numCntrs, 
-                                verbose         = self.verbose)
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                cntrMaxVal      = settings.getCntrMaxValByCntrSize (self.cntrSize),
+                verbose         = self.verbose)
         elif self.mode=='IceBuckets':
             self.cntrMaster = Buckets.Buckets (
-                                cntrSize        = self.cntrSize, 
-                                numCntrs        = self.numCntrs, 
-                                numCntrsPerBkt  = self.numCntrsPerBkt, 
-                                mode            = 'ICE',
-                                numEpsilonSteps = self.numEpsilonStepsIceBkts,
-                                verbose         = self.verbose)
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                numCntrsPerBkt  = self.numCntrsPerBkt, 
+                mode            = 'ICE',
+                numEpsilonSteps = self.numEpsilonStepsIceBkts,
+                verbose         = self.verbose)
         elif self.mode=='NiceBuckets':
             self.cntrMaster = NiceBuckets.CntrMaster (
-                                cntrSize                = self.cntrSize, 
-                                numCntrs                = self.numCntrs, 
-                                numCntrsPerRegBkt       = self.numCntrsPerBkt,
-                                numCntrsPerXlBkt        = self.numCntrsPerBkt,
-                                numEpsilonStepsInRegBkt = self.numEpsilonStepsInRegBkt,
-                                numEpsilonStepsInXlBkt  = self.numEpsilonStepsInXlBkt,
-                                numXlBkts               = self.depth,
-                                verbose                 = self.verbose)
+                cntrSize                = self.cntrSize, 
+                numCntrs                = self.numCntrs, 
+                numCntrsPerRegBkt       = self.numCntrsPerBkt,
+                numCntrsPerXlBkt        = self.numCntrsPerBkt,
+                numEpsilonStepsInRegBkt = self.numEpsilonStepsInRegBkt,
+                numEpsilonStepsInXlBkt  = self.numEpsilonStepsInXlBkt,
+                numXlBkts               = self.depth,
+                verbose                 = self.verbose)
         elif self.mode=='SecBuckets':
              self.cntrMaster = Buckets.Buckets (
-                                cntrSize        = self.cntrSize, 
-                                numCntrs        = self.numCntrs, 
-                                numCntrsPerBkt  = self.numCntrsPerBkt, 
-                                mode            = 'SEC', 
-                                verbose         = self.verbose)
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                numCntrsPerBkt  = self.numCntrsPerBkt, 
+                mode            = 'SEC', 
+                verbose         = self.verbose)
         elif self.mode=='F2pBuckets':
             self.cntrMaster = Buckets.Buckets (
-                                cntrSize        = self.cntrSize, 
-                                numCntrs        = self.numCntrs, 
-                                numCntrsPerBkt  = self.numCntrsPerBkt, 
-                                mode            = 'F2P',
-                                verbose         = self.verbose)
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                numCntrsPerBkt  = self.numCntrsPerBkt, 
+                mode            = 'F2P',
+                verbose         = self.verbose)
         elif self.mode=='MecBuckets':
             self.cntrMaster = Buckets.Buckets (
-                                cntrSize        = self.cntrSize, 
-                                numCntrs        = self.numCntrs, 
-                                numCntrsPerBkt  = self.numCntrsPerBkt, 
-                                mode            = 'MEC',
-                                verbose         = self.verbose)
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                numCntrsPerBkt  = self.numCntrsPerBkt, 
+                mode            = 'MEC',
+                verbose         = self.verbose)
         else:
             warning (f'Sorry, the mode {self.mode} that you requested is not supported')
 
@@ -402,12 +402,12 @@ def runCMS (mode,
         width, depth, cntrSize  = 1024, 4, cntrSize
         numFlows                = numFlows
         numCntrsPerBkt          = 16
-        maxNumIncs              = float ('inf')   
+        maxNumIncs              = 100 # float ('inf')   
         numOfExps               = 2
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
-        verbose                 = [settings.VERBOSE_RES] #, settings.VERBOSE_PCL] # settings.VERBOSE_LOG_END_SIM,  settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
+        verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG_END_SIM,  settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (
         width       = width, 
@@ -430,8 +430,7 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         for cntrSize in [8, 10, 12, 14, 16]:
-            for mode in ['F2P_li_h1', 'F2P_li_h2', 'SEAD_dyn']: #'Morris', 'CEDAR',  
-            # for mode in ['F2P_li_h1', 'F2P_li_h2', 'Morris', 'CEDAR', 'SEAD_dyn']: 
+            for mode in ['Morris', 'CEDAR']: #'F2P_li_h1', 'F2P_li_h2', 'SEAD_dyn']: #,  
                 runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

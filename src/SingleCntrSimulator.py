@@ -445,6 +445,9 @@ class SingleCntrSimulator (object):
             if self.erType=='WrMse':
                 self.calc_MSE = True
                 self.erType = 'WrRmse'
+            elif self.erType=='RdMse':
+                self.calc_MSE = True
+                self.erType = 'RdRmse'
             if not (self.erType in ['WrEr', 'WrRmse', 'RdEr', 'RdRmse', 'WrMse', 'RdMse']):
                 settings.error ('Sorry, the requested error mode {self.erType} is not supported')
             pclOutputFile = None # default value
