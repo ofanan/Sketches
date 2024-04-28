@@ -691,7 +691,7 @@ class ResFileParser (object):
             if len(pointsOfThisDist)==0:
                 settings.error (f'In ResFileParser.optModeOfDist(). No points found for cntrSize={cntrSize}, errType={errType}, dist={dist}')
             minErr = min ([point[errType] for point in pointsOfThisDist])
-            printf (resFile, f'{labelOfDist(dist)} & ') 
+            printf (resFile, f'\t\t{labelOfDist(dist)} & ') 
             for mode in modes:
                 pointsOfThisDistAndMode = [point for point in pointsOfThisDist if point['mode']==mode]
                 if len(pointsOfThisDistAndMode)==0:
@@ -856,9 +856,9 @@ def rmvFromPcl ():
         
 if __name__ == '__main__':
     try:
-        genErVsCntrSizeTable ()
+        # genErVsCntrSizeTable ()
         # plotErVsCntrSize ()
-        # genRndErrTable ()
+        genRndErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 

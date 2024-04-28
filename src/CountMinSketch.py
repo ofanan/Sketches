@@ -205,7 +205,11 @@ class CountMinSketch:
         if (settings.VERBOSE_FULL_RES in self.verbose):
             printf (self.fullResFile, f'{dict}\n\n') 
     
-    def calcPostSimStat (self, sumSqEr, statType='normRmse') -> dict: 
+    def calcPostSimStat (
+            self, 
+            sumSqEr, # sum of the square errors, collected during the sim 
+            statType    = 'normRmse' # Type of the statistic to write. May be either 'normRmse', or 'Mse'
+        ) -> dict: 
         """
         Calculate and potentially print to .log and/or .res file (based on self.verbose) 
         the post-sim stat - e.g., MSE/RMSE. 
@@ -366,7 +370,7 @@ class CountMinSketch:
         else: # read trace from a file
             self.runSimFromTrace ()
         toc ()
-        dict = self.calcPostSimStat(sumSqEr=self.sumSqRelEr)
+        dict = self.calcPostSimStat(sumSqEr=self.sumSqRelEr, statType='Mse')
         if settings.VERBOSE_PCL in self.verbose:
             self.dumpDictToPcl    (dict)
         if settings.VERBOSE_RES in self.verbose:

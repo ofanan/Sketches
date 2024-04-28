@@ -77,11 +77,11 @@ def modesOfCntrSize (cntrSize):
     Return a list of modes to consider given the counter's size.
     """
     if cntrSize==19:
-        return F2Pmodes + ['int'] + FP19modes + ['SEAD_dyn']
+        return F2Pmodes + ['int', 'SEAD_dyn'] + FP19modes
     elif cntrSize==16: ## tensorFloat
-        return F2Pmodes + ['int'] + FP16modes + ['SEAD_dyn']
+        return F2Pmodes + ['int', 'SEAD_dyn'] + FP16modes
     elif cntrSize==8:
-        return F2Pmodes + ['int'] + FP8modes + ['SEAD_dyn']
+        return F2Pmodes + ['int', 'SEAD_dyn'] + FP8modes
     else:
         error (f'In settings.modesOfCntrSize(). No hard-coded list of modes for cntrSize={cntrSize}.')
 
