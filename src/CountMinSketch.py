@@ -442,7 +442,7 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         for cntrSize in [8, 10, 12, 14, 16]:
-            for mode in ['PerfectCounter']: #['Morris', 'CEDAR', 'F2P_li_h2', 'SEAD_dyn']:   
+            for mode in ['PerfectCounter', 'Morris', 'CEDAR', 'F2P_li_h2', 'SEAD_dyn']:   
                 runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
