@@ -373,11 +373,12 @@ class CountMinSketch:
         else: # read trace from a file
             self.runSimFromTrace ()
         toc ()
-        dict = self.calcPostSimStat(sumSqEr=self.sumSqRelEr, statType='Mse')
-        if settings.VERBOSE_PCL in self.verbose:
-            self.dumpDictToPcl    (dict)
-        if settings.VERBOSE_RES in self.verbose:
-            printf (self.resFile, f'{dict}\n\n') 
+        for statType in ['Mse', 'normRmse']:
+            dict = self.calcPostSimStat(sumSqEr=self.sumSqRelEr, statType=statType)
+            if settings.VERBOSE_PCL in self.verbose:
+                self.dumpDictToPcl    (dict)
+            if settings.VERBOSE_RES in self.verbose:
+                printf (self.resFile, f'{dict}\n\n') 
         self.printSimMsg (f'Finished {self.incNum} increments')
 
                 
