@@ -69,9 +69,9 @@ class CountMinSketch:
         """
         if self.mode=='PerfectCounter':
             self.cntrMaster = PerfectCounter.CntrMaster (
-                                cntrSize    = self.cntrSize, 
-                                numCntrs    = self.numCntrs, 
-                                verbose     = self.verbose)
+                cntrSize    = self.cntrSize, 
+                numCntrs    = self.numCntrs, 
+                verbose     = self.verbose)
         elif self.mode.startswith('SEAD_stat'):
             expSize = int(self.mode.split('_e')[1])
             self.cntrMaster = SEAD_stat.CntrMaster (
@@ -252,7 +252,7 @@ class CountMinSketch:
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
         """      
         if settings.VERBOSE_PCL in self.verbose:
-            self.pclOutputFile = open(f'../res/pcl_files/sim_{settings.getMachineStr()}.pcl', 'ab+')
+            self.pclOutputFile = open(f'../res/pcl_files/cms_{settings.getMachineStr()}.pcl', 'ab+')
 
         if (settings.VERBOSE_RES in self.verbose):
             self.resFile = open (f'../res/cms_{settings.getMachineStr()}.res', 'a+')
@@ -438,7 +438,7 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         for cntrSize in [8, 10, 12, 14, 16]:
-            for mode in ['Morris', 'CEDAR', 'F2P_li_h2', 'SEAD_dyn']:   
+            for mode in ['PerfectCounter']: #['Morris', 'CEDAR', 'F2P_li_h2', 'SEAD_dyn']:   
                 runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
