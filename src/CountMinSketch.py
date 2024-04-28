@@ -223,21 +223,29 @@ class CountMinSketch:
                 printarFp (self.logFile, normRmse)
         else:
             error (f'In CountMinSketch.calcPostSimStat(). Sorry, the requested statType {statType} is not supported.')
-        avg          = np.average(vec)
-        confInterval = settings.confInterval (ar=vec, avg=avg)
-        return {'numOfExps'     : self.numOfExps,
-                'numIncs'       : self.incNum,
-                'mode'          : self.mode,
-                'cntrSize'      : self.cntrSize, 
-                'depth'         : self.depth,
-                'width'         : self.width,
-                'numFlows'      : self.numFlows,
-                'seed'          : self.seed,
-                'Avg'           : avg,
-                'Lo'            : confInterval[0],
-                'Hi'            : confInterval[1],
-                'statType'      : statType}
-
+        avg           = np.average(vec)
+        confInterval  = settings.confInterval (ar=vec, avg=avg)
+        maxMinRelDiff = (max(vec) - min(vec))/avg
+        dict = {
+            'numOfExps'     : self.numOfExps,
+            'numIncs'       : self.incNum,
+            'mode'          : self.mode,
+            'cntrSize'      : self.cntrSize, 
+            'depth'         : self.depth,
+            'width'         : self.width,
+            'numFlows'      : self.numFlows,
+            'seed'          : self.seed,
+            'Avg'           : avg,
+            'Lo'            : confInterval[0],
+            'Hi'            : confInterval[1],
+            'statType'      : statType,
+            'maxMinRelDiff' : (max(vec) - min(vec))/avg
+        }
+        if dict['maxMinRelDiff']>0.1:
+            warning (f'Too large maxMinRelDiff. dict={dict}')
+        elif dict['maxMinRelDiff']>0.2:
+            error (f'Too large maxMinRelDiff. dict={dict}')
+        return dict
 
     def openOutputFiles (self) -> None:
         """
@@ -402,7 +410,7 @@ def runCMS (mode,
         width, depth, cntrSize  = 1024, 4, cntrSize
         numFlows                = numFlows
         numCntrsPerBkt          = 16
-        maxNumIncs              = 100 # float ('inf')   
+        maxNumIncs              = float ('inf')   
         numOfExps               = 2
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
@@ -430,7 +438,7 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         for cntrSize in [8, 10, 12, 14, 16]:
-            for mode in ['Morris', 'CEDAR']: #'F2P_li_h1', 'F2P_li_h2', 'SEAD_dyn']: #,  
+            for mode in ['Morris', 'CEDAR', 'F2P_li_h2', 'SEAD_dyn']:   
                 runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
