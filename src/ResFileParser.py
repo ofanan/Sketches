@@ -339,6 +339,7 @@ class ResFileParser (object):
             numOfExps   : int  = 50,
             modes       : list = ['F2P_li', 'CEDAR', 'Morris', 'SEAD_dyn'],
             cntrSizes   : list = [8],
+            normalizeByPerfectCntr : bool = False # When True, normalize each row w.r.t. 'PerfectCounter'
         ):
         """
         Generate a table showing the error as a function of the counter's size.
@@ -358,7 +359,14 @@ class ResFileParser (object):
             pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize if point['erType'] == erType]
             if pointsOfThisCntrSizeErType == []:
                 error (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}')
-            minVal = min ([point['Avg'] for point in pointsOfThisCntrSizeErType])
+            minVal = min ([point['Avg'] for point in pointsOfThisCntrSizeErType if point['mode']!='PerfectCounter'])
+            if normalizeByPerfectCntr:
+                pointsOfPerfCntr = [point for point in pointsOfThisCntrSize if point['mode']=='PerfectCounter']
+                if len(pointsOfPerfCntr)==0:
+                    error (f'In ResFileParser.genErVsCntrSizeTable(). Requested normalizeByPerfectCntr, but no such points for cntrSize={cntrSize}')
+                elif len(pointsOfPerfCntr)>1:
+                    warning (f'In ResFileParser.genErVsCntrSizeTable(). Multiple points for cntrSize={cntrSize}')
+                valOfPerfCntr = pointsOfPerfCntr[0]['Avg']
             for mode in modes:
                 pointsToPrint = [point for point in pointsOfThisCntrSizeErType if point['mode'] == mode]
                 if pointsToPrint == []:
@@ -367,13 +375,16 @@ class ResFileParser (object):
                         printf (datOutputFile, ' & ')
                     continue
                 if len(pointsToPrint)>1:
-                    warning (f'found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}, mode={mode}')
+                    warning (f'found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}, mode={mode}')                
+                val2print = pointsToPrint[0]['Avg']
+                if normalizeByPerfectCntr:
+                    val2print /= valOfPerfCntr
                 if pointsToPrint[0]['Avg']<=minVal*1.01:
                     printf (datOutputFile, '\\green{\\textbf{')
-                    printf (datOutputFile, '{:.2e}' .format(pointsToPrint[0]['Avg']))
+                    printf (datOutputFile, '{:.2e}' .format(val2print))
                     printf (datOutputFile, '}}')
                 else:
-                    printf (datOutputFile, '{:.2e}' .format(pointsToPrint[0]['Avg']))
+                    printf (datOutputFile, '{:.2e}' .format(val2print))
                 if mode!=modes[-1]:
                     printf (datOutputFile, ' & ')
             printf (datOutputFile, ' \\\\\n')
