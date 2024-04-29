@@ -8,7 +8,7 @@ from printf import printf, printFigToPdf
 from nltk.corpus.reader import lin
 
 import settings
-from settings import warning, error
+from settings import warning, error, VERBOSE_RES, VERBOSE_PCL
 
 # Color-blind friendly pallette
 BLACK       = '#000000' 
@@ -241,7 +241,7 @@ class ResFileParser (object):
         self.rdPcl (pclFileName)
 
         pclFileNameWoExtension = pclFileName.split('.pcl')[0]
-        if settings.VERBOSE_RES in verbose:
+        if VERBOSE_RES in verbose:
             resFile = open (f'../res/{pclFileNameWoExtension}.res', 'w')
             for point in self.points:
                 printf (resFile, f'{point}\n')
@@ -254,7 +254,7 @@ class ResFileParser (object):
         pclOutputFile = open (f'../res/pcl_files/{pclFileNameWoExtension}_.pcl', 'wb+')
         for point in self.points:
             pickle.dump(point, pclOutputFile) 
-        if settings.VERBOSE_RES in verbose:
+        if VERBOSE_RES in verbose:
             resFile = open (f'../res/{pclFileNameWoExtension}_.res', 'w')
             for point in self.points:
                 printf (resFile, f'{point}\n')
@@ -335,11 +335,11 @@ class ResFileParser (object):
     def genErVsCntrSizeTable (
             self,
             datOutputFile,
-            erType      : str  = 'RdRmse', # Error type to consider    
             numOfExps   : int  = 50,
-            modes       : list = ['F2P_li', 'CEDAR', 'Morris', 'SEAD_dyn'],
-            cntrSizes   : list = [8],
+            modes       : list = ['F2P_li_h2', 'CEDAR', 'Morris', 'SEAD_dyn'],
+            cntrSizes   : list = [],
             statType    : str  = 'Mse',
+            normalizeByPerfectCntr : bool = True # when True, normalize all mode's results by dividing them by the value obtained by a perfect counter
         ):
         """
         Generate a table showing the error as a function of the counter's size.
@@ -355,11 +355,10 @@ class ResFileParser (object):
         printf (datOutputFile, ' \\\\ \n')
         for cntrSize in cntrSizes:
             pointsOfThisCntrSize = [point for point in points if point['cntrSize']==cntrSize]
-            error (pointsOfThisCntrSize) #$$$
             printf (datOutputFile, f'{cntrSize} & ')
-            pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize] # erType is currently not mentioned in the points. 
+            pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize]  
             if pointsOfThisCntrSizeErType == []:
-                error (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}')
+                error (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}')
             minVal = min ([point['Avg'] for point in pointsOfThisCntrSizeErType if point['mode']!='PerfectCounter'])
             if normalizeByPerfectCntr:
                 pointsOfPerfCntr = [point for point in pointsOfThisCntrSize if point['mode']=='PerfectCounter']
@@ -371,12 +370,12 @@ class ResFileParser (object):
             for mode in modes:
                 pointsToPrint = [point for point in pointsOfThisCntrSizeErType if point['mode'] == mode]
                 if pointsToPrint == []:
-                    warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}, mode={mode}')
+                    warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}')
                     if mode!=modes[-1]:
                         printf (datOutputFile, ' & ')
                     continue
                 if len(pointsToPrint)>1:
-                    warning (f'found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, erType={erType}, mode={mode}')                
+                    warning (f'found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}')                
                 val2print = pointsToPrint[0]['Avg']
                 if normalizeByPerfectCntr:
                     val2print /= valOfPerfCntr
@@ -533,7 +532,7 @@ class ResFileParser (object):
         if numPts!=None:
             points = [point for point in points if point['numPts']==numPts]
         
-        if settings.VERBOSE_RES in verbose:
+        if VERBOSE_RES in verbose:
             resFile = open (f'../res/student_rndErr.res', 'a+')
             printf (resFile, f'// cntrSize={cntrSize}, errType={resTypeStr}\n')
             printedDfs = False
@@ -545,7 +544,7 @@ class ResFileParser (object):
             pointsOfThisMode  = sorted (pointsOfThisMode, key = lambda item : item['df']) # sort the points by their df value
             dfsWithThisMode   = [point['df'] for point in pointsOfThisMode]
             yVals             = [point[f'{resTypeStr}'] for point in pointsOfThisMode]
-            if settings.VERBOSE_RES in verbose:
+            if VERBOSE_RES in verbose:
                 if not printedDFs:
                     printf (resFile, '\t\t\t')
                     for df in dfsWithThisMode:
@@ -561,7 +560,7 @@ class ResFileParser (object):
             if settings.VERBOSE_PLOT in verbose: 
                 ax.plot (dfsWithThisLabel, yVals, label=label)
 
-        if settings.VERBOSE_RES in verbose:
+        if VERBOSE_RES in verbose:
             printf (resFile, '\n')
         if settings.VERBOSE_PLOT not in verbose:
             return
@@ -594,7 +593,7 @@ class ResFileParser (object):
         if numPts!=None:
             points = [point for point in points if point['numPts']==numPts]
         
-        if settings.VERBOSE_RES in verbose:
+        if VERBOSE_RES in verbose:
             resFile = open (f'../res/{genRndErrFileName(cntrSize)}.res', 'a+')
             printf (resFile, f'// errType={resTypeStr}, dist={dist}\n')
             printedDfs = False
@@ -620,7 +619,7 @@ class ResFileParser (object):
                 print (f'In ErrByDistBar(): no points for dist Student, df={df}, mode={mode}')
                 continue
             yVals[i] = pointsOfThisMode[0][f'{resTypeStr}']
-            if settings.VERBOSE_RES in verbose:
+            if VERBOSE_RES in verbose:
                 printf (resFile, f'{mode}\t\t')
                 if mode=='int' or mode.startswith('FP'):
                     printf (resFile, '\t\t')
@@ -633,7 +632,7 @@ class ResFileParser (object):
             plt.bar (label, yVals[i]) #width=1 
 
 
-        if settings.VERBOSE_RES in verbose:
+        if VERBOSE_RES in verbose:
             printf (resFile, '\n')
         if settings.VERBOSE_PLOT not in verbose:
             return
@@ -748,8 +747,8 @@ def genErrByDfGraph ():
         myResFileParser = ResFileParser ()
         pclFileName = genRndErrFileName (cntrSize) 
         myResFileParser.rdPcl (pclFileName)
-        myResFileParser.genErrByDfGraph (cntrSize=cntrSize, resTypeStr='abs', verbose=[settings.VERBOSE_RES])
-        myResFileParser.genErrByDfGraph (cntrSize=cntrSize, resTypeStr='relMse', verbose=[settings.VERBOSE_RES])
+        myResFileParser.genErrByDfGraph (cntrSize=cntrSize, resTypeStr='abs', verbose=[VERBOSE_RES])
+        myResFileParser.genErrByDfGraph (cntrSize=cntrSize, resTypeStr='relMse', verbose=[VERBOSE_RES])
 
 def genErrByDistBar ():
     """
@@ -767,7 +766,7 @@ def genErrByDistBar ():
                     modes       = settings.modesOfCntrSize (cntrSize),
                     resTypeStr  = resTypeStr,
                     numPts      = None,         # num of points in the experiment
-                    verbose     =[settings.VERBOSE_RES, settings.VERBOSE_PLOT]
+                    verbose     =[VERBOSE_RES, settings.VERBOSE_PLOT]
                 )
     
 def genRndErrTable ():
@@ -838,13 +837,12 @@ def genErVsCntrSizeSingleCntr ():
         my_ResFileParser = ResFileParser ()
         outputFileName = f'1cntr.dat' 
         datOutputFile = open (f'../res/{outputFileName}', 'a+')
-        abs     = False
-        erType  = 'RdRmse' 
-        my_ResFileParser.rdPcl (pclFileName='{}_1cntr_HPC_{}.pcl' .format ('abs' if abs else 'rel', erType))
-        printf (datOutputFile, '\n// {}, erType={}\n' .format ('abs ' if abs else 'rel ', erType))
+        abs     = True
+        my_ResFileParser.rdPcl (pclFileName='{}_1cntr_HPC_RdRse.pcl' .format ('abs' if abs else 'rel'))
+        # my_ResFileParser.rdPcl (pclFileName='{}_1cntr_HPC_RdMse.pcl' .format ('abs' if abs else 'rel'))
+        printf (datOutputFile, '\n// {}\n' .format ('abs ' if abs else 'rel '))
         my_ResFileParser.genErVsCntrSizeTable(
             datOutputFile   = datOutputFile, 
-            erType          = erType, 
             numOfExps       = 100, 
             cntrSizes       = [8, 10, 12, 14, 16],
             normalizeByPerfectCntr = False
@@ -855,19 +853,17 @@ def genErVsCntrSizeTableTrace ():
         Generate a table showing the error as a function of the counter's size.
         """
         my_ResFileParser = ResFileParser ()
-        outputFileName = f'1cntr.dat' 
+        outputFileName = f'cms.dat' 
         datOutputFile = open (f'../res/{outputFileName}', 'a+')
         abs     = False
-        erType  = 'RdRmse' 
-        my_ResFileParser.rdPcl (pclFileName='sim_HPC.pcl')
-        printf (datOutputFile, '\n// {}, erType={}\n' .format ('abs ' if abs else 'rel ', erType))
+        my_ResFileParser.rdPcl (pclFileName='cms_HPC.pcl')
+        printf (datOutputFile, '\n// {}\n' .format ('abs ' if abs else 'rel '))
         my_ResFileParser.genErVsCntrSizeTable(
             datOutputFile   = datOutputFile, 
-            erType          = erType, 
             numOfExps       = 2, 
             cntrSizes       = [8, 10, 12, 14, 16],
             statType        = 'Mse',
-            normalizeByPerfectCntr = True
+            normalizeByPerfectCntr = False
             ) 
 
 def rmvFromPcl ():
@@ -882,7 +878,8 @@ def rmvFromPcl ():
         
 if __name__ == '__main__':
     try:
-        genErVsCntrSizeTableTrace ()
+        genErVsCntrSizeSingleCntr ()
+        # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
         # genRndErrTable ()
     except KeyboardInterrupt:
@@ -891,7 +888,7 @@ if __name__ == '__main__':
 # genResolutionPlot ()
     # my_ResFileParser.printAllPoints (cntrSize=8, cntrMaxVal=1488888, printToScreen=True)
 
-        #     verbose     = [settings.VERBOSE_RES]
+        #     verbose     = [VERBOSE_RES]
         #     )
         # plotErVsCntrSize ()
         # printAllOptModes ()

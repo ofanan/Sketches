@@ -9,6 +9,7 @@ from tictoc import tic, toc
 from printf import printf, printar, printarFp
 from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
 from ResFileParser import genRndErrFileName, getF2PSettings, colors, colorOfMode, labelOfMode, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, FONT_SIZE_SMALL, LEGEND_FONT_SIZE, LEGEND_FONT_SIZE_SMALL
+from settings import error, warning, VERBOSE_RES, VERBOSE_PCL 
 
 MAX_DF = 20
 
@@ -228,7 +229,7 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
     np.random.seed (settings.SEED)
     if settings.VERBOSE_DEBUG in verbose:
         numPts = 64
-    if settings.VERBOSE_RES in verbose:
+    if VERBOSE_RES in verbose:
         resFile = open (f'../res/{genRndErrFileName(cntrSize)}.res', 'a+')
         printf (resFile, f'// dist={dist}, stdev={stdev}, numPts={numPts}\n')
         if dist!='norm' and (not(dist.startswith('t_'))): 
@@ -238,7 +239,7 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
     else:        
         logFile = None
 
-    if settings.VERBOSE_PCL in verbose:
+    if VERBOSE_PCL in verbose:
 
         outputFileName = ResFileParser.genRndErrFileName (cntrSize)
         pclOutputFile = open(f'../res/pcl_files/{outputFileName}.pcl', 'ab+')
@@ -363,7 +364,7 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
         if settings.VERBOSE_COUT_CNTRLINE in verbose:
             print (resRecord)
         
-        if settings.VERBOSE_RES in verbose:
+        if VERBOSE_RES in verbose:
             for key, value in resRecord.items():
                 if not key.endswith('Vec'):
                     printf (resFile, f'{key} : {value}\n')
@@ -372,7 +373,7 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
         resRecord['dist']   = dist
         resRecord['numPts'] = numPts
         resRecord['stdev']  = stdev
-        if settings.VERBOSE_PCL in verbose:
+        if VERBOSE_PCL in verbose:
             pickle.dump(resRecord, pclOutputFile)        
         if settings.VERBOSE_PLOT in verbose:
             resRecords.append (resRecord)
@@ -473,10 +474,10 @@ if __name__ == '__main__':
     try:
         # plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_li_h2', 'F2P_si_h2', 'FP_e5', 'FP_e2', 'int'], scale=False)
         # None 
-        verbose = [settings.VERBOSE_PCL, settings.VERBOSE_RES]
+        verbose = [VERBOSE_PCL, VERBOSE_RES]
         stdev   = 1
         for cntrSize in [8, 16, 19]:
-            if settings.VERBOSE_PCL in verbose:
+            if VERBOSE_PCL in verbose:
                 pclOutputFileName = f'{ResFileParser.genRndErrFileName (cntrSize)}.pcl'
                 # if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
                 #     os.remove(f'../res/pcl_files/{pclOutputFileName}')
@@ -490,7 +491,7 @@ if __name__ == '__main__':
                              vecLowerBnd    = -stdev, 
                              vecUpperBnd    = stdev,
                              # outLier        = 100*stdev,
-                             verbose = verbose) #[settings.VERBOSE_RES, settings.VERBOSE_PLOT])  
+                             verbose = verbose) #[VERBOSE_RES, settings.VERBOSE_PLOT])  
 
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

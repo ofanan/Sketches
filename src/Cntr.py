@@ -120,5 +120,6 @@ class CntrMaster (object):
         self.cntrs = [self.cntrZeroVec]*self.numCntrs
 
         
-        
+    def getCntrMaxVal (self):
+        return self.cntrMaxVal        
     

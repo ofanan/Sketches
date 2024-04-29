@@ -3,8 +3,8 @@ import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
-import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, Morris, CEDAR
-from settings import warning, error
+import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
+from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, calcPostSimStat
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp
 
@@ -67,6 +67,10 @@ class CountMinSketch:
         self.cntrMaster is the entity that manages the counters - including incrementing and querying counters.
         Documentation about the various CntrMaster's types is found in the corresponding .py files. 
         """
+        myF2P_cntrMaster = F2P_li.CntrMaster (cntrSize=self.cntrSize, hyperSize=self.hyperSize)
+        cntrMaxVal = myF2P_cntrMaster.getCntrMaxVal ()
+        # cntrMaxVal      = settings.getCntrMaxValByCntrSize (self.cntrSize),
+        error (cntrMaxVal)
         if self.mode=='PerfectCounter':
             self.cntrMaster = PerfectCounter.CntrMaster (
                 cntrSize    = self.cntrSize, 
@@ -95,13 +99,13 @@ class CountMinSketch:
             self.cntrMaster = Morris.CntrMaster (
                 cntrSize        = self.cntrSize, 
                 numCntrs        = self.numCntrs,
-                cntrMaxVal      = settings.getCntrMaxValByCntrSize (self.cntrSize),
+                cntrMaxVal      = cntrMaxVal,
                 verbose         = self.verbose)
         elif self.mode=='CEDAR': 
             self.cntrMaster = CEDAR.CntrMaster (
                 cntrSize        = self.cntrSize, 
                 numCntrs        = self.numCntrs, 
-                cntrMaxVal      = settings.getCntrMaxValByCntrSize (self.cntrSize),
+                cntrMaxVal      = cntrMaxVal,
                 verbose         = self.verbose)
         elif self.mode=='IceBuckets':
             self.cntrMaster = Buckets.Buckets (
@@ -153,8 +157,8 @@ class CountMinSketch:
         - Verify the verbose level requested.
         """      
         if settings.VERBOSE_DETAILED_RES in self.verbose or settings.VERBOSE_FULL_RES in self.verbose:
-            self.verbose.append (settings.VERBOSE_RES)
-        # if not (settings.VERBOSE_PCL in self.verbose):
+            self.verbose.append (VERBOSE_RES)
+        # if not (VERBOSE_PCL in self.verbose):
         #     print ('Note: verbose does not include .pcl')  
         
         pwdStr = os.getcwd()
@@ -193,75 +197,27 @@ class CountMinSketch:
         """
         Dump a single dict of data into pclOutputFile
         """
-        if (settings.VERBOSE_PCL in self.verbose):
+        if (VERBOSE_PCL in self.verbose):
             pickle.dump(dict, self.pclOutputFile) 
     
     def writeDictToResFile (self, dict):
         """
         Write a single dict of data into resOutputFile
         """
-        if (settings.VERBOSE_RES in self.verbose):
+        if (VERBOSE_RES in self.verbose):
             printf (self.resFile, f'{dict}\n\n') 
         if (settings.VERBOSE_FULL_RES in self.verbose):
             printf (self.fullResFile, f'{dict}\n\n') 
     
-    def calcPostSimStat (
-            self, 
-            sumSqEr, # sum of the square errors, collected during the sim 
-            statType    = 'normRmse' # Type of the statistic to write. May be either 'normRmse', or 'Mse'
-        ) -> dict: 
-        """
-        Calculate and potentially print to .log and/or .res file (based on self.verbose) 
-        the post-sim stat - e.g., MSE/RMSE. 
-        The stat is based on the values measured and stored in self.cntrMaster.sumSqEr.
-        Return a dict of the calculated data.  
-        """
-        self.numOfExps = self.expNum + 1 # Allow writing intermmediate results. Assume we began with expNum=0.
-        if statType=='Mse':
-            vec  = [sumSqEr[expNum]/self.incNum for expNum in range(self.numOfExps)]
-        elif statType=='normRmse': # Normalized RMSE
-            Rmse = [math.sqrt (sumSqEr[expNum]/self.incNum) for expNum in range(self.numOfExps)]
-            vec = [item/self.incNum  for item in Rmse]
-            if (settings.VERBOSE_LOG in self.verbose):
-                printf (self.logFile, '\nnormRmse=')
-                printarFp (self.logFile, normRmse)
-        else:
-            error (f'In CountMinSketch.calcPostSimStat(). Sorry, the requested statType {statType} is not supported.')
-        avg           = np.average(vec)
-        confInterval  = settings.confInterval (ar=vec, avg=avg)
-        if avg!= 0:
-            maxMinRelDiff = (max(vec) - min(vec))/avg
-        else:
-            maxMinRelDiff = None
-        dict = {
-            'numOfExps'     : self.numOfExps,
-            'numIncs'       : self.incNum,
-            'mode'          : self.mode,
-            'cntrSize'      : self.cntrSize, 
-            'depth'         : self.depth,
-            'width'         : self.width,
-            'numFlows'      : self.numFlows,
-            'seed'          : self.seed,
-            'Avg'           : avg,
-            'Lo'            : confInterval[0],
-            'Hi'            : confInterval[1],
-            'statType'      : statType,
-            'maxMinRelDiff' : (max(vec) - min(vec))/avg
-        }
-        if dict['maxMinRelDiff']>0.1:
-            warning (f'Too large maxMinRelDiff. dict={dict}')
-        elif dict['maxMinRelDiff']>0.2:
-            error (f'Too large maxMinRelDiff. dict={dict}')
-        return dict
 
     def openOutputFiles (self) -> None:
         """
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
         """      
-        if settings.VERBOSE_PCL in self.verbose:
+        if VERBOSE_PCL in self.verbose:
             self.pclOutputFile = open(f'../res/pcl_files/cms_{settings.getMachineStr()}.pcl', 'ab+')
 
-        if (settings.VERBOSE_RES in self.verbose):
+        if (VERBOSE_RES in self.verbose):
             self.resFile = open (f'../res/cms_{settings.getMachineStr()}.res', 'a+')
             
         if (settings.VERBOSE_FULL_RES in self.verbose):
@@ -350,7 +306,7 @@ class CountMinSketch:
                     self.cntrMaster.printAllCntrs (self.logFile)
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
             if settings.VERBOSE_FULL_RES in self.verbose:
-                printf (self.fullResFile, f'{self.calcPostSimStat(sumSqEr=self.sumSqRelEr)}\n\n') 
+                dict = settings
             
     def sim (
         self, 
@@ -373,12 +329,17 @@ class CountMinSketch:
         else: # read trace from a file
             self.runSimFromTrace ()
         toc ()
-        for statType in ['Mse', 'normRmse']:
-            dict = self.calcPostSimStat(sumSqEr=self.sumSqRelEr, statType=statType)
-            if settings.VERBOSE_PCL in self.verbose:
-                self.dumpDictToPcl    (dict)
-            if settings.VERBOSE_RES in self.verbose:
-                printf (self.resFile, f'{dict}\n\n') 
+        for rel_abs_n in [True, False]:
+            for statType in ['Mse', 'normRmse']:
+                sumSqEr = self.sumSqRelEr if rel_abs_n else self.sumSqAbsEr
+                dict = calcPostSimStat(sumSqEr=sumSqEr, statType=statType)
+                dict = self.fillStatDictsFields(dict)
+                dict['rel_abs_n']   = rel_abs_n
+    
+                if VERBOSE_PCL in self.verbose:
+                    self.dumpDictToPcl    (dict)
+                if VERBOSE_RES in self.verbose:
+                    printf (self.resFile, f'{dict}\n\n') 
         self.printSimMsg (f'Finished {self.incNum} increments')
 
                 
@@ -392,6 +353,20 @@ class CountMinSketch:
             printf (self.logFile, f'starting experiment{self.expNum}\n')
         else:
             printf (self.logFile, f'{infoStr}\n')
+    
+    def fillStatDictsFields (self, dict) -> dict:
+        """
+        Add to the given dict some fields detailing the sim settings. Return the full dict.
+        """
+        dict['numOfExps']   = self.expNum+1# The count of the experiments started in 0
+        dict['numIncs']     = self.incNum
+        dict['mode']        = self.mode
+        dict['cntrSize']    = self.mode
+        dict['depth']       = self.depth
+        dict['width']       = self.width
+        dict['numFlows']    = self.numFlows
+        dict['seed']        = self.seed
+        return dict
     
 def runCMS (mode, 
             cntrSize    = 8,
@@ -413,7 +388,7 @@ def runCMS (mode,
         numEpsilonStepsIceBkts  = 5 
         numEpsilonStepsInRegBkt = 2
         numEpsilonStepsInXlBkt  = 5
-        verbose                 = [settings.VERBOSE_RES] # settings.VERBOSE_LOG, settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
+        verbose                 = [VERBOSE_RES] # settings.VERBOSE_LOG, settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
         width, depth, cntrSize  = 1024, 4, cntrSize
         numFlows                = numFlows
@@ -423,7 +398,7 @@ def runCMS (mode,
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
-        verbose                 = [settings.VERBOSE_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG_END_SIM,  settings.VERBOSE_RES, settings.VERBOSE_FULL_RES, settings.VERBOSE_PCL] # settings.VERBOSE_LOG, settings.VERBOSE_RES, settings.VERBOSE_PCL, settings.VERBOSE_DETAILS
+        verbose                 = [VERBOSE_RES, VERBOSE_PCL] # settings.VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # settings.VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (
         width       = width, 
@@ -437,6 +412,7 @@ def runCMS (mode,
         numEpsilonStepsInRegBkt = numEpsilonStepsInRegBkt, 
         numEpsilonStepsInXlBkt  = numEpsilonStepsInXlBkt,
         )
+    cms.hyperSize = 2
     cms.sim (
         numOfExps      = numOfExps, 
         maxNumIncs     = maxNumIncs, 
@@ -446,7 +422,7 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         for cntrSize in [8, 10, 12]: # 14, 16]:
-            for mode in ['PerfectCounter', 'Morris', 'CEDAR', 'F2P_li_h2', 'SEAD_dyn']:   
+            for mode in ['Morris', 'PerfectCounter', 'CEDAR', 'F2P_li_h1', 'SEAD_dyn']:   
                 runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

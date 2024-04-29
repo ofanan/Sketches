@@ -1,12 +1,10 @@
 # This file implements F2P LI, namely, F2P flavor that represents only integers, and focuses on improved accuracy on elephants.
 # The class F2P_li mainly inherits from the class F2P_lr. 
 # For further details, see "main.tex" in Cntr's Overleaf project.
-import math, random, pickle
-from printf import printf
-import settings
-import numpy as np
+import math, random, pickle, numpy as np
 
-import F2P_lr
+from printf import printf
+import settings, F2P_lr
 
 class CntrMaster (F2P_lr.CntrMaster):
     """

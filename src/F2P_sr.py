@@ -3,7 +3,7 @@
 import math, random, pickle, numpy as np
 
 import settings, Cntr
-from settings import warning #STDOUT_FAIL, STDOUT_ENDC
+from settings import warning, VERBOSE_RES
 from printf import printf
 
 class CntrMaster (Cntr.CntrMaster):
@@ -117,3 +117,4 @@ class CntrMaster (Cntr.CntrMaster):
             warning (f'Requested hyperSize {hyperSize} is not feasible for counter size {self.cntrSize}')
             return False
         return True
+

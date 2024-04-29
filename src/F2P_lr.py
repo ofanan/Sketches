@@ -1,12 +1,12 @@
 # This file implements F2P LR, namely, F2P flavor that focuses on improved accuracy on large reals.
 # The class F2P_lr mainly inherits from the class F2P_sr. 
 # For futher details, see "main.tex" in Cntr's Overleaf project.
-import math, random, pickle
-from printf import printf
-import settings
-import numpy as np
+import math, random, pickle, numpy as np
 
-import F2P_sr
+import settings, F2P_sr
+from settings import error, warning, VERBOSE_RES
+from printf import printf
+
 
 class CntrMaster (F2P_sr.CntrMaster):
     """

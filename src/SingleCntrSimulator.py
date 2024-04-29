@@ -5,7 +5,7 @@ import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
 import settings, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li, F2P_si, FP, SEAD_stat, SEAD_dyn   
-from settings import warning, error
+from settings import warning, error, VERBOSE_RES, VERBOSE_PCL
 from datetime import datetime
 
 class SingleCntrSimulator (object):
@@ -22,8 +22,8 @@ class SingleCntrSimulator (object):
         
         self.verbose = verbose
         if settings.VERBOSE_DETAILED_RES in self.verbose:
-            self.verbose.append (settings.VERBOSE_RES)
-        if not (settings.VERBOSE_PCL in self.verbose):
+            self.verbose.append (VERBOSE_RES)
+        if not (VERBOSE_PCL in self.verbose):
             print ('Note: verbose does not include .pcl')  
         
         pwdStr = os.getcwd()
@@ -116,14 +116,14 @@ class SingleCntrSimulator (object):
         """
         Dump a single dict of data into pclOutputFile
         """
-        if (settings.VERBOSE_PCL in self.verbose):
+        if (VERBOSE_PCL in self.verbose):
             pickle.dump(dict, pclOutputFile) 
     
     def writeDictToResFile (self, dict):
         """
         Write a single dict of data into resOutputFile
         """
-        if (settings.VERBOSE_RES in self.verbose):
+        if (VERBOSE_RES in self.verbose):
             printf (self.resFile, f'{dict}\n\n') 
     
     def runSingleCntrSingleModeWrMse (self, pclOutputFile=None):
@@ -231,7 +231,7 @@ class SingleCntrSimulator (object):
             printf (self.log_file, 'diff vector={}\n\n' .format (self.cntrRecord['wrErVar']))
     
         dict = self.calcRmseStat    ()
-        if settings.VERBOSE_PCL in self.verbose:
+        if VERBOSE_PCL in self.verbose:
             self.dumpDictToPcl          (dict, pclOutputFile)
         self.writeDictToResFile     (dict)
         
@@ -330,7 +330,7 @@ class SingleCntrSimulator (object):
         """
         Loop over all requested modes and cntrSizes, measure the relative resolution, and write the results to output files as defined by self.verbose.
         """
-        if settings.VERBOSE_PCL in self.verbose:
+        if VERBOSE_PCL in self.verbose:
             pclOutputFileName = 'resolutionByModes'
             if delPrevPcl and os.path.exists(f'../res/pcl_files/{pclOutputFileName}.pcl'):
                 os.remove(f'../res/pcl_files/{pclOutputFileName}.pcl')
@@ -347,7 +347,7 @@ class SingleCntrSimulator (object):
                     listOfVals.append (self.cntrRecord['cntr'].cntr2num(cntrVec))           
                 listOfVals = sorted (listOfVals)
                 points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : [(listOfVals[i+1]-listOfVals[i])/listOfVals[i+1] for i in range (len(listOfVals)-1)]}
-                if settings.VERBOSE_PCL in self.verbose:
+                if VERBOSE_PCL in self.verbose:
                     self.dumpDictToPcl ({'mode' : self.mode, 'cntrSize' : self.cntrSize, 'points' : points}, pclOutputFile)
 
     def measureResolutionsBySettingStrs (
@@ -359,7 +359,7 @@ class SingleCntrSimulator (object):
         Loop over all the desired settings, measure the relative resolution, and write the results to output files as defined by self.verbose.
         Each input setting details the cntrSize, exponent size, hyperSize, etc.
         """
-        if settings.VERBOSE_PCL in self.verbose:
+        if VERBOSE_PCL in self.verbose:
             pclOutputFileName = 'resolutionBySettingStrs'
             if delPrevPcl and os.path.exists(f'../res/pcl_files/{pclOutputFileName}.pcl'):
                 os.remove(f'../res/pcl_files/{pclOutputFileName}.pcl')
@@ -379,7 +379,7 @@ class SingleCntrSimulator (object):
                 listOfVals.append (self.cntrRecord['cntr'].cntr2num(cntrVec))           
             listOfVals = sorted (listOfVals)
             points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : [(listOfVals[i+1]-listOfVals[i])/listOfVals[i+1] for i in range (len(listOfVals)-1)]}
-            if settings.VERBOSE_PCL in self.verbose:
+            if VERBOSE_PCL in self.verbose:
                 self.dumpDictToPcl ({'settingStr' : settingStr, 'points' : points}, pclOutputFile)
 
     def genCntrRecord (self,
@@ -433,7 +433,7 @@ class SingleCntrSimulator (object):
 
         # open output files
         outputFileStr = '{}_1cntr_{}{}' .format ('rel' if self.rel_abs_n else 'abs', self.machineStr, '_w_dwnSmpl' if self.dwnSmple else '')
-        if (settings.VERBOSE_RES in self.verbose):
+        if (VERBOSE_RES in self.verbose):
             self.resFile = open (f'../res/{outputFileStr}.res', 'a+')
             
         print ('Started running runSingleCntr at t={}. erTypes={} mode={}, cntrSize={}, maxRealVal={}, cntrMaxVal={}' .format (
@@ -451,7 +451,7 @@ class SingleCntrSimulator (object):
             if not (self.erType in ['WrEr', 'WrRmse', 'RdEr', 'RdRmse', 'WrMse', 'RdMse']):
                 settings.error ('Sorry, the requested error mode {self.erType} is not supported')
             pclOutputFile = None # default value
-            if settings.VERBOSE_PCL in self.verbose:
+            if VERBOSE_PCL in self.verbose:
                 pclOutputFile = self.openPclOuputFile (pclOutputFileName=f'{outputFileStr}_{self.erType}.pcl')
             simT = time.time()
             infoStr = '{}_{}' .format (self.cntrRecord['cntr'].genSettingsStr(), self.erType)
@@ -464,17 +464,17 @@ class SingleCntrSimulator (object):
 
     def closePclOuputFile (self, pclOutputFile):
         """
-        If settings.VERBOSE_PCL is set, close sel.fpclOutputFile
+        If VERBOSE_PCL is set, close sel.fpclOutputFile
         """
-        if settings.VERBOSE_PCL in self.verbose:
+        if VERBOSE_PCL in self.verbose:
             pclOutputFile.close ()
 
     def openPclOuputFile (self, pclOutputFileName):
         """
-        If settings.VERBOSE_PCL is set, return an pclOutputFile with the requested file name.
+        If VERBOSE_PCL is set, return an pclOutputFile with the requested file name.
         Else, return None
         """
-        if settings.VERBOSE_PCL in self.verbose:
+        if VERBOSE_PCL in self.verbose:
             pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}', 'ab+')
         else:
             pclOutputFile = None
@@ -548,7 +548,7 @@ def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit)
     For each combination, get the respective counter.
     Sort by an increasing value.
     Output is according to the verbose, as defined in settings.py. In particular: 
-    If the verbose include settings.VERBOSE_RES, print to an output file the list of cntrVecs and respective values. 
+    If the verbose include VERBOSE_RES, print to an output file the list of cntrVecs and respective values. 
     Return the (sorted) list of values.
     """
     if signed:
@@ -560,7 +560,7 @@ def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit)
         val = myCntrMaster.cntr2num(cntr)
         listOfVals.append ({'cntrVec' : cntr, 'val' : val})
     listOfVals = sorted (listOfVals, key=lambda item : item['val'])
-    if settings.VERBOSE_RES in verbose:
+    if VERBOSE_RES in verbose:
         outputFile = open('../res/{}.res'.format(myCntrMaster.genSettingsStr()), 'w')
         printf (outputFile, f'// bias={myCntrMaster.bias}\n')
         for item in listOfVals:
@@ -584,7 +584,7 @@ def getAllValsF2P (flavor='',
     For each combination, get the respective counter.
     Sort by an increasing value.
     Output is according to the verbose, as defined in settings.py. In particular: 
-    If the verbose include settings.VERBOSE_RES, print to an output file the list of cntrVecs and respective values. 
+    If the verbose include VERBOSE_RES, print to an output file the list of cntrVecs and respective values. 
     Return the (sorted) list of values.
     """
     if signed: 
@@ -601,12 +601,12 @@ def getAllValsF2P (flavor='',
         listOfVals.append ({'cntrVec' : cntr, 'val' : val})
     listOfVals = sorted (listOfVals, key=lambda item : item['val'])
     
-    if (settings.VERBOSE_RES in verbose):
+    if (VERBOSE_RES in verbose):
         outputFile    = open ('../res/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
         for item in listOfVals:
             printf (outputFile, '{}={}\n' .format (item['cntrVec'], item['val']))
     
-    if (settings.VERBOSE_PCL in verbose):
+    if (VERBOSE_PCL in verbose):
         with open('../res/pcl_files/{}.pcl' .format (myCntrMaster.genSettingsStr()), 'wb') as pclOutputFile:
             pickle.dump(listOfVals, pclOutputFile)
 
@@ -627,7 +627,7 @@ def printAllCntrMaxValsF2P (
         flavor          : str  = 'sr', 
         hyperSizeRange  : list = [], # list of hyper-sizes to consider  
         cntrSizeRange   : list = [], # list of cntrSizes to consider
-        verbose         : list =[settings.VERBOSE_RES]
+        verbose         : list =[VERBOSE_RES]
         ):
     """
     print the maximum value a cntr reach for several "configurations" -- namely, all combinations of cntrSize and hyperSize.
@@ -639,14 +639,14 @@ def printAllCntrMaxValsF2P (
             myCntrMaster = genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize)
             if myCntrMaster.isFeasible==False:
                 continue
-            if (settings.VERBOSE_RES in verbose):
+            if (VERBOSE_RES in verbose):
                 outputFile    = open (f'../res/cntrMaxVals.txt', 'a')
             if not(myCntrMaster.isFeasible): # This combination of cntrSize and hyperSize is infeasible
                 continue
             cntrMaxVal = myCntrMaster.cntrMaxVal
             if flavor in ['si', 'li']:
                 cntrMaxVal = int(cntrMaxVal)
-            if (settings.VERBOSE_RES not in verbose):
+            if (VERBOSE_RES not in verbose):
                 continue
             if (cntrMaxVal < 10**8):
                 printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), cntrMaxVal))
@@ -655,15 +655,9 @@ def printAllCntrMaxValsF2P (
     return cntrMaxVal
 
 def main ():
-        # getAllValsF2P (flavor='si', 
-        #            cntrSize     = 7, # size of the counter, WITHOUT the sign bit (if exists).  
-        #            hyperSize    = 2, # size of the hyper-exp field. 
-        #            verbose      = [settings.VERBOSE_RES], #verbose level. See settings.py for details.
-        #            signed       = False # When True, assume an additional bit for the  
-        #            )
         hyperSize  = 2
         for cntrSize in [16]: #, 10, 12, 14, 16]:
-            simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+            simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL]) #VERBOSE_RES, VERBOSE_PCL],)
             simController.runSingleCntr \
                 (dwnSmple       = False,  
                 # modes          = ['F2P_li_h2', 'SEAD_dyn'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
@@ -676,7 +670,7 @@ def main ():
             )
         
 
-        # simController = SingleCntrSimulator (verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL]) #settings.VERBOSE_RES, settings.VERBOSE_PCL],)
+        # simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL]) #VERBOSE_RES, VERBOSE_PCL],)
         # simController.measureResolutionsByModes (
         #     cntrSizes   = [8], 
         #     expSize     = 2, 

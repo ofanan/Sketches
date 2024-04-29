@@ -1,5 +1,5 @@
 """
-Test a model 
+Test a neural network model 
 """ 
 import torch
 import torchvision.transforms as transforms
@@ -11,6 +11,7 @@ from PIL import Image
 import os, scipy, pickle, numpy as np
 
 import Quantizer, settings
+from settings import VERBOSE_RES, VERBOSE_PCL
 
 # def preprocessImage(imagePath):
 #     # Define the transformations to be applied to the input image
@@ -96,7 +97,7 @@ def ModelsQuantRoundErr (modelStrs=[]):
     # weights = get_weight("MobileNet_V3_Large_QuantizedWeights.DEFAULT")
     # model    = MobileNet_V3 (weights=ResNet50_Weights.IMAGENET1K_V2),
     # settings.error (weights)
-    verbose = [settings.VERBOSE_RES, settings.VERBOSE_PCL] #[settings.VERBOSE_RES, settings.VERBOSE_PCL]
+    verbose = [VERBOSE_RES, VERBOSE_PCL] #[VERBOSE_RES, VERBOSE_PCL]
     for modelStr in modelStrs:
         model = None
         if modelStr=='Resnet18':

@@ -1,12 +1,11 @@
 # This file implements F2P SI, namely, F2P flavor that represents only integers, and focuses on improved accuracy on mice.
 # The class F2P_si mainly inherits from the class F2P_li. 
 # For further details, see "main.tex" in Cntr's Overleaf project.
-import math, random, pickle
-from printf import printf
-import settings
-import numpy as np
+import math, random, pickle, numpy as np
 
-import F2P_li
+from printf import printf
+import settings, F2P_li
+from settings import VERBOSE_RES
 
 class CntrMaster (F2P_li.CntrMaster):
     """
