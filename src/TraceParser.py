@@ -7,7 +7,7 @@ from datetime import datetime
 import settings
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp
-from settings import warning, error, indexOrNone #first_true
+from settings import warning, error, indexOrNone, getTracesPath
 
 def parseTrace (
         maxNumRows      = float('inf'), # overall number of increments (# of pkts in the trace) 
@@ -69,8 +69,57 @@ def parseTrace (
     # ax.set_yscale ('log')
     # plt.savefig (f'../res/{outputFileName}.pdf', bbox_inches='tight')        
 
+
+def calcTraceStat (
+        traceFileName = None,
+        maxNumOfRows  = float('inf'),
+        numFlows      = None
+        ):
+    """
+    Collect stat about the trace, and print it to a file.
+    The trace is merely a list of integers (keys), representing the flow to which each pkt belongs, in a .txt file.
+    """
+    relativePathToTraceFile = settings.getRelativePathToTraceFile (traceFileName)
+    if numFlows==None:
+        error ('In TraceParser.calcTraceStat(). Sorry, currently you must specify the num of flows for parsing the trace.')
+    settings.checkIfInputFileExists (relativePathToTraceFile)
+    traceFile = open (relativePathToTraceFile, 'r')
+
+    rowNum = 0
+    flowSizes = [0]*numFlows
+    for row in traceFile:            
+        rowNum += 1
+        flowSizes[int(row)] += 1        
+        if rowNum>maxNumOfRows:
+            break 
+        
+    statFile    = open (f'../res/{traceFileName}_stat.txt', 'a+')
+    numFlows    = len(flowSizes)
+    maxFlowSize = max(flowSizes)
+    printf (statFile, f'// numFlows = {numFlows}\n')
+    printf (statFile, f'// flowSizes={flowSizes}\n')
+    printf (statFile, f'// maxFlowSize={maxFlowSize}\n')
     
-parseTrace (
-    traceFileName   = 'Caida1',
-    verbose         = [settings.VERBOSE_RES] # verbose level, determined in settings.py.
+    numBins = min (100, maxFlowSize+1)
+    binSize = maxFlowSize // (numBins-1)
+    binVal  = [None] * numBins 
+    for bin in range(numBins):
+        binVal[bin] = len ([flowId for flowId in range(numFlows) if (flowSizes[flowId]//binSize)==bin])
+    binFlowSizes = [binSize*bin for bin in range(numBins)]
+    printf (statFile, f'// bins:\n')
+    for bin in range(numBins):
+        printf (statFile, f'binFlowSizes={binFlowSizes[bin]}, binVal={binVal[bin]}\n')
+    statFile.close()
+    
+# parseTrace (
+#     traceFileName   = 'Caida1',
+#     verbose         = [settings.VERBOSE_RES] # verbose level, determined in settings.py.
+# )
+
+calcTraceStat (
+    traceFileName = 'Caida1',
+    maxNumOfRows  = float('inf'),
+    numFlows      = 1276112
 )
+
+# 1276112

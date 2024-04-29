@@ -4,7 +4,7 @@ import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
-from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, calcPostSimStat
+from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, calcPostSimStat
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp
 
@@ -90,6 +90,13 @@ class CountMinSketch:
         elif self.mode.startswith('F2P_li_'):
             hyperSize = int(self.mode.split('_h')[1])
             self.cntrMaster = F2P_li.CntrMaster (
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                hyperSize       = hyperSize,
+                verbose         = self.verbose)
+        elif self.mode.startswith('F2P_si_'):
+            hyperSize = int(self.mode.split('_h')[1])
+            self.cntrMaster = F2P_si.CntrMaster (
                 cntrSize        = self.cntrSize, 
                 numCntrs        = self.numCntrs, 
                 hyperSize       = hyperSize,
@@ -236,7 +243,8 @@ class CountMinSketch:
 
         if self.numFlows==None:
             error ('In CountMinSketch.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
-        if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
+        self.genCntrMaster ()
+        if (VERBOSE_LOG in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
             infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
             self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
             self.cntrMaster.setLogFile(self.logFile)
@@ -244,12 +252,12 @@ class CountMinSketch:
         relativePathToInputFile = settings.getRelativePathToTraceFile (self.traceFileName)
         settings.checkIfInputFileExists (relativePathToInputFile)
         for self.expNum in range (self.numOfExps):
-            self.genCntrMaster ()
+            self.genCntrMaster () # Generate a fresh, empty CntrMaster, for each experiment
             flowRealVal = [0] * self.numFlows
             self.incNum = 0
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
 
-            if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
+            if (VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
                 infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
                 self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
                 self.cntrMaster.setLogFile(self.logFile)
@@ -264,14 +272,14 @@ class CountMinSketch:
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr                
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
-                if settings.VERBOSE_LOG in self.verbose:
+                if VERBOSE_LOG in self.verbose:
                     self.cntrMaster.printAllCntrs (self.logFile)
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
                 if self.incNum==self.maxNumIncs:
                     break
         traceFile.close ()
     
-        if settings.VERBOSE_LOG_END_SIM in self.verbose:
+        if VERBOSE_LOG_END_SIM in self.verbose:
             self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr()) 
             self.cntrMaster.printAllCntrs  (self.logFile)
     
@@ -288,7 +296,7 @@ class CountMinSketch:
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
             self.genCntrMaster ()
 
-            if (settings.VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (settings.VERBOSE_LOG_END_SIM in self.verbose):
+            if (VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
                 infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
                 self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
                 self.cntrMaster.setLogFile(self.logFile)
@@ -301,7 +309,7 @@ class CountMinSketch:
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr                
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
-                if settings.VERBOSE_LOG in self.verbose:
+                if VERBOSE_LOG in self.verbose:
                     self.cntrMaster.printAllCntrs (self.logFile)
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
             if settings.VERBOSE_FULL_RES in self.verbose:
@@ -379,13 +387,9 @@ def runCMS (mode,
     """
     """   
     traceFileName   = 'Caida1' 
-    if traceFileName=='Caida1':
-        numFlows = 1276112
-    else:
-        numFlows = 10000
+    numFlows = 1276112
     
     if runShortSim:
-        numFlows                = 10
         width, depth, cntrSize  = 2, 2, 8
         numFlows                = numFlows
         numCntrsPerBkt          = 2
@@ -394,17 +398,17 @@ def runCMS (mode,
         numEpsilonStepsIceBkts  = 5 
         numEpsilonStepsInRegBkt = 2
         numEpsilonStepsInXlBkt  = 5
-        verbose                 = [VERBOSE_RES] # settings.VERBOSE_LOG, settings.VERBOSE_LOG_END_SIM, settings.VERBOSE_LOG, settings.VERBOSE_DETAILS
+        verbose                 = [VERBOSE_LOG_END_SIM] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
-        width, depth, cntrSize  = 1024, 4, cntrSize
+        width, depth, cntrSize  = 1024, 2, 8 #$$$ 1024, 4, cntrSize
         numFlows                = numFlows
-        numCntrsPerBkt          = 16
-        maxNumIncs              = maxNumIncs   
+        numCntrsPerBkt          = 1 #16
+        maxNumIncs              = 20 #maxNumIncs   
         numOfExps               = 2
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
-        verbose                 = [VERBOSE_RES, VERBOSE_PCL] # settings.VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # settings.VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+        verbose                 = [VERBOSE_LOG_END_SIM] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (
         width       = width, 
@@ -428,7 +432,7 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         for cntrSize in [8]:# , 10, 12]: # 14, 16]:
-            for mode in ['PerfectCounter', 'SEAD_dyn', 'F2P_li_h2']: #, 'PerfectCounter', 'CEDAR', 'F2P_li_h1', 'SEAD_dyn']:   
+            for mode in ['F2P_si_h2']: #, 'PerfectCounter', 'CEDAR', 'F2P_li_h1', 'SEAD_dyn']:   
                 runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

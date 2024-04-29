@@ -157,5 +157,5 @@ def printAllCntrMaxVals (cntrSizes=[], verbose=[settings.VERBOSE_RES]):
             myCntrMaster = CntrMaster(mode='dyn', cntrSize=cntrSize)
             printf (outputFile, '{} cntrMaxVal={:.0f}\n' .format (myCntrMaster.genSettingsStr (mode='dyn', cntrSize=cntrSize), myCntrMaster.cntrMaxVal))
 
-myCntrMaster = CntrMaster (cntrSize=6)
-myCntrMaster.getAllVals (verbose=[settings.VERBOSE_RES])
+# myCntrMaster = CntrMaster (cntrSize=8)
+# myCntrMaster.getAllVals (verbose=[settings.VERBOSE_RES])
