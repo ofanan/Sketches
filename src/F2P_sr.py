@@ -3,7 +3,7 @@
 import math, random, pickle, numpy as np
 
 import settings, Cntr
-from settings import warning, VERBOSE_RES
+from settings import error, warning, VERBOSE_RES
 from printf import printf
 
 class CntrMaster (Cntr.CntrMaster):
@@ -109,12 +109,12 @@ class CntrMaster (Cntr.CntrMaster):
         - If not - print an error msg and return False
         """
         if (hyperSize<1 or hyperSize>self.cntrSize-2):
-            warning (f'Requested hyperSize {hyperSize} is not feasible for counter size {self.cntrSize}')
+            error (f'Requested hyperSize {hyperSize} is not feasible for counter size {self.cntrSize}')
             return False
         self.hyperSize     = hyperSize
         self.expMaxSize    = 2**(self.hyperSize)-1 # the maximum value that can be represented by self.hyperSize bits, using standard binary representation. 
         if (self.hyperSize + self.expMaxSize > self.cntrSize-1):
-            warning (f'Requested hyperSize {hyperSize} is not feasible for counter size {self.cntrSize}')
+            error (f'Requested hyperSize {hyperSize} is not feasible for counter size {self.cntrSize}')
             return False
         return True
 

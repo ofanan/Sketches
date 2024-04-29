@@ -331,7 +331,12 @@ class CountMinSketch:
         for rel_abs_n in [True, False]:
             for statType in ['Mse', 'normRmse']:
                 sumSqEr = self.sumSqRelEr if rel_abs_n else self.sumSqAbsEr
-                dict = calcPostSimStat(sumSqEr=sumSqEr, statType=statType, numMeausures=self.incNum+1)
+                dict = calcPostSimStat(
+                    sumSqEr         = sumSqEr, 
+                    statType        = statType, 
+                    numMeausures    = self.incNum+1,
+                    verbose         = self.verbose
+                    )
                 dict = self.fillStatDictsFields(dict)
                 dict['rel_abs_n']   = rel_abs_n
     
@@ -380,11 +385,12 @@ def runCMS (mode,
         numFlows = 10000
     
     if runShortSim:
-        width, depth, cntrSize  = 2, 2, 4
+        numFlows                = 10
+        width, depth, cntrSize  = 2, 2, 8
         numFlows                = numFlows
         numCntrsPerBkt          = 2
-        maxNumIncs              = 4000 #(width * depth * cntrSize**3)/2
-        numOfExps               = 1
+        maxNumIncs              = 20 #4000 #(width * depth * cntrSize**3)/2
+        numOfExps               = 2
         numEpsilonStepsIceBkts  = 5 
         numEpsilonStepsInRegBkt = 2
         numEpsilonStepsInXlBkt  = 5
@@ -422,7 +428,7 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         for cntrSize in [8]:# , 10, 12]: # 14, 16]:
-            for mode in ['Morris']: #, 'PerfectCounter', 'CEDAR', 'F2P_li_h1', 'SEAD_dyn']:   
-                runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False, maxNumIncs=100)
+            for mode in ['PerfectCounter', 'SEAD_dyn', 'F2P_li_h2']: #, 'PerfectCounter', 'CEDAR', 'F2P_li_h1', 'SEAD_dyn']:   
+                runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

@@ -175,18 +175,17 @@ class CntrMaster (Cntr.CntrMaster):
         """
         Increment the counter to the closest higher value        
         """
-        cntrDict = self.incCntr ()
-        return cntrDict['val']
-        settings.error ('This function is not debugged yet. Please check it carefully before using.')
-        
-        if not(forceInc):
-            settings.error ('Sorry. Morris.incCntrBy1() is currently supports only for forceInc==True.')
-        
-        cntrInt = int (self.cntrs[cntrIdx], 2)
-        self.cntrs[cntrIdx] = np.binary_repr (cntrInt+1, cntrSize)
-        self.cntrs[cntrIdx]    
-        # return {'cntrVec' : self.cntrs[cntrIdx], 'val' : self.cntr2num(self.cntrs[cntrIdx])}    
-        
+        targetVal = self.cntr2num (self.cntrs[cntrIdx]) + 1
+        optionalModifiedCntr = self.num2cntr (targetVal)
+        if (len(optionalModifiedCntr)==1): # there's a single option to modify the cntr -- either because targetVal is accurately represented, or because it's > maxVal, or < 0.
+            self.cntrs[cntrIdx] = optionalModifiedCntr[0]['cntrVec']
+        else:
+            probOfFurtherInc = float (targetVal - optionalModifiedCntr[0]['val']) / float (optionalModifiedCntr[1]['val'] - optionalModifiedCntr[0]['val'])
+            if forceInc or random.random() < probOfFurtherInc: 
+                self.cntrs[cntrIdx] = optionalModifiedCntr[1]['cntrVec'] 
+                return optionalModifiedCntr[1]['val']
+        return optionalModifiedCntr[0]['val']
+                
     def incCntr (self, cntrIdx=0, factor=1, verbose=[], mult=False):
         """
         Increase a counter by a given factor.

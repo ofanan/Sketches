@@ -25,7 +25,6 @@ class CntrMaster (object):
         self.cntrSize   = int(cntrSize)
         self.numCntrs   = int(numCntrs)
         self.verbose    = verbose
-        
 
     def printAllCntrs (self, outputFile) -> None:
         """

@@ -273,7 +273,8 @@ def indexOrNone(l : list,
 def calcPostSimStat (
         sumSqEr         : list, # sum of the square errors, collected during the sim
         numMeausures    : int, # num of error measurements  
-        statType        : str = 'normRmse' # Type of the statistic to write. May be either 'normRmse', or 'Mse'
+        statType        : str = 'normRmse', # Type of the statistic to write. May be either 'normRmse', or 'Mse'
+        verbose         : list = [], # verbose level, defining the type and format of output
     ) -> dict: 
     """
     Calculate the post-sim stat - e.g., MSE/RMSE, with confidence intervals. 
@@ -285,23 +286,23 @@ def calcPostSimStat (
     elif statType=='normRmse': # Normalized RMSE
         Rmse = [math.sqrt (item/numMeausures) for item in sumSqEr]
         vec  = [item/numMeausures for item in Rmse]
-    if (VERBOSE_LOG in self.verbose):
-        printf (self.logFile, f'statType={statType}. Vec=')
-        printarFp (self.logFile, vec)
     else:
         error (f'In settings.calcPostSimStat(). Sorry, the requested statType {statType} is not supported.')
+    if (VERBOSE_LOG in verbose):
+        printf (self.logFile, f'statType={statType}. Vec=')
+        printarFp (self.logFile, vec)
     avg           = np.average(vec)
-    confInterval  = confInterval (ar=vec, avg=avg)
+    confIntervalVar  = confInterval (ar=vec, avg=avg)
     if avg!= 0:
         maxMinRelDiff = (max(vec) - min(vec))/avg
     else:
         maxMinRelDiff = None
     dict = {
         'Avg'           : avg,
-        'Lo'            : confInterval[0],
-        'Hi'            : confInterval[1],
+        'Lo'            : confIntervalVar[0],
+        'Hi'            : confIntervalVar[1],
         'statType'      : statType,
-        'maxMinRelDiff' : (max(vec) - min(vec))/avg
+        'maxMinRelDiff' : maxMinRelDiff
     }
     if dict['maxMinRelDiff']>0.1:
         warning (f'Too large maxMinRelDiff. dict={dict}')
