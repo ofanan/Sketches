@@ -370,7 +370,8 @@ class CountMinSketch:
     
 def runCMS (mode, 
             cntrSize    = 8,
-            runShortSim = True):
+            runShortSim = True,
+            maxNumIncs  = float ('inf')):
     """
     """   
     traceFileName   = 'Caida1' 
@@ -393,7 +394,7 @@ def runCMS (mode,
         width, depth, cntrSize  = 1024, 4, cntrSize
         numFlows                = numFlows
         numCntrsPerBkt          = 16
-        maxNumIncs              = float ('inf')   
+        maxNumIncs              = maxNumIncs   
         numOfExps               = 2
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
@@ -421,8 +422,8 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
-        for cntrSize in [8, 10, 12]: # 14, 16]:
-            for mode in ['Morris', 'PerfectCounter', 'CEDAR', 'F2P_li_h1', 'SEAD_dyn']:   
-                runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False)
+        for cntrSize in [8]:# , 10, 12]: # 14, 16]:
+            for mode in ['Morris']: #, 'PerfectCounter', 'CEDAR', 'F2P_li_h1', 'SEAD_dyn']:   
+                runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False, maxNumIncs=100)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
