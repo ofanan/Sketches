@@ -84,9 +84,7 @@ def modesOfCntrSize (cntrSize):
         return F2Pmodes + ['int', 'SEAD_dyn'] + FP8modes
     else:
         error (f'In settings.modesOfCntrSize(). No hard-coded list of modes for cntrSize={cntrSize}.')
-
  
-
 
 def getConfByCntrSize (cntrSize):
     """
@@ -273,8 +271,9 @@ def indexOrNone(l : list,
     
 
 def calcPostSimStat (
-        sumSqEr, # sum of the square errors, collected during the sim 
-        statType    = 'normRmse' # Type of the statistic to write. May be either 'normRmse', or 'Mse'
+        sumSqEr         : list, # sum of the square errors, collected during the sim
+        numMeausures    : int, # num of error measurements  
+        statType        : str = 'normRmse' # Type of the statistic to write. May be either 'normRmse', or 'Mse'
     ) -> dict: 
     """
     Calculate the post-sim stat - e.g., MSE/RMSE, with confidence intervals. 
@@ -282,11 +281,11 @@ def calcPostSimStat (
     Return a dict of the calculated stat.  
     """
     if statType=='Mse':
-        vec  = [sumSqEr[expNum]/self.incNum for expNum in range(self.numOfExps)]
+        vec  = [item/numMeausures for item in sumSqEr]
     elif statType=='normRmse': # Normalized RMSE
-        Rmse = [math.sqrt (sumSqEr[expNum]/self.incNum) for expNum in range(self.numOfExps)]
-        vec = [item/self.incNum  for item in Rmse]
-    if (settings.VERBOSE_LOG in self.verbose):
+        Rmse = [math.sqrt (item/numMeausures) for item in sumSqEr]
+        vec  = [item/numMeausures for item in Rmse]
+    if (VERBOSE_LOG in self.verbose):
         printf (self.logFile, f'statType={statType}. Vec=')
         printarFp (self.logFile, vec)
     else:

@@ -41,7 +41,7 @@ class CountMinSketch:
         random.seed (settings.SEED)
         self.numCntrsPerBkt = int(numCntrsPerBkt)
         if depth<1 or width<1 or cntrSize<1:
-            settings.error (f'CountMinSketch was called with depth={depth}, width={width}, cntrSize={cntrSize}. All these parameters should be at least 1.')
+            error (f'CountMinSketch was called with depth={depth}, width={width}, cntrSize={cntrSize}. All these parameters should be at least 1.')
         if depth<2 or width<2:
             print (f'Note: CountMinSketch was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
@@ -54,9 +54,9 @@ class CountMinSketch:
         numBucketsFP = self.numCntrs / self.numCntrsPerBkt
         self.numBuckets = int(numBucketsFP)
         if numBucketsFP != self.numBuckets:
-            settings.error (f'You chose numCntrs={self.numCntrs}, numCntrsPerBkt={self.numCntrsPerBkt}. However, numCntrs should be divisible by numCntrsPerBkt')           
+            error (f'You chose numCntrs={self.numCntrs}, numCntrsPerBkt={self.numCntrsPerBkt}. However, numCntrs should be divisible by numCntrsPerBkt')           
         if self.numBuckets < 1:
-            settings.error (f'numOfBkts={self.numOfBkts}')
+            error (f'numOfBkts={self.numOfBkts}')
         self.conf       = settings.getConfByCntrSize (cntrSize=self.cntrSize)
         self.verbose = verbose
         self.genOutputDirectories ()
@@ -70,7 +70,6 @@ class CountMinSketch:
         myF2P_cntrMaster = F2P_li.CntrMaster (cntrSize=self.cntrSize, hyperSize=self.hyperSize)
         cntrMaxVal = myF2P_cntrMaster.getCntrMaxVal ()
         # cntrMaxVal      = settings.getCntrMaxValByCntrSize (self.cntrSize),
-        error (cntrMaxVal)
         if self.mode=='PerfectCounter':
             self.cntrMaster = PerfectCounter.CntrMaster (
                 cntrSize    = self.cntrSize, 
@@ -332,7 +331,7 @@ class CountMinSketch:
         for rel_abs_n in [True, False]:
             for statType in ['Mse', 'normRmse']:
                 sumSqEr = self.sumSqRelEr if rel_abs_n else self.sumSqAbsEr
-                dict = calcPostSimStat(sumSqEr=sumSqEr, statType=statType)
+                dict = calcPostSimStat(sumSqEr=sumSqEr, statType=statType, numMeausures=self.incNum+1)
                 dict = self.fillStatDictsFields(dict)
                 dict['rel_abs_n']   = rel_abs_n
     
