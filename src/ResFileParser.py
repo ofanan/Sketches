@@ -775,7 +775,7 @@ def genRndErrTable ():
     """
     resFile = open ('../res/errTable.dat', 'a+')
     for cntrSize in [8, 16, 19]:
-        errType = 'relMse'
+        errType = 'absMse'
         printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
         myResFileParser = ResFileParser ()
         myResFileParser.printRndErrTableRow (
@@ -878,10 +878,10 @@ def rmvFromPcl ():
         
 if __name__ == '__main__':
     try:
-        genErVsCntrSizeSingleCntr ()
+        # genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
-        # genRndErrTable ()
+        genRndErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 

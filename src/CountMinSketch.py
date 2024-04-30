@@ -274,11 +274,6 @@ class CountMinSketch:
                 flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr    
-                if VERBOSE_DETAILED_LOG in self.verbose:
-                    if self.incNum%1000==0: 
-                        printf (self.logFile, 'incNum={}, realVal={}, estimated={}, sqEr={}, sumSqEr={:.2e}\n' .format (self.incNum, flowRealVal[flowId], flowEstimatedVal, sqEr, self.sumSqAbsEr[self.expNum]))
-                # if self.expNum==1 and flowEstimatedVal==832 and flowRealVal[flowId]>832:
-                #     print (f'sqEr={sqEr}') # error ('bingo') #$$$
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
                 if VERBOSE_LOG in self.verbose:
                     self.cntrMaster.printAllCntrs (self.logFile)
@@ -381,7 +376,7 @@ class CountMinSketch:
         dict['numOfExps']   = self.expNum+1# The count of the experiments started in 0
         dict['numIncs']     = self.incNum
         dict['mode']        = self.mode
-        dict['cntrSize']    = self.mode
+        dict['cntrSize']    = self.cntrSize
         dict['depth']       = self.depth
         dict['width']       = self.width
         dict['numFlows']    = self.numFlows
@@ -408,7 +403,7 @@ def runCMS (mode,
         numEpsilonStepsInXlBkt  = 5
         verbose                 = [VERBOSE_LOG_END_SIM] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
-        width, depth            = 2**15, 4
+        width, depth            = 2**16, 4
         numFlows                = numFlows
         numCntrsPerBkt          = 1 #16
         maxNumIncs              = maxNumIncs   
@@ -439,9 +434,8 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
-        for cntrSize in [8]:# , 10, 12]: # 14, 16]:
-            # for mode in ['SEAD_dyn']: #'F2P_li_h2']: #, 'PerfectCounter', 'CEDAR', 'F2P_li_h2', 'SEAD_dyn']:   
-            for mode in ['F2P_li_h2', 'SEAD_dyn']:    
+        for cntrSize in [8, 10, 12, 14, 16]:
+            for mode in ['F2P_li_h2', 'SEAD_dyn', 'CEDAR', 'Morris']:    
                 runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
