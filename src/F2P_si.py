@@ -5,7 +5,7 @@ import math, random, pickle, numpy as np
 
 from printf import printf
 import settings, F2P_li
-from settings import VERBOSE_RES
+from settings import VERBOSE_RES, VERBOSE_DEBUG
 
 class CntrMaster (F2P_li.CntrMaster):
     """
@@ -30,18 +30,23 @@ class CntrMaster (F2P_li.CntrMaster):
         self.cntrZeroVec    = '0'*(self.cntrSize)
         self.cntrMaxVec     = '1'*(self.cntrSize)
 
-        self.probOfInc1 = np.empty (self.Vmax)
+        self.probOfInc1 = np.zeros (self.Vmax)
         for expSize in range(0, self.expMaxSize+1):
             mantSize = self.cntrSize - self.hyperSize - expSize
             for i in range (2**expSize):
-                expVec = np.binary_repr(num=i, width=expSize)
+                expVec = np.binary_repr(num=i, width=expSize) if expSize>0 else ''
                 expVal = self.expVec2expVal (expVec=expVec, expSize=expSize)
                 resolution = 2**(expVal + self.bias - mantSize)
                 self.probOfInc1[abs(expVal)] = 1/resolution
         
-        self.probOfInc1[self.Vmax-1] = 1 # Fix the special case, where ExpVal==expMinVal and the resolution is also 1 (namely, prob' of increment is also 1).
+        self.probOfInc1[0] = 1 # Fix the special case, where ExpVal==expMinVal and the resolution is also 1 (namely, prob' of increment is also 1).
         
-        # 
+        if VERBOSE_DEBUG in self.verbose:
+            debugFile = open (f'../res/{self.genSettingsStr()}.txt', 'w')
+            printf (debugFile, '// resolutions=\n')
+            for item in self.probOfInc1:
+                printf (debugFile, '{:.1f}\n' .format (1/item))
+            
         self.cntrppOfAbsExpVal = [np.binary_repr(num=1, width=self.hyperSize) + '0'*(self.cntrSize-self.hyperSize)]*(self.Vmax-1)
         expVal = 1
         for expSize in range(1, self.expMaxSize+1):
@@ -54,3 +59,5 @@ class CntrMaster (F2P_li.CntrMaster):
             if expSize<self.expMaxSize:
                 self.cntrppOfAbsExpVal[expVal] = np.binary_repr (expSize+1, self.hyperSize) + '0'*(self.cntrSize - self.hyperSize)
                 expVal += 1
+
+myF2P_si = CntrMaster (cntrSize=6, hyperSize=2, verbose=[VERBOSE_DEBUG])

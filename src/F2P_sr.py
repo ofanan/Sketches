@@ -65,11 +65,9 @@ class CntrMaster (Cntr.CntrMaster):
         super(CntrMaster, self).__init__ (cntrSize=cntrSize, numCntrs=numCntrs, verbose=verbose)
         self.isFeasible = True
         if (not (self.setHyperSize (hyperSize))):
-            self.isFeasible = False
-            return 
+            error (f'In F2P_sr.init(). The hyperSize {hyperSize} is not feasible for cntrSize={cntrSize}') 
         if (not self.calcParams()): # parameters couldn't be calculated, e.g. due to wrong given combination of cntrSize and hyperSize
-            self.isFeasible = False
-            return 
+            error (f'In F2P_sr.init(). The hyperSize {hyperSize} or other params are not feasible for cntrSize={cntrSize}') 
         # self.cntrMinVal = self.cntr2num (self.cntrZeroVec)
         self.cntrMaxVal = self.cntr2num (self.cntrMaxVec)
         if settings.VERBOSE_COUT_CONF in self.verbose:

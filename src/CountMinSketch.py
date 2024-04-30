@@ -390,7 +390,7 @@ def runCMS (mode,
     numFlows = 1276112
     
     if runShortSim:
-        width, depth, cntrSize  = 2, 2, 8
+        width, depth            = 2, 2
         numFlows                = numFlows
         numCntrsPerBkt          = 2
         maxNumIncs              = 20 #4000 #(width * depth * cntrSize**3)/2
@@ -400,7 +400,7 @@ def runCMS (mode,
         numEpsilonStepsInXlBkt  = 5
         verbose                 = [VERBOSE_LOG_END_SIM] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
-        width, depth, cntrSize  = 1024, 2, 8 #$$$ 1024, 4, cntrSize
+        width, depth            = 32, 2 #$$$ 1024, 4
         numFlows                = numFlows
         numCntrsPerBkt          = 1 #16
         maxNumIncs              = 20 #maxNumIncs   
@@ -431,7 +431,7 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
-        for cntrSize in [8]:# , 10, 12]: # 14, 16]:
+        for cntrSize in [6]:# , 10, 12]: # 14, 16]:
             for mode in ['F2P_si_h2']: #, 'PerfectCounter', 'CEDAR', 'F2P_li_h1', 'SEAD_dyn']:   
                 runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False)
     except KeyboardInterrupt:

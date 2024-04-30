@@ -5,6 +5,7 @@ import math, random, pickle, numpy as np
 
 from printf import printf
 import settings, F2P_lr
+from settings import VERBOSE_DEBUG
 
 class CntrMaster (F2P_lr.CntrMaster):
     """
@@ -29,7 +30,7 @@ class CntrMaster (F2P_lr.CntrMaster):
         self.cntrZeroVec    = '1'*(self.cntrSize-mantMinSize) + '0'*mantMinSize  #np.binary_repr(0, self.cntrSize)  
         self.cntrMaxVec     = '0'*self.hyperSize + '1'*(self.cntrSize-self.hyperSize) #np.binary_repr((1<<self.cntrSize)-1, self.cntrSize)
 
-        self.probOfInc1 = np.empty (self.Vmax)
+        self.probOfInc1 = np.zeros (self.Vmax)
         for expSize in range(0, self.expMaxSize+1):
             mantSize = self.cntrSize - self.hyperSize - expSize
             for i in range (2**expSize):
@@ -40,6 +41,14 @@ class CntrMaster (F2P_lr.CntrMaster):
         
         self.probOfInc1[self.Vmax-1] = 1 # Fix the special case, where ExpVal==expMinVal and the resolution is also 1 (namely, prob' of increment is also 1).
         
+        if VERBOSE_DEBUG in self.verbose:
+            debugFile = open (f'../res/{self.genSettingsStr()}.txt', 'w')
+            printf (debugFile, '// resolutions=\n')
+            for item in self.probOfInc1:
+                printf (debugFile, '{:.1f}\n' .format (1/item))
+            
+        if any ([item>1 for item in self.probOfInc1]):
+            error (f'F2P_li Got entry>1 for self.probOfInc1. self.probOfInc1={self.probOfInc1}')
         # self.cntrppOfAbsExpVal[e] will hold the next cntr when the (mantissa of the) counter with expVal=e is saturated.
         self.cntrppOfAbsExpVal = ['' for _ in range(self.Vmax)]
         for expSize in range(self.expMaxSize, 0, -1):

@@ -1,10 +1,12 @@
 """ 
 General class of counters, with some functionalities common to all the counters.
 """ 
-import math, time, random
-from printf import printf
+import math, time, random, numpy as np
+
 import settings
-import numpy as np
+from settings import VERBOSE_DEBUG
+from printf import printf
+
 
 class CntrMaster (object):
     
@@ -25,7 +27,7 @@ class CntrMaster (object):
         self.cntrSize   = int(cntrSize)
         self.numCntrs   = int(numCntrs)
         self.verbose    = verbose
-
+        
     def printAllCntrs (self, outputFile) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
