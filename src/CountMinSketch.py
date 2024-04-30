@@ -275,8 +275,8 @@ class CountMinSketch:
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr    
                 if VERBOSE_DETAILED_LOG in self.verbose:
-                    if self.incNum>13000000: 
-                        printf (self.logFile, f'incNum={self.incNum}, realVal={flowRealVal[flowId]}, estimated={flowEstimatedVal}, sqEr={sqEr}, sumSqEr={self.sumSqAbsEr[self.expNum]}\n')
+                    if self.incNum%1000==0: 
+                        printf (self.logFile, 'incNum={}, realVal={}, estimated={}, sqEr={}, sumSqEr={:.2e}\n' .format (self.incNum, flowRealVal[flowId], flowEstimatedVal, sqEr, self.sumSqAbsEr[self.expNum]))
                 # if self.expNum==1 and flowEstimatedVal==832 and flowRealVal[flowId]>832:
                 #     print (f'sqEr={sqEr}') # error ('bingo') #$$$
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
@@ -395,7 +395,7 @@ def runCMS (mode,
     """
     """   
     traceFileName   = 'Caida1' 
-    numFlows = 1276112
+    numFlows = 1276112 # 13,182,023 incs
     
     if runShortSim:
         width, depth            = 2, 2
@@ -408,15 +408,15 @@ def runCMS (mode,
         numEpsilonStepsInXlBkt  = 5
         verbose                 = [VERBOSE_LOG_END_SIM] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
-        width, depth            = 1024, 4
+        width, depth            = 2**15, 4
         numFlows                = numFlows
         numCntrsPerBkt          = 1 #16
-        maxNumIncs              = 2000000 #maxNumIncs   
+        maxNumIncs              = maxNumIncs   
         numOfExps               = 1
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
-        verbose                 = [VERBOSE_DETAILED_LOG] #VERBOSE_RES, VERBOSE_LOG_END_SIM] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+        verbose                 = [VERBOSE_RES, VERBOSE_LOG_END_SIM] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (
         width       = width, 
@@ -440,7 +440,8 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         for cntrSize in [8]:# , 10, 12]: # 14, 16]:
-            for mode in ['F2P_li_h2']: #'F2P_li_h2']: #, 'PerfectCounter', 'CEDAR', 'F2P_li_h2', 'SEAD_dyn']:   
+            # for mode in ['SEAD_dyn']: #'F2P_li_h2']: #, 'PerfectCounter', 'CEDAR', 'F2P_li_h2', 'SEAD_dyn']:   
+            for mode in ['F2P_li_h2', 'SEAD_dyn']:    
                 runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
