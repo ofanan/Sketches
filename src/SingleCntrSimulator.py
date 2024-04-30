@@ -105,7 +105,7 @@ class SingleCntrSimulator (object):
                 'mode'              : self.cntrRecord['mode'],
                 'cntrSize'          : self.cntrSize, 
                 'cntrMaxVal'        : self.cntrMaxVal,
-                'settingStr'       : self.cntrRecord['cntr'].genSettingsStr(),
+                'settingStr'        : self.cntrRecord['cntr'].genSettingsStr(),
                 'Avg'               : wrErAvg,
                 'Lo'                : wrErConfInterval[0],
                 'Hi'                : wrErConfInterval[1]}
@@ -126,9 +126,6 @@ class SingleCntrSimulator (object):
         if (VERBOSE_RES in self.verbose):
             printf (self.resFile, f'{dict}\n\n') 
     
-    def runSingleCntrSingleModeWrMse (self, pclOutputFile=None):
-        return runSingleCntrSingleModeWrRmse (pclOutputFile=pclOutputFile)
-
     def runSingleCntrSingleModeWrRmse (self, pclOutputFile=None):
         """
         Run a single counter of mode self.mode (self.mode is the approximation cntr architecture - e.g., 'F2P', 'CEDAR').  
@@ -137,8 +134,9 @@ class SingleCntrSimulator (object):
         the # of increments ("hit time") needed to make the cntr reach that value.
         The type of statistic collected is the Round Square Mean Error of such write errors.
         """
-        self.cntrRecord['sumSqEr']  = [0] * self.numOfExps # self.cntrRecord['sumSqEr'][j] will hold the sum of the square errors collected at experiment j. 
-        self.numOfPoints            = [0] * self.numOfExps # self.numOfPoints[j] will hold the number of points collected for statistic at experiment j. The number of points varies, as it depends upon the random process of increasing the approximated cntr. 
+        self.cntrRecord['sumSqAbsEr'] = [0] * self.numOfExps # self.cntrRecord['sumSqAbsEr'][j] will hold the sum of the square absolute errors collected at experiment j. 
+        self.cntrRecord['sumSqRelEr'] = [0] * self.numOfExps # self.cntrRecord['sumSqRelEr'][j] will hold the sum of the square relative errors collected at experiment j. 
+        self.numOfPoints              = [0] * self.numOfExps # self.numOfPoints[j] will hold the number of points collected for statistic at experiment j. The number of points varies, as it depends upon the random process of increasing the approximated cntr. 
         for expNum in range(self.numOfExps):
             if settings.VERBOSE_LOG in self.verbose:
                 printf (self.log_file, f'***exp #{expNum}***\n')
@@ -147,7 +145,6 @@ class SingleCntrSimulator (object):
             self.cntrRecord['cntr'].rstCntr ()
             self.cntrRecord['sampleProb'] = 1 # probability of sampling
             self.writeProgress (expNum)
-            print ('maxRealVal={:.0f}' .format (self.maxRealVal))
             while cntrVal < self.maxRealVal:
                 realValCntr += 1
                 if (self.cntrRecord['sampleProb']==1 or random.random() < self.cntrRecord['sampleProb']): # sample w.p. self.cntrRecord['sampleProb']
@@ -178,26 +175,14 @@ class SingleCntrSimulator (object):
         for rel_abs_n in [True, False]:
             for statType in ['Mse', 'normRmse']:
                 dict = self.calcPostSimStat(
-                    statType    =statType, 
+                    statType    = statType, 
                     sumSqEr     = self.cntrRecord['sumSqRelEr'] if rel_abs_n else self.cntrRecord['sumSqAbsEr'],
                 )
-                dict = self.fillStatDictsFields(dict)
                 dict['rel_abs_n']   = rel_abs_n
                 dict['erType']      = 'WrRmse'
-        dict = settings.calcPostSimStat()
-        self.dumpDictToPcl       (dict, pclOutputFile)
-        self.writeDictToResFile  (dict)
+                self.dumpDictToPcl       (dict, pclOutputFile)
+                self.writeDictToResFile  (dict)
 
-
-    # def runSingleCntrSingleModeRdMse (self, pclOutputFile=None): 
-    #     """
-    #     Run a single counter of mode self.mode (self.mode is the approximation cntr architecture - e.g., 'F2P', 'CEDAR').  
-    #     Collect and write statistics about the errors w.r.t. the real cntr (measured) value.
-    #     The error is calculated upon each increment of the real cntr (measured) value, 
-    #     as the difference between the measured value, and the value represented by the cntr.
-    #     The type of statistic collected is the Round Mean Square Error of such write errors.
-    #     """
-    #     return self.runSingleCntrSingleModeRdRmse (pclOutputFile=pclOutputFile)
 
     def runSingleCntrSingleModeRdRmse (self, pclOutputFile=None): 
         """
@@ -208,7 +193,8 @@ class SingleCntrSimulator (object):
         The type of statistic collected is the Round Mean Square Error of such write errors.
         """
     
-        self.cntrRecord['sumSqEr'] = [0] * self.numOfExps # self.cntrRecord['sumSqEr'][j] will hold the sum of the square errors collected at experiment j. 
+        self.cntrRecord['sumSqAbsEr'] = [0] * self.numOfExps # self.cntrRecord['sumSqAbsEr'][j] will hold the sum of the square absolute errors collected at experiment j. 
+        self.cntrRecord['sumSqRelEr'] = [0] * self.numOfExps # self.cntrRecord['sumSqRelEr'][j] will hold the sum of the square relative errors collected at experiment j. 
         self.numOfPoints           = [self.maxRealVal] * self.numOfExps # self.numOfPoints[j] will hold the number of points collected for statistic at experiment j. The number of points varies, as it depends upon the random process of increasing the approximated cntr. 
     
         for expNum in range(self.numOfExps):
@@ -232,17 +218,20 @@ class SingleCntrSimulator (object):
                         self.cntrRecord['sampleProb'] /= 2
                         if (settings.VERBOSE_DETAILS in self.verbose): 
                             print ('smplProb={}' .format (self.cntrRecord['sampleProb'])) 
-                if self.rel_abs_n:
-                    self.cntrRecord['sumSqEr'][expNum] += (((realValCntr - cntrVal)/realValCntr)**2)
-                else:
-                    self.cntrRecord['sumSqEr'][expNum] += (realValCntr - cntrVal)**2
-        if (settings.VERBOSE_LOG in self.verbose):
-            printf (self.log_file, 'diff vector={}\n\n' .format (self.cntrRecord['wrErVar']))
+                sqEr = (realValCntr - cntrVal)**2
+                self.cntrRecord['sumSqAbsEr'][expNum] += sqEr
+                self.cntrRecord['sumSqRelEr'][expNum] += sqEr/realValCntr**2
     
-        dict = self.calcPostSimStat    ()
-        if VERBOSE_PCL in self.verbose:
-            self.dumpDictToPcl (dict, pclOutputFile)
-        self.writeDictToResFile (dict)
+        for rel_abs_n in [True, False]:
+            for statType in ['Mse', 'normRmse']:
+                dict = self.calcPostSimStat(
+                    statType    = statType, 
+                    sumSqEr     = self.cntrRecord['sumSqRelEr'] if rel_abs_n else self.cntrRecord['sumSqAbsEr'],
+                )
+                dict['rel_abs_n']   = rel_abs_n
+                dict['erType']      = 'RdRmse'
+                self.dumpDictToPcl       (dict, pclOutputFile)
+                self.writeDictToResFile  (dict)
         
     def runSingleCntrSingleModeRdEr (self, pclOutputFile=None): 
         """
@@ -291,7 +280,7 @@ class SingleCntrSimulator (object):
                 'mode'              : self.cntrRecord['mode'],
                 'cntrSize'          : self.cntrSize, 
                 'cntrMaxVal'        : self.cntrMaxVal,
-                'settingStr'       : self.cntrRecord['cntr'].genSettingsStr(),
+                'settingStr'        : self.cntrRecord['cntr'].genSettingsStr(),
                 'Avg'               : rdErAvg,
                 'Lo'                : rdErConfInterval[0],
                 'Hi'                : rdErConfInterval[1]}
@@ -300,35 +289,38 @@ class SingleCntrSimulator (object):
         
     def calcPostSimStat (
             self,
-            statType : str = 'normRmse', # Type of the statistic to write. May be either 'normRmse', or 'Mse'
             sumSqEr  : list, # sum of the square errors, collected during the sim
+            statType : str = 'normRmse', # Type of the statistic to write. May be either 'normRmse', or 'Mse'
             ) -> dict: 
         """
         Calculate and potentially print to .log and/or .res file (based on self.verbose) the RMSE statistics based on the values measured and stored in self.cntrRecord['sumSqEr'].
         Return a dict of the calculated data.  
         """
         if statType=='Mse':
-            vec  = [sumSqEr[expNum]/self.numOfPoints[expNum] for expNum in range(self.numOfExps)]
+            expResults  = [sumSqEr[expNum]/self.numOfPoints[expNum] for expNum in range(self.numOfExps)]
         elif statType=='normRmse': # Normalized RMSE
             Rmse = [math.sqrt (sumSqEr[expNum]/self.numOfPoints[expNum]) for expNum in range(self.numOfExps)]
-            vec  = [              Rmse[expNum]/self.numOfPoints[expNum]  for expNum in range(self.numOfExps)]
+            expResults  = [              Rmse[expNum]/self.numOfPoints[expNum]  for expNum in range(self.numOfExps)]
         else:
             error (f'In SingleCntrSimulator.calcPostSimStat(). Sorry, the requested statType {statType} is not supported.')
         if (settings.VERBOSE_LOG in self.verbose):
             printf (self.log_file, 'expResults=')
             printarFp (self.log_file, expResults)
         
-        expResultsAvg          = np.average (vec)
-        expResultsConfInterval = settings.confInterval (ar=vec, avg=expResultsAvg)
-        return {'numOfExps'     : self.numOfExps,
-                'mode'          : self.cntrRecord['mode'],
-                'settingStr'    : self.cntrRecord['cntr'].genSettingsStr(),
-                'statType'      : statType,
-                'cntrSize'      : self.cntrSize, 
-                'cntrMaxVal'    : self.cntrMaxVal,
-                'Avg'           : expResultsAvg,
-                'Lo'            : expResultsConfInterval[0],
-                'Hi'            : expResultsConfInterval[1]}
+        expResultsAvg          = np.average (expResults)
+        expResultsConfInterval = settings.confInterval (ar=expResults, avg=expResultsAvg)
+        return {
+            'numOfExps'     : self.numOfExps,
+            'mode'          : self.cntrRecord['mode'],
+            'settingStr'    : self.cntrRecord['cntr'].genSettingsStr(),
+            'statType'      : statType,
+            'cntrSize'      : self.cntrSize, 
+            'cntrMaxVal'    : self.cntrMaxVal,
+            'Avg'           : expResultsAvg,
+            'Lo'            : expResultsConfInterval[0],
+            'Hi'            : expResultsConfInterval[1],
+            'maxMinRelDiff' : None if expResultsAvg==0 else (max(expResults) - min(expResults))/expResultsAvg 
+        }
 
     def measureResolutionsByModes (
             self, 
@@ -666,12 +658,11 @@ def printAllCntrMaxValsF2P (
 
 def main ():
         hyperSize  = 2
-        for cntrSize in [16]: #, 10, 12, 14, 16]:
+        for cntrSize in [8, 10, 12]: #, 14, 16]:
             simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL]) #VERBOSE_RES, VERBOSE_PCL],)
             simController.runSingleCntr \
                 (dwnSmple       = False,  
-                # modes          = ['F2P_li_h2', 'SEAD_dyn'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
-                modes          = ['F2P_li_h2', 'Morris', 'CEDAR'], #'SEAD_dyn', 'SEAD_stat_e4'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
+                modes          = ['F2P_li_h2', 'Morris', 'CEDAR', 'SEAD_dyn'], #, 'SEAD_stat_e4'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
                 cntrSize       = cntrSize, 
                 hyperSize      = hyperSize,
                 numOfExps      = 100,
