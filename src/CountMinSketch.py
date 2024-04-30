@@ -67,8 +67,8 @@ class CountMinSketch:
         self.cntrMaster is the entity that manages the counters - including incrementing and querying counters.
         Documentation about the various CntrMaster's types is found in the corresponding .py files. 
         """
-        myF2P_cntrMaster = F2P_li.CntrMaster (cntrSize=self.cntrSize, hyperSize=self.hyperSize)
-        cntrMaxVal = myF2P_cntrMaster.getCntrMaxVal ()
+        # myF2P_cntrMaster = F2P_li.CntrMaster (cntrSize=self.cntrSize, hyperSize=self.hyperSize)
+        # cntrMaxVal = myF2P_cntrMaster.getCntrMaxVal ()
         # cntrMaxVal      = settings.getCntrMaxValByCntrSize (self.cntrSize),
         if self.mode=='PerfectCounter':
             self.cntrMaster = PerfectCounter.CntrMaster (
@@ -229,6 +229,9 @@ class CountMinSketch:
         if (settings.VERBOSE_FULL_RES in self.verbose):
             self.fullResFile = open (f'../res/cms_full.res', 'a+')
 
+        if VERBOSE_LOG in self.verbose or VERBOSE_DETAILED_LOG in self.verbose:
+            self.logFile = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
+            
     def printSimMsg (self, str):
         """
         Print-screen an info msg about the parameters and hours of the simulation starting to run. 
@@ -270,7 +273,12 @@ class CountMinSketch:
                 
                 flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
-                self.sumSqAbsEr[self.expNum] += sqEr                
+                self.sumSqAbsEr[self.expNum] += sqEr    
+                if VERBOSE_DETAILED_LOG in self.verbose:
+                    if self.incNum>13000000: 
+                        printf (self.logFile, f'incNum={self.incNum}, realVal={flowRealVal[flowId]}, estimated={flowEstimatedVal}, sqEr={sqEr}, sumSqEr={self.sumSqAbsEr[self.expNum]}\n')
+                # if self.expNum==1 and flowEstimatedVal==832 and flowRealVal[flowId]>832:
+                #     print (f'sqEr={sqEr}') # error ('bingo') #$$$
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
                 if VERBOSE_LOG in self.verbose:
                     self.cntrMaster.printAllCntrs (self.logFile)
@@ -325,11 +333,11 @@ class CountMinSketch:
         Simulate the count min sketch
         """
         
-        self.openOutputFiles ()
         self.maxNumIncs, self.numOfExps, self.traceFileName = maxNumIncs, numOfExps, traceFileName
         self.sumSqAbsEr  = [0] * self.numOfExps # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
         self.sumSqRelEr  = [0] * self.numOfExps # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
         self.printSimMsg ('Started')
+        self.openOutputFiles ()
         tic ()
         if self.traceFileName==None: # random input
             self.runSimRandInput ()
@@ -400,15 +408,15 @@ def runCMS (mode,
         numEpsilonStepsInXlBkt  = 5
         verbose                 = [VERBOSE_LOG_END_SIM] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
-        width, depth            = 32, 2 #$$$ 1024, 4
+        width, depth            = 1024, 4
         numFlows                = numFlows
         numCntrsPerBkt          = 1 #16
-        maxNumIncs              = 20 #maxNumIncs   
-        numOfExps               = 2
+        maxNumIncs              = 2000000 #maxNumIncs   
+        numOfExps               = 1
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
-        verbose                 = [VERBOSE_LOG_END_SIM] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+        verbose                 = [VERBOSE_DETAILED_LOG] #VERBOSE_RES, VERBOSE_LOG_END_SIM] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (
         width       = width, 
@@ -431,8 +439,8 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
-        for cntrSize in [6]:# , 10, 12]: # 14, 16]:
-            for mode in ['F2P_si_h2']: #, 'PerfectCounter', 'CEDAR', 'F2P_li_h1', 'SEAD_dyn']:   
+        for cntrSize in [8]:# , 10, 12]: # 14, 16]:
+            for mode in ['F2P_li_h2']: #'F2P_li_h2']: #, 'PerfectCounter', 'CEDAR', 'F2P_li_h2', 'SEAD_dyn']:   
                 runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False)
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

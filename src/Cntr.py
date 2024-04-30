@@ -7,7 +7,6 @@ import settings
 from settings import VERBOSE_DEBUG
 from printf import printf
 
-
 class CntrMaster (object):
     
     # Return a range with all the legal combinations for the counter. For most counters this includes all the possible binary comb's.  
@@ -42,10 +41,10 @@ class CntrMaster (object):
                     print ('cntrVec={}, cntrVal={} ' .format (cntrDict['cntrVec'], cntrDict['val']))
             else:
                 for idx in range(self.numCntrs):
-                    print (f'{self.queryCntr(getVal=True)} ')
+                    print (f'{self.queryCntr(cntrIdx=idx, getVal=True)} ')
         else:
             for idx in range(self.numCntrs):
-                printf (outputFile, f'{self.queryCntr(getVal=True)} ')
+                printf (outputFile, f'{self.queryCntr(cntrIdx=idx, getVal=True)} ')
 
     def printCntrsStat (self, 
                         outputFile, # file to which the stat will be written

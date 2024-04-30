@@ -59,5 +59,3 @@ class CntrMaster (F2P_li.CntrMaster):
             if expSize<self.expMaxSize:
                 self.cntrppOfAbsExpVal[expVal] = np.binary_repr (expSize+1, self.hyperSize) + '0'*(self.cntrSize - self.hyperSize)
                 expVal += 1
-
-myF2P_si = CntrMaster (cntrSize=6, hyperSize=2, verbose=[VERBOSE_DEBUG])
