@@ -206,7 +206,7 @@ def getRelativePathToTraceFile (traceFileName):
     Given a trace's file name, get the relative path to this trace file.
     The function also checks whether this trace file exists; otherwise, the run finishes with an appropriate error message.
     """
-    print (f'Note: we currently assume that all traces are in directory {getTracesPath()}, and in .txt format')
+    # print (f'Note: we currently assume that all traces are in directory {getTracesPath()}, and in .txt format')
     RelativePathToTraceFile = f'{getTracesPath()}Caida/{traceFileName}.txt'
     checkIfInputFileExists (RelativePathToTraceFile)
     return RelativePathToTraceFile
@@ -293,18 +293,18 @@ def calcPostSimStat (
         printarFp (self.logFile, vec)
     avg           = np.average(vec)
     confIntervalVar  = confInterval (ar=vec, avg=avg)
-    if avg!= 0:
-        maxMinRelDiff = (max(vec) - min(vec))/avg
+    warningField    = False
+    if avg== 0:
+        maxMinRelDiff   = None
     else:
-        maxMinRelDiff = None
-    dict = {
+        maxMinRelDiff   = (max(vec) - min(vec))/avg
+        if maxMinRelDiff>0.1:
+            warningField    = True
+    return {
         'Avg'           : avg,
         'Lo'            : confIntervalVar[0],
         'Hi'            : confIntervalVar[1],
         'statType'      : statType,
-        'maxMinRelDiff' : maxMinRelDiff
+        'maxMinRelDiff' : maxMinRelDiff,
+        'warning'       : warningField  
     }
-    if dict['maxMinRelDiff']>0.1:
-        warning (f'Too large maxMinRelDiff. dict={dict}')
-    return dict
-

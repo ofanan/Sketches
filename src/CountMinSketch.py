@@ -67,8 +67,8 @@ class CountMinSketch:
         self.cntrMaster is the entity that manages the counters - including incrementing and querying counters.
         Documentation about the various CntrMaster's types is found in the corresponding .py files. 
         """
-        # myF2P_cntrMaster = F2P_li.CntrMaster (cntrSize=self.cntrSize, hyperSize=self.hyperSize)
-        # cntrMaxVal = myF2P_cntrMaster.getCntrMaxVal ()
+        myF2P_cntrMaster = F2P_li.CntrMaster (cntrSize=self.cntrSize, hyperSize=self.hyperSize)
+        cntrMaxVal = myF2P_cntrMaster.getCntrMaxVal ()
         # cntrMaxVal      = settings.getCntrMaxValByCntrSize (self.cntrSize),
         if self.mode=='PerfectCounter':
             self.cntrMaster = PerfectCounter.CntrMaster (
@@ -278,6 +278,8 @@ class CountMinSketch:
                 if VERBOSE_LOG in self.verbose:
                     self.cntrMaster.printAllCntrs (self.logFile)
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
+                if VERBOSE_DETAILED_LOG in self.verbose:
+                    printf (self.logFile, f'incNum={self.incNum}, realVal={flowRealVal[flowId]}, estimated={flowEstimatedVal}, sqEr={sqEr}, sumSqAbsEr={self.sumSqAbsEr[self.expNum]}\n')
                 if self.incNum==self.maxNumIncs:
                     break
         traceFile.close ()
@@ -401,17 +403,17 @@ def runCMS (mode,
         numEpsilonStepsIceBkts  = 5 
         numEpsilonStepsInRegBkt = 2
         numEpsilonStepsInXlBkt  = 5
-        verbose                 = [VERBOSE_LOG_END_SIM] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+        verbose                 = [VERBOSE_RES] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
-        width, depth            = 2**16, 4
+        width, depth            = 2**15, 4
         numFlows                = numFlows
         numCntrsPerBkt          = 1 #16
         maxNumIncs              = maxNumIncs   
-        numOfExps               = 2
+        numOfExps               = 100
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
-        verbose                 = [VERBOSE_RES, VERBOSE_LOG_END_SIM] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+        verbose                 = [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (
         width       = width, 
@@ -434,7 +436,7 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
-        for cntrSize in [8, 10, 12, 14, 16]:
+        for cntrSize in [16]: #, 14, 16]:
             for mode in ['F2P_li_h2', 'SEAD_dyn', 'CEDAR', 'Morris']:    
                 runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False)
     except KeyboardInterrupt:

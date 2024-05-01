@@ -309,6 +309,14 @@ class SingleCntrSimulator (object):
         
         expResultsAvg          = np.average (expResults)
         expResultsConfInterval = settings.confInterval (ar=expResults, avg=expResultsAvg)
+        warningField    = False
+        if expResultsAvg==0:
+            maxMinRelDiff = None  
+        else:
+            maxMinRelDiff = (max(expResults) - min(expResults))/expResultsAvg
+            if maxMinRelDiff>0.1:
+                warningField = True
+            
         return {
             'numOfExps'     : self.numOfExps,
             'mode'          : self.cntrRecord['mode'],
@@ -319,7 +327,8 @@ class SingleCntrSimulator (object):
             'Avg'           : expResultsAvg,
             'Lo'            : expResultsConfInterval[0],
             'Hi'            : expResultsConfInterval[1],
-            'maxMinRelDiff' : None if expResultsAvg==0 else (max(expResults) - min(expResults))/expResultsAvg 
+            'maxMinRelDiff' : maxMinRelDiff, 
+            'warning'       : warningField 
         }
 
     def measureResolutionsByModes (
@@ -658,7 +667,7 @@ def printAllCntrMaxValsF2P (
 
 def main ():
         hyperSize  = 2
-        for cntrSize in [8, 10, 12]: #, 14, 16]:
+        for cntrSize in [16]: #, 14, 16]:
             simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL]) #VERBOSE_RES, VERBOSE_PCL],)
             simController.runSingleCntr \
                 (dwnSmple       = False,  
