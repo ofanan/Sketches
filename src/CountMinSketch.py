@@ -419,12 +419,12 @@ def runCMS (mode,
         width, depth            = 2**15, 4
         numFlows                = numFlows
         numCntrsPerBkt          = 1 #16
-        maxNumIncs              = 100000 #$$$ # maxNumIncs   
-        numOfExps               = 1 #$$$ #100 
+        maxNumIncs              = maxNumIncs   
+        numOfExps               = 2 #$$$ #100 
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
-        verbose                 = [VERBOSE_DETAILED_LOG] #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+        verbose                 = [VERBOSE_RES, VERBOSE_LOG_END_SIM] #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (
         width       = width, 
@@ -448,8 +448,8 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
-        for cntrSize in [10]: #, 14, 16]:
-            for mode in ['F2P_si']: #, 'SEAD_dyn', 'CEDAR', 'Morris']:    
+        for cntrSize in [8]: #, 14, 16]:
+            for mode in ['F2P_si', 'SEAD_dyn']: #, 'CEDAR', 'Morris']:    
                 runCMS (
                     mode        = mode, 
                     cntrSize    = cntrSize, 
