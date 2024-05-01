@@ -339,13 +339,17 @@ class ResFileParser (object):
             modes       : list = ['F2P_li_h2', 'CEDAR', 'Morris', 'SEAD_dyn'],
             cntrSizes   : list = [],
             statType    : str  = 'Mse',
+            rel_abs_n   : bool = False, # When True, consider relative errors, Else, consider absolute errors.
+            width       : int  = None,  # The width of the CMS. Relevant only for CMS' sim results.
             normalizeByPerfectCntr : bool = True # when True, normalize all mode's results by dividing them by the value obtained by a perfect counter
         ):
         """
         Generate a table showing the error as a function of the counter's size.
         """
     
-        points = [point for point in self.points if point['numOfExps'] == numOfExps and point['statType']==statType]
+        points = [point for point in self.points if point['numOfExps'] == numOfExps and point['statType']==statType and point['rel_abs_n']==rel_abs_n]
+        if width!=None:
+            points = [point for point in points if point['width']==width]
     
         printf (datOutputFile, '\t')
         for mode in modes:
@@ -838,15 +842,20 @@ def genErVsCntrSizeSingleCntr ():
         outputFileName = f'1cntr.dat' 
         datOutputFile = open (f'../res/{outputFileName}', 'a+')
         abs     = True
-        my_ResFileParser.rdPcl (pclFileName='{}_1cntr_HPC_RdRse.pcl' .format ('abs' if abs else 'rel'))
-        # my_ResFileParser.rdPcl (pclFileName='{}_1cntr_HPC_RdMse.pcl' .format ('abs' if abs else 'rel'))
+        my_ResFileParser.rdPcl (pclFileName='rel_1cntr_PC_RdRmse.pcl')
         printf (datOutputFile, '\n// {}\n' .format ('abs ' if abs else 'rel '))
-        my_ResFileParser.genErVsCntrSizeTable(
-            datOutputFile   = datOutputFile, 
-            numOfExps       = 100, 
-            cntrSizes       = [8, 10, 12, 14, 16],
-            normalizeByPerfectCntr = False
-            ) 
+        for rel_abs_n in [True, False]:
+            for statType in ['Mse', 'normRmse']:
+                printf (datOutputFile, '\n// {} {}\n' .format ('rel' if rel_abs_n else 'abs', statType))
+                my_ResFileParser.genErVsCntrSizeTable(
+                    modes           = ['F2P_li', 'CEDAR', 'Morris', 'SEAD_dyn'],
+                    datOutputFile   = datOutputFile, 
+                    numOfExps       = 100, 
+                    cntrSizes       = [8, 10, 12, 14, 16],
+                    statType        = statType,
+                    rel_abs_n       = rel_abs_n,
+                    normalizeByPerfectCntr = False
+                ) 
 
 def genErVsCntrSizeTableTrace ():
         """
@@ -855,16 +864,19 @@ def genErVsCntrSizeTableTrace ():
         my_ResFileParser = ResFileParser ()
         outputFileName = f'cms.dat' 
         datOutputFile = open (f'../res/{outputFileName}', 'a+')
-        abs     = False
-        my_ResFileParser.rdPcl (pclFileName='cms_HPC.pcl')
-        printf (datOutputFile, '\n// {}\n' .format ('abs ' if abs else 'rel '))
-        my_ResFileParser.genErVsCntrSizeTable(
-            datOutputFile   = datOutputFile, 
-            numOfExps       = 2, 
-            cntrSizes       = [8, 10, 12, 14, 16],
-            statType        = 'Mse',
-            normalizeByPerfectCntr = False
-            ) 
+        my_ResFileParser.rdPcl (pclFileName='cms_PC.pcl')
+        for rel_abs_n in [True, False]:
+            for statType in ['Mse', 'normRmse']:
+                printf (datOutputFile, '\n// {} {}\n' .format ('rel' if rel_abs_n else 'abs', statType))
+                my_ResFileParser.genErVsCntrSizeTable(
+                    datOutputFile   = datOutputFile, 
+                    numOfExps       = 2, 
+                    cntrSizes       = [8, 10, 12, 14, 16],
+                    statType        = statType,
+                    rel_abs_n       = rel_abs_n,
+                    width           = 2**15, 
+                    normalizeByPerfectCntr = False
+                ) 
 
 def rmvFromPcl ():
     myResFileParser = ResFileParser()
@@ -878,10 +890,10 @@ def rmvFromPcl ():
         
 if __name__ == '__main__':
     try:
-        # genErVsCntrSizeSingleCntr ()
+        genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
-        genRndErrTable ()
+        # genRndErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 

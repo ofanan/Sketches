@@ -309,7 +309,8 @@ class SingleCntrSimulator (object):
         
         expResultsAvg          = np.average (expResults)
         expResultsConfInterval = settings.confInterval (ar=expResults, avg=expResultsAvg)
-        warningField    = False
+        # maxMinRelDiff will hold the relative difference between the largest and the smallest value.
+        warningField    = False # Will be set True if the difference between the largest and the smallest value is too high.
         if expResultsAvg==0:
             maxMinRelDiff = None  
         else:
@@ -443,7 +444,7 @@ class SingleCntrSimulator (object):
             warning ('The counter of type {}, cntrSize={}, hyperSize={}, can reach max val={} which is smaller than the requested maxRealVal {}, and no dwn smpling was used' . format (self.cntrRecord['mode'], self.cntrSize, self.hyperSize, self.cntrRecord['cntr'].cntrMaxVal, self.maxRealVal))
 
         # open output files
-        outputFileStr = '{}_1cntr_{}{}' .format ('rel' if self.rel_abs_n else 'abs', self.machineStr, '_w_dwnSmpl' if self.dwnSmple else '')
+        outputFileStr = '1cntr_{}{}' .format (self.machineStr, '_w_dwnSmpl' if self.dwnSmple else '')
         if (VERBOSE_RES in self.verbose):
             self.resFile = open (f'../res/{outputFileStr}.res', 'a+')
             
@@ -463,7 +464,7 @@ class SingleCntrSimulator (object):
                 settings.error ('Sorry, the requested error mode {self.erType} is not supported')
             pclOutputFile = None # default value
             if VERBOSE_PCL in self.verbose:
-                pclOutputFile = self.openPclOuputFile (pclOutputFileName=f'{outputFileStr}_{self.erType}.pcl')
+                pclOutputFile = self.openPclOuputFile (pclOutputFileName=f'{outputFileStr}.pcl')
             simT = time.time()
             infoStr = '{}_{}' .format (self.cntrRecord['cntr'].genSettingsStr(), self.erType)
             if (settings.VERBOSE_LOG in self.verbose or settings.VERBOSE_PROGRESS in self.verbose):
@@ -526,7 +527,6 @@ class SingleCntrSimulator (object):
         self.numOfExps      = numOfExps
         self.dwnSmple       = dwnSmple
         self.erTypes        = erTypes # the error modes to calculate. See possible erTypes in the documentation above.
-        self.rel_abs_n      = rel_abs_n
         if (settings.VERBOSE_DETAILED_LOG in self.verbose): # a detailed log include also all the prints of a simple log
             verbose.append(settings.VERBOSE_LOG)
         for self.mode in modes:
@@ -666,18 +666,23 @@ def printAllCntrMaxValsF2P (
     return cntrMaxVal
 
 def main ():
-        hyperSize  = 2
-        for cntrSize in [16]: #, 14, 16]:
-            simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL]) #VERBOSE_RES, VERBOSE_PCL],)
-            simController.runSingleCntr \
-                (dwnSmple       = False,  
-                modes          = ['F2P_li_h2', 'Morris', 'CEDAR', 'SEAD_dyn'], #, 'SEAD_stat_e4'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
-                cntrSize       = cntrSize, 
-                hyperSize      = hyperSize,
-                numOfExps      = 100,
-                rel_abs_n      = True,
-                erTypes        = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
-            )
+    printAllCntrMaxValsF2P (flavor = 'si', 
+        hyperSizeRange  = [1, 2], # list of hyper-sizes to consider  
+        cntrSizeRange   = [8, 10, 12, 14, 16], # list of cntrSizes to consider
+        verbose         =[VERBOSE_RES]
+    )
+    exit ()
+    hyperSize  = 2
+    for cntrSize in [16]: #, 14, 16]:
+        simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL]) #VERBOSE_RES, VERBOSE_PCL],)
+        simController.runSingleCntr \
+            (dwnSmple       = False,  
+            modes          = ['F2P_li', 'Morris', 'CEDAR', 'SEAD_dyn'], #, 'SEAD_stat_e4'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
+            cntrSize       = cntrSize, 
+            hyperSize      = hyperSize,
+            numOfExps      = 100,
+            erTypes        = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+        )
         
 
         # simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL]) #VERBOSE_RES, VERBOSE_PCL],)

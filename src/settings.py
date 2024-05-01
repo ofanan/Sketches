@@ -293,7 +293,8 @@ def calcPostSimStat (
         printarFp (self.logFile, vec)
     avg           = np.average(vec)
     confIntervalVar  = confInterval (ar=vec, avg=avg)
-    warningField    = False
+    # maxMinRelDiff will hold the relative difference between the largest and the smallest value.
+    warningField    = False # Will be set True if the difference between the largest and the smallest value is too high.
     if avg== 0:
         maxMinRelDiff   = None
     else:

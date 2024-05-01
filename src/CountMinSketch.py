@@ -23,29 +23,44 @@ class CountMinSketch:
     genSettingsStr = lambda self : f'cms_{self.traceFileName}_{self.mode}_d{self.depth}_w{self.width}_f{self.numFlows}_bit{self.cntrSize}'
     
     def __init__(self,
-                 width          = 2, # the number of counters per row.
-                 depth          = 2, # the number of rows or hash functions.
-                 numCntrsPerBkt = 2,
-                 numFlows       = 10, # the total number of flows to be estimated.
-                 mode           = 'PerfectCounter', # the counter mode (e.g., SEC, AEE, realCounter).
-                 cntrSize       = 2, # num of bits in each counter
-                 verbose        = [], # The chosen verbose options, detailed in settings.py, determine the output (e.g., to a .pcl, .res or .log file).
-                 seed           = settings.SEED,
-                 numEpsilonStepsIceBkts  = 6, # number of "epsilon" steps in Ice Buckets.
-                 numEpsilonStepsInRegBkt = 5, # number of "epsilon" steps in regular buckets in NiceBuckets.
-                 numEpsilonStepsInXlBkt  = 6  # number of "epsilon" steps in the XL buckets in NiceBuckets.
+        width           = 2, # the number of counters per row.
+        depth           = 2, # the number of rows or hash functions.
+        numCntrsPerBkt  = 2,
+        numFlows        = 10, # the total number of flows to be estimated.
+        mode            = 'PerfectCounter', # the counter mode (e.g., SEC, AEE, realCounter).
+        cntrSize        = 2, # num of bits in each counter
+        verbose         = [], # The chosen verbose options, detailed in settings.py, determine the output (e.g., to a .pcl, .res or .log file).
+        seed            = settings.SEED,
+        maxValBy        = 'si', # How to calculate the maximum value (for SEAD/CEDAR). Should be either 'si', or 'li'.  
+        numEpsilonStepsIceBkts  = 6, # number of "epsilon" steps in Ice Buckets.
+        numEpsilonStepsInRegBkt = 5, # number of "epsilon" steps in regular buckets in NiceBuckets.
+        numEpsilonStepsInXlBkt  = 6,  # number of "epsilon" steps in the XL buckets in NiceBuckets.
+
                  ):
         
         """
         """
-        random.seed (settings.SEED)
+        self.hyperSize      = 2
         self.numCntrsPerBkt = int(numCntrsPerBkt)
         if depth<1 or width<1 or cntrSize<1:
             error (f'CountMinSketch was called with depth={depth}, width={width}, cntrSize={cntrSize}. All these parameters should be at least 1.')
         if depth<2 or width<2:
             print (f'Note: CountMinSketch was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
+        if (maxValBy=='si' and mode.startswith('F2P_li')) or (maxValBy=='li' and mode.startswith('F2P_si')): 
+            error (f'__init__ was called with maxValBy={maxValBy} and mode={mode}')
+        self.maxValBy = maxValBy
+
+        if self.maxValBy=='si':
+            myF2P_cntrMaster = F2P_si.CntrMaster (cntrSize=self.cntrSize, hyperSize=self.hyperSize)
+        elif self.maxValBy=='si':
+            myF2P_cntrMaster = F2P_li.CntrMaster (cntrSize=self.cntrSize, hyperSize=self.hyperSize)
+        else:
+            error (f'__init__ was called with maxValBy={maxValBy}')
+        self.cntrMaxVal = myF2P_cntrMaster.getCntrMaxVal ()
+        # cntrMaxVal      = settings.getCntrMaxValByCntrSize (self.cntrSize),
         self.mode, self.seed = mode, seed
+        random.seed (self.seed)
         self.numEpsilonStepsInRegBkt    = numEpsilonStepsInRegBkt
         self.numEpsilonStepsInXlBkt     = numEpsilonStepsInXlBkt
         self.numEpsilonStepsIceBkts     = numEpsilonStepsIceBkts
@@ -67,9 +82,6 @@ class CountMinSketch:
         self.cntrMaster is the entity that manages the counters - including incrementing and querying counters.
         Documentation about the various CntrMaster's types is found in the corresponding .py files. 
         """
-        myF2P_cntrMaster = F2P_li.CntrMaster (cntrSize=self.cntrSize, hyperSize=self.hyperSize)
-        cntrMaxVal = myF2P_cntrMaster.getCntrMaxVal ()
-        # cntrMaxVal      = settings.getCntrMaxValByCntrSize (self.cntrSize),
         if self.mode=='PerfectCounter':
             self.cntrMaster = PerfectCounter.CntrMaster (
                 cntrSize    = self.cntrSize, 
@@ -87,31 +99,29 @@ class CountMinSketch:
                 cntrSize        = self.cntrSize, 
                 numCntrs        = self.numCntrs, 
                 verbose         = self.verbose)
-        elif self.mode.startswith('F2P_li_'):
-            hyperSize = int(self.mode.split('_h')[1])
+        elif self.mode.startswith('F2P_li'):
             self.cntrMaster = F2P_li.CntrMaster (
                 cntrSize        = self.cntrSize, 
                 numCntrs        = self.numCntrs, 
-                hyperSize       = hyperSize,
+                hyperSize       = self.hyperSize,
                 verbose         = self.verbose)
-        elif self.mode.startswith('F2P_si_'):
-            hyperSize = int(self.mode.split('_h')[1])
+        elif self.mode.startswith('F2P_si'):
             self.cntrMaster = F2P_si.CntrMaster (
                 cntrSize        = self.cntrSize, 
                 numCntrs        = self.numCntrs, 
-                hyperSize       = hyperSize,
+                hyperSize       = self.hyperSize,
                 verbose         = self.verbose)
         elif self.mode=='Morris':
             self.cntrMaster = Morris.CntrMaster (
                 cntrSize        = self.cntrSize, 
                 numCntrs        = self.numCntrs,
-                cntrMaxVal      = cntrMaxVal,
+                cntrMaxVal      = self.cntrMaxVal,
                 verbose         = self.verbose)
         elif self.mode=='CEDAR': 
             self.cntrMaster = CEDAR.CntrMaster (
                 cntrSize        = self.cntrSize, 
                 numCntrs        = self.numCntrs, 
-                cntrMaxVal      = cntrMaxVal,
+                cntrMaxVal      = self.cntrMaxVal,
                 verbose         = self.verbose)
         elif self.mode=='IceBuckets':
             self.cntrMaster = Buckets.Buckets (
@@ -278,7 +288,7 @@ class CountMinSketch:
                 if VERBOSE_LOG in self.verbose:
                     self.cntrMaster.printAllCntrs (self.logFile)
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
-                if VERBOSE_DETAILED_LOG in self.verbose:
+                if VERBOSE_DETAILED_LOG in self.verbose and self.incNum>10000: #$$$
                     printf (self.logFile, f'incNum={self.incNum}, realVal={flowRealVal[flowId]}, estimated={flowEstimatedVal}, sqEr={sqEr}, sumSqAbsEr={self.sumSqAbsEr[self.expNum]}\n')
                 if self.incNum==self.maxNumIncs:
                     break
@@ -386,9 +396,10 @@ class CountMinSketch:
         return dict
     
 def runCMS (mode, 
-            cntrSize    = 8,
-            runShortSim = True,
-            maxNumIncs  = float ('inf')):
+    cntrSize    = 8,
+    runShortSim = True,
+    maxValBy    = 'si',
+    maxNumIncs  = float ('inf')):
     """
     """   
     traceFileName   = 'Caida1' 
@@ -408,12 +419,12 @@ def runCMS (mode,
         width, depth            = 2**15, 4
         numFlows                = numFlows
         numCntrsPerBkt          = 1 #16
-        maxNumIncs              = maxNumIncs   
-        numOfExps               = 100
+        maxNumIncs              = 100000 #$$$ # maxNumIncs   
+        numOfExps               = 1 #$$$ #100 
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
-        verbose                 = [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+        verbose                 = [VERBOSE_DETAILED_LOG] #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (
         width       = width, 
@@ -421,7 +432,8 @@ def runCMS (mode,
         cntrSize    = cntrSize, 
         numFlows    = numFlows, 
         verbose     = verbose,
-        mode        = mode, 
+        mode        = mode,
+        maxValBy    = maxValBy,  
         numCntrsPerBkt          = numCntrsPerBkt,
         numEpsilonStepsIceBkts  = numEpsilonStepsIceBkts, 
         numEpsilonStepsInRegBkt = numEpsilonStepsInRegBkt, 
@@ -436,8 +448,13 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
-        for cntrSize in [16]: #, 14, 16]:
-            for mode in ['F2P_li_h2', 'SEAD_dyn', 'CEDAR', 'Morris']:    
-                runCMS (mode=mode, cntrSize=cntrSize, runShortSim=False)
+        for cntrSize in [10]: #, 14, 16]:
+            for mode in ['F2P_si']: #, 'SEAD_dyn', 'CEDAR', 'Morris']:    
+                runCMS (
+                    mode        = mode, 
+                    cntrSize    = cntrSize, 
+                    runShortSim = False,
+                    maxValBy    = 'si'
+                    )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
