@@ -231,10 +231,10 @@ class CountMinSketch:
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
         """      
         if VERBOSE_PCL in self.verbose:
-            self.pclOutputFile = open(f'../res/pcl_files/cms_{settings.getMachineStr()}.pcl', 'ab+')
+            self.pclOutputFile = open(f'../res/pcl_files/cms_{self.maxValBy}_{settings.getMachineStr()}.pcl', 'ab+')
 
         if (VERBOSE_RES in self.verbose):
-            self.resFile = open (f'../res/cms_{settings.getMachineStr()}.res', 'a+')
+            self.resFile = open (f'../res/cms_{self.maxValBy}_{settings.getMachineStr()}.res', 'a+')
             
         if (settings.VERBOSE_FULL_RES in self.verbose):
             self.fullResFile = open (f'../res/cms_full.res', 'a+')
@@ -289,7 +289,8 @@ class CountMinSketch:
                     self.cntrMaster.printAllCntrs (self.logFile)
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
                 if VERBOSE_DETAILED_LOG in self.verbose and self.incNum>10000: #$$$
-                    printf (self.logFile, f'incNum={self.incNum}, realVal={flowRealVal[flowId]}, estimated={flowEstimatedVal}, sqEr={sqEr}, sumSqAbsEr={self.sumSqAbsEr[self.expNum]}\n')
+                    printf (self.logFile, 'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumAbsSqEr={:.1e}, sumRelSqEr={:.1e}\n' .format (self.incNum, flowRealVal[flowId], flowEstimatedVal, sqEr, sqEr/(flowRealVal[flowId])**2, self.sumSqAbsEr[self.expNum], self.sumSqRelEr[self.expNum]))
+                    # printf (self.logFile, f'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumAbsSqEr={:.1e}\n' .format (self.incNum, flowRealVal[flowId], flowEstimatedVal, sqEr, sqEr/(flowRealVal[flowId])**2, self.sumSqAbsEr[self.expNum]))
                 if self.incNum==self.maxNumIncs:
                     break
         traceFile.close ()
@@ -416,7 +417,7 @@ def runCMS (mode,
         numEpsilonStepsInXlBkt  = 5
         verbose                 = [VERBOSE_RES] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
-        width, depth            = 2**15, 4
+        width, depth            = 2**13, 4
         numFlows                = numFlows
         numCntrsPerBkt          = 1 #16
         maxNumIncs              = maxNumIncs   
@@ -424,7 +425,7 @@ def runCMS (mode,
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
-        verbose                 = [VERBOSE_RES, VERBOSE_LOG_END_SIM] #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+        verbose                 = [VERBOSE_RES, VERBOSE_PCL] #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (
         width       = width, 
@@ -449,7 +450,7 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         for cntrSize in [8]: #, 14, 16]:
-            for mode in ['F2P_si', 'SEAD_dyn']: #, 'CEDAR', 'Morris']:    
+            for mode in ['F2P_si', 'SEAD_dyn', 'CEDAR', 'Morris']:    
                 runCMS (
                     mode        = mode, 
                     cntrSize    = cntrSize, 
