@@ -5,7 +5,7 @@ import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
 import settings, Cntr, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li, F2P_si, FP, SEAD_stat, SEAD_dyn   
-from settings import warning, error, VERBOSE_RES, VERBOSE_PCL
+from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
 from datetime import datetime
 
 class SingleCntrSimulator (object):
@@ -74,7 +74,7 @@ class SingleCntrSimulator (object):
                 if (self.cntrRecord['sampleProb']==1 or random.random() < self.cntrRecord['sampleProb']): # sample w.p. self.cntrRecord['sampleProb']
                     cntrAfterInc = self.cntrRecord['cntr'].incCntr (factor=int(1), mult=False, verbose=self.verbose)
                     cntrNewVal   = cntrAfterInc['val'] / self.cntrRecord['sampleProb']
-                    if (settings.VERBOSE_DETAILS in self.verbose): 
+                    if (VERBOSE_DETAILS in self.verbose): 
                         print ('realVal={:.0f} oldVal={:.0f}, cntrWoScaling={:.0f}, cntrNewValScaled={:.0f}, maxRealVal={:.0f}'
                                .format (realValCntr, cntrVal, cntrAfterInc['val'], cntrNewVal, self.maxRealVal))
                     if (cntrNewVal != cntrVal): # the counter was incremented
@@ -85,7 +85,7 @@ class SingleCntrSimulator (object):
                         if cntrAfterInc['val']==self.cntrRecord['cntr'].cntrMaxVal: # the cntr overflowed --> downsample
                             self.cntrRecord['cntr'].incCntr (mult=True, factor=1/2)
                             self.cntrRecord['sampleProb'] /= 2
-                        if (settings.VERBOSE_DETAILS in self.verbose): 
+                        if (VERBOSE_DETAILS in self.verbose): 
                             print ('smplProb={}' .format (self.cntrRecord['sampleProb'])) 
                     else:
                         if cntrAfterInc['val']==self.cntrRecord['cntr'].cntrMaxVal: # the cntr reached its maximum values and no dwon-sample is used --> finish this experiment
@@ -150,7 +150,7 @@ class SingleCntrSimulator (object):
                 if (self.cntrRecord['sampleProb']==1 or random.random() < self.cntrRecord['sampleProb']): # sample w.p. self.cntrRecord['sampleProb']
                     cntrValAfterInc = self.cntrRecord['cntr'].incCntrBy1GetVal ()
                     cntrNewVal   = cntrValAfterInc / self.cntrRecord['sampleProb']
-                    if (settings.VERBOSE_DETAILS in self.verbose): 
+                    if (VERBOSE_DETAILS in self.verbose): 
                         print ('realVal={:.0f} oldVal={:.0f}, cntrWoScaling={:.0f}, cntrNewValScaled={:.0f}'
                                .format (realValCntr, cntrVal, cntrValAfterInc, cntrNewVal))
                     if (cntrNewVal != cntrVal): # the counter was incremented
@@ -166,7 +166,7 @@ class SingleCntrSimulator (object):
                         if cntrValAfterInc==self.cntrRecord['cntr'].cntrMaxVal: # the cntr overflowed --> downsample
                             self.cntrRecord['cntr'].incCntr (mult=True, factor=1/2)
                             self.cntrRecord['sampleProb'] /= 2
-                        if (settings.VERBOSE_DETAILS in self.verbose): 
+                        if (VERBOSE_DETAILS in self.verbose): 
                             print ('smplProb={}' .format (self.cntrRecord['sampleProb'])) 
                     else:
                         if cntrValAfterInc==self.cntrRecord['cntr'].cntrMaxVal: # the cntr reached its maximum values and no down-sample is used --> finish this experiment
@@ -196,7 +196,6 @@ class SingleCntrSimulator (object):
         self.cntrRecord['sumSqAbsEr'] = [0] * self.numOfExps # self.cntrRecord['sumSqAbsEr'][j] will hold the sum of the square absolute errors collected at experiment j. 
         self.cntrRecord['sumSqRelEr'] = [0] * self.numOfExps # self.cntrRecord['sumSqRelEr'][j] will hold the sum of the square relative errors collected at experiment j. 
         self.numOfPoints           = [self.maxRealVal] * self.numOfExps # self.numOfPoints[j] will hold the number of points collected for statistic at experiment j. The number of points varies, as it depends upon the random process of increasing the approximated cntr. 
-    
         for expNum in range(self.numOfExps):
             realValCntr = 0 # will cnt the real values (the accurate value)
             cntrVal     = 0 # will cnt the counter's value
@@ -209,14 +208,18 @@ class SingleCntrSimulator (object):
                 if (self.cntrRecord['sampleProb']==1 or random.random() < self.cntrRecord['sampleProb']): # sample w.p. self.cntrRecord['sampleProb']
                     cntrValAfterInc = self.cntrRecord['cntr'].incCntrBy1GetVal ()
                     cntrNewVal      = cntrValAfterInc / self.cntrRecord['sampleProb']
-                    if (settings.VERBOSE_DETAILS in self.verbose): 
-                        print ('realVal={:.0f} oldVal={:.0f}, cntrWoScaling={:.0f}, cntrNewValScaled={:.0f}, maxRealVal={:.0f}'
-                               .format (realValCntr, cntrVal, cntrAfterInc['val'], cntrNewVal, self.maxRealVal))
+                    if (VERBOSE_DETAILS in self.verbose): 
+                        if self.dwnSmple:
+                            print ('realVal={:.0f} oldVal={:.0f}, cntrWoScaling={:.0f}, cntrNewValScaled={:.0f}, maxRealVal={:.0f}'
+                                   .format (realValCntr, cntrVal, cntrValAfterInc, cntrNewVal, self.maxRealVal))
+                        else:
+                            print ('realVal={:.0f} cntrOldVal={:.0f}, cntrNewVal={:.0f}'
+                                   .format (realValCntr, cntrVal, cntrValAfterInc, cntrNewVal))
                     cntrVal = cntrNewVal
                     if (self.dwnSmple and cntrAfterInc['cntrVec']==self.cntrRecord['cntr'].cntrMaxVec): # the cntr overflowed --> downsample
                         self.cntrRecord['cntr'].incCntr (mult=True, factor=1/2)
                         self.cntrRecord['sampleProb'] /= 2
-                        if (settings.VERBOSE_DETAILS in self.verbose): 
+                        if (VERBOSE_DETAILS in self.verbose): 
                             print ('smplProb={}' .format (self.cntrRecord['sampleProb'])) 
                 sqEr = (realValCntr - cntrVal)**2
                 self.cntrRecord['sumSqAbsEr'][expNum] += sqEr
@@ -255,14 +258,14 @@ class SingleCntrSimulator (object):
                 if (self.cntrRecord['sampleProb']==1 or random.random() < self.cntrRecord['sampleProb']): # sample w.p. self.cntrRecord['sampleProb']
                     cntrAfterInc = self.cntrRecord['cntr'].incCntr (factor=int(1), mult=False, verbose=self.verbose)
                     cntrNewVal   = cntrAfterInc['val'] / self.cntrRecord['sampleProb']
-                    if (settings.VERBOSE_DETAILS in self.verbose): 
+                    if (VERBOSE_DETAILS in self.verbose): 
                         print ('realVal={:.0f} oldVal={:.0f}, cntrWoScaling={:.0f}, cntrNewValScaled={:.0f}, maxRealVal={:.0f}'
                                .format (realValCntr, cntrVal, cntrAfterInc['val'], cntrNewVal, self.maxRealVal))
                     cntrVal = cntrNewVal
                     if (self.dwnSmple and cntrAfterInc['cntrVec']==self.cntrRecord['cntr'].cntrMaxVec): # the cntr overflowed --> downsample
                         self.cntrRecord['cntr'].incCntr (mult=True, factor=1/2)
                         self.cntrRecord['sampleProb'] /= 2
-                        if (settings.VERBOSE_DETAILS in self.verbose): 
+                        if (VERBOSE_DETAILS in self.verbose): 
                             print ('smplProb={}' .format (self.cntrRecord['sampleProb'])) 
                 self.cntrRecord['RdEr'][expNum] += abs(realValCntr - cntrVal)/realValCntr
  
@@ -666,15 +669,9 @@ def printAllCntrMaxValsF2P (
     return cntrMaxVal
 
 def main ():
-    printAllCntrMaxValsF2P (flavor = 'si', 
-        hyperSizeRange  = [1, 2], # list of hyper-sizes to consider  
-        cntrSizeRange   = [8, 10, 12, 14, 16], # list of cntrSizes to consider
-        verbose         =[VERBOSE_RES]
-    )
-    exit ()
     hyperSize  = 2
-    for cntrSize in [16]: #, 14, 16]:
-        simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL]) #VERBOSE_RES, VERBOSE_PCL],)
+    for cntrSize in [16]:
+        simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL])
         simController.runSingleCntr \
             (dwnSmple       = False,  
             modes          = ['F2P_li', 'Morris', 'CEDAR', 'SEAD_dyn'], #, 'SEAD_stat_e4'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],

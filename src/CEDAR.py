@@ -205,7 +205,11 @@ class CntrMaster (Cntr.CntrMaster):
         self.cntrMaxVal = self.estimators[-1]
 
     
-    def findMinDeltaByMaxVal (self, targetMaxVal):
+    def findMinDeltaByMaxVal (
+            self,
+            targetMaxVal,
+            resolution = 0.0000001,             
+            ):
         """
         Given a target maximum countable value, return the minimal 'delta' parameter that reaches this value, 
         for the current counter's size.
@@ -219,7 +223,6 @@ class CntrMaster (Cntr.CntrMaster):
 
         preComputedDatum = self.findPreComputedDatum ()
         deltaLo, deltaHi = preComputedDatum['deltaLo'], preComputedDatum['deltaHi']
-        resolution = deltaLo
 
         # check first the extreme cases
         self.delta = deltaHi

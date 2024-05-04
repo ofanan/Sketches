@@ -69,7 +69,7 @@ class CntrMaster (Cntr.CntrMaster):
                 print (f'cntrSize={self.cntrSize}, a={self.a}, CntrMaxVal={CntrMaxVal}')
     
     
-    def calcAByMaxVal (self, targetMaxVal, aLo=10, aHi=1000, delta=0.001):
+    def calcAByMaxVal (self, targetMaxVal, aLo=10, aHi=1000, delta=0.000001):
         """
         Given a target maximum countable value, return the maximal 'a' parameter that reaches this value, 
         for the current counter's size.

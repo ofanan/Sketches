@@ -336,12 +336,13 @@ class ResFileParser (object):
             self,
             datOutputFile,
             numOfExps   : int  = 50,
-            modes       : list = ['F2P_li_h2', 'CEDAR', 'Morris', 'SEAD_dyn'],
+            modes       : list = ['F2P_li', 'CEDAR', 'Morris', 'SEAD_dyn'],
             cntrSizes   : list = [],
             statType    : str  = 'Mse',
             rel_abs_n   : bool = False, # When True, consider relative errors, Else, consider absolute errors.
             width       : int  = None,  # The width of the CMS. Relevant only for CMS' sim results.
-            normalizeByPerfectCntr : bool = True # when True, normalize all mode's results by dividing them by the value obtained by a perfect counter
+            normalizeByPerfectCntr : bool = True, # when True, normalize all mode's results by dividing them by the value obtained by a perfect counter
+            normalizeByMinimal     : bool = True # when True, normalize all mode's results by dividing them by the value obtained by the lowest value at this row
         ):
         """
         Generate a table showing the error as a function of the counter's size.
@@ -371,6 +372,7 @@ class ResFileParser (object):
                 elif len(pointsOfPerfCntr)>1:
                     warning (f'In ResFileParser.genErVsCntrSizeTable(). Multiple points for cntrSize={cntrSize}')
                 valOfPerfCntr = pointsOfPerfCntr[0]['Avg']
+                minVal = min(pointsOfThisCntrSizeErType)
             for mode in modes:
                 pointsToPrint = [point for point in pointsOfThisCntrSizeErType if point['mode'] == mode]
                 if pointsToPrint == []:
@@ -383,12 +385,20 @@ class ResFileParser (object):
                 val2print = pointsToPrint[0]['Avg']
                 if normalizeByPerfectCntr:
                     val2print /= valOfPerfCntr
+                if normalizeByMinimal:
+                    val2print /= minVal
                 if pointsToPrint[0]['Avg']<=minVal*1.01:
                     printf (datOutputFile, '\\green{\\textbf{')
-                    printf (datOutputFile, '{:.2e}' .format(val2print))
+                    if normalizeByMinimal:
+                        printf (datOutputFile, '{:.2f}' .format(val2print))
+                    else:
+                        printf (datOutputFile, '{:.2e}' .format(val2print))
                     printf (datOutputFile, '}}')
                 else:
-                    printf (datOutputFile, '{:.2e}' .format(val2print))
+                    if normalizeByMinimal:
+                        printf (datOutputFile, '{:.2f}' .format(val2print))
+                    else:
+                        printf (datOutputFile, '{:.2e}' .format(val2print))
                 if mode!=modes[-1]:
                     printf (datOutputFile, ' & ')
             printf (datOutputFile, ' \\\\\n')
@@ -842,7 +852,7 @@ def genErVsCntrSizeSingleCntr ():
         outputFileName = f'1cntr.dat' 
         datOutputFile = open (f'../res/{outputFileName}', 'a+')
         abs     = True
-        my_ResFileParser.rdPcl (pclFileName='rel_1cntr_PC_RdRmse.pcl')
+        my_ResFileParser.rdPcl (pclFileName='1cntr_PC.pcl')
         printf (datOutputFile, '\n// {}\n' .format ('abs ' if abs else 'rel '))
         for rel_abs_n in [True, False]:
             for statType in ['Mse', 'normRmse']:
@@ -864,17 +874,18 @@ def genErVsCntrSizeTableTrace ():
         my_ResFileParser = ResFileParser ()
         outputFileName = f'cms.dat' 
         datOutputFile = open (f'../res/{outputFileName}', 'a+')
-        my_ResFileParser.rdPcl (pclFileName='cms_PC.pcl')
-        for rel_abs_n in [True, False]:
-            for statType in ['Mse', 'normRmse']:
-                printf (datOutputFile, '\n// {} {}\n' .format ('rel' if rel_abs_n else 'abs', statType))
+        my_ResFileParser.rdPcl (pclFileName='cms_li_PC.pcl')
+        width = 2**12
+        for rel_abs_n in [False]:
+            for statType in ['Mse']:
+                printf (datOutputFile, '\n// width={} {} {}\n' .format (width, 'rel' if rel_abs_n else 'abs', statType))
                 my_ResFileParser.genErVsCntrSizeTable(
                     datOutputFile   = datOutputFile, 
                     numOfExps       = 2, 
-                    cntrSizes       = [8, 10, 12, 14, 16],
+                    cntrSizes       = [8], #, 10, 12, 14, 16],
                     statType        = statType,
                     rel_abs_n       = rel_abs_n,
-                    width           = 2**15, 
+                    width           = width, 
                     normalizeByPerfectCntr = False
                 ) 
 

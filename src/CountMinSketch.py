@@ -53,7 +53,7 @@ class CountMinSketch:
 
         if self.maxValBy=='si':
             myF2P_cntrMaster = F2P_si.CntrMaster (cntrSize=self.cntrSize, hyperSize=self.hyperSize)
-        elif self.maxValBy=='si':
+        elif self.maxValBy=='li':
             myF2P_cntrMaster = F2P_li.CntrMaster (cntrSize=self.cntrSize, hyperSize=self.hyperSize)
         else:
             error (f'__init__ was called with maxValBy={maxValBy}')
@@ -417,7 +417,7 @@ def runCMS (mode,
         numEpsilonStepsInXlBkt  = 5
         verbose                 = [VERBOSE_RES] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
-        width, depth            = 2**13, 4
+        width, depth            = 2**12, 4
         numFlows                = numFlows
         numCntrsPerBkt          = 1 #16
         maxNumIncs              = maxNumIncs   
@@ -450,12 +450,12 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         for cntrSize in [8]: #, 14, 16]:
-            for mode in ['F2P_si', 'SEAD_dyn', 'CEDAR', 'Morris']:    
+            for mode in ['F2P_li', 'SEAD_dyn', 'CEDAR', 'Morris']:    
                 runCMS (
                     mode        = mode, 
                     cntrSize    = cntrSize, 
                     runShortSim = False,
-                    maxValBy    = 'si'
+                    maxValBy    = 'li'
                     )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
