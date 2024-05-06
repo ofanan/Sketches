@@ -29,3 +29,37 @@
 12 & \green{\textbf{1.00}} & 1.46 & 1.30 & 45.98 \\
 14 & \green{\textbf{1.00}} & 1.37 & 1.34 & 94.10 \\
 16 & \green{\textbf{1.00}} & 1.35 & 1.34 & 199.05 \\
+
+// abs 
+
+// rel Mse
+	F2P_li	& CEDAR	& Morris	& SEAD_dyn	 \\ 
+8 & \green{\textbf{1.00}} & 1.33 & 1.22 & 77.88 \\
+10 & \green{\textbf{1.00}} & 1.26 & 1.25 & 295.52 \\
+12 & \green{\textbf{1.00}} & 1.31 & 1.38 & 1092.76 \\
+14 & \green{\textbf{1.00}} & 1.50 & 1.24 & 4456.34 \\
+16 & \green{\textbf{1.00}} & 1.19 & 1.28 & 19564.35 \\
+
+// rel normRmse
+	F2P_li	& CEDAR	& Morris	& SEAD_dyn	 \\ 
+8 & \green{\textbf{1.00}} & 1.16 & 1.11 & 9.42 \\
+10 & \green{\textbf{1.00}} & 1.13 & 1.11 & 18.39 \\
+12 & \green{\textbf{1.00}} & 1.12 & 1.16 & 34.91 \\
+14 & \green{\textbf{1.00}} & 1.23 & 1.14 & 72.22 \\
+16 & \green{\textbf{1.00}} & 1.09 & 1.13 & 148.06 \\
+
+// abs Mse
+	F2P_li	& CEDAR	& Morris	& SEAD_dyn	 \\ 
+8 & \green{\textbf{1.00}} & 1.71 & 1.80 & 124.55 \\
+10 & \green{\textbf{1.00}} & 1.75 & 1.80 & 468.49 \\
+12 & \green{\textbf{1.00}} & 2.05 & 1.94 & 1687.06 \\
+14 & \green{\textbf{1.00}} & 2.05 & 1.67 & 6538.85 \\
+16 & \green{\textbf{1.00}} & 1.77 & 2.04 & 31420.84 \\
+
+// abs normRmse
+	F2P_li	& CEDAR	& Morris	& SEAD_dyn	 \\ 
+8 & \green{\textbf{1.00}} & 1.39 & 1.41 & 12.94 \\
+10 & \green{\textbf{1.00}} & 1.33 & 1.34 & 24.20 \\
+12 & \green{\textbf{1.00}} & 1.42 & 1.38 & 45.98 \\
+14 & \green{\textbf{1.00}} & 1.47 & 1.36 & 94.10 \\
+16 & \green{\textbf{1.00}} & 1.33 & 1.43 & 199.05 \\

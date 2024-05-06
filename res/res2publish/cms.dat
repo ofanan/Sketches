@@ -1,0 +1,43 @@
+
+// rel Mse
+	F2P_li_h2	& CEDAR	& Morris	& SEAD_dyn	 \\ 
+8 & \green{\textbf{7.10e+02}} & 7.32e+02 & 7.32e+02 & 7.48e+02 \\
+10 & \green{\textbf{7.43e+02}} & \green{\textbf{7.45e+02}} & \green{\textbf{7.45e+02}} & \green{\textbf{7.50e+02}} \\
+12 & \green{\textbf{7.49e+02}} & \green{\textbf{7.49e+02}} & \green{\textbf{7.48e+02}} & \green{\textbf{7.50e+02}} \\
+14 & \green{\textbf{7.50e+02}} & \green{\textbf{7.49e+02}} & \green{\textbf{7.49e+02}} & \green{\textbf{7.50e+02}} \\
+16 & \green{\textbf{7.50e+02}} & \green{\textbf{7.50e+02}} & \green{\textbf{7.50e+02}} & \green{\textbf{7.50e+02}} \\
+
+// rel normRmse
+	F2P_li_h2	& CEDAR	& Morris	& SEAD_dyn	 \\ 
+8 & \green{\textbf{2.02e-06}} & 2.05e-06 & 2.05e-06 & 2.07e-06 \\
+10 & \green{\textbf{2.07e-06}} & \green{\textbf{2.07e-06}} & \green{\textbf{2.07e-06}} & \green{\textbf{2.08e-06}} \\
+12 & \green{\textbf{2.08e-06}} & \green{\textbf{2.08e-06}} & \green{\textbf{2.08e-06}} & \green{\textbf{2.08e-06}} \\
+14 & \green{\textbf{2.08e-06}} & \green{\textbf{2.08e-06}} & \green{\textbf{2.08e-06}} & \green{\textbf{2.08e-06}} \\
+16 & \green{\textbf{2.08e-06}} & \green{\textbf{2.08e-06}} & \green{\textbf{2.08e-06}} & \green{\textbf{2.08e-06}} \\
+
+// width=32K abs Mse
+// abs Mse
+	F2P_li_h2	& CEDAR	& Morris	& SEAD_dyn	 \\ 
+8 & 5.72e+05 & \green{\textbf{5.54e+05}} & 6.35e+05 & 1.91e+07 \\
+10 & 3.34e+05 & \green{\textbf{1.63e+05}} & \green{\textbf{1.63e+05}} & 1.61e+07 \\
+12 & 1.01e+05 & 6.05e+04 & \green{\textbf{2.89e+04}} & 7.41e+06 \\
+14 & 1.57e+04 & \green{\textbf{9.96e+03}} & 1.21e+04 & 1.58e+04 \\
+16 & 8.56e+03 & 7.92e+03 & 7.82e+03 & \green{\textbf{7.42e+03}} \\
+
+// width=32K abs Mse
+// abs normRmse
+	F2P_li_h2	& CEDAR	& Morris	& SEAD_dyn	 \\ 
+8 & 5.54e-05 & \green{\textbf{5.47e-05}} & 6.03e-05 & 3.31e-04 \\
+10 & 4.28e-05 & \green{\textbf{3.04e-05}} & \green{\textbf{3.06e-05}} & 3.04e-04 \\
+12 & 2.32e-05 & 1.77e-05 & \green{\textbf{1.27e-05}} & 2.07e-04 \\
+14 & 9.50e-06 & \green{\textbf{7.57e-06}} & 8.31e-06 & 9.36e-06 \\
+16 & 7.02e-06 & 6.75e-06 & 6.71e-06 & \green{\textbf{6.53e-06}} \\
+
+
+// width=8192 abs Mse
+	F2P_li	& CEDAR	& Morris	& SEAD_dyn	 \\ 
+8 & 6.30e+05 & 6.92e+05 & \green{\textbf{4.61e+05}} & 1.92e+07 \\
+
+// width=4096 abs Mse
+	F2P_li	& CEDAR	& Morris	& SEAD_dyn	 \\ 
+8 & 1.57e+06 & 1.68e+06 & \green{\textbf{1.51e+06}} & 1.94e+07 \\

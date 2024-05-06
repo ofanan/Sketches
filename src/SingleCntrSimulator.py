@@ -670,11 +670,12 @@ def printAllCntrMaxValsF2P (
 
 def main ():
     hyperSize  = 2
-    for cntrSize in [16]:
+    for cntrSize in [8, 10, 12, 14]:
         simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL])
         simController.runSingleCntr \
             (dwnSmple       = False,  
-            modes          = ['F2P_li', 'Morris', 'CEDAR', 'SEAD_dyn'], #, 'SEAD_stat_e4'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
+            modes          = ['F2P_li_h2', 'SEAD_dyn'], 
+            # modes          = ['Morris', 'CEDAR'], #, 'SEAD_stat_e4'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
             cntrSize       = cntrSize, 
             hyperSize      = hyperSize,
             numOfExps      = 100,
