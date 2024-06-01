@@ -269,7 +269,6 @@ def indexOrNone(l : list,
     except ValueError:
         return None
     
-
 def calcPostSimStat (
         sumSqEr         : list, # sum of the square errors, collected during the sim
         numMeausures    : int, # num of error measurements  

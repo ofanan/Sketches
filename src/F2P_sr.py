@@ -1,5 +1,5 @@
 # This file implements F2P SR, namely, F2P flavor that focuses on improved accuracy on small reals. 
-# For futher details, see "main.tex" in Cntr's Overleaf project.
+# For further details, see "main.tex" in Cntr's Overleaf project.
 import math, random, pickle, numpy as np
 
 import settings, Cntr
