@@ -552,6 +552,22 @@ def genCntrMasterF2P (cntrSize, hyperSize, flavor='', verbose=[]):
         settings.error (f'In SingleCntrSimulator.genCntrMasterF2P(). the requested F2P flavor {flavor} is not supported.')
 
 
+def genCntrMasterF3P (cntrSize, hyperMaxSize, flavor='', verbose=[]):
+    """
+    return an F2P's CntrMaster belonging to the selected flavor 
+    """
+    if flavor=='sr':
+        return F3P_sr.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+    elif flavor=='lr':
+        return F3P_lr.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+    elif flavor=='li':
+        return F3P_li.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+    elif flavor=='si':
+        return F3P_si.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+    else:
+        settings.error (f'In SingleCntrSimulator.genCntrMasterF3P(). the requested F2P flavor {flavor} is not supported.')
+
+
 def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit) 
                   expSize   = 1, # number of bits in the exp.
                   signed    = False, 
@@ -589,7 +605,9 @@ def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit)
 
 def getAllValsF2P (flavor='', 
                    cntrSize     = 8, # size of the counter, WITHOUT the sign bit (if exists).  
-                   hyperSize    = 2, # size of the hyper-exp field. 
+                   hyperSize    = 2, # size of the hyper-exp field. Relevant only for F2P.
+                   hyperSize    = 2, # Max size of the hyper-exp field. Relevant only for F3P. 
+                   mode         = 'F2P', # either 'F2P' or 'F3P'
                    verbose      = [], #verbose level. See settings.py for details.
                    signed       = False # When True, assume an additional bit for the  
                    ):
@@ -603,7 +621,12 @@ def getAllValsF2P (flavor='',
     """
     if signed: 
         cntrSize -= 1 
-    myCntrMaster = genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+    if mode=='F2P':
+        myCntrMaster = genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+    elif mode=='F3P':
+        myCntrMaster = genCntrMasterF3P (flavor=flavor, cntrSize=cntrSize, hyperMaxSize=hyperMaxSize, verbose=verbose)
+    else:
+        error ('In SingleCntrSimulator.getAllValsF2P(). The mode {} that you chose is not supported.')
     if myCntrMaster.isFeasible==False:
         settings.error (f'The requested configuration is not feasible.')
     listOfVals = []
