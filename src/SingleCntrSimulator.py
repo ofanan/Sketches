@@ -4,7 +4,7 @@ Controller that runs single-counter simulations, using various types of counters
 import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
-import settings, Cntr, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li, F2P_si, FP, SEAD_stat, SEAD_dyn   
+import settings, Cntr, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li, F2P_si, FP, SEAD_stat, SEAD_dyn, F3P_sr   
 from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
 from datetime import datetime
 
@@ -604,13 +604,13 @@ def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit)
 
 
 def getAllValsF2P (flavor='', 
-                   cntrSize     = 8, # size of the counter, WITHOUT the sign bit (if exists).  
-                   hyperSize    = 2, # size of the hyper-exp field. Relevant only for F2P.
-                   hyperSize    = 2, # Max size of the hyper-exp field. Relevant only for F3P. 
-                   mode         = 'F2P', # either 'F2P' or 'F3P'
-                   verbose      = [], #verbose level. See settings.py for details.
-                   signed       = False # When True, assume an additional bit for the  
-                   ):
+   cntrSize     = 8, # size of the counter, WITHOUT the sign bit (if exists).  
+   hyperSize    = 2, # size of the hyper-exp field. Relevant only for F2P.
+   hyperMaxSize = 2, # Max size of the hyper-exp field. Relevant only for F3P. 
+   mode         = 'F2P', # either 'F2P' or 'F3P'
+   verbose      = [], #verbose level. See settings.py for details.
+   signed       = False # When True, assume an additional bit for the  
+):
     """
     Loop over all the binary combinations of the given counter size. 
     For each combination, get the respective counter.
@@ -698,7 +698,7 @@ def main ():
        cntrSize     = 6, # size of the counter, WITHOUT the sign bit (if exists).  
        hyperMaxSize = 2, # Max size of the hyper-exp field. Relevant only for F3P. 
        mode         = 'F3P', # either 'F2P' or 'F3P'
-       verbose      = [], #verbose level. See settings.py for details.
+       verbose      = [VERBOSE_RES], #verbose level. See settings.py for details.
        signed       = False # When True, assume an additional bit for the  
     )
     # for cntrSize in [8, 10, 12, 14]:
