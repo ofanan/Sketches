@@ -693,17 +693,25 @@ def printAllCntrMaxValsF2P (
 
 def main ():
     hyperSize  = 2
-    for cntrSize in [8, 10, 12, 14]:
-        simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL])
-        simController.runSingleCntr \
-            (dwnSmple       = False,  
-            modes          = ['F2P_li_h2', 'SEAD_dyn'], 
-            # modes          = ['Morris', 'CEDAR'], #, 'SEAD_stat_e4'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
-            cntrSize       = cntrSize, 
-            hyperSize      = hyperSize,
-            numOfExps      = 100,
-            erTypes        = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
-        )
+    getAllValsF2P (
+       flavor='sr', 
+       cntrSize     = 6, # size of the counter, WITHOUT the sign bit (if exists).  
+       hyperMaxSize = 2, # Max size of the hyper-exp field. Relevant only for F3P. 
+       mode         = 'F3P', # either 'F2P' or 'F3P'
+       verbose      = [], #verbose level. See settings.py for details.
+       signed       = False # When True, assume an additional bit for the  
+    )
+    # for cntrSize in [8, 10, 12, 14]:
+    #     simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL])
+    #     simController.runSingleCntr \
+    #         (dwnSmple       = False,  
+    #         modes          = ['F2P_li_h2', 'SEAD_dyn'], 
+    #         # modes          = ['Morris', 'CEDAR'], #, 'SEAD_stat_e4'], #, 'SEAD_stat_e3', 'F2P_li', 'Morris', 'CEDAR'], #[],
+    #         cntrSize       = cntrSize, 
+    #         hyperSize      = hyperSize,
+    #         numOfExps      = 100,
+    #         erTypes        = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+    #     )
         
 
         # simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL]) #VERBOSE_RES, VERBOSE_PCL],)
