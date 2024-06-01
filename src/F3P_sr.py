@@ -2,11 +2,11 @@
 # For further details, see "main.tex" in Cntr's Overleaf project.
 import math, random, pickle, numpy as np
 
-import settings, Cntr
+import settings, F2P_sr
 from settings import error, warning, VERBOSE_RES
 from printf import printf
 
-class CntrMaster (Cntr.CntrMaster):
+class CntrMaster (F2P_sr.CntrMaster):
     """
     Generate, check and perform arithmetic operations on F2P counters in SR (Small Reals) flavors.
     The counters are generated as an array with the same format (counterSize and hyperExpSize).
@@ -42,18 +42,18 @@ class CntrMaster (Cntr.CntrMaster):
         self.powerMin = self.expMinVal + self.bias + 1 
    
     def __init__ (self, 
-                  cntrSize      : int = 8, # of bits in the cntr 
-                  hyperMaxSize  : int = None, # of bits in the hyper-exp field 
-                  numCntrs      : int = 1, # of cntrs in the cntrs' array
-                  verbose             = []    # the optional verbose values are detailed in settings.py
-                  ):
+      cntrSize      : int = 8, # of bits in the cntr 
+      hyperMaxSize  : int = None, # of bits in the hyper-exp field 
+      numCntrs      : int = 1, # of cntrs in the cntrs' array
+      verbose             = []    # the optional verbose values are detailed in settings.py
+    ):
         
         """
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
         If the parameters are invalid (e.g., infeasible cntrSize), return None. 
         """
         super(CntrMaster, self).__init__ (cntrSize=cntrSize, numCntrs=numCntrs, verbose=verbose)
-        self.setHyperSize () # set the field maxHyperSize and check whether the configuration is valid. 
+        self.setHyperSize (hyperMaxSize) # set the field maxHyperSize and check whether the configuration is valid. 
         self.calcParams   () # set some parameters and check whether the configuration is valid.
         # self.cntrMinVal = self.cntr2num (self.cntrZeroVec)
         self.cntrMaxVal = self.cntr2num (self.cntrMaxVec)

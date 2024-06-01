@@ -557,13 +557,13 @@ def genCntrMasterF3P (cntrSize, hyperMaxSize, flavor='', verbose=[]):
     return an F2P's CntrMaster belonging to the selected flavor 
     """
     if flavor=='sr':
-        return F3P_sr.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+        return F3P_sr.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperMaxSize, verbose=verbose)
     elif flavor=='lr':
-        return F3P_lr.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+        return F3P_lr.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperMaxSize, verbose=verbose)
     elif flavor=='li':
-        return F3P_li.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+        return F3P_li.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperMaxSize, verbose=verbose)
     elif flavor=='si':
-        return F3P_si.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+        return F3P_si.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperMaxSize, verbose=verbose)
     else:
         settings.error (f'In SingleCntrSimulator.genCntrMasterF3P(). the requested F2P flavor {flavor} is not supported.')
 
