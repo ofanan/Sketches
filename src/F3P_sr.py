@@ -2,7 +2,7 @@
 # For further details, see "main.tex" in Cntr's Overleaf project.
 import math, random, pickle, numpy as np
 
-import settings, F2P_sr
+import settings, Cntr, F2P_sr
 from settings import error, warning, VERBOSE_RES
 from printf import printf
 
@@ -52,7 +52,11 @@ class CntrMaster (F2P_sr.CntrMaster):
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
         If the parameters are invalid (e.g., infeasible cntrSize), return None. 
         """
-        super(CntrMaster, self).__init__ (cntrSize=cntrSize, numCntrs=numCntrs, verbose=verbose)
+        if (cntrSize<3):
+            settings.error ('error: cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
+        self.cntrSize   = int(cntrSize)
+        self.numCntrs   = int(numCntrs)
+        self.verbose    = verbose
         self.setHyperSize (hyperMaxSize) # set the field maxHyperSize and check whether the configuration is valid. 
         self.calcParams   () # set some parameters and check whether the configuration is valid.
         # self.cntrMinVal = self.cntr2num (self.cntrZeroVec)
@@ -60,6 +64,7 @@ class CntrMaster (F2P_sr.CntrMaster):
         if settings.VERBOSE_COUT_CONF in self.verbose:
             print (f'F3P{self.flavor()}, cntrSize={self.cntrSize}, hyperMaxSize={self.hyperMaxSize}, Vmax={self.Vmax}, bias={self.bias}, zeroVec={self.cntrZeroVec}, maxVec={self.cntrMaxVec}, maxVal={self.cntrMaxVal}, expMinVec={self.expMinVec}, expMinVal={self.expMinVal}')
         self.rstAllCntrs ()
+        self.isFeasible = True
         
     def cntr2num (self, cntr):
         """
@@ -83,9 +88,17 @@ class CntrMaster (F2P_sr.CntrMaster):
             if (expVec != self.expVal2expVec(expVal, expSize=expSize)):   
                 error ('expVec={}, expVal={}, expSize={}, Back to expVec={}' .format (expVec, expVal, expSize, self.expVal2expVec(expVal, expSize)))
         mantVal  = int (mantVec, base=2)
-        cntrVal  = self.offsetOfExpVal[int(expVal)] + mantVal * (2**expVal)
-        if (settings.VERBOSE_COUT_CNTRLINE in self.verbose):
-            self.printCntrLine (cntr=cntr, expVec=expVec, expVal=int(expVal), mantVec=mantVec, mantVal=mantVal, cntrVal=cntrVal)
+        if expVec == self.expMinVec:
+            cntrVal  = mantVal * (2**self.powerMin)
+        else:
+            cntrVal  = (1 + mantVal) * (2**(self.expVec2expVal(expVec, expSize)+self.bias))
+        if settings.VERBOSE_COUT_CNTRLINE in self.verbose:
+            expVal = self.expVec2expVal(expVec, expSize)
+            if expVal == self.expMinVal:
+                power = self.powerMin
+            else:
+                power = expVal + self.bias
+            self.printCntrLine (cntr=cntr, expVec=expVec, expVal=expVal, power=power, mantVec=mantVec, mantVal=mantVal, cntrVal=cntrVal)
         return cntrVal
     
     def setHyperSize (self, hyperMaxSize):
@@ -100,5 +113,5 @@ class CntrMaster (F2P_sr.CntrMaster):
         self.hyperMaxSize  = hyperMaxSize
         self.expMaxSize    = 2**(self.hyperMaxSize)-1 # the maximum value that can be represented by self.hyperMaxSize bits, using standard binary representation. 
         if (self.hyperMaxSize + self.expMaxSize > self.cntrSize-1):
-            error (f'Requested hyperMaxSize {hyperMaxSize} is not feasible for counter size {self.cntrSize}')
+            error (f'In F3P_sr: Requested hyperMaxSize {hyperMaxSize} is not feasible for counter size {self.cntrSize}')
 
