@@ -8,7 +8,7 @@ import settings, ResFileParser, F2P_sr, F2P_lr, F2P_li, FP, SEAD_stat, SEAD_dyn
 from tictoc import tic, toc
 from printf import printf, printar, printarFp
 from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
-from ResFileParser import genRndErrFileName, getF2PSettings, colors, colorOfMode, labelOfMode, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, FONT_SIZE_SMALL, LEGEND_FONT_SIZE, LEGEND_FONT_SIZE_SMALL
+from ResFileParser import genRndErrFileName, getnumSettings, colors, colorOfMode, labelOfMode, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, FONT_SIZE_SMALL, LEGEND_FONT_SIZE, LEGEND_FONT_SIZE_SMALL
 from settings import error, warning, VERBOSE_RES, VERBOSE_PCL 
 
 MAX_DF = 20
@@ -276,9 +276,9 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
                     )
                 
         elif mode.startswith('F2P'):
-            F2pSettings = getF2PSettings (mode)
-            flavor    = F2pSettings['flavor']
-            grid = getAllValsF2P (flavor=F2pSettings['flavor'], cntrSize=cntrSize, hyperSize=F2pSettings['hyperSize'], verbose=[], signed=signed)
+            numSettings = getFxpSettings (mode)
+            flavor    = numSettings['flavor']
+            grid = getAllValsF2P (flavor=numSettings['flavor'], cntrSize=cntrSize, hyperSize=numSettings['hyperSize'], verbose=[], signed=signed)
             [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
             resRecord = calcErr(
@@ -416,9 +416,9 @@ def plotGrids (
                 'grid'  : grid
                 }
         elif mode.startswith('F2P'):
-            F2pSettings = getF2PSettings (mode)
-            flavor    = F2pSettings['flavor'] 
-            grid    = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=F2pSettings['hyperSize'], verbose=verbose, signed=signed)
+            numSettings = getnumSettings (mode)
+            flavor    = numSettings['flavor'] 
+            grid    = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=numSettings['hyperSize'], verbose=verbose, signed=signed)
             if scale:
                 grid = scaleGrid (grid, lowerBnd = lowerBnd, upperBnd = upperBnd)
             else:

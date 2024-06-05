@@ -118,8 +118,8 @@ def labelOfMode (
     """
     Generates a label string that details the counter's settings (param vals), to be used in plots.
     """
-    if mode.startswith('F2P'):
-        return genF2pLabel(mode)
+    if mode.startswith('F2P') or mode.startswith('F3P'):
+        return genFxpLabel(mode)
     elif mode.startswith('FP'):
         expSize  = int(mode.split('_e')[1])
         mantSize = cntrSize - expSize - 1 
@@ -134,7 +134,7 @@ def genFpLabel (mantSize : int, expSize : int) -> str:
     """
     return f'FP {mantSize}M{expSize}E'
 
-def genF2pLabel (
+def genFxpLabel (
         nSystem     : str, #either 'F2P', or 'F3P' 
         flavor      : str, # flavor, e.g., 'lr', 'sr', 'li'
         hyperSize   : int = 2 
@@ -144,9 +144,9 @@ def genF2pLabel (
     """
     return f'{nSystem} {flavor} h{hyperSize}'
 
-def genF2pLabel (mode : str): # a mode describing the mode flavors
+def genFxpLabel (mode : str): # a mode describing the mode flavors
     """
-    Given a string that details F2P's params, generate a label string to be used in plots.
+    Given a string that details the parameters of F2P or F3P, generate a label string to be used in plots.
     """
     labelOfMode = {
     'F2P_lr_h2' : r'F2P$_{LR}^2$',
@@ -168,21 +168,22 @@ def genF2pLabel (mode : str): # a mode describing the mode flavors
     #         return r'F2P$_{SR}^1$'
     #         ...
 
-def f2pSettingsToLabel (mode : str) -> str:
+def fxpSettingsToLabel (mode : str) -> str:
     """
-    Given a string detailing F2P's settings, return the corresponding label
+    Given a string detailing the settings of F2P or F3P, return the corresponding label
     """
-    F2pSettings = getF2PSettings(mode)
-    return genF2pLabel (flavor = F2pSettings['flavor'], hyperSize=F2pSettings['hyperSize'])
+    numSettings = getFxpSettings(mode)
+    return genFxpLabel (
+        nSystem     = numSettings['nSystem'], 
+        flavor      = numSettings['flavor'], 
+        hyperSize   = numSettings['hyperSize']
+    )
 
-def getF2PSettings (mode : str) -> dict:
+def getFxpSettings (mode : str) -> dict:
     """
-    given the mode string of an F2P counter, get a dictionary detailing its settings (flavor and hyperExp size).
+    given the mode string of an F2P or F3P counter, get a dictionary detailing its settings (flavor and hyperExp size).
     """
     nSystem   = mode.split('_')[0]
-    # flavor    = mode.split(f'{nSystem}_')[1].split('_')[0]
-    # hyperSize = int(mode.split('_h')[1].split('_')[0])
-    # error (f'nSystem={nSystem}, flavor={flavor}, hyperSize={hyperSize}')
     return {
         'nSystem'   : nSystem,
         'flavor'    : mode.split(f'{nSystem}_')[1].split('_')[0],
@@ -914,7 +915,7 @@ def rmvFromPcl ():
         
 if __name__ == '__main__':
     try:
-        # genErVsCntrSizeSingleCntr ()
+        genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
         # genRndErrTable ()
