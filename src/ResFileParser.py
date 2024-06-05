@@ -134,13 +134,15 @@ def genFpLabel (mantSize : int, expSize : int) -> str:
     """
     return f'FP {mantSize}M{expSize}E'
 
-def genF2pLabel (flavor    : str, # flavor, e.g., 'lr', 'sr', 'li'
-                 hyperSize : int = 2 
-                 ) -> str:
+def genF2pLabel (
+        nSystem     : str, #either 'F2P', or 'F3P' 
+        flavor      : str, # flavor, e.g., 'lr', 'sr', 'li'
+        hyperSize   : int = 2 
+    ) -> str:
     """
-    Given F2P's params, generates a label string that details the counter's settings (param vals), to be used in plots.
+    Given the parameters of F2P or F3P, generates a label string that details the counter's settings (param vals), to be used in plots.
     """
-    return f'F2P {flavor} h{hyperSize}'
+    return f'{nSystem} {flavor} h{hyperSize}'
 
 def genF2pLabel (mode : str): # a mode describing the mode flavors
     """
@@ -151,6 +153,10 @@ def genF2pLabel (mode : str): # a mode describing the mode flavors
     'F2P_sr_h2' : r'F2P$_{SR}^2$',
     'F2P_li_h2' : r'F2P$_{LI}^2$',
     'F2P_si_h2' : r'F2P$_{SI}^2$',
+    'F3P_lr_h2' : r'F3P$_{LR}^2$',
+    'F3P_sr_h2' : r'F3P$_{SR}^2$',
+    'F3P_li_h2' : r'F3P$_{LI}^2$',
+    'F3P_si_h2' : r'F3P$_{SI}^2$',
     }
     return labelOfMode[mode]
     # Trying to automate the code above:
@@ -173,9 +179,16 @@ def getF2PSettings (mode : str) -> dict:
     """
     given the mode string of an F2P counter, get a dictionary detailing its settings (flavor and hyperExp size).
     """
-    return {'flavor'    : mode.split('F2P_')[1].split('_')[0],
-            'hyperSize' : int(mode.split('_h')[1].split('_')[0])}
-
+    nSystem   = mode.split('_')[0]
+    # flavor    = mode.split(f'{nSystem}_')[1].split('_')[0]
+    # hyperSize = int(mode.split('_h')[1].split('_')[0])
+    # error (f'nSystem={nSystem}, flavor={flavor}, hyperSize={hyperSize}')
+    return {
+        'nSystem'   : nSystem,
+        'flavor'    : mode.split(f'{nSystem}_')[1].split('_')[0],
+        'hyperSize' : int(mode.split('_h')[1].split('_')[0])
+    }
+    
 
 class ResFileParser (object):
     """
@@ -901,7 +914,7 @@ def rmvFromPcl ():
         
 if __name__ == '__main__':
     try:
-        genErVsCntrSizeSingleCntr ()
+        # genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
         # genRndErrTable ()
