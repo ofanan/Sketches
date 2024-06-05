@@ -308,3 +308,4 @@ def calcPostSimStat (
         'maxMinRelDiff' : maxMinRelDiff,
         'warning'       : warningField  
     }
+

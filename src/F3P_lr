@@ -24,8 +24,9 @@ class CntrMaster (F2P_sr.CntrMaster):
         set variables that are unique for 'sr' flavor of F2P.
         """
         super().setFlavorParams()
-        self.cntrMaxVec = np.binary_repr  (2**self.cntrSize-1, self.cntrSize) # the cntr that reaches the highest value is "11...11"
-        
+        self.cntrMaxVec  = np.binary_repr ((1<<self.cntrSize)-1, self.cntrSize)  
+        self.cntrMaxVec = np.binary_repr  (2**(self.cntrSize-1)-1, self.cntrSize) # the cntr that reaches the highest value is "11...11"
+            
     def calcParams (self):
         """
         Calc the basics param, which are depended upon the counter size, and the hyper-exp' size.
@@ -72,6 +73,8 @@ class CntrMaster (F2P_sr.CntrMaster):
         # Extract the hyper-exponent field, and value
         self.hyperSize = settings.idxOfLeftmostZero (ar=cntr, maxIdx=self.hyperMaxSize)         
         expSize      = self.hyperSize
+        # if self.hyperSize==0:
+        #     expVecBegin = 0 
         if self.hyperSize < self.hyperMaxSize: # if the # of trailing max < hyperMaxSize, the cntr must have a delimiter '0'
             expVecBegin  = self.hyperSize+1
         else:

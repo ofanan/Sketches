@@ -19,7 +19,7 @@ class CntrMaster (Cntr.CntrMaster):
     genSettingsStr = lambda self : f'F2P{self.flavor()}_n{self.cntrSize}_h{self.hyperSize}'
     
     # print the details of the counter in a convenient way
-    printCntrLine  = lambda self, cntr, expVec, expVal, power, mantVec, mantVal, cntrVal : print (f'cntr={cntr}, hyperVec={cntr[0:self.hyperSize]}, expVec={expVec}, bias={self.bias}, expVal={expVal}, power={power}, mantVec={cntrVal}, mantVal={mantVal}, val={cntrVal}')
+    printCntrLine  = lambda self, cntr, expVec, expVal, power, mantVec, mantVal, cntrVal : print (f'cntr={cntr}, hyperVec={cntr[0:self.hyperSize]}, expVec={expVec}, bias={self.bias}, expVal={expVal}, power={power}, mantVec={mantVec}, mantVal={mantVal}, val={cntrVal}')
 
     # Given the vector of the exponent, calculate the value it represents 
     expVec2expVal  = lambda self, expVec, expSize : (2**expSize - 1 + int (expVec, base=2)) if expSize>0 else 0    
@@ -96,7 +96,14 @@ class CntrMaster (Cntr.CntrMaster):
                 power = self.powerMin
             else:
                 power = expVal + self.bias
-            self.printCntrLine (cntr=cntr, expVec=expVec, expVal=expVal, power=power, mantVec=mantVec, mantVal=mantVal, cntrVal=cntrVal)
+            self.printCntrLine (
+                cntr    = cntr, 
+                expVec  = expVec, 
+                expVal  = expVal, 
+                power   = power, 
+                mantVec = mantVec, 
+                mantVal = mantVal, 
+                cntrVal = cntrVal)
         return cntrVal
     
     def setHyperSize (self, hyperSize):

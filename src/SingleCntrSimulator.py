@@ -4,8 +4,8 @@ Controller that runs single-counter simulations, using various types of counters
 import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
-import settings, Cntr, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li, F2P_si, FP, SEAD_stat, SEAD_dyn, F3P_sr   
-from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
+import settings, Cntr, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li, F2P_si, FP, SEAD_stat, SEAD_dyn, F3P_sr, F3P_lr   
+from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS, VERBOSE_COUT_CONF, VERBOSE_COUT_CNTRLINE
 from datetime import datetime
 
 class SingleCntrSimulator (object):
@@ -658,7 +658,7 @@ def coutConfDataF2P (cntrSize, hyperSize, flavor='', verbose=[]):
     print basic configuration data about the requested flavor. 
     The conf' data includes cntrSize, hyperSize, Vmax, bias. 
     """
-    genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=[settings.VERBOSE_COUT_CONF])
+    genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=[VERBOSE_COUT_CONF])
 
 def printAllCntrMaxValsF2P (
         flavor          : str  = 'sr', 
@@ -694,11 +694,11 @@ def printAllCntrMaxValsF2P (
 def main ():
     hyperSize  = 2
     getAllValsF2P (
-       flavor='sr', 
-       cntrSize     = 6, # size of the counter, WITHOUT the sign bit (if exists).  
+       flavor='lr', 
+       cntrSize     = 7, # size of the counter, WITHOUT the sign bit (if exists).  
        hyperMaxSize = 2, # Max size of the hyper-exp field. Relevant only for F3P. 
        mode         = 'F3P', # either 'F2P' or 'F3P'
-       verbose      = [VERBOSE_RES], #verbose level. See settings.py for details.
+       verbose      = [VERBOSE_RES, VERBOSE_COUT_CONF], #verbose level. See settings.py for details.
        signed       = False # When True, assume an additional bit for the  
     )
     # for cntrSize in [8, 10, 12, 14]:
