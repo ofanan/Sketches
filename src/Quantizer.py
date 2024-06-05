@@ -8,7 +8,7 @@ import settings, ResFileParser, F2P_sr, F2P_lr, F2P_li, FP, SEAD_stat, SEAD_dyn
 from tictoc import tic, toc
 from printf import printf, printar, printarFp
 from SingleCntrSimulator import main, getAllValsFP, getAllValsF2P
-from ResFileParser import genRndErrFileName, getnumSettings, colors, colorOfMode, labelOfMode, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, FONT_SIZE_SMALL, LEGEND_FONT_SIZE, LEGEND_FONT_SIZE_SMALL
+from ResFileParser import genRndErrFileName, getFxpSettings, colors, colorOfMode, labelOfMode, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, FONT_SIZE_SMALL, LEGEND_FONT_SIZE, LEGEND_FONT_SIZE_SMALL
 from settings import error, warning, VERBOSE_RES, VERBOSE_PCL 
 
 MAX_DF = 20
@@ -416,7 +416,7 @@ def plotGrids (
                 'grid'  : grid
                 }
         elif mode.startswith('F2P'):
-            numSettings = getnumSettings (mode)
+            numSettings = getFxpSettings (mode)
             flavor    = numSettings['flavor'] 
             grid    = getAllValsF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=numSettings['hyperSize'], verbose=verbose, signed=signed)
             if scale:
