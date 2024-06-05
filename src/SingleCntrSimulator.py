@@ -696,7 +696,7 @@ def main ():
     getAllValsF2P (
        flavor='lr', 
        cntrSize     = 7, # size of the counter, WITHOUT the sign bit (if exists).  
-       hyperMaxSize = 2, # Max size of the hyper-exp field. Relevant only for F3P. 
+       hyperMaxSize = 3, # Max size of the hyper-exp field. Relevant only for F3P. 
        mode         = 'F3P', # either 'F2P' or 'F3P'
        verbose      = [VERBOSE_RES, VERBOSE_COUT_CONF], #verbose level. See settings.py for details.
        signed       = False # When True, assume an additional bit for the  

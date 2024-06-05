@@ -24,7 +24,7 @@ class CntrMaster (F2P_sr.CntrMaster):
         set variables that are unique for 'sr' flavor of F2P.
         """
         super().setFlavorParams()
-        self.cntrMaxVec = np.binary_repr  (2**self.cntrSize-1, self.cntrSize) # the cntr that reaches the highest value is "11...11"
+        self.cntrMaxVec = '1'*self.cntrSize #  np.binary_repr  (2**self.cntrSize-1, self.cntrSize) # the cntr that reaches the highest value is "11...11"
         
     def calcParams (self):
         """
