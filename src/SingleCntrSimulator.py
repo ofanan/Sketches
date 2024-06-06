@@ -4,7 +4,8 @@ Controller that runs single-counter simulations, using various types of counters
 import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
-import settings, Cntr, CEDAR, Morris, AEE, F2P_sr, F2P_lr, F2P_li, F2P_si, FP, SEAD_stat, SEAD_dyn, F3P_sr, F3P_lr   
+import settings, Cntr, CEDAR, Morris, AEE, FP, SEAD_stat, SEAD_dyn   
+import F2P_sr, F2P_lr, F2P_li, F2P_si, F3P_sr, F3P_lr, F3P_li   
 from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS, VERBOSE_COUT_CONF, VERBOSE_COUT_CNTRLINE
 from datetime import datetime
 
@@ -693,9 +694,9 @@ def printAllCntrMaxValsF2P (
 def main ():
     hyperSize  = 2
     getAllValsFxp (
-       flavor='lr', 
-       cntrSize     = 7, # size of the counter, WITHOUT the sign bit (if exists).  
-       hyperMaxSize = 3, # Max size of the hyper-exp field. Relevant only for F3P. 
+       flavor='li', 
+       cntrSize     = 6, # size of the counter, WITHOUT the sign bit (if exists).  
+       hyperSize    = 2, # Max size of the hyper-exp field. Relevant only for F3P. 
        nSystem      = 'F3P', # either 'F2P' or 'F3P'
        verbose      = [VERBOSE_RES, VERBOSE_COUT_CONF], #verbose level. See settings.py for details.
        signed       = False # When True, assume an additional bit for the  

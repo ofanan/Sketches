@@ -23,22 +23,22 @@ class CntrMaster (F3P_lr.CntrMaster):
         """
         set variables that are unique for 'li' flavor of F3P.
         """
-        self.bias           = self.cntrSize - 2*self.hyperSize + self.Vmax - 2
-        self.expMinVec      = '1'*self.hyperSize
+        self.bias           = self.cntrSize - 2*self.hyperMaxSize + self.Vmax - 2
+        self.expMinVec      = '1'*self.hyperMaxSize
         self.expMinVal      = 1 - self.Vmax        
-        mantMinSize         = self.cntrSize - 2*self.hyperSize
+        mantMinSize         = self.cntrSize - 2*self.hyperMaxSize
         self.cntrZeroVec    = '1'*(self.cntrSize-mantMinSize) + '0'*mantMinSize    
         self.cntrMaxVec     = '0' + '1'*(self.cntrSize-1) 
 
         self.probOfInc1 = np.zeros (self.Vmax)
         # mantSizeOfHyperSize[h] will hold the mantissa size when the hyperSize is h
         mantSizeOfHyperSize = [self.cntrSize - 2*hyperSize - 1 for hyperSize in range (self.hyperMaxSize+1)]
-        mantSizeOfHyperSize[self.hyperMaxSize] = self.cntrSize - 2*hyperSize # for this concrete case, there's no delimiter bit.
+        mantSizeOfHyperSize[self.hyperMaxSize] = self.cntrSize - 2*self.hyperMaxSize # for this concrete case, there's no delimiter bit.
         
         for hyperSize in range(0, self.hyperMaxSize+1):
-            for i in range (2**expSize):
-                expVec = np.binary_repr(num=i, width=expSize)
-                expVal = self.expVec2expVal (expVec=expVec, expSize=expSize)
+            for i in range (2**hyperSize):
+                expVec = np.binary_repr(num=i, width=hyperSize)
+                expVal = self.expVec2expVal (expVec=expVec, expSize=hyperSize)
                 resolution = 2**(expVal + self.bias - mantSizeOfHyperSize[hyperSize])
                 self.probOfInc1[abs(expVal)] = 1/resolution
         
@@ -88,11 +88,11 @@ class CntrMaster (F3P_lr.CntrMaster):
         cntr        = self.cntrs[cntrIdx]
         hyperSize   = settings.idxOfLeftmostZero (ar=cntr, maxIdx=self.hyperMaxSize)
         if hyperSize==self.hyperMaxSize: # need no delimiter
-            expVec = cntr[self.hyperSize:self.hyperSize+expSize]
+            expVec = cntr[hyperSize:2*hyperSize]
         else:
-            expVec = cntr[(self.hyperSize+1):self.hyperSize+1+expSize]
+            expVec = cntr[(hyperSize+1):(2*hyperSize+1)]
         expVal     = int (self.expVec2expVal(expVec=expVec, expSize=hyperSize))
-        mantSize   = self.cntrSize - 2*self.hyperSize
+        mantSize   = self.cntrSize - 2*hyperSize
         if hyperSize<self.hyperMaxSize:
             mantSize -=1 # recall 1 more bit for the delimiter. 
         mantVec    = cntr[-mantSize:]
