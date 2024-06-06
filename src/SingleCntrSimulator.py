@@ -605,8 +605,7 @@ def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit)
 
 def getAllValsFxp (flavor='', 
    cntrSize     = 8, # size of the counter, WITHOUT the sign bit (if exists).  
-   hyperSize    = 2, # size of the hyper-exp field. Relevant only for F2P.
-   hyperMaxSize = 2, # Max size of the hyper-exp field. Relevant only for F3P. 
+   hyperSize    = 2, # size of the hyper-exp field (in F2P); Max size of the hyper-exp field (in F2P).
    nSystem      = 'F2P', # either 'F2P' or 'F3P'
    verbose      = [], #verbose level. See settings.py for details.
    signed       = False # When True, assume an additional bit for the  
@@ -624,7 +623,7 @@ def getAllValsFxp (flavor='',
     if nSystem=='F2P':
         myCntrMaster = genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
     elif nSystem=='F3P':
-        myCntrMaster = genCntrMasterF3P (flavor=flavor, cntrSize=cntrSize, hyperMaxSize=hyperMaxSize, verbose=verbose)
+        myCntrMaster = genCntrMasterF3P (flavor=flavor, cntrSize=cntrSize, hyperMaxSize=hyperSize, verbose=verbose)
     else:
         error (f'In SingleCntrSimulator.getAllValsFxp(). The number system {nSystem} that you chose is not supported.')
     if myCntrMaster.isFeasible==False:

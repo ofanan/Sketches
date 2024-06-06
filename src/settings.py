@@ -77,12 +77,12 @@ def modesOfCntrSize (cntrSize):
     """
     Return a list of modes to consider given the counter's size.
     """
-    if cntrSize==19: #$$$
-        return F3Pmodes #F2Pmodes + ['int', 'SEAD_dyn'] + FP19modes
-    elif cntrSize==16: #$$$
-        return F3Pmodes # F2Pmodes + ['int', 'SEAD_dyn'] + FP16modes
-    elif cntrSize==8: #$$$
-        return F3Pmodes ## F2Pmodes + ['int', 'SEAD_dyn'] + FP8modes
+    if cntrSize==19: 
+        return F3Pmodes #$$ + F2Pmodes + ['int', 'SEAD_dyn'] + FP19modes
+    elif cntrSize==16: 
+        return F3Pmodes #$$ + F2Pmodes + ['int', 'SEAD_dyn'] + FP16modes
+    elif cntrSize==8: 
+        return F3Pmodes #$$ + F2Pmodes + ['int', 'SEAD_dyn'] + FP8modes
     else:
         error (f'In settings.modesOfCntrSize(). No hard-coded list of modes for cntrSize={cntrSize}.')
  

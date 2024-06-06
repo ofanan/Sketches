@@ -11,7 +11,7 @@ from PIL import Image
 import os, scipy, pickle, numpy as np
 
 import Quantizer, settings
-from settings import VERBOSE_RES, VERBOSE_PCL
+from settings import error, warning, VERBOSE_RES, VERBOSE_PCL
 
 # def preprocessImage(imagePath):
 #     # Define the transformations to be applied to the input image
@@ -79,7 +79,7 @@ def calcQuantRoundErrOfModel (
     calculate the quantization round error obtained for the given model.
     Output the results as detailed in verbose. 
     """
-    
+
     for cntrSize in [8, 16, 19]:
         Quantizer.calcQuantRoundErr(
             cntrSize        = cntrSize,
@@ -128,7 +128,7 @@ def ModelsQuantRoundErr (modelStrs=[]):
 
 if __name__ == '__main__':
     try:
-        ModelsQuantRoundErr (['Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3']) #'MobileNet_V2', 'Resnet18', 'Resnet50'])
+        ModelsQuantRoundErr (['MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50']) #'MobileNet_V2', 'Resnet18', 'Resnet50'])
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 

@@ -712,6 +712,10 @@ class ResFileParser (object):
         
         self.rdPcl (f'{genRndErrFileName(cntrSize)}.pcl')
         modes = settings.modesOfCntrSize(cntrSize)
+        for mode in modes:
+            printf (resFile, f'{mode} \t\t&') 
+        printf (resFile, '\n')
+
         points = [point for point in self.points if point['mode'] in modes]
         
         for dist in distStrs:
@@ -807,8 +811,8 @@ def genRndErrTable ():
         printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
         myResFileParser = ResFileParser ()
         myResFileParser.printRndErrTableRow (
-            # distStrs = ['Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
-            distStrs = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
+            distStrs = ['Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
+            # distStrs = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
             cntrSize = cntrSize,
             resFile  = resFile,
             errType  = errType,
@@ -906,19 +910,23 @@ def genErVsCntrSizeTableTrace ():
 def rmvFromPcl ():
     myResFileParser = ResFileParser()
     myResFileParser.rmvFromPcl(
-        pclFileName = 'rndErr_n19_wrong_si_li.pcl',
-        listOfDicts = [{'mode' : 'F2P_li_h2'},
-                       {'mode' : 'F2P_si_h2'},
-                       {'mode' : 'F2P_li_h1'},
-                       {'mode' : 'F2P_si_h1'}]
+        pclFileName = 'rndErr_n8.pcl',
+        listOfDicts = [
+            {'mode' : 'F3P_lr_h1'},
+            {'mode' : 'F3P_lr_h2'},
+            {'mode' : 'F3P_lr_h3'},
+            {'mode' : 'F3P_sr_h1'},
+            {'mode' : 'F3P_sr_h2'},
+            {'mode' : 'F3P_sr_h3'}]
         )
         
 if __name__ == '__main__':
     try:
-        genErVsCntrSizeSingleCntr ()
+        # genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
-        # genRndErrTable ()
+        # rmvFromPcl ()
+        genRndErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 
