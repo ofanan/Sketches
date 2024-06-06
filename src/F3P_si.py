@@ -23,7 +23,7 @@ class CntrMaster (F3P_li.CntrMaster):
         """
         set variables that are unique for 'si' flavor of F3P.
         """
-        self.bias           = self.cntrSize - self.hyperSize - 1
+        self.bias           = self.cntrSize - self.hyperMaxSize - 1
         self.expMinVec      = ''
         self.expMinVal      = 0        
         self.cntrZeroVec    = '0'*(self.cntrSize)
@@ -37,7 +37,7 @@ class CntrMaster (F3P_li.CntrMaster):
         self.probOfInc1 = np.zeros (self.Vmax)
         for hyperSize in range(0, self.hyperMaxSize+1):
             for i in range (2**hyperSize):
-                expVec = np.binary_repr(num=i, width=expSize) if hyperSize>0 else ''
+                expVec = np.binary_repr(num=i, width=hyperSize) if hyperSize>0 else ''
                 expVal = self.expVec2expVal (expVec=expVec, expSize=hyperSize)
                 resolution = 2**(expVal + self.bias - mantSizeOfHyperSize[hyperSize])
                 self.probOfInc1[abs(expVal)] = 1/resolution
@@ -50,14 +50,14 @@ class CntrMaster (F3P_li.CntrMaster):
             for item in self.probOfInc1:
                 printf (debugFile, '{:.1f}\n' .format (1/item))
 
-        self.cntrppOfAbsExpVal = [np.binary_repr(num=1, width=self.hyperMaxSize) + '0'*(self.cntrSize-self.hyperMaxSize)]*(self.Vmax-1)
-        expVal = 1
-        for hyperSize in range(1, self.hyperMaxSize+1):
-            hyperVec = '1'*hyperSize 
-            for i in range (2**hyperSize-1): 
-                expVec = np.binary_repr(num=i, width=hyperSize)
-                self.cntrppOfAbsExpVal[expVal] = hyperVec + np.binary_repr(num=i+1, width=hyperSize) + '0'*mantSize 
-                expVal += 1
-            if hyperSize<self.expMaxSize:
-                self.cntrppOfAbsExpVal[expVal] = 1'1*' + '0'*(self.cntrSize - self.hyperSize)
-                expVal += 1
+        # self.cntrppOfAbsExpVal = [np.binary_repr(num=1, width=self.hyperMaxSize) + '0'*(self.cntrSize-self.hyperMaxSize)]*(self.Vmax-1)
+        # expVal = 1
+        # for hyperSize in range(1, self.hyperMaxSize+1):
+        #     hyperVec = '1'*hyperSize 
+        #     for i in range (2**hyperSize-1): 
+        #         expVec = np.binary_repr(num=i, width=hyperSize)
+        #         self.cntrppOfAbsExpVal[expVal] = hyperVec + np.binary_repr(num=i+1, width=hyperSize) + '0'*mantSizeOfHyperSize[self.hyperMaxSize] 
+        #         expVal += 1
+        #     if hyperSize<self.expMaxSize:
+        #         self.cntrppOfAbsExpVal[expVal] = '1*' + '0'*(self.cntrSize - self.hyperSize)
+        #         expVal += 1
