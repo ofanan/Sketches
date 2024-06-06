@@ -23,7 +23,7 @@ class CntrMaster (F3P_li.CntrMaster):
         """
         set variables that are unique for 'si' flavor of F3P.
         """
-        self.bias           = self.cntrSize - self.hyperMaxSize - 1
+        self.bias           = self.cntrSize - 2
         self.expMinVec      = ''
         self.expMinVal      = 0        
         self.cntrZeroVec    = '0'*(self.cntrSize)
