@@ -537,36 +537,43 @@ class SingleCntrSimulator (object):
             self.runSingleCntrSingleMode ()
         return
 
-def genCntrMasterF2P (cntrSize, hyperSize, flavor='', verbose=[]):
+def genCntrMasterFxp (
+        cntrSize    : int, 
+        hyperSize   : int, 
+        nSystem     : str, # 'F2P' or 'F3P
+        flavor      : str, # 'sr' / 'lr' / 'si' / 'li' 
+        verbose     = []        # list of verboses taken from the veroses, defined in settings.py 
+    ):
     """
-    return an F2P's CntrMaster belonging to the selected flavor 
+    return a CntrMaster belonging to the selected flavor ('sr', 'lr', etc.) and number system ('F2P' or 'F3P') 
     """
-    if flavor=='sr':
-        return F2P_sr.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
-    elif flavor=='lr':
-        return F2P_lr.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
-    elif flavor=='li':
-        return F2P_li.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
-    elif flavor=='si':
-        return F2P_si.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
-    else:
-        settings.error (f'In SingleCntrSimulator.genCntrMasterF2P(). the requested F2P flavor {flavor} is not supported.')
+    if nSystem=='F2P':
+        if flavor=='sr':
+            return F2P_sr.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+        elif flavor=='lr':
+            return F2P_lr.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+        elif flavor=='li':
+            return F2P_li.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+        elif flavor=='si':
+            return F2P_si.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+        else:
+            settings.error (f'In SingleCntrSimulator.genCntrMasterFxp(). the requested F2P flavor {flavor} is not supported.')
 
+    elif nSystem=='F3P':
 
-def genCntrMasterF3P (cntrSize, hyperMaxSize, flavor='', verbose=[]):
-    """
-    return an F2P's CntrMaster belonging to the selected flavor 
-    """
-    if flavor=='sr':
-        return F3P_sr.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperMaxSize, verbose=verbose)
-    elif flavor=='lr':
-        return F3P_lr.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperMaxSize, verbose=verbose)
-    elif flavor=='li':
-        return F3P_li.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperMaxSize, verbose=verbose)
-    elif flavor=='si':
-        return F3P_si.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperMaxSize, verbose=verbose)
+        if flavor=='sr':
+            return F3P_sr.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperSize, verbose=verbose)
+        elif flavor=='lr':
+            return F3P_lr.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperSize, verbose=verbose)
+        elif flavor=='li':
+            return F3P_li.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperSize, verbose=verbose)
+        elif flavor=='si':
+            return F3P_si.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperSize, verbose=verbose)
+        else:
+            error (f'In SingleCntrSimulator.genCntrMasterFxp(). the requested F3P flavor {flavor} is not supported.')
+
     else:
-        settings.error (f'In SingleCntrSimulator.genCntrMasterF3P(). the requested F2P flavor {flavor} is not supported.')
+        error (f'In SingleCntrSimulator.genCntrMasterFxp(). the requested number system {nSysem } is not supported.')
 
 
 def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit) 
@@ -621,12 +628,7 @@ def getAllValsFxp (flavor='',
     """
     if signed: 
         cntrSize -= 1 
-    if nSystem=='F2P':
-        myCntrMaster = genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
-    elif nSystem=='F3P':
-        myCntrMaster = genCntrMasterF3P (flavor=flavor, cntrSize=cntrSize, hyperMaxSize=hyperSize, verbose=verbose)
-    else:
-        error (f'In SingleCntrSimulator.getAllValsFxp(). The number system {nSystem} that you chose is not supported.')
+    myCntrMaster = genCntrMasterFxp (nSystem=nSystem, flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
     if myCntrMaster.isFeasible==False:
         settings.error (f'The requested configuration is not feasible.')
     listOfVals = []
@@ -653,14 +655,8 @@ def getAllValsFxp (flavor='',
         
     return listOfVals
 
-def coutConfDataF2P (cntrSize, hyperSize, flavor='', verbose=[]):
-    """
-    print basic configuration data about the requested flavor. 
-    The conf' data includes cntrSize, hyperSize, Vmax, bias. 
-    """
-    genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=[VERBOSE_COUT_CONF])
-
-def printAllCntrMaxValsF2P (
+def printAllCntrMaxValsFxp (
+        nSystem         : str, # either 'F2p' or 'F3P.
         flavor          : str  = 'sr', 
         hyperSizeRange  : list = [], # list of hyper-sizes to consider  
         cntrSizeRange   : list = [], # list of cntrSizes to consider
@@ -673,7 +669,7 @@ def printAllCntrMaxValsF2P (
 
     for cntrSize in cntrSizeRange:
         for hyperSize in range (1,cntrSize-2) if hyperSizeRange==None else hyperSizeRange:
-            myCntrMaster = genCntrMasterF2P (flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize)
+            myCntrMaster = genCntrMasterFxp (nSystem=nSystem, flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize)
             if myCntrMaster.isFeasible==False:
                 continue
             if (VERBOSE_RES in verbose):
@@ -692,12 +688,12 @@ def printAllCntrMaxValsF2P (
     return cntrMaxVal
 
 def main ():
-    hyperSize  = 2
+    hyperSize  = 3
     getAllValsFxp (
-       flavor='si', 
-       cntrSize     = 6, # size of the counter, WITHOUT the sign bit (if exists).  
-       hyperSize    = 2, # Max size of the hyper-exp field. Relevant only for F3P. 
        nSystem      = 'F3P', # either 'F2P' or 'F3P'
+       cntrSize     = 7, # size of the counter, WITHOUT the sign bit (if exists).  
+       hyperSize    = 3, # Max size of the hyper-exp field. Relevant only for F3P. 
+       flavor       = 'li', 
        verbose      = [VERBOSE_RES, VERBOSE_COUT_CONF], #verbose level. See settings.py for details.
        signed       = False # When True, assume an additional bit for the  
     )
