@@ -7,7 +7,7 @@ import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_
 from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, calcPostSimStat
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp
-from SingleCntrSimulator import getFxpCntrMaxVal
+from SingleCntrSimulator import getFxpCntrMaxVal, genCntrMasterFxp
 
 class CountMinSketch:
 
@@ -48,7 +48,7 @@ class CountMinSketch:
         if depth<2 or width<2:
             print (f'Note: CountMinSketch was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
-
+        self.maxValBy = maxValBy
         self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=maxValBy)
         self.mode, self.seed = mode, seed
         random.seed (self.seed)
@@ -90,17 +90,11 @@ class CountMinSketch:
                 cntrSize        = self.cntrSize, 
                 numCntrs        = self.numCntrs, 
                 verbose         = self.verbose)
-        elif self.mode.startswith('F2P_li'):
-            self.cntrMaster = F2P_li.CntrMaster (
-                cntrSize        = self.cntrSize, 
-                numCntrs        = self.numCntrs, 
-                hyperSize       = self.hyperSize,
-                verbose         = self.verbose)
-        elif self.mode.startswith('F2P_si'):
-            self.cntrMaster = F2P_si.CntrMaster (
-                cntrSize        = self.cntrSize, 
-                numCntrs        = self.numCntrs, 
-                hyperSize       = self.hyperSize,
+        elif self.mode.startswith('F2P') or self.mode.startswith('F3P'):
+            self.cntrMaster     = genCntrMasterFxp (
+                cntrSize        = self.cntrSize,
+                numCntrs        = self.numCntrs,
+                fxpSettingStr   = self.mode, 
                 verbose         = self.verbose)
         elif self.mode=='Morris':
             self.cntrMaster = Morris.CntrMaster (
@@ -154,7 +148,7 @@ class CountMinSketch:
                 mode            = 'MEC',
                 verbose         = self.verbose)
         else:
-            warning (f'Sorry, the mode {self.mode} that you requested is not supported')
+            error (f'Sorry, the mode {self.mode} that you requested is not supported')
 
     
     def genOutputDirectories (self):

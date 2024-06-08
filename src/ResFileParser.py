@@ -134,15 +134,15 @@ def genFpLabel (mantSize : int, expSize : int) -> str:
     """
     return f'FP {mantSize}M{expSize}E'
 
-def genFxpLabel (
-        nSystem     : str, #either 'F2P', or 'F3P' 
-        flavor      : str, # flavor, e.g., 'lr', 'sr', 'li'
-        hyperSize   : int = 2 
-    ) -> str:
-    """
-    Given the parameters of F2P or F3P, generates a label string that details the counter's settings (param vals), to be used in plots.
-    """
-    return f'{nSystem} {flavor} h{hyperSize}'
+# def genFxpLabel (
+#         nSystem     : str, #either 'F2P', or 'F3P' 
+#         flavor      : str, # flavor, e.g., 'lr', 'sr', 'li'
+#         hyperSize   : int = 2 
+#     ) -> str:
+#     """
+#     Given the parameters of F2P or F3P, generates a label string that details the counter's settings (param vals), to be used in plots.
+#     """
+#     return f'{nSystem} {flavor} h{hyperSize}'
 
 def genFxpLabel (mode : str): # a mode describing the mode flavors
     """

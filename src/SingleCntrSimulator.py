@@ -567,54 +567,46 @@ class SingleCntrSimulator (object):
         return
 
 def genCntrMasterFxp (
-        cntrSize        : int,
-        fxpSettingStr   : str,
-        verbose         : list = [],
+        cntrSize        : int, 
+        numCntrs        : int = 1,
+        fxpSettingStr   : str  = None,
+        hyperSize       : int  = None, 
+        nSystem         : str  = None, # 'F2P' or 'F3P
+        flavor          : str  = None, # 'sr' / 'lr' / 'si' / 'li' 
+        verbose         : list = []    # list of verboses taken from the veroses, defined in settings.py 
     ):
     """
-    return a CntrMaster according to the settings detailed by the given string and cntrSize. 
+    return a CntrMaster belonging to the selected flavor ('sr', 'lr', etc.) and number system ('F2P' or 'F3P').
+    If fxpSettingStr==None, the settings are read from the other inputs.
+    Else, the settings are read from fxpSettingStr.
     """
-    cntrSettings = getFxpSettings (cntrSettingStr)
-    return genCntrMasterFxp (
-        cntrSize    = cntrSize, 
-        nSystem     = cntrSettings['nSystem'],
-        hyperSize   = cntrSettings['hyperSize'],
-        flavor      = cntrSettings['flavor'], 
-        verbose     = []        # list of verboses taken from the veroses, defined in settings.py 
-    )
-
-def genCntrMasterFxp (
-        cntrSize    : int, 
-        hyperSize   : int, 
-        nSystem     : str, # 'F2P' or 'F3P
-        flavor      : str, # 'sr' / 'lr' / 'si' / 'li' 
-        verbose     = []        # list of verboses taken from the veroses, defined in settings.py 
-    ):
-    """
-    return a CntrMaster belonging to the selected flavor ('sr', 'lr', etc.) and number system ('F2P' or 'F3P') 
-    """
+    if fxpSettingStr!=None:
+        cntrSettings = getFxpSettings (fxpSettingStr)
+        nSystem     = cntrSettings['nSystem']
+        hyperSize   = cntrSettings['hyperSize']
+        flavor      = cntrSettings['flavor']
     if nSystem=='F2P':
         if flavor=='sr':
-            return F2P_sr.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+            return F2P_sr.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperSize=hyperSize, verbose=verbose)
         elif flavor=='lr':
-            return F2P_lr.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+            return F2P_lr.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperSize=hyperSize, verbose=verbose)
         elif flavor=='li':
-            return F2P_li.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+            return F2P_li.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperSize=hyperSize, verbose=verbose)
         elif flavor=='si':
-            return F2P_si.CntrMaster(cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+            return F2P_si.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperSize=hyperSize, verbose=verbose)
         else:
             settings.error (f'In SingleCntrSimulator.genCntrMasterFxp(). the requested F2P flavor {flavor} is not supported.')
 
     elif nSystem=='F3P':
 
         if flavor=='sr':
-            return F3P_sr.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperSize, verbose=verbose)
+            return F3P_sr.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperMaxSize=hyperSize, verbose=verbose)
         elif flavor=='lr':
-            return F3P_lr.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperSize, verbose=verbose)
+            return F3P_lr.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperMaxSize=hyperSize, verbose=verbose)
         elif flavor=='li':
-            return F3P_li.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperSize, verbose=verbose)
+            return F3P_li.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperMaxSize=hyperSize, verbose=verbose)
         elif flavor=='si':
-            return F3P_si.CntrMaster(cntrSize=cntrSize, hyperMaxSize=hyperSize, verbose=verbose)
+            return F3P_si.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperMaxSize=hyperSize, verbose=verbose)
         else:
             error (f'In SingleCntrSimulator.genCntrMasterFxp(). the requested F3P flavor {flavor} is not supported.')
 
@@ -742,8 +734,8 @@ def getFxpCntrMaxVal (
     Given a string detailing the settings an F2P/F3P counter, returns its maximum representable value. 
     """
     
-    myCntrMaster = genCntrMasterFxp (cntrSize, fxpSettingStr=fxpSettingStr)
-    return myF2P_cntrMaster.getCntrMaxVal ()
+    myCntrMaster = genCntrMasterFxp (cntrSize=cntrSize, fxpSettingStr=fxpSettingStr)
+    return myCntrMaster.getCntrMaxVal ()
 
 def main ():
     # getAllValsFxp (
