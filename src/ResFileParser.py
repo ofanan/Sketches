@@ -8,7 +8,7 @@ from printf import printf, printFigToPdf
 from nltk.corpus.reader import lin
 
 import settings
-from settings import warning, error, VERBOSE_RES, VERBOSE_PCL
+from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, getFxpSettings
 
 # Color-blind friendly pallette
 BLACK       = '#000000' 
@@ -178,18 +178,6 @@ def fxpSettingsToLabel (mode : str) -> str:
         flavor      = numSettings['flavor'], 
         hyperSize   = numSettings['hyperSize']
     )
-
-def getFxpSettings (mode : str) -> dict:
-    """
-    given the mode string of an F2P or F3P counter, get a dictionary detailing its settings (flavor and hyperExp size).
-    """
-    nSystem   = mode.split('_')[0]
-    return {
-        'nSystem'   : nSystem,
-        'flavor'    : mode.split(f'{nSystem}_')[1].split('_')[0],
-        'hyperSize' : int(mode.split('_h')[1].split('_')[0])
-    }
-    
 
 class ResFileParser (object):
     """

@@ -7,6 +7,7 @@ import numpy as np #, scipy.stats as st, pandas as pd
 import settings, Cntr, CEDAR, Morris, AEE, FP, SEAD_stat, SEAD_dyn   
 import F2P_sr, F2P_lr, F2P_li, F2P_si, F3P_sr, F3P_lr, F3P_li, F3P_si   
 from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS, VERBOSE_COUT_CONF, VERBOSE_COUT_CNTRLINE
+from settings import getFxpSettings
 from datetime import datetime
 
 class SingleCntrSimulator (object):
@@ -566,6 +567,23 @@ class SingleCntrSimulator (object):
         return
 
 def genCntrMasterFxp (
+        cntrSize        : int,
+        fxpSettingStr   : str,
+        verbose         : list = [],
+    ):
+    """
+    return a CntrMaster according to the settings detailed by the given string and cntrSize. 
+    """
+    cntrSettings = getFxpSettings (cntrSettingStr)
+    return genCntrMasterFxp (
+        cntrSize    = cntrSize, 
+        nSystem     = cntrSettings['nSystem'],
+        hyperSize   = cntrSettings['hyperSize'],
+        flavor      = cntrSettings['flavor'], 
+        verbose     = []        # list of verboses taken from the veroses, defined in settings.py 
+    )
+
+def genCntrMasterFxp (
         cntrSize    : int, 
         hyperSize   : int, 
         nSystem     : str, # 'F2P' or 'F3P
@@ -716,6 +734,17 @@ def getCntrsMaxValsFxp (
                 printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), cntrMaxVal))
     return cntrMaxVal
 
+def getFxpCntrMaxVal (
+        cntrSize : int,
+        fxpSettingStr : str
+        ) -> float:
+    """
+    Given a string detailing the settings an F2P/F3P counter, returns its maximum representable value. 
+    """
+    
+    myCntrMaster = genCntrMasterFxp (cntrSize, fxpSettingStr=fxpSettingStr)
+    return myF2P_cntrMaster.getCntrMaxVal ()
+
 def main ():
     # getAllValsFxp (
     #    nSystem      = 'F3P', # either 'F2P' or 'F3P'
@@ -731,19 +760,17 @@ def main ():
         pivot = 'F3P_li_h1'
         numSettings = getFxpSettings (piovot)
         cntrMaxVal = getCntrsMaxValsFxp (
-            nSystem     = numSettings['nSystem'] # either 'F2p' or 'F3P.
-            flavor      = numSettings['flavor'] 
-            hyperSize   = numSettings['hyperSize'] 
-        hyperSizeRange  : list = [], # list of hyper-sizes to consider  
-        cntrSizeRange   : list = [], # list of cntrSizes to consider
-        verbose         : list =[VERBOSE_RES]
+            nSystem     = numSettings['nSystem'], # either 'F2p' or 'F3P.
+            flavor      = numSettings['flavor'], 
+            hyperSizeRange = [numSettings['hyperSize']], # list of hyper-sizes to consider  
+            cntrSizeRange  = [cntrSize], # list of cntrSizes to consider
+            verbose        =[]
         )
-        getMaxVal ()
-        simController.runSingleCntr \
+        simController.runSingleCntrSingleMode \
             (dwnSmple       = False,  
             modes          = [pivot], 
             cntrSize       = cntrSize, 
-            hyperMaxSize   = hyperMaxSize,
+            hyperMaxSize   = numSettings['hyperSize'],
             numOfExps      = 1, #100,
             erTypes        = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
         )

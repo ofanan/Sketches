@@ -7,6 +7,7 @@ import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_
 from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, calcPostSimStat
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp
+from SingleCntrSimulator import getFxpCntrMaxVal
 
 class CountMinSketch:
 
@@ -31,7 +32,7 @@ class CountMinSketch:
         cntrSize        = 2, # num of bits in each counter
         verbose         = [], # The chosen verbose options, detailed in settings.py, determine the output (e.g., to a .pcl, .res or .log file).
         seed            = settings.SEED,
-        maxValBy        = 'si', # How to calculate the maximum value (for SEAD/CEDAR). Should be either 'si', or 'li'.  
+        maxValBy        = 'F2P_si_h2', # How to calculate the maximum value (for SEAD/CEDAR).   
         numEpsilonStepsIceBkts  = 6, # number of "epsilon" steps in Ice Buckets.
         numEpsilonStepsInRegBkt = 5, # number of "epsilon" steps in regular buckets in NiceBuckets.
         numEpsilonStepsInXlBkt  = 6,  # number of "epsilon" steps in the XL buckets in NiceBuckets.
@@ -47,18 +48,8 @@ class CountMinSketch:
         if depth<2 or width<2:
             print (f'Note: CountMinSketch was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
-        if (maxValBy=='si' and mode.startswith('F2P_li')) or (maxValBy=='li' and mode.startswith('F2P_si')): 
-            error (f'__init__ was called with maxValBy={maxValBy} and mode={mode}')
-        self.maxValBy = maxValBy
 
-        if self.maxValBy=='si':
-            myF2P_cntrMaster = F2P_si.CntrMaster (cntrSize=self.cntrSize, hyperSize=self.hyperSize)
-        elif self.maxValBy=='li':
-            myF2P_cntrMaster = F2P_li.CntrMaster (cntrSize=self.cntrSize, hyperSize=self.hyperSize)
-        else:
-            error (f'__init__ was called with maxValBy={maxValBy}')
-        self.cntrMaxVal = myF2P_cntrMaster.getCntrMaxVal ()
-        # cntrMaxVal      = settings.getCntrMaxValByCntrSize (self.cntrSize),
+        self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=maxValBy)
         self.mode, self.seed = mode, seed
         random.seed (self.seed)
         self.numEpsilonStepsInRegBkt    = numEpsilonStepsInRegBkt
@@ -449,13 +440,14 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
+        maxValBy = 'F3P_li_h3'
         for cntrSize in [8]: #, 14, 16]:
-            for mode in ['F2P_li', 'SEAD_dyn', 'CEDAR', 'Morris']:    
+            for mode in [maxValBy, 'SEAD_dyn', 'CEDAR', 'Morris']:    
                 runCMS (
                     mode        = mode, 
                     cntrSize    = cntrSize, 
-                    runShortSim = False,
-                    maxValBy    = 'li'
+                    runShortSim = True,
+                    maxValBy    = maxValBy
                     )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

@@ -310,3 +310,15 @@ def calcPostSimStat (
         'warning'       : warningField  
     }
 
+def getFxpSettings (mode : str) -> dict:
+    """
+    given the mode string of an F2P or F3P counter, get a dictionary detailing its settings (flavor and hyperExp size).
+    """
+    nSystem   = mode.split('_')[0]
+    return {
+        'nSystem'   : nSystem,
+        'flavor'    : mode.split(f'{nSystem}_')[1].split('_')[0],
+        'hyperSize' : int(mode.split('_h')[1].split('_')[0])
+    }
+    
+
