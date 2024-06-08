@@ -49,7 +49,7 @@ class CountMinSketch:
             print (f'Note: CountMinSketch was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
         self.maxValBy = maxValBy
-        self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=maxValBy)
+        self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
         self.mode, self.seed = mode, seed
         random.seed (self.seed)
         self.numEpsilonStepsInRegBkt    = numEpsilonStepsInRegBkt
@@ -384,8 +384,9 @@ class CountMinSketch:
 def runCMS (mode, 
     cntrSize    = 8,
     runShortSim = True,
-    maxValBy    = 'si',
-    maxNumIncs  = float ('inf')):
+    maxValBy    = 'f2p_li_h2',
+    maxNumIncs  = float ('inf')
+):
     """
     """   
     traceFileName   = 'Caida1' 

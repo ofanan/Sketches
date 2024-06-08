@@ -31,13 +31,14 @@ class CntrMaster (F3P_lr.CntrMaster):
         self.cntrMaxVec     = '0' + '1'*(self.cntrSize-1) 
 
         self.probOfInc1 = np.zeros (self.Vmax)
+
         # mantSizeOfHyperSize[h] will hold the mantissa size when the hyperSize is h
         mantSizeOfHyperSize = [self.cntrSize - 2*hyperSize - 1 for hyperSize in range (self.hyperMaxSize+1)]
         mantSizeOfHyperSize[self.hyperMaxSize] = self.cntrSize - 2*self.hyperMaxSize # for this concrete case, there's no delimiter bit.
 
         for hyperSize in range(0, self.hyperMaxSize+1):
             for i in range (2**hyperSize):
-                expVec = np.binary_repr(num=i, width=hyperSize)
+                expVec = np.binary_repr(num=i, width=hyperSize) if hyperSize>0 else ''
                 expVal = self.expVec2expVal (expVec=expVec, expSize=hyperSize)
                 resolution = 2**(expVal + self.bias - mantSizeOfHyperSize[hyperSize])
                 self.probOfInc1[abs(expVal)] = 1/resolution

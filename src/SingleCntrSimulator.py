@@ -733,7 +733,6 @@ def getFxpCntrMaxVal (
     """
     Given a string detailing the settings an F2P/F3P counter, returns its maximum representable value. 
     """
-    
     myCntrMaster = genCntrMasterFxp (cntrSize=cntrSize, fxpSettingStr=fxpSettingStr)
     return myCntrMaster.getCntrMaxVal ()
 
