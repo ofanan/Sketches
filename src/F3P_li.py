@@ -65,7 +65,7 @@ class CntrMaster (F3P_lr.CntrMaster):
                     self.cntrppOfAbsExpVal[absExpVal] = '1'*hyperSize + '0' + expVec + '0'*mantSizeOfHyperSize[hyperSize]
                 absExpVal -= 1 
             if hyperSize>0:
-                self.cntrppOfAbsExpVal[absExpVal] = '1'*(hyperSize-1) + '0'*(1 + hyperSize + mantSizeOfHyperSize[hyperSize+1])
+                self.cntrppOfAbsExpVal[absExpVal] = '1'*(hyperSize-1) + '0' + '1'*(hyperSize-1) + '0'*mantSizeOfHyperSize[hyperSize+1]
                 absExpVal -= 1
 
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
