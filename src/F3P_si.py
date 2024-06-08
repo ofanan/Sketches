@@ -29,8 +29,6 @@ class CntrMaster (F3P_li.CntrMaster):
         self.cntrZeroVec    = '0'*(self.cntrSize)
         self.cntrMaxVec     = '1'*(self.cntrSize)
 
-            
-        # mantSizeOfHyperSize[h] will hold the mantissa size when the hyperSize is h
         mantSizeOfHyperSize = [self.cntrSize - 2*hyperSize - 1 for hyperSize in range (self.hyperMaxSize+1)]
         mantSizeOfHyperSize[self.hyperMaxSize] = self.cntrSize - 2*self.hyperMaxSize # for this concrete case, there's no delimiter bit.
 
@@ -50,7 +48,8 @@ class CntrMaster (F3P_li.CntrMaster):
             for item in self.probOfInc1:
                 printf (debugFile, '{:.1f}\n' .format (1/item))
 
-        self.cntrppOfAbsExpVal = [None]*(self.Vmax-1) #['' for _ in range(self.Vmax)]
+        # self.cntrppOfAbsExpVal[e] will hold the next cntr when the (mantissa of the) counter with expVal=e is saturated.
+        self.cntrppOfAbsExpVal = [None]*(self.Vmax-1) 
         expVal = 0
         for hyperSize in range(0, self.hyperMaxSize+1):
             for i in range (2**hyperSize-1): 

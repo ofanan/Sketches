@@ -34,7 +34,7 @@ class CntrMaster (F3P_lr.CntrMaster):
         # mantSizeOfHyperSize[h] will hold the mantissa size when the hyperSize is h
         mantSizeOfHyperSize = [self.cntrSize - 2*hyperSize - 1 for hyperSize in range (self.hyperMaxSize+1)]
         mantSizeOfHyperSize[self.hyperMaxSize] = self.cntrSize - 2*self.hyperMaxSize # for this concrete case, there's no delimiter bit.
-        
+
         for hyperSize in range(0, self.hyperMaxSize+1):
             for i in range (2**hyperSize):
                 expVec = np.binary_repr(num=i, width=hyperSize)
@@ -51,19 +51,22 @@ class CntrMaster (F3P_lr.CntrMaster):
                 printf (debugFile, '{:.1f}\n' .format (1/item))
             
         if any ([item>1 for item in self.probOfInc1]):
-            error (f'F3P_li Got entry>1 for self.probOfInc1. self.probOfInc1={self.probOfInc1}')
+            error (f'F3P_li got entry>1 for self.probOfInc1. self.probOfInc1={self.probOfInc1}')
+
         # self.cntrppOfAbsExpVal[e] will hold the next cntr when the (mantissa of the) counter with expVal=e is saturated.
-        self.cntrppOfAbsExpVal = ['' for _ in range(self.Vmax)]
+        self.cntrppOfAbsExpVal = [None]*self.Vmax 
+        absExpVal = self.Vmax
         for hyperSize in range(self.hyperMaxSize, 0, -1):
             for i in range (2**hyperSize-1, 0, -1): 
-                expVec = np.binary_repr(num=i, width=hyperSize)
-                expVal = self.expVec2expVal (expVec=expVec, expSize=hyperSize)
-                if hyperSize==self.hyperMaxSize and i>0: 
-                    self.cntrppOfAbsExpVal[abs(expVal)] = '1'*hyperSize       + np.binary_repr(num=i-1, width=hyperSize) + '0'*mantSizeOfHyperSize[hyperSize] 
+                expVec = np.binary_repr(num=i-1, width=hyperSize)
+                if hyperSize==self.hyperMaxSize: 
+                    self.cntrppOfAbsExpVal[absExpVal] = '1'*hyperSize       + expVec + '0'*mantSizeOfHyperSize[hyperSize] 
                 else:
-                    self.cntrppOfAbsExpVal[abs(expVal)] = '1'*hyperSize + '0' + np.binary_repr(num=i-1, width=hyperSize) + '0'*mantSizeOfHyperSize[hyperSize] 
-            # expVal = self.expVec2expVal (expVec='0'*hyperSize, expSize=hyperSize)
-            # self.cntrppOfAbsExpVal[abs(expVal)] = '1'*(hyperSize-1) + '0' + np.binary_repr (expSize-1, self.hyperSize) + ('1'*(expSize-1) if expSize>1 else '') + '0'*(mantSize+1)
+                    self.cntrppOfAbsExpVal[absExpVal] = '1'*hyperSize + '0' + expVec + '0'*mantSizeOfHyperSize[hyperSize]
+                absExpVal -= 1 
+            if hyperSize>0:
+                self.cntrppOfAbsExpVal[absExpVal] = '1'*(hyperSize-1) + '0'*(1 + hyperSize + mantSizeOfHyperSize[hyperSize+1])
+                absExpVal -= 1
 
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
         """
