@@ -68,8 +68,6 @@ class CntrMaster (F3P_lr.CntrMaster):
             if hyperSize>0:
                 self.cntrppOfAbsExpVal[absExpVal] = '1'*(hyperSize-1) + '0' + '1'*(hyperSize-1) + '0'*mantSizeOfHyperSize[hyperSize-1]
                 absExpVal -= 1
-        print (f'cntrppOfAbsExpVal={self.cntrppOfAbsExpVal}\nresoution={[1/item for item in self.probOfInc1]}')
-        exit () #$$$
         
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
         """
