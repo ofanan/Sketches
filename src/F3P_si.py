@@ -65,5 +65,3 @@ class CntrMaster (F3P_li.CntrMaster):
                 else:
                     self.cntrppOfAbsExpVal[expVal] = '1'*(hyperSize+1) + '0'*(1 + hyperSize + mantSizeOfHyperSize[hyperSize+1])
                 expVal += 1
-        print (f'cntrppOfAbsExpVal={self.cntrppOfAbsExpVal}\nresoution={[1/item for item in self.probOfInc1]}')
-        exit () #$$$

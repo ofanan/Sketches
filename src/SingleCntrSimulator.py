@@ -750,7 +750,7 @@ def main ():
     for cntrSize in [8, 10, 12, 14]:
         simController = SingleCntrSimulator (verbose = [VERBOSE_RES]) #, VERBOSE_PCL
         pivot = 'F3P_li_h1'
-        numSettings = getFxpSettings (piovot)
+        numSettings = getFxpSettings (pivot)
         cntrMaxVal = getCntrsMaxValsFxp (
             nSystem     = numSettings['nSystem'], # either 'F2p' or 'F3P.
             flavor      = numSettings['flavor'], 

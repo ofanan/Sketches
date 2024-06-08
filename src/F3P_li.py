@@ -5,7 +5,7 @@ import math, random, pickle, numpy as np
 
 from printf import printf
 import settings, F3P_lr
-from settings import VERBOSE_DEBUG
+from settings import error, VERBOSE_DEBUG
 
 class CntrMaster (F3P_lr.CntrMaster):
     """
@@ -55,19 +55,21 @@ class CntrMaster (F3P_lr.CntrMaster):
 
         # self.cntrppOfAbsExpVal[e] will hold the next cntr when the (mantissa of the) counter with expVal=e is saturated.
         self.cntrppOfAbsExpVal = [None]*self.Vmax 
-        absExpVal = self.Vmax
+        absExpVal = self.Vmax-1
         for hyperSize in range(self.hyperMaxSize, 0, -1):
             for i in range (2**hyperSize-1, 0, -1): 
                 expVec = np.binary_repr(num=i-1, width=hyperSize)
-                if hyperSize==self.hyperMaxSize: 
+                if hyperSize==self.hyperMaxSize:
                     self.cntrppOfAbsExpVal[absExpVal] = '1'*hyperSize       + expVec + '0'*mantSizeOfHyperSize[hyperSize] 
                 else:
                     self.cntrppOfAbsExpVal[absExpVal] = '1'*hyperSize + '0' + expVec + '0'*mantSizeOfHyperSize[hyperSize]
                 absExpVal -= 1 
             if hyperSize>0:
-                self.cntrppOfAbsExpVal[absExpVal] = '1'*(hyperSize-1) + '0' + '1'*(hyperSize-1) + '0'*mantSizeOfHyperSize[hyperSize+1]
+                self.cntrppOfAbsExpVal[absExpVal] = '1'*(hyperSize-1) + '0' + '1'*(hyperSize-1) + '0'*mantSizeOfHyperSize[hyperSize-1]
                 absExpVal -= 1
-
+        print (f'cntrppOfAbsExpVal={self.cntrppOfAbsExpVal}\nresoution={[1/item for item in self.probOfInc1]}')
+        exit () #$$$
+        
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
         """
         Increment the counter to the closest higher value.
