@@ -9,7 +9,7 @@ from settings import VERBOSE_RES, VERBOSE_DEBUG
 
 class CntrMaster (F3P_li.CntrMaster):
     """
-    Generate, check and perform arithmetic operations on F2P counters in SR (Small Reals) flavors.
+    Generate, check and perform arithmetic operations on F3P counters in SI flavor.
     The counters are generated as an array with the same format (counterSize and hyperExpSize).
     Then, it's possible to perform arithmetic ops on the counters in chosen indices of the array. 
     """
@@ -50,14 +50,17 @@ class CntrMaster (F3P_li.CntrMaster):
             for item in self.probOfInc1:
                 printf (debugFile, '{:.1f}\n' .format (1/item))
 
-        # self.cntrppOfAbsExpVal = [np.binary_repr(num=1, width=self.hyperMaxSize) + '0'*(self.cntrSize-self.hyperMaxSize)]*(self.Vmax-1)
-        # expVal = 1
-        # for hyperSize in range(1, self.hyperMaxSize+1):
-        #     hyperVec = '1'*hyperSize 
-        #     for i in range (2**hyperSize-1): 
-        #         expVec = np.binary_repr(num=i, width=hyperSize)
-        #         self.cntrppOfAbsExpVal[expVal] = hyperVec + np.binary_repr(num=i+1, width=hyperSize) + '0'*mantSizeOfHyperSize[self.hyperMaxSize] 
-        #         expVal += 1
-        #     if hyperSize<self.expMaxSize:
-        #         self.cntrppOfAbsExpVal[expVal] = '1*' + '0'*(self.cntrSize - self.hyperSize)
-        #         expVal += 1
+        self.cntrppOfAbsExpVal = ['' for _ in range(self.Vmax)]
+        expVal = 0
+        for hyperSize in range(0, self.hyperMaxSize+1):
+            expVal = 1
+            for i in range (2**hyperSize-1): 
+                expVec = np.binary_repr(num=i+1, width=hyperSize)
+                if hyperSize==self.hyperMaxSize: # No delimiter
+                    self.cntrppOfAbsExpVal[expVal] = '1'*hyperSize       + expVec + '0'*mantSizeOfHyperSize[self.hyperMaxSize]
+                else:
+                    self.cntrppOfAbsExpVal[expVal] = '1'*hyperSize + '0' + expVec + '0'*mantSizeOfHyperSize[self.hyperMaxSize]
+                expVal += 1
+            if hyperSize<self.expMaxSize:
+                self.cntrppOfAbsExpVal[expVal] = '1'*(hyperSize+1) + '0'*(2 + hyperSize + mantSizeOfHyperSize[hyperSize+1])
+                expVal += 1

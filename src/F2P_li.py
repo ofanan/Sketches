@@ -9,7 +9,7 @@ from settings import VERBOSE_DEBUG
 
 class CntrMaster (F2P_lr.CntrMaster):
     """
-    Generate, check and perform arithmetic operations on F2P counters in SR (Small Reals) flavors.
+    Generate, check and perform arithmetic operations of the counters. 
     The counters are generated as an array with the same format (counterSize and hyperExpSize).
     Then, it's possible to perform arithmetic ops on the counters in chosen indices of the array. 
     """

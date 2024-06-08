@@ -9,7 +9,7 @@ from settings import VERBOSE_RES, VERBOSE_DEBUG
 
 class CntrMaster (F2P_li.CntrMaster):
     """
-    Generate, check and perform arithmetic operations on F2P counters in SR (Small Reals) flavors.
+    Generate, check and perform arithmetic operations of the counters. 
     The counters are generated as an array with the same format (counterSize and hyperExpSize).
     Then, it's possible to perform arithmetic ops on the counters in chosen indices of the array. 
     """
@@ -53,7 +53,6 @@ class CntrMaster (F2P_li.CntrMaster):
             hyperVec = np.binary_repr (expSize, self.hyperSize) 
             mantSize = self.cntrSize - self.hyperSize - expSize
             for i in range (2**expSize-1): 
-                expVec = np.binary_repr(num=i, width=expSize)
                 self.cntrppOfAbsExpVal[expVal] = hyperVec + np.binary_repr(num=i+1, width=expSize) + '0'*mantSize 
                 expVal += 1
             if expSize<self.expMaxSize:
