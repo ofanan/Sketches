@@ -37,7 +37,7 @@ class CntrMaster (F2P_li.CntrMaster):
                 expVec = np.binary_repr(num=i, width=expSize) if expSize>0 else ''
                 expVal = self.expVec2expVal (expVec=expVec, expSize=expSize)
                 resolution = 2**(expVal + self.bias - mantSize)
-                self.probOfInc1[abs(expVal)] = 1/resolution
+                self.probOfInc1[expVal] = 1/resolution
         
         self.probOfInc1[0] = 1 # Fix the special case, where ExpVal==expMinVal and the resolution is also 1 (namely, prob' of increment is also 1).
         

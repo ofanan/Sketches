@@ -118,7 +118,7 @@ class CntrMaster (F3P_lr.CntrMaster):
             if hyperSize<self.hyperMaxSize:
                 self.cntrs[cntrIdx] = '1'*hyperSize + '0' + expVec + np.binary_repr(num=mantIntVal+1, width=mantSize) 
             else:
-                self.cntrs[cntrIdx] = '1'*hyperSize +     + expVec + np.binary_repr(num=mantIntVal+1, width=mantSize) 
+                self.cntrs[cntrIdx] = '1'*hyperSize       + expVec + np.binary_repr(num=mantIntVal+1, width=mantSize) 
         if settings.VERBOSE_COUT_CNTRLINE in self.verbose:
             print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={int(cntrppVal)}')
         return int(cntrppVal) 

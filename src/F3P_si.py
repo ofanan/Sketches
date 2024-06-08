@@ -40,7 +40,7 @@ class CntrMaster (F3P_li.CntrMaster):
                 expVec = np.binary_repr(num=i, width=hyperSize) if hyperSize>0 else ''
                 expVal = self.expVec2expVal (expVec=expVec, expSize=hyperSize)
                 resolution = 2**(expVal + self.bias - mantSizeOfHyperSize[hyperSize])
-                self.probOfInc1[abs(expVal)] = 1/resolution
+                self.probOfInc1[expVal] = 1/resolution
         
         self.probOfInc1[0] = 1 # Fix the special case, where ExpVal==expMinVal and the resolution is also 1 (namely, prob' of increment is also 1).
         
@@ -50,17 +50,21 @@ class CntrMaster (F3P_li.CntrMaster):
             for item in self.probOfInc1:
                 printf (debugFile, '{:.1f}\n' .format (1/item))
 
-        self.cntrppOfAbsExpVal = ['' for _ in range(self.Vmax)]
+        self.cntrppOfAbsExpVal = [None]*(self.Vmax-1) #['' for _ in range(self.Vmax)]
         expVal = 0
         for hyperSize in range(0, self.hyperMaxSize+1):
-            expVal = 1
             for i in range (2**hyperSize-1): 
                 expVec = np.binary_repr(num=i+1, width=hyperSize)
                 if hyperSize==self.hyperMaxSize: # No delimiter
-                    self.cntrppOfAbsExpVal[expVal] = '1'*hyperSize       + expVec + '0'*mantSizeOfHyperSize[self.hyperMaxSize]
+                    self.cntrppOfAbsExpVal[expVal] = '1'*hyperSize       + expVec + '0'*mantSizeOfHyperSize[hyperSize]
                 else:
-                    self.cntrppOfAbsExpVal[expVal] = '1'*hyperSize + '0' + expVec + '0'*mantSizeOfHyperSize[self.hyperMaxSize]
+                    self.cntrppOfAbsExpVal[expVal] = '1'*hyperSize + '0' + expVec + '0'*mantSizeOfHyperSize[hyperSize]
                 expVal += 1
             if hyperSize<self.expMaxSize:
-                self.cntrppOfAbsExpVal[expVal] = '1'*(hyperSize+1) + '0'*(2 + hyperSize + mantSizeOfHyperSize[hyperSize+1])
+                if hyperSize<self.expMaxSize-1:
+                    self.cntrppOfAbsExpVal[expVal] = '1'*(hyperSize+1) + '0'*(2 + hyperSize + mantSizeOfHyperSize[hyperSize+1])
+                else:
+                    self.cntrppOfAbsExpVal[expVal] = '1'*(hyperSize+1) + '0'*(1 + hyperSize + mantSizeOfHyperSize[hyperSize+1])
                 expVal += 1
+        print (f'cntrppOfAbsExpVal={self.cntrppOfAbsExpVal}\nresoution={[1/item for item in self.probOfInc1]}')
+        exit () #$$$

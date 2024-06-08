@@ -434,8 +434,8 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
-        maxValBy = 'F3P_li_h3'
-        for cntrSize in [8]: #, 14, 16]:
+        maxValBy = 'F3P_si_h3'
+        for cntrSize in [7]: #, 14, 16]:
             for mode in [maxValBy, 'SEAD_dyn', 'CEDAR', 'Morris']:    
                 runCMS (
                     mode        = mode, 
