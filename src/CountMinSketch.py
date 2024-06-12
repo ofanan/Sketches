@@ -436,12 +436,12 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         maxValBy = 'F3P_li_h3'
-        for cntrSize in [7]: #, 14, 16]:
+        for cntrSize in [10, 12, 14, 16]:
             for mode in [maxValBy, 'SEAD_dyn', 'CEDAR', 'Morris']:    
                 runCMS (
                     mode        = mode, 
                     cntrSize    = cntrSize, 
-                    runShortSim = True,
+                    runShortSim = False,
                     maxValBy    = maxValBy
                     )
     except KeyboardInterrupt:

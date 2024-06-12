@@ -338,7 +338,7 @@ class ResFileParser (object):
             self,
             datOutputFile,
             numOfExps   : int  = 50,
-            modes       : list = ['F2P_li', 'CEDAR', 'Morris', 'SEAD_dyn'],
+            modes       : list = ['F3P_li_h3', 'CEDAR', 'Morris', 'SEAD_dyn'],
             cntrSizes   : list = [],
             statType    : str  = 'Mse',
             rel_abs_n   : bool = False, # When True, consider relative errors, Else, consider absolute errors.
@@ -878,9 +878,10 @@ def genErVsCntrSizeTableTrace ():
         Generate a table showing the error as a function of the counter's size.
         """
         my_ResFileParser = ResFileParser ()
-        outputFileName = f'cms.dat' 
+        outputFileNameWoExtension = 'cms_F3P_li_h3'
+        outputFileName = f'{outputFileNameWoExtension}.dat' 
         datOutputFile = open (f'../res/{outputFileName}', 'a+')
-        my_ResFileParser.rdPcl (pclFileName='cms_li_PC.pcl')
+        my_ResFileParser.rdPcl (pclFileName=f'{outputFileNameWoExtension}.pcl')
         width = 2**12
         for rel_abs_n in [False]:
             for statType in ['Mse']:
@@ -911,7 +912,7 @@ def rmvFromPcl ():
 if __name__ == '__main__':
     try:
         # genErVsCntrSizeSingleCntr ()
-        # genErVsCntrSizeTableTrace ()
+        genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
         # rmvFromPcl ()
         genRndErrTable ()
