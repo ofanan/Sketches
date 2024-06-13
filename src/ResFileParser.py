@@ -338,7 +338,7 @@ class ResFileParser (object):
             self,
             datOutputFile,
             numOfExps   : int  = 50,
-            modes       : list = ['F3P_li_h3', 'CEDAR', 'Morris', 'SEAD_dyn'],
+            modes       : list = ['F3P_li_h3', 'F3P_li_h2', 'CEDAR', 'Morris', 'SEAD_dyn'],
             cntrSizes   : list = [],
             statType    : str  = 'Mse',
             rel_abs_n   : bool = False, # When True, consider relative errors, Else, consider absolute errors.
@@ -877,24 +877,27 @@ def genErVsCntrSizeTableTrace ():
         """
         Generate a table showing the error as a function of the counter's size.
         """
-        my_ResFileParser = ResFileParser ()
-        outputFileNameWoExtension = 'cms_F3P_li_h3'
-        outputFileName = f'{outputFileNameWoExtension}.dat' 
-        datOutputFile = open (f'../res/{outputFileName}', 'a+')
-        my_ResFileParser.rdPcl (pclFileName=f'{outputFileNameWoExtension}.pcl')
-        width = 2**12
+        my_ResFileParser    = ResFileParser ()
+        maxValBy            = 'F3P_li_h2'
+        fileName            = f'cms_{maxValBy}'
+        datOutputFile       = open (f'../res/{fileName}.dat', 'a+')
+        # my_ResFileParser.rdPcl (pclFileName=f'cms_F3P_li_h3.pcl')
+        my_ResFileParser.rdPcl (pclFileName=f'{fileName}_PC.pcl')
         for rel_abs_n in [False]:
-            for statType in ['Mse']:
-                printf (datOutputFile, '\n// width={} {} {}\n' .format (width, 'rel' if rel_abs_n else 'abs', statType))
-                my_ResFileParser.genErVsCntrSizeTable(
-                    datOutputFile   = datOutputFile, 
-                    numOfExps       = 2, 
-                    cntrSizes       = [8], #, 10, 12, 14, 16],
-                    statType        = statType,
-                    rel_abs_n       = rel_abs_n,
-                    width           = width, 
-                    normalizeByPerfectCntr = False
-                ) 
+            for width in [2**12, 2**13, 2**14, 2**15]:
+                for statType in ['normRmse']:
+                    printf (datOutputFile, '\n// width={} {} {}\n' .format (width, 'rel' if rel_abs_n else 'abs', statType))
+                    my_ResFileParser.genErVsCntrSizeTable(
+                        datOutputFile   = datOutputFile, 
+                        numOfExps       = 2, 
+                        cntrSizes       = [8],
+                        statType        = statType,
+                        rel_abs_n       = rel_abs_n,
+                        width           = width, 
+                        modes           = [maxValBy, 'CEDAR', 'Morris', 'SEAD_dyn'],
+                        normalizeByPerfectCntr  = False,
+                        normalizeByMinimal      = False
+                    ) 
 
 def rmvFromPcl ():
     myResFileParser = ResFileParser()
@@ -915,7 +918,7 @@ if __name__ == '__main__':
         genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
         # rmvFromPcl ()
-        genRndErrTable ()
+        # genRndErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 

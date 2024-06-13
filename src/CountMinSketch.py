@@ -250,6 +250,7 @@ class CountMinSketch:
         relativePathToInputFile = settings.getRelativePathToTraceFile (self.traceFileName)
         settings.checkIfInputFileExists (relativePathToInputFile)
         for self.expNum in range (self.numOfExps):
+            self.seed = self.expNum+1 
             self.genCntrMaster () # Generate a fresh, empty CntrMaster, for each experiment
             flowRealVal = [0] * self.numFlows
             self.incNum = 0
@@ -385,7 +386,9 @@ def runCMS (mode,
     cntrSize    = 8,
     runShortSim = True,
     maxValBy    = 'f2p_li_h2',
-    maxNumIncs  = float ('inf')
+    maxNumIncs  = float ('inf'),
+    width       = 2**10,
+    depth       = 4,
 ):
     """
     """   
@@ -403,11 +406,11 @@ def runCMS (mode,
         numEpsilonStepsInXlBkt  = 5
         verbose                 = [VERBOSE_RES] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
     else:
-        width, depth            = 2**12, 4
+        width, depth            = width, depth
         numFlows                = numFlows
         numCntrsPerBkt          = 1 #16
         maxNumIncs              = maxNumIncs   
-        numOfExps               = 2 #$$$ #100 
+        numOfExps               = 10 #$$$ #100 
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
@@ -435,14 +438,16 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
+        cntrSize = 8
         maxValBy = 'F3P_li_h3'
-        for cntrSize in [10, 12, 14, 16]:
-            for mode in [maxValBy, 'SEAD_dyn', 'CEDAR', 'Morris']:    
+        for width in [2**i for i in range (8, 19)]:
+            for mode in [maxValBy]: #, 'SEAD_dyn', 'CEDAR', 'Morris']:    
                 runCMS (
                     mode        = mode, 
                     cntrSize    = cntrSize, 
                     runShortSim = False,
-                    maxValBy    = maxValBy
-                    )
+                    maxValBy    = maxValBy,
+                    width       = width
+                )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
