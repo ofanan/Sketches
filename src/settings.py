@@ -43,6 +43,9 @@ FP8modes  = ['FP_e2', 'FP_e3', 'FP_e4', 'FP_e5']
 FP16modes = ['FP_e5', 'FP_e8'] #, 'FP_e10'] # 'FP_e5' is FP16. 'FP_e8' is BFloat.
 FP19modes = ['FP_e5'] #, 'FP_e8' is very bad --> removing it.
 
+traceLen = [{'trace'    :'Caida1', 
+             'len'      : 13182023}]
+
 VECTOR_SIZE = 1000
 # Configurations to be run. 
 # For cntrSize<8, the conf' the values are unrealistically small, and used only for checks and debugging.
@@ -98,6 +101,19 @@ def getConfByCntrSize (cntrSize):
     elif (len(listOfConfs)>1):
         error (f'Sorry. Too many known configurations for cntrSize={cntrSize}')
     return listOfConfs[0]
+   
+def getTraceLen (
+        trace : str
+    ):
+    """
+    given the trace's name, return its len (# of incs).
+    """
+    listOfTraces = [item for item in traceLen if item['trace']==trace]
+    if (len(listOfTraces)<1): 
+        error (f'In settings.getTraceLen(). Sorry. No known traceLen for trace={trace}')
+    elif (len(listOfTraces)>1):
+        error (f'In settings.getTraceLen(). Sorry. Too many known traces for trace={trace}')
+    return listOfTraces[0]['len']
    
 def getCntrMaxValByCntrSize (cntrSize):
     """

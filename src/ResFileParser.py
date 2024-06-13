@@ -365,7 +365,8 @@ class ResFileParser (object):
             printf (datOutputFile, f'{cntrSize} & ')
             pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize]  
             if pointsOfThisCntrSizeErType == []:
-                error (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}')
+                warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}')
+                continue
             minVal = min ([point['Avg'] for point in pointsOfThisCntrSizeErType if point['mode']!='PerfectCounter'])
             if normalizeByPerfectCntr:
                 pointsOfPerfCntr = [point for point in pointsOfThisCntrSize if point['mode']=='PerfectCounter']
@@ -878,13 +879,13 @@ def genErVsCntrSizeTableTrace ():
         Generate a table showing the error as a function of the counter's size.
         """
         my_ResFileParser    = ResFileParser ()
-        maxValBy            = 'F3P_li_h2'
+        maxValBy            = 'F2P_li_h2'
         fileName            = f'cms_{maxValBy}'
         datOutputFile       = open (f'../res/{fileName}.dat', 'a+')
         # my_ResFileParser.rdPcl (pclFileName=f'cms_F3P_li_h3.pcl')
         my_ResFileParser.rdPcl (pclFileName=f'{fileName}_PC.pcl')
         for rel_abs_n in [False]:
-            for width in [2**12, 2**13, 2**14, 2**15]:
+            for width in [2**i for i in range (11, 16)]:
                 for statType in ['normRmse']:
                     printf (datOutputFile, '\n// width={} {} {}\n' .format (width, 'rel' if rel_abs_n else 'abs', statType))
                     my_ResFileParser.genErVsCntrSizeTable(

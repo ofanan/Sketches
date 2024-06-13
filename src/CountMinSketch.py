@@ -49,7 +49,10 @@ class CountMinSketch:
             print (f'Note: CountMinSketch was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
         self.maxValBy = maxValBy
-        self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
+        if self.maxValBy=='Caida1':
+            self.cntrMaxVal = settings.getTraceLen('Caida1')
+        else:
+            self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
         self.mode, self.seed = mode, seed
         random.seed (self.seed)
         self.numEpsilonStepsInRegBkt    = numEpsilonStepsInRegBkt
@@ -439,14 +442,13 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         cntrSize = 8
-        maxValBy = 'F3P_li_h3'
         for width in [2**i for i in range (8, 19)]:
-            for mode in [maxValBy]: #, 'SEAD_dyn', 'CEDAR', 'Morris']:    
+            for mode in ['SEAD_dyn', 'CEDAR', 'Morris']:    
                 runCMS (
                     mode        = mode, 
                     cntrSize    = cntrSize, 
                     runShortSim = False,
-                    maxValBy    = maxValBy,
+                    maxValBy    = 'Caida1',
                     width       = width
                 )
     except KeyboardInterrupt:
