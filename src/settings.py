@@ -341,6 +341,8 @@ def getFxpSettings (mode : str) -> dict:
     given the mode string of an F2P or F3P counter, get a dictionary detailing its settings (flavor and hyperExp size).
     """
     nSystem   = mode.split('_')[0]
+    if (not(mode.startswith('F2P')) and not(mode.startswith('F2P'))) or len(mode.split('_h'))==1:
+        error (f'In settings.getFxpSettings(). Could not get the Fxp settings of mode {mode}')
     return {
         'nSystem'   : nSystem,
         'flavor'    : mode.split(f'{nSystem}_')[1].split('_')[0],

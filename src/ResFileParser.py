@@ -4,10 +4,10 @@ import matplotlib.ticker
 import matplotlib.pylab as pylab
 import os, numpy as np, pandas as pd
 from pandas._libs.tslibs import period
-from printf import printf, printFigToPdf 
+from printf import printf, printfDict
 from nltk.corpus.reader import lin
 
-import settings
+import settings, SingleCntrSimulator
 from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, getFxpSettings
 
 # Color-blind friendly pallette
@@ -339,18 +339,20 @@ class ResFileParser (object):
             self,
             datOutputFile,
             numOfExps   : int  = 50,
-            modes       : list = ['F3P_li_h3', 'F3P_li_h2', 'CEDAR', 'Morris', 'SEAD_dyn'],
+            modes       : list = ['CEDAR', 'Morris', 'SEAD_dyn'],
             cntrSizes   : list = [],
             statType    : str  = 'Mse',
             rel_abs_n   : bool = False, # When True, consider relative errors, Else, consider absolute errors.
             width       : int  = None,  # The width of the CMS. Relevant only for CMS' sim results.
+            maxValBy    : str  = None,
             normalizeByPerfectCntr : bool = True, # when True, normalize all mode's results by dividing them by the value obtained by a perfect counter
-            normalizeByMinimal     : bool = True # when True, normalize all mode's results by dividing them by the value obtained by the lowest value at this row
+            normalizeByMinimal     : bool = True, # when True, normalize all mode's results by dividing them by the value obtained by the lowest value at this row
         ):
         """
         Generate a table showing the error as a function of the counter's size.
         """
     
+        debugFile = open ('../res/debug.txt', 'w')
         points = [point for point in self.points if point['numOfExps'] == numOfExps and point['statType']==statType and point['rel_abs_n']==rel_abs_n]
         if width!=None:
             points = [point for point in points if point['width']==width]
@@ -363,6 +365,13 @@ class ResFileParser (object):
         printf (datOutputFile, ' \\\\ \n')
         for cntrSize in cntrSizes:
             pointsOfThisCntrSize = [point for point in points if point['cntrSize']==cntrSize]
+            if maxValBy!=None:
+                cntrMaxVal = SingleCntrSimulator.getFxpCntrMaxVal (
+                    cntrSize = cntrSize,
+                    fxpSettingStr = mode 
+                )
+                pointsOfThisCntrSize = [point for point in pointsOfThisCntrSize if point['cntrMaxVal']==cntrMaxVal]
+            error (cntrMaxVal) #$$$
             printf (datOutputFile, f'{cntrSize} & ')
             pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize]  
             if pointsOfThisCntrSizeErType == []:
@@ -385,7 +394,10 @@ class ResFileParser (object):
                         printf (datOutputFile, ' & ')
                     continue
                 if len(pointsToPrint)>1:
-                    warning (f'found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}')                
+                    warning (f'found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}')
+                    printfDict (debugFile, pointsToPrint[0]) #$$$$                
+                    printfDict (debugFile, pointsToPrint[1])
+                    exit ()                
                 val2print = pointsToPrint[0]['Avg']
                 if normalizeByPerfectCntr:
                     val2print /= valOfPerfCntr
@@ -862,15 +874,17 @@ def genErVsCntrSizeSingleCntr ():
         abs     = True
         my_ResFileParser.rdPcl (pclFileName='1cntr_PC.pcl')
         printf (datOutputFile, '\n// {}\n' .format ('abs ' if abs else 'rel '))
+        maxValBy = 'F3P_li_h2'
         for rel_abs_n in [True, False]:
-            for statType in ['Mse', 'normRmse']:
+            for statType in ['normRmse']:
                 printf (datOutputFile, '\n// {} {}\n' .format ('rel' if rel_abs_n else 'abs', statType))
                 my_ResFileParser.genErVsCntrSizeTable(
-                    modes           = ['F2P_li', 'CEDAR', 'Morris', 'SEAD_dyn'],
+                    modes           = [maxValBy, 'CEDAR', 'Morris', 'SEAD_dyn'],
                     datOutputFile   = datOutputFile, 
                     numOfExps       = 100, 
                     cntrSizes       = [8, 10, 12, 14, 16],
                     statType        = statType,
+                    maxValBy        = maxValBy,
                     rel_abs_n       = rel_abs_n,
                     normalizeByPerfectCntr = False
                 ) 

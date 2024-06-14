@@ -733,6 +733,8 @@ def getFxpCntrMaxVal (
     """
     Given a string detailing the settings an F2P/F3P counter, returns its maximum representable value. 
     """
+    if not(fxpSettingStr.startswith('F2P')) and not(fxpSettingStr.startswith('F2P')):
+        error (f'SingleCntrSimulator.getFxpCntrMaxVal() was called with Fxp settings str={fxpSettingStr}')
     myCntrMaster = genCntrMasterFxp (cntrSize=cntrSize, fxpSettingStr=fxpSettingStr)
     return myCntrMaster.getCntrMaxVal ()
 
@@ -758,27 +760,28 @@ def main ():
     #    verbose      = [VERBOSE_RES, VERBOSE_COUT_CONF], #verbose level. See settings.py for details.
     #    signed       = False # When True, assume an additional bit for the  
     # )
-    maxValBy = 'F3P_li_h3'
-    modes = [maxValBy, 'CEDAR', 'Morris', 'SEAD_dyn']
-    for cntrSize in [14]:
-        simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL])
-        numSettings = getFxpSettings (maxValBy)
-        cntrMaxVal = getCntrsMaxValsFxp (
-            nSystem     = numSettings['nSystem'], # either 'F2p' or 'F3P.
-            flavor      = numSettings['flavor'], 
-            hyperSizeRange = [numSettings['hyperSize']], # list of hyper-sizes to consider  
-            cntrSizeRange  = [cntrSize], # list of cntrSizes to consider
-            verbose        = [],
-        )
-        for mode in modes:
-            simController.runSingleCntrSingleMode \
-                (dwnSmple       = False,  
-                mode            = mode, 
-                cntrSize        = cntrSize, 
-                cntrMaxVal      = cntrMaxVal,
-                numOfExps       = 100,
-                erTypes         = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
-            )
+    exit ()
+    # maxValBy = 'F3P_li_h3'
+    # modes = [maxValBy, 'CEDAR', 'Morris', 'SEAD_dyn']
+    # for cntrSize in [16]:
+    #     simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL])
+    #     numSettings = getFxpSettings (maxValBy)
+    #     cntrMaxVal = getCntrsMaxValsFxp (
+    #         nSystem     = numSettings['nSystem'], # either 'F2p' or 'F3P.
+    #         flavor      = numSettings['flavor'], 
+    #         hyperSizeRange = [numSettings['hyperSize']], # list of hyper-sizes to consider  
+    #         cntrSizeRange  = [cntrSize], # list of cntrSizes to consider
+    #         verbose        = [],
+    #     )
+    #     for mode in modes:
+    #         simController.runSingleCntrSingleMode \
+    #             (dwnSmple       = False,  
+    #             mode            = mode, 
+    #             cntrSize        = cntrSize, 
+    #             cntrMaxVal      = cntrMaxVal,
+    #             numOfExps       = 100,
+    #             erTypes         = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+    #         )
         
 
         # simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL]) #VERBOSE_RES, VERBOSE_PCL],)

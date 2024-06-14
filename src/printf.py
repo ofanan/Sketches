@@ -80,3 +80,10 @@ def printBinVec (binVec, grp=4):
             L.append(" ")
     print ('{}' .format ("".join(L)))
         
+def printfDict (outputFile, dict2print):
+    """
+    format-print a dictionary to a file
+    """
+    for key in dict2print:
+        printf (outputFile, f'{key} : {dict2print[key]}\n')
+    printf (outputFile, '\n')
