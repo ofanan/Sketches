@@ -405,17 +405,15 @@ class SingleCntrSimulator (object):
         """
         Set self.cntrRecord, which holds the counters to run
         """
-        verbose = settings.VERBOSE_LOG_CNTRLINE
-        # Set self.cntrRecord, which holds the counter to run
-        
-        if mode.startswith ('F2P') or mode.startswith('F3P'):
+
+        if self.mode.startswith ('F2P') or self.mode.startswith('F3P'):
             cntrMaster = genCntrMasterFxp (
                 cntrSize        = self.cntrSize, 
                 numCntrs        = 1,
-                fxpSettingStr   = mode,
+                fxpSettingStr   = self.mode,
                 verbose         = self.verbose   
             )
-            self.cntrRecord = {'mode' : mode, 'cntr' : cntrMaster}
+            self.cntrRecord = {'mode' : self.mode, 'cntr' : cntrMaster}
         elif (self.mode=='FP'):
             if expSize==None:
                 settings.error ('In SingleCntrSimulator.genCntrRecord(). For generating an FP.CntrMaster you must specify an expSize')
@@ -472,7 +470,7 @@ class SingleCntrSimulator (object):
                 self.hyperSize  = numSettings['hyperSize']
 
         self.genCntrRecord () # Set self.cntrRecord, which holds the counter to run
-        self.maxRealVal         = self.cntrMaxVal if (self.maxRealVal==None) else self.maxRealVal
+        self.maxRealVal         = self.cntrMaxVal 
         if self.cntrRecord['cntr'].cntrMaxVal < self.maxRealVal and (not(self.dwnSmple)):
             warning ('The counter of type {}, cntrSize={}, hyperSize={}, can reach max val={} which is smaller than the requested maxRealVal {}, and no dwn smpling was used' . format (self.cntrRecord['mode'], self.cntrSize, self.hyperSize, self.cntrRecord['cntr'].cntrMaxVal, self.maxRealVal))
 
@@ -573,6 +571,7 @@ def genCntrMasterFxp (
         hyperSize       : int  = None, 
         nSystem         : str  = None, # 'F2P' or 'F3P
         flavor          : str  = None, # 'sr' / 'lr' / 'si' / 'li' 
+        # exitError       : bool = True, # When true, if the given are infeasible, exist with error.
         verbose         : list = []    # list of verboses taken from the veroses, defined in settings.py 
     ):
     """
@@ -698,6 +697,7 @@ def getCntrsMaxValsFxp (
         flavor          : str  = 'sr', 
         hyperSizeRange  : list = [], # list of hyper-sizes to consider  
         cntrSizeRange   : list = [], # list of cntrSizes to consider
+        # exitError       : bool = True, # When true, if the given are infeasible, exist with error.
         verbose         : list =[VERBOSE_RES]
         ):
     """
@@ -709,7 +709,7 @@ def getCntrsMaxValsFxp (
     for cntrSize in cntrSizeRange:
         for hyperSize in range (1,cntrSize-2) if hyperSizeRange==None else hyperSizeRange:
             myCntrMaster = genCntrMasterFxp (nSystem=nSystem, flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize)
-            if myCntrMaster.isFeasible==False:
+            if not(myCntrMaster.isFeasible):
                 continue
             if VERBOSE_RES in verbose:
                 outputFile    = open (f'../res/cntrMaxVals.txt', 'a')
@@ -736,7 +736,20 @@ def getFxpCntrMaxVal (
     myCntrMaster = genCntrMasterFxp (cntrSize=cntrSize, fxpSettingStr=fxpSettingStr)
     return myCntrMaster.getCntrMaxVal ()
 
+
+def getAllCntrsMaxValsFxP ():
+    for nSystem in ['F2P']: #['F2P_si_h2', 'F2P_li_h2', 'F2P_si_h3', 'F3P_li_h3', 'F3P_si_h2', 'F3P_li_h2', 'F3P_si_h3', 'F3P_li_h3']:
+        for flavor in ['si', 'li']:
+            getCntrsMaxValsFxp (
+                nSystem         = nSystem,  
+                flavor          = flavor, 
+                hyperSizeRange  = [1,2], # list of hyper-sizes to consider  
+                cntrSizeRange   = range (8, 17), # list of cntrSizes to consider
+                verbose         = [VERBOSE_PCL]
+            )
+
 def main ():
+    getAllCntrsMaxValsFxP ()
     # getAllValsFxp (
     #    nSystem      = 'F3P', # either 'F2P' or 'F3P'
     #    cntrSize     = 7, # size of the counter, WITHOUT the sign bit (if exists).  
@@ -746,16 +759,16 @@ def main ():
     #    signed       = False # When True, assume an additional bit for the  
     # )
     maxValBy = 'F3P_li_h2'
-    modes = [maxValBy, 'Cedar', 'Morris', 'SEAD_dyn']
-    for cntrSize in [8, 10, 12, 14]:
-        simController = SingleCntrSimulator (verbose = [VERBOSE_RES]) #, VERBOSE_PCL
+    modes = [maxValBy, 'CEDAR', 'Morris', 'SEAD_dyn']
+    for cntrSize in [8, 10, 12]:
+        simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL])
         numSettings = getFxpSettings (maxValBy)
         cntrMaxVal = getCntrsMaxValsFxp (
             nSystem     = numSettings['nSystem'], # either 'F2p' or 'F3P.
             flavor      = numSettings['flavor'], 
             hyperSizeRange = [numSettings['hyperSize']], # list of hyper-sizes to consider  
             cntrSizeRange  = [cntrSize], # list of cntrSizes to consider
-            verbose        =[]
+            verbose        = [],
         )
         for mode in modes:
             simController.runSingleCntrSingleMode \
@@ -763,7 +776,7 @@ def main ():
                 mode            = mode, 
                 cntrSize        = cntrSize, 
                 cntrMaxVal      = cntrMaxVal,
-                numOfExps       = 1, #100,
+                numOfExps       = 100,
                 erTypes         = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
             )
         

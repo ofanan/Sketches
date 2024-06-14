@@ -14,7 +14,7 @@ class CntrMaster (F2P_sr.CntrMaster):
     """
 
     # Generates a strings that details the counter's settings (param vals).    
-    genSettingsStr = lambda self : f'F3P{self.flavor()}_n{self.cntrSize}_h{self.hyperMaxSize}'
+    genSettingsStr = lambda self : f'F3P_{self.flavor()}_n{self.cntrSize}_h{self.hyperMaxSize}'
     
     # Given the vector of the exponent, calculate the value it represents 
     expVec2expVal  = lambda self, expVec, expSize : (2**expSize - 1 + int (expVec, base=2)) if expSize>0 else 0    

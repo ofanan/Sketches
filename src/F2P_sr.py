@@ -16,7 +16,7 @@ class CntrMaster (Cntr.CntrMaster):
     flavor = lambda self : 'sr'
     
     # Generates a strings that details the counter's settings (param vals).    
-    genSettingsStr = lambda self : f'F2P{self.flavor()}_n{self.cntrSize}_h{self.hyperSize}'
+    genSettingsStr = lambda self : f'F2P_{self.flavor()}_n{self.cntrSize}_h{self.hyperSize}'
     
     # print the details of the counter in a convenient way
     printCntrLine  = lambda self, cntr, expVec, expVal, power, mantVec, mantVal, cntrVal : print (f'cntr={cntr}, hyperVec={cntr[0:self.hyperSize]}, expVec={expVec}, bias={self.bias}, expVal={expVal}, power={power}, mantVec={mantVec}, mantVal={mantVal}, val={cntrVal}')
