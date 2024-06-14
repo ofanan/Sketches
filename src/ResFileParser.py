@@ -352,7 +352,6 @@ class ResFileParser (object):
         Generate a table showing the error as a function of the counter's size.
         """
     
-        debugFile = open ('../res/debug.txt', 'w')
         points = [point for point in self.points if point['numOfExps'] == numOfExps and point['statType']==statType and point['rel_abs_n']==rel_abs_n]
         if width!=None:
             points = [point for point in points if point['width']==width]
@@ -371,7 +370,6 @@ class ResFileParser (object):
                     fxpSettingStr = maxValBy 
                 )
                 pointsOfThisCntrSize = [point for point in pointsOfThisCntrSize if point['cntrMaxVal']==cntrMaxVal]
-            error (cntrMaxVal) #$$$
             printf (datOutputFile, f'{cntrSize} & ')
             pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize]  
             if pointsOfThisCntrSizeErType == []:
@@ -395,9 +393,6 @@ class ResFileParser (object):
                     continue
                 if len(pointsToPrint)>1:
                     warning (f'found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}')
-                    printfDict (debugFile, pointsToPrint[0]) #$$$$                
-                    printfDict (debugFile, pointsToPrint[1])
-                    exit ()                
                 val2print = pointsToPrint[0]['Avg']
                 if normalizeByPerfectCntr:
                     val2print /= valOfPerfCntr
@@ -873,8 +868,7 @@ def genErVsCntrSizeSingleCntr ():
         datOutputFile = open (f'../res/{outputFileName}', 'a+')
         abs     = True
         my_ResFileParser.rdPcl (pclFileName='1cntr_PC.pcl')
-        printf (datOutputFile, '\n// {}\n' .format ('abs ' if abs else 'rel '))
-        maxValBy = 'F3P_li_h2'
+        maxValBy = 'F3P_li_h3'
         for rel_abs_n in [True, False]:
             for statType in ['normRmse']:
                 printf (datOutputFile, '\n// {} {}\n' .format ('rel' if rel_abs_n else 'abs', statType))
