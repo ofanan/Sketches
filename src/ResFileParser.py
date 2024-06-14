@@ -213,7 +213,8 @@ class ResFileParser (object):
         """
         Given a .pcl filename, read all the data it contains into self.points
         """
-        settings.checkIfInputFileExists ('../res/pcl_files/{}' .format(pclFileName))
+        if not(settings.checkIfInputFileExists ('../res/pcl_files/{}' .format(pclFileName), exitError=False)):
+            return
         pclFile = open('../res/pcl_files/{}' .format(pclFileName), 'rb')
         while 1:
             try:
@@ -882,20 +883,21 @@ def genErVsCntrSizeTableTrace ():
         maxValBy            = 'F2P_li_h2'
         fileName            = f'cms_{maxValBy}'
         datOutputFile       = open (f'../res/{fileName}.dat', 'a+')
-        # my_ResFileParser.rdPcl (pclFileName=f'cms_F3P_li_h3.pcl')
-        my_ResFileParser.rdPcl (pclFileName=f'{fileName}_PC.pcl')
+        for mode in ['F2P_li_h2', 'F2P_li_h3', 'F3P_li_h2', 'F3P_li_h3']:
+            my_ResFileParser.rdPcl (pclFileName=f'cms_{mode}_PC.pcl')
+            my_ResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC.pcl')
         for rel_abs_n in [False]:
-            for width in [2**i for i in range (11, 16)]:
+            for width in [2**i for i in range (8, 19)]:
                 for statType in ['normRmse']:
                     printf (datOutputFile, '\n// width={} {} {}\n' .format (width, 'rel' if rel_abs_n else 'abs', statType))
                     my_ResFileParser.genErVsCntrSizeTable(
                         datOutputFile   = datOutputFile, 
-                        numOfExps       = 2, 
+                        numOfExps       = 10, 
                         cntrSizes       = [8],
                         statType        = statType,
                         rel_abs_n       = rel_abs_n,
                         width           = width, 
-                        modes           = [maxValBy, 'CEDAR', 'Morris', 'SEAD_dyn'],
+                        modes           = ['F2P_li_h2', 'F2P_li_h3', 'F3P_li_h2', 'F3P_li_h3', 'CEDAR', 'Morris', 'SEAD_dyn'],
                         normalizeByPerfectCntr  = False,
                         normalizeByMinimal      = False
                     ) 

@@ -197,13 +197,23 @@ def error (str2print):
     print (f'{STDOUT_FAIL}Error: {str2print}{STDOUT_ENDC}')
     exit  ()
 
-def checkIfInputFileExists (relativePathToInputFile):
+def checkIfInputFileExists (
+        relativePathToInputFile : str,
+        exitError               = True
+        ):
     """
     Check whether an input file, given by its relative path, exists.
-    If the file doesn't exist - exit with a proper error msg.
+    If the file exists, return True. 
+    Else, print proper error msg, and:
+        if exitError=True, exit with error; else, return False 
     """
-    if not (os.path.isfile (relativePathToInputFile)):
-        error (f'the input file {relativePathToInputFile} does not exist')
+    if os.path.isfile (relativePathToInputFile):
+        return True
+    warning (f'the input file {relativePathToInputFile} does not exist')
+    if exitError:
+        error ()
+    else:
+        return False
 
 def getMachineStr ():
     if (os.getcwd().find ('itamarc')>-1): # the string 'HPC' appears in the path only in HPC runs
