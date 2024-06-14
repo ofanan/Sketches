@@ -758,9 +758,9 @@ def main ():
     #    verbose      = [VERBOSE_RES, VERBOSE_COUT_CONF], #verbose level. See settings.py for details.
     #    signed       = False # When True, assume an additional bit for the  
     # )
-    maxValBy = 'F3P_li_h2'
+    maxValBy = 'F3P_li_h3'
     modes = [maxValBy, 'CEDAR', 'Morris', 'SEAD_dyn']
-    for cntrSize in [8, 10, 12]:
+    for cntrSize in [14]:
         simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL])
         numSettings = getFxpSettings (maxValBy)
         cntrMaxVal = getCntrsMaxValsFxp (
