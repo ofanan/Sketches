@@ -916,8 +916,8 @@ def rmvFromPcl ():
         
 if __name__ == '__main__':
     try:
-        # genErVsCntrSizeSingleCntr ()
-        genErVsCntrSizeTableTrace ()
+        genErVsCntrSizeSingleCntr ()
+        # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
         # rmvFromPcl ()
         # genRndErrTable ()

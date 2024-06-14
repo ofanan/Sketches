@@ -407,14 +407,15 @@ class SingleCntrSimulator (object):
         """
         verbose = settings.VERBOSE_LOG_CNTRLINE
         # Set self.cntrRecord, which holds the counter to run
-        if self.mode.startswith('F2P_si'):
-            self.cntrRecord = {'mode' : 'F2P_si', 'cntr' : F2P_si.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
-        elif self.mode.startswith('F2P_li'):
-            self.cntrRecord = {'mode' : 'F2P_li', 'cntr' : F2P_li.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
-        elif (self.mode=='F2Plr'):
-            self.cntrRecord = {'mode' : 'F2P_lr', 'cntr' : F2P_lr.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
-        elif (self.mode=='F2Psr'):
-            self.cntrRecord = {'mode' : 'F2P_sr', 'cntr' : F2P_sr.CntrMaster(cntrSize=self.cntrSize, hyperSize=self.hyperSize, verbose=self.verbose)}
+        
+        if mode.startswith ('F2P') or mode.startswith('F3P'):
+            cntrMaster = genCntrMasterFxp (
+                cntrSize        = self.cntrSize, 
+                numCntrs        = 1,
+                fxpSettingStr   = mode,
+                verbose         = self.verbose   
+            )
+            self.cntrRecord = {'mode' : mode, 'cntr' : cntrMaster}
         elif (self.mode=='FP'):
             if expSize==None:
                 settings.error ('In SingleCntrSimulator.genCntrRecord(). For generating an FP.CntrMaster you must specify an expSize')
@@ -450,7 +451,6 @@ class SingleCntrSimulator (object):
         """        
         self.cntrSize       = cntrSize
         self.cntrMaxVal     = cntrMaxVal 
-        self.hyperMaxSize   = hyperMaxSize
         self.expSize        = expSize
         self.numOfExps      = numOfExps
         self.dwnSmple       = dwnSmple
@@ -745,11 +745,11 @@ def main ():
     #    verbose      = [VERBOSE_RES, VERBOSE_COUT_CONF], #verbose level. See settings.py for details.
     #    signed       = False # When True, assume an additional bit for the  
     # )
-    hyperMaxSize = 1
+    maxValBy = 'F3P_li_h2'
+    modes = [maxValBy, 'Cedar', 'Morris', 'SEAD_dyn']
     for cntrSize in [8, 10, 12, 14]:
         simController = SingleCntrSimulator (verbose = [VERBOSE_RES]) #, VERBOSE_PCL
-        pivot = 'F3P_li_h1'
-        numSettings = getFxpSettings (pivot)
+        numSettings = getFxpSettings (maxValBy)
         cntrMaxVal = getCntrsMaxValsFxp (
             nSystem     = numSettings['nSystem'], # either 'F2p' or 'F3P.
             flavor      = numSettings['flavor'], 
@@ -757,14 +757,15 @@ def main ():
             cntrSizeRange  = [cntrSize], # list of cntrSizes to consider
             verbose        =[]
         )
-        simController.runSingleCntrSingleMode \
-            (dwnSmple       = False,  
-            modes          = [pivot], 
-            cntrSize       = cntrSize, 
-            hyperMaxSize   = numSettings['hyperSize'],
-            numOfExps      = 1, #100,
-            erTypes        = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
-        )
+        for mode in modes:
+            simController.runSingleCntrSingleMode \
+                (dwnSmple       = False,  
+                mode            = mode, 
+                cntrSize        = cntrSize, 
+                cntrMaxVal      = cntrMaxVal,
+                numOfExps       = 1, #100,
+                erTypes         = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+            )
         
 
         # simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL]) #VERBOSE_RES, VERBOSE_PCL],)
