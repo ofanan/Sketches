@@ -880,9 +880,8 @@ def genErVsCntrSizeTableTrace ():
         Generate a table showing the error as a function of the counter's size.
         """
         my_ResFileParser    = ResFileParser ()
-        maxValBy            = 'F2P_li_h2'
-        fileName            = f'cms_{maxValBy}'
-        datOutputFile       = open (f'../res/{fileName}.dat', 'a+')
+        datOutputFile       = open (f'../res/cms_Caida1.dat', 'a+')
+        my_ResFileParser.rdPcl (pclFileName=f'cms_Caida1_HPC.pcl')
         for mode in ['F2P_li_h2', 'F2P_li_h3', 'F3P_li_h2', 'F3P_li_h3']:
             my_ResFileParser.rdPcl (pclFileName=f'cms_{mode}_PC.pcl')
             my_ResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC.pcl')
