@@ -733,7 +733,7 @@ def getFxpCntrMaxVal (
     """
     Given a string detailing the settings an F2P/F3P counter, returns its maximum representable value. 
     """
-    if not(fxpSettingStr.startswith('F2P')) and not(fxpSettingStr.startswith('F2P')):
+    if not(fxpSettingStr.startswith('F2P')) and not(fxpSettingStr.startswith('F3P')):
         error (f'SingleCntrSimulator.getFxpCntrMaxVal() was called with Fxp settings str={fxpSettingStr}')
     myCntrMaster = genCntrMasterFxp (cntrSize=cntrSize, fxpSettingStr=fxpSettingStr)
     return myCntrMaster.getCntrMaxVal ()

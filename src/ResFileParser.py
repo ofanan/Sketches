@@ -368,7 +368,7 @@ class ResFileParser (object):
             if maxValBy!=None:
                 cntrMaxVal = SingleCntrSimulator.getFxpCntrMaxVal (
                     cntrSize = cntrSize,
-                    fxpSettingStr = mode 
+                    fxpSettingStr = maxValBy 
                 )
                 pointsOfThisCntrSize = [point for point in pointsOfThisCntrSize if point['cntrMaxVal']==cntrMaxVal]
             error (cntrMaxVal) #$$$
