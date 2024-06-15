@@ -211,7 +211,7 @@ def checkIfInputFileExists (
         return True
     warning (f'the input file {relativePathToInputFile} does not exist')
     if exitError:
-        error ()
+        exit ()
     else:
         return False
 

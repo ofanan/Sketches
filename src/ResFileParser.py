@@ -209,11 +209,15 @@ class ResFileParser (object):
         self.markers = ['o', 'v', '^', 's', 'p', 'X']
         self.points = []
         
-    def rdPcl (self, pclFileName):
+    def rdPcl (
+            self, 
+            pclFileName : str,      
+            exitError   : bool = False # When true, exit with error if the given pclFileName doesn't exist.
+            ):
         """
         Given a .pcl filename, read all the data it contains into self.points
         """
-        if not(settings.checkIfInputFileExists ('../res/pcl_files/{}' .format(pclFileName), exitError=False)):
+        if not(settings.checkIfInputFileExists ('../res/pcl_files/{}' .format(pclFileName), exitError=exitError)):
             return
         pclFile = open('../res/pcl_files/{}' .format(pclFileName), 'rb')
         while 1:
@@ -357,6 +361,8 @@ class ResFileParser (object):
             points = [point for point in points if point['width']==width]
     
         printf (datOutputFile, '\t')
+        if maxValBy!=None:
+            printf (datOutputFile, f'cntrMaxVal\t')
         for mode in modes:
             printf (datOutputFile, f'{mode}\t')
             if mode!=modes[-1]:
@@ -364,16 +370,17 @@ class ResFileParser (object):
         printf (datOutputFile, ' \\\\ \n')
         for cntrSize in cntrSizes:
             pointsOfThisCntrSize = [point for point in points if point['cntrSize']==cntrSize]
+            printf (datOutputFile, f'{cntrSize} & ')
             if maxValBy!=None:
-                cntrMaxVal = SingleCntrSimulator.getFxpCntrMaxVal (
+                cntrMaxVal = int (SingleCntrSimulator.getFxpCntrMaxVal (
                     cntrSize = cntrSize,
                     fxpSettingStr = maxValBy 
-                )
+                ))
+                printf (datOutputFile, f'{cntrMaxVal} &\t')
                 pointsOfThisCntrSize = [point for point in pointsOfThisCntrSize if point['cntrMaxVal']==cntrMaxVal]
-            printf (datOutputFile, f'{cntrSize} & ')
             pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize]  
             if pointsOfThisCntrSizeErType == []:
-                warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}')
+                warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, width={width}')
                 continue
             minVal = min ([point['Avg'] for point in pointsOfThisCntrSizeErType if point['mode']!='PerfectCounter'])
             if normalizeByPerfectCntr:
@@ -387,12 +394,12 @@ class ResFileParser (object):
             for mode in modes:
                 pointsToPrint = [point for point in pointsOfThisCntrSizeErType if point['mode'] == mode]
                 if pointsToPrint == []:
-                    warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}')
+                    warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}, width={width}, statType={statType}, rel_abs_n={rel_abs_n}')
                     if mode!=modes[-1]:
                         printf (datOutputFile, ' & ')
                     continue
                 if len(pointsToPrint)>1:
-                    warning (f'found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}')
+                    warning (f'found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}, width={width}, statType={statType}, rel_abs_n={rel_abs_n}')
                 val2print = pointsToPrint[0]['Avg']
                 if normalizeByPerfectCntr:
                     val2print /= valOfPerfCntr
@@ -414,6 +421,40 @@ class ResFileParser (object):
                     printf (datOutputFile, ' & ')
             printf (datOutputFile, ' \\\\\n')
     
+    def genErVsMemSizePlot (
+            self,
+            traceName   : str  = 'Caida1',
+            numOfExps   : int  = 10,
+            cntrSize    : int  = 8,
+            statType    : str  = 'Mse',
+            rel_abs_n   : bool = False, # When True, consider relative errors, Else, consider absolute errors.
+        ):
+        """
+        Generate a plot showing the error as a function of the counter's size.
+        """
+    
+        outputFileName = f'cms_{traceName}.pdf' 
+        self.setPltParams ()  # set the plot's parameters (formats of lines, markers, legends etc.).
+        _, ax = plt.subplots()
+
+        points = [point for point in self.points if 
+                  point['numOfExps'] == numOfExps and 
+                  point['statType']  == statType  and 
+                  point['rel_abs_n'] == rel_abs_n and 
+                  point['cntrSize']  == cntrSize]
+        if points == []:
+            warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, width={width}')
+            continue
+        modes = [point['mode'] for point in points]
+        for mode in modes:
+            pointsOfMode = [point for point in points if point['mode'] == mode]
+            for width in [point['width'] for point in pointsOFMode]:
+                pointsToPlot = [point for point in pointsOfMode if point['width']==width]
+                if len(pointsToPlot)>1:
+                    warning (f'found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}, width={width}, statType={statType}, rel_abs_n={rel_abs_n}')
+                ax.plot (width, pointsToPlot[0]['Avg']) #, color=colorOfMode[mode])  # Plot the conf' interval line
+                
+                
     def genErVsCntrMaxValPlot (self, cntrSize=8, plotAbsEr=True):
         """
         Generate a plot showing the relative / abs err as a function of the maximum counted value
@@ -867,21 +908,21 @@ def genErVsCntrSizeSingleCntr ():
         outputFileName = f'1cntr.dat' 
         datOutputFile = open (f'../res/{outputFileName}', 'a+')
         abs     = True
-        my_ResFileParser.rdPcl (pclFileName='rel_1cntr_HPC_RdRmse.pcl')
-        maxValBy = 'F2P_li_h2'
+        my_ResFileParser.rdPcl (pclFileName='1cntr_PC.pcl', exitError=True)
+        maxValBy = 'F3P_li_h3'
         for rel_abs_n in [True, False]:
             for statType in ['normRmse']:
                 printf (datOutputFile, '\n// {} {}\n' .format ('rel' if rel_abs_n else 'abs', statType))
                 my_ResFileParser.genErVsCntrSizeTable(
-                    modes           = [maxValBy, 'CEDAR', 'Morris', 'SEAD_dyn'],
+                    modes           = ['F3P_li_h3', 'CEDAR', 'Morris', 'SEAD_dyn'],
                     datOutputFile   = datOutputFile, 
                     numOfExps       = 100, 
-                    cntrSizes       = [8, 10, 12, 14, 16],
+                    cntrSizes       = [8],
                     statType        = statType,
                     maxValBy        = maxValBy,
                     rel_abs_n       = rel_abs_n,
                     normalizeByPerfectCntr  = False,
-                    normalizeByMinimal      = False
+                    # normalizeByMinimal      = False
                 ) 
 
 def genErVsCntrSizeTableTrace ():
@@ -890,10 +931,10 @@ def genErVsCntrSizeTableTrace ():
         """
         my_ResFileParser    = ResFileParser ()
         datOutputFile       = open (f'../res/cms_Caida1.dat', 'a+')
-        my_ResFileParser.rdPcl (pclFileName=f'cms_Caida1_HPC.pcl')
-        for mode in ['F2P_li_h2', 'F2P_li_h3', 'F3P_li_h2', 'F3P_li_h3']:
-            my_ResFileParser.rdPcl (pclFileName=f'cms_{mode}_PC.pcl')
-            my_ResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC.pcl')
+        my_ResFileParser.rdPcl (pclFileName=f'cms_Caida1_HPC_u.pcl')
+        for mode in ['F2P_li_h2', 'F3P_li_h2', 'F3P_li_h3', 'F3P_si_h2', 'F3P_si_h3']:
+            # my_ResFileParser.rdPcl (pclFileName=f'cms_{mode}_PC.pcl')
+            my_ResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
         for rel_abs_n in [False]:
             for width in [2**i for i in range (8, 19)]:
                 for statType in ['normRmse']:
@@ -905,7 +946,7 @@ def genErVsCntrSizeTableTrace ():
                         statType        = statType,
                         rel_abs_n       = rel_abs_n,
                         width           = width, 
-                        modes           = ['F2P_li_h2', 'F2P_li_h3', 'F3P_li_h2', 'F3P_li_h3', 'CEDAR', 'Morris', 'SEAD_dyn'],
+                        modes           = ['F2P_li_h2', 'F3P_li_h2', 'F3P_li_h3', 'CEDAR', 'Morris', 'SEAD_dyn'],
                         normalizeByPerfectCntr  = False,
                         normalizeByMinimal      = False
                     ) 
@@ -923,10 +964,34 @@ def rmvFromPcl ():
             {'mode' : 'F3P_sr_h3'}]
         )
         
+def uniqListOfDicts (L):
+    """
+    Given a list of dicts L, returns a list identical to L, but by removing duplicates.
+    """ 
+    return list({str(i):i for i in L}.values())
+
+
+def genUniqPcl (
+        pclFileName : str
+        ):
+    """
+    Given a fileName.pcl, write to fileName_u.pcl all the pickled items, but by removing duplications. 
+    """
+    
+    myResFileParser = ResFileParser ()
+    myResFileParser.rdPcl (pclFileName)
+    pclFileNameWoExtension = pclFileName.split('.pcl')[0]
+    points = uniqListOfDicts (myResFileParser.points)    
+    pclOutputFile = open (f'../res/pcl_files/{pclFileNameWoExtension}_u.pcl', 'wb+')
+    for point in points:
+        pickle.dump(point, pclOutputFile) 
+
+
 if __name__ == '__main__':
     try:
-        genErVsCntrSizeSingleCntr ()
-        # genErVsCntrSizeTableTrace ()
+        # genUniqPcl (pclFileName=f'cms_F2P_li_h2_HPC.pcl')
+        # genErVsCntrSizeSingleCntr ()
+        genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
         # rmvFromPcl ()
         # genRndErrTable ()
