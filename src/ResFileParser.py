@@ -438,7 +438,6 @@ class ResFileParser (object):
         """
     
         debugFile = open ('../res/debug.txt', 'w')
-        outputFileName = f'cms_{traceName}.pdf' 
         self.setPltParams ()  # set the plot's parameters (formats of lines, markers, legends etc.).
         _, ax = plt.subplots()
 
@@ -450,7 +449,7 @@ class ResFileParser (object):
         if points == []:
             warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, width={width}')
         modes = [point['mode'] for point in points]
-        # modes = [mode for mode in modes if mode not in ['F2P_li_h2', 'F3P_li_h3']]
+        modes = [mode for mode in modes if mode not in ['F2P_li_h2']]
         for mode in modes:
             pointsOfMode = [point for point in points if point['mode'] == mode]
             widths = [point['width'] for point in pointsOfMode]
@@ -480,10 +479,10 @@ class ResFileParser (object):
         plt.xlim (1024)      
         # plt.ylim ([0,0.0005])
         plt.yscale ('log')          
-        # # if not(USE_FRAME):
-        # #     seaborn.despine(left=True, bottom=True, right=True)
-        # # plt.savefig ('../res/{}.pdf' .format (outputFileName), bbox_inches='tight')        
-        plt.show ()
+        outputFileName = f'cms_{traceName}.pdf' 
+        if not(USE_FRAME):
+            seaborn.despine(left=True, bottom=True, right=True)
+        plt.savefig ('../res/{}.pdf' .format (outputFileName), bbox_inches='tight')        
                 
                 
     def genErVsCntrMaxValPlot (self, cntrSize=8, plotAbsEr=True):
@@ -1021,7 +1020,7 @@ def genErVsMemSizePlot ():
     
     myResFileParser = ResFileParser ()
     myResFileParser.rdPcl (pclFileName=f'cms_Caida1_HPC_u.pcl')
-    for mode in ['F2P_li_h2']: #, 'F3P_li_h2', 'F3P_li_h3', 'F3P_si_h2', 'F3P_si_h3']:
+    for mode in ['F3P_li_h2', 'F3P_si_h2', 'F3P_si_h3']:
         myResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
     myResFileParser.genErVsMemSizePlot ()
 
