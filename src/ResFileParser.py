@@ -449,7 +449,7 @@ class ResFileParser (object):
         if points == []:
             warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, width={width}')
         modes = [point['mode'] for point in points]
-        modes = [mode for mode in modes if mode not in ['F2P_li_h2']]
+        modes = [mode for mode in modes if mode not in ['F3P_li_h2']]
         for mode in modes:
             pointsOfMode = [point for point in points if point['mode'] == mode]
             widths = [point['width'] for point in pointsOfMode]
@@ -476,9 +476,10 @@ class ResFileParser (object):
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
-        plt.xlim (1024)      
+        plt.xlim (256)      
         # plt.ylim ([0,0.0005])
         plt.yscale ('log')          
+        plt.xscale ('log')          
         outputFileName = f'cms_{traceName}.pdf' 
         if not(USE_FRAME):
             seaborn.despine(left=True, bottom=True, right=True)
@@ -1020,8 +1021,8 @@ def genErVsMemSizePlot ():
     
     myResFileParser = ResFileParser ()
     myResFileParser.rdPcl (pclFileName=f'cms_Caida1_HPC_u.pcl')
-    for mode in ['F3P_li_h2', 'F3P_si_h2', 'F3P_si_h3']:
-        myResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
+    # for mode in ['F3P_li_h2', 'F3P_si_h2', 'F3P_si_h3' 
+    #     myResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
     myResFileParser.genErVsMemSizePlot ()
 
 if __name__ == '__main__':
