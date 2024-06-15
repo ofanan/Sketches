@@ -444,11 +444,10 @@ class ResFileParser (object):
                   point['cntrSize']  == cntrSize]
         if points == []:
             warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, width={width}')
-            continue
         modes = [point['mode'] for point in points]
         for mode in modes:
             pointsOfMode = [point for point in points if point['mode'] == mode]
-            for width in [point['width'] for point in pointsOFMode]:
+            for width in [point['width'] for point in pointsOfMode]:
                 pointsToPlot = [point for point in pointsOfMode if point['width']==width]
                 if len(pointsToPlot)>1:
                     warning (f'found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}, width={width}, statType={statType}, rel_abs_n={rel_abs_n}')
@@ -986,12 +985,20 @@ def genUniqPcl (
     for point in points:
         pickle.dump(point, pclOutputFile) 
 
+def genErVsMemSizePlot ():
+    
+    myResFileParser = ResFileParser ()
+    myResFileParser.rdPcl (pclFileName=f'cms_Caida1_HPC_u.pcl')
+    for mode in ['F2P_li_h2', 'F3P_li_h2', 'F3P_li_h3', 'F3P_si_h2', 'F3P_si_h3']:
+        myResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
+    myResFileParser.genErVsMemSizePlot ()
 
 if __name__ == '__main__':
     try:
+        genErVsMemSizePlot ()
         # genUniqPcl (pclFileName=f'cms_F2P_li_h2_HPC.pcl')
         # genErVsCntrSizeSingleCntr ()
-        genErVsCntrSizeTableTrace ()
+        # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
         # rmvFromPcl ()
         # genRndErrTable ()
