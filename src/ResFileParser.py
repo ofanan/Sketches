@@ -867,8 +867,8 @@ def genErVsCntrSizeSingleCntr ():
         outputFileName = f'1cntr.dat' 
         datOutputFile = open (f'../res/{outputFileName}', 'a+')
         abs     = True
-        my_ResFileParser.rdPcl (pclFileName='1cntr_PC.pcl')
-        maxValBy = 'F3P_li_h3'
+        my_ResFileParser.rdPcl (pclFileName='rel_1cntr_HPC_RdRmse.pcl')
+        maxValBy = 'F2P_li_h2'
         for rel_abs_n in [True, False]:
             for statType in ['normRmse']:
                 printf (datOutputFile, '\n// {} {}\n' .format ('rel' if rel_abs_n else 'abs', statType))
@@ -880,7 +880,8 @@ def genErVsCntrSizeSingleCntr ():
                     statType        = statType,
                     maxValBy        = maxValBy,
                     rel_abs_n       = rel_abs_n,
-                    normalizeByPerfectCntr = False
+                    normalizeByPerfectCntr  = False,
+                    normalizeByMinimal      = False
                 ) 
 
 def genErVsCntrSizeTableTrace ():
