@@ -426,7 +426,7 @@ class ResFileParser (object):
             traceName   : str  = 'Caida1',
             numOfExps   : int  = 10,
             cntrSize    : int  = 8,
-            statType    : str  = 'Mse',
+            statType    : str  = 'normRmse',
             rel_abs_n   : bool = False, # When True, consider relative errors, Else, consider absolute errors.
         ):
         """
@@ -447,11 +447,29 @@ class ResFileParser (object):
         modes = [point['mode'] for point in points]
         for mode in modes:
             pointsOfMode = [point for point in points if point['mode'] == mode]
-            for width in [point['width'] for point in pointsOfMode]:
+            widths = [point['width'] for point in pointsOfMode]
+            y = []
+            for width in widths:
                 pointsToPlot = [point for point in pointsOfMode if point['width']==width]
                 if len(pointsToPlot)>1:
-                    warning (f'found {len(pointsToPrint)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}, width={width}, statType={statType}, rel_abs_n={rel_abs_n}')
-                ax.plot (width, pointsToPlot[0]['Avg']) #, color=colorOfMode[mode])  # Plot the conf' interval line
+                    warning (f'found {len(pointsToPlot)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}, width={width}, statType={statType}, rel_abs_n={rel_abs_n}')
+                point = pointsToPlot[0]
+                y.append(point['Avg'])
+                # ax.plot (width, pointsToPlot[0]['Avg'], color='black') #, color=colorOfMode[mode])  # Plot the conf' interval line
+                # print ('({},{:.5f})' .format (width, pointsToPlot[0]['Avg']))
+            ax.plot (widths, y, color='black', 
+                     markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH, label=point['mode'], mfc='none') 
+
+        # plt.xlabel('Counter Size [bits]')
+        # plt.ylabel('RMSE')
+        # plt.yscale ('log')
+        # handles, labels = plt.gca().get_legend_handles_labels()
+        # by_label = dict(zip(labels, handles))
+        # plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
+        # if not(USE_FRAME):
+        #     seaborn.despine(left=True, bottom=True, right=True)
+        # plt.savefig ('../res/{}.pdf' .format (outputFileName), bbox_inches='tight')        
+        plt.show ()
                 
                 
     def genErVsCntrMaxValPlot (self, cntrSize=8, plotAbsEr=True):
