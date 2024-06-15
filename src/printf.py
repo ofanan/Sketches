@@ -8,7 +8,7 @@ def printf(output_file, str2print, *args):
     """
     Format-print the requested str2printing to a given output file 
     """
-    print(str2print % args, end='', file = output_file, flush = True)
+    print (str2print % args, end='', file = output_file, flush = True)
 
 def printarFp (output_file, ar):
     """
@@ -85,5 +85,12 @@ def printfDict (outputFile, dict2print):
     format-print a dictionary to a file
     """
     for key in dict2print:
+        # printf (outputFile, f'{key} : {dict2print[key]}\n')
+        # print (f'{key} : {dict2print[key]}\n', end='', file = outputFile, flush = True)
+        # print (dict2print[key])
         printf (outputFile, f'{key} : {dict2print[key]}\n')
-    printf (outputFile, '\n')
+    printf (outputFile, '\n\n')
+    
+# debugFile = open ('../res/debug.txt', 'w')
+# dict2print = {'gamad' : 1, 'nanas' : 2}
+# printfDict (debugFile, dict2print)

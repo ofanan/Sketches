@@ -45,6 +45,7 @@ colorOfMode = {
     'F3P'       : PURPLE,
     'SEAD stat' : VERMILION,
     'SEAD dyn'  : VERMILION,
+    'SEAD_dyn'  : VERMILION,
     'FP'        : BLUE,
     'Tetra stat': BLUE,
     'Tetra dyn' : BLUE,
@@ -54,7 +55,6 @@ colorOfMode = {
     'int'       : 'black',
     'F2P lr'    : GREEN,
     'F2P lr h1' : GREEN,
-    'F2P lr h2' : GREEN,
     'F2P_lr_h2' : GREEN,
     'F2P_li_h2' : GREEN,
     'F2P_li'    : GREEN,
@@ -65,6 +65,10 @@ colorOfMode = {
     'F2P_si_h2' : PURPLE,
     'F2P sr'    : PURPLE,
     'F2P li'    : YELLOW,
+    'F3P_li_h2' : BLACK,
+    'F3P_li_h3' : YELLOW,
+    'F3P_si_h2' : BLUE,
+    'F3P_si_h3' : PURPLE,
     'FP 5M2E'   : VERMILION,
     'FP_e2'     : VERMILION,
     'FP_e5'     : BLUE,
@@ -433,6 +437,7 @@ class ResFileParser (object):
         Generate a plot showing the error as a function of the counter's size.
         """
     
+        debugFile = open ('../res/debug.txt', 'w')
         outputFileName = f'cms_{traceName}.pdf' 
         self.setPltParams ()  # set the plot's parameters (formats of lines, markers, legends etc.).
         _, ax = plt.subplots()
@@ -445,6 +450,7 @@ class ResFileParser (object):
         if points == []:
             warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, width={width}')
         modes = [point['mode'] for point in points]
+        # modes = [mode for mode in modes if mode not in ['F2P_li_h2', 'F3P_li_h3']]
         for mode in modes:
             pointsOfMode = [point for point in points if point['mode'] == mode]
             widths = [point['width'] for point in pointsOfMode]
@@ -453,22 +459,30 @@ class ResFileParser (object):
                 pointsToPlot = [point for point in pointsOfMode if point['width']==width]
                 if len(pointsToPlot)>1:
                     warning (f'found {len(pointsToPlot)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}, width={width}, statType={statType}, rel_abs_n={rel_abs_n}')
+                    for point in pointsToPlot: #$$$
+                        # error (point) #$$$ 
+                        printfDict (debugFile, point)
+                    # exit () #$$$
                 point = pointsToPlot[0]
                 y.append(point['Avg'])
-                # ax.plot (width, pointsToPlot[0]['Avg'], color='black') #, color=colorOfMode[mode])  # Plot the conf' interval line
-                # print ('({},{:.5f})' .format (width, pointsToPlot[0]['Avg']))
-            ax.plot (widths, y, color='black', 
-                     markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH, label=point['mode'], mfc='none') 
-
-        # plt.xlabel('Counter Size [bits]')
-        # plt.ylabel('RMSE')
-        # plt.yscale ('log')
-        # handles, labels = plt.gca().get_legend_handles_labels()
-        # by_label = dict(zip(labels, handles))
-        # plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
-        # if not(USE_FRAME):
-        #     seaborn.despine(left=True, bottom=True, right=True)
-        # plt.savefig ('../res/{}.pdf' .format (outputFileName), bbox_inches='tight')        
+            ax.plot (widths, y, 
+                     color      = colorOfMode[mode], 
+                     markersize = MARKER_SIZE_SMALL, 
+                     linewidth  = LINE_WIDTH, 
+                     label      = point['mode'], 
+                     mfc        ='none') 
+        
+        plt.xlabel('Width')
+        plt.ylabel('NRMSE')
+        handles, labels = plt.gca().get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
+        plt.xlim (1024)      
+        # plt.ylim ([0,0.0005])
+        plt.yscale ('log')          
+        # # if not(USE_FRAME):
+        # #     seaborn.despine(left=True, bottom=True, right=True)
+        # # plt.savefig ('../res/{}.pdf' .format (outputFileName), bbox_inches='tight')        
         plt.show ()
                 
                 
@@ -1007,14 +1021,15 @@ def genErVsMemSizePlot ():
     
     myResFileParser = ResFileParser ()
     myResFileParser.rdPcl (pclFileName=f'cms_Caida1_HPC_u.pcl')
-    for mode in ['F2P_li_h2', 'F3P_li_h2', 'F3P_li_h3', 'F3P_si_h2', 'F3P_si_h3']:
+    for mode in ['F2P_li_h2']: #, 'F3P_li_h2', 'F3P_li_h3', 'F3P_si_h2', 'F3P_si_h3']:
         myResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
     myResFileParser.genErVsMemSizePlot ()
 
 if __name__ == '__main__':
     try:
+        # 'F2P_li_h2'
         genErVsMemSizePlot ()
-        # genUniqPcl (pclFileName=f'cms_F2P_li_h2_HPC.pcl')
+        # genUniqPcl (pclFileName=f'cms_F2P_li_h2_HPC_u.pcl')
         # genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
