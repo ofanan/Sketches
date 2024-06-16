@@ -452,19 +452,22 @@ class ResFileParser (object):
         modes = [mode for mode in modes if mode not in ['F3P_li_h2']]
         for mode in modes:
             pointsOfMode = [point for point in points if point['mode'] == mode]
+            if mode=='SEAD_dyn': #$$$$
+                for point in pointsOfMode:
+                    printfDict (debugFile, point)
+                exit () #$$$
             widths = [point['width'] for point in pointsOfMode]
             y = []
             for width in widths:
                 pointsToPlot = [point for point in pointsOfMode if point['width']==width]
                 if len(pointsToPlot)>1:
-                    warning (f'found {len(pointsToPlot)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}, width={width}, statType={statType}, rel_abs_n={rel_abs_n}')
-                    for point in pointsToPlot: #$$$
-                        # error (point) #$$$ 
+                    warning (f'found {len(pointsToPlot)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}, width={width}, statType={statType}, rel_abs_n={rel_abs_n}. Printing the duplicated points to ../res/debug.txt')
+                    for point in pointsToPlot: 
                         printfDict (debugFile, point)
-                    # exit () #$$$
                 point = pointsToPlot[0]
                 y.append(point['Avg'])
-            ax.plot (widths, y, 
+            ax.plot ([4*w for w in widths], 
+                     y, 
                      color      = colorOfMode[mode], 
                      markersize = MARKER_SIZE_SMALL, 
                      linewidth  = LINE_WIDTH, 
@@ -476,8 +479,8 @@ class ResFileParser (object):
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
-        plt.xlim (256)      
-        # plt.ylim ([0,0.0005])
+        plt.xlim ([10**4, 10**6])      
+        plt.ylim ([10**(-5),0.0005])
         plt.yscale ('log')          
         plt.xscale ('log')          
         outputFileName = f'cms_{traceName}.pdf' 
@@ -985,15 +988,11 @@ def genErVsCntrSizeTableTrace ():
 def rmvFromPcl ():
     myResFileParser = ResFileParser()
     myResFileParser.rmvFromPcl(
-        pclFileName = 'rndErr_n8.pcl',
+        pclFileName = 'cms_Caida1_HPC.pcl',
         listOfDicts = [
-            {'mode' : 'F3P_lr_h1'},
-            {'mode' : 'F3P_lr_h2'},
-            {'mode' : 'F3P_lr_h3'},
-            {'mode' : 'F3P_sr_h1'},
-            {'mode' : 'F3P_sr_h2'},
-            {'mode' : 'F3P_sr_h3'}]
-        )
+            {'mode' : 'SEAD_dyn'}
+        ]
+    )
         
 def uniqListOfDicts (L):
     """
@@ -1020,20 +1019,19 @@ def genUniqPcl (
 def genErVsMemSizePlot ():
     
     myResFileParser = ResFileParser ()
-    myResFileParser.rdPcl (pclFileName=f'cms_Caida1_HPC_u.pcl')
+    myResFileParser.rdPcl (pclFileName=f'cms_Caida1_HPC.pcl')
     # for mode in ['F3P_li_h2', 'F3P_si_h2', 'F3P_si_h3' 
     #     myResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
     myResFileParser.genErVsMemSizePlot ()
 
 if __name__ == '__main__':
     try:
-        # 'F2P_li_h2'
         genErVsMemSizePlot ()
         # genUniqPcl (pclFileName=f'cms_F2P_li_h2_HPC_u.pcl')
         # genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
-        # rmvFromPcl ()
+        rmvFromPcl ()
         # genRndErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
