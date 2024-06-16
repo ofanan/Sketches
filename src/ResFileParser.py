@@ -130,7 +130,8 @@ def labelOfMode (
         return genFpLabel (expSize=expSize, mantSize=mantSize)
     elif mode=='int':
         return f'INT{cntrSize}'
-    settings.error (f'In ResFileParer.labelOfMode(). Sorry, the mode {mode} is not supported')
+    else:
+        return mode
 
 def genFpLabel (mantSize : int, expSize : int) -> str:
     """
@@ -159,7 +160,7 @@ def genFxpLabel (mode : str): # a mode describing the mode flavors
     'F2P_si_h2' : r'F2P$_{SI}^2$',
     'F3P_lr_h2' : r'F3P$_{LR}^2$',
     'F3P_sr_h2' : r'F3P$_{SR}^2$',
-    'F3P_li_h2' : r'F3P$_{LI}^2$',
+    'F3P_li_h3' : r'F3P$_{LI}^3$',
     'F3P_si_h2' : r'F3P$_{SI}^2$',
     }
     return labelOfMode[mode]
@@ -450,13 +451,13 @@ class ResFileParser (object):
             warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, width={width}')
         modes = [point['mode'] for point in points]
         modes = [mode for mode in modes if mode not in ['F3P_li_h2']]
+        minY, maxY = float('inf'), 0 
         for mode in modes:
             pointsOfMode = [point for point in points if point['mode'] == mode]
-            if mode=='SEAD_dyn': #$$$$
-                for point in pointsOfMode:
-                    printfDict (debugFile, point)
-                exit () #$$$
             widths = [point['width'] for point in pointsOfMode]
+            minWidth = 2**10
+            minMemSize = 10**4
+            widths = [w for w in widths if w>=(minMemSize/8)]
             y = []
             for width in widths:
                 pointsToPlot = [point for point in pointsOfMode if point['width']==width]
@@ -466,21 +467,24 @@ class ResFileParser (object):
                         printfDict (debugFile, point)
                 point = pointsToPlot[0]
                 y.append(point['Avg'])
+                minY = min (minY, point['Avg'])
+                maxY = max (maxY, point['Avg'])
             ax.plot ([4*w for w in widths], 
                      y, 
                      color      = colorOfMode[mode], 
                      markersize = MARKER_SIZE_SMALL, 
                      linewidth  = LINE_WIDTH, 
-                     label      = point['mode'], 
+                     label      = labelOfMode(point['mode']), 
                      mfc        ='none') 
         
-        plt.xlabel('Width')
+        plt.xlabel('Memory [KB]')
         plt.ylabel('NRMSE')
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
-        plt.xlim ([10**4, 10**6])      
-        plt.ylim ([10**(-5),0.0005])
+        plt.xlim ([minMemSize, 10**6])      
+        plt.ylim ([0.98*minY, 1.02*maxY])
+        # plt.ylim ([10**(-5),0.0005])
         plt.yscale ('log')          
         plt.xscale ('log')          
         outputFileName = f'cms_{traceName}.pdf' 
