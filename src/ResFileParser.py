@@ -1035,7 +1035,7 @@ if __name__ == '__main__':
         # genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
-        rmvFromPcl ()
+        # rmvFromPcl ()
         # genRndErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
