@@ -29,13 +29,15 @@ class SpaceSaving (CountMinSketch):
         cntrSize        = 8, # num of bits in each counter
         verbose         = [], # The chosen verbose options, detailed in settings.py, determine the output (e.g., to a .pcl, .res or .log file).
         cacheSize       = 1, # number of counters -- actually, the cache's size
+        numFlows        = 10, # the total number of flows to be estimated.
         seed            = settings.SEED,
     ):
         
         """
         """
         self.cntrSize   = cntrSize
-        self.cacheSize, self.mode, self.seed = cacheSize, mode, seed
+        self.cacheSize, self.numFlows, self.mode, self.seed = cacheSize, numFlows, mode, seed
+        self.numCntrs = self.cacheSize
         self.verbose = verbose
         self.genOutputDirectories ()
         # To ease the finding of min item (without the need to perform cntr2num), we cache also the cached values.  
@@ -216,10 +218,9 @@ class SpaceSaving (CountMinSketch):
     
 def runSS (mode, 
     cntrSize    = 8,
-    runShortSim = True,
     maxNumIncs  = float ('inf'),
     cacheSize   = 1,
-    traceFileName = 'Caida1' 
+    traceFileName = 'Caida1.txt' 
 ):
     """
     """   
@@ -258,7 +259,6 @@ if __name__ == '__main__':
             # for mode in ['F2P_lli', 'CEDAR', 'Morris']:    
                 runSS (
                     mode        = mode, 
-                    maxValBy    = 'Caida1',
                 )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
