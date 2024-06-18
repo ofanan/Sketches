@@ -84,6 +84,22 @@ class SpaceSaving (CountMinSketch):
         print ('{} running sim at t={}. trace={}, numOfExps={}, mode={}, cntrSize={}, cacheSize={}' .format (
                         str, datetime.now().strftime('%H:%M:%S'), self.traceFileName, self.numOfExps, self.mode, self.cntrSize, self.cacheSize))
 
+
+    def printLogLine (
+            self, 
+            flowId, 
+            estimatedVal, 
+            realVal):
+        """
+        Print a log line to the logFile during simulation
+        """
+        if not(VERBOSE_LOG in self.verbose):
+            return
+        self.cntrMaster.printAllCntrs (self.logFile)
+        printf (self.logFile, 
+                'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
+                self.incNum, flowId%self.cacheSize, estimatedVal, realVal)) 
+
     def runSimFromTrace (self):
         """
         Run a simulation where the input is taken from self.traceFileName.
@@ -105,7 +121,6 @@ class SpaceSaving (CountMinSketch):
             flowRealVal = [0] * self.numFlows
             self.incNum = 0
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
-
             if (VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
                 infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
                 self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
@@ -121,9 +136,11 @@ class SpaceSaving (CountMinSketch):
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr    
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
-                if VERBOSE_LOG in self.verbose:
-                    self.cntrMaster.printAllCntrs (self.logFile)
-                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, flowId%self.cacheSize, flowEstimatedVal, flowRealVal[flowId])) 
+                self.printLogLine (
+                    flowId          = flowId, 
+                    estimatedVal    = flowEstimatedVal,
+                    realVal         = flowRealVal[flowId]
+                )
                 if VERBOSE_DETAILED_LOG in self.verbose and self.incNum>10000: #$$$
                     printf (self.logFile, 'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumAbsSqEr={:.1e}, sumRelSqEr={:.1e}\n' .format (self.incNum, flowRealVal[flowId], flowEstimatedVal, sqEr, sqEr/(flowRealVal[flowId])**2, self.sumSqAbsEr[self.expNum], self.sumSqRelEr[self.expNum]))
                 if self.incNum==self.maxNumIncs:
@@ -159,9 +176,11 @@ class SpaceSaving (CountMinSketch):
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr                
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
-                if VERBOSE_LOG in self.verbose:
-                    self.cntrMaster.printAllCntrs (self.logFile)
-                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, flowId%self.cacheSize, flowEstimatedVal, flowRealVal[flowId])) 
+                self.printLogLine (
+                    flowId          = flowId, 
+                    estimatedVal    = flowEstimatedVal,
+                    realVal         = flowRealVal[flowId]
+                )     
             if settings.VERBOSE_FULL_RES in self.verbose:
                 dict = settings
             
@@ -228,11 +247,12 @@ def runSS (mode,
     numFlows = 1276112 # 13,182,023 incs
     
     if traceFileName=='shortTest':
-        numFlows      = numFlows
-        maxNumIncs    = 20 #4000 #(width * depth * cntrSize**3)/2
-        numOfExps     = 2
-        verbose       = [VERBOSE_LOG, VERBOSE_RES] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
-        traceFileName = None
+        numFlows        = 9
+        cacheSize       = 3
+        maxNumIncs      = 20 #4000 #(width * depth * cntrSize**3)/2
+        numOfExps       = 2
+        verbose         = [VERBOSE_LOG, VERBOSE_RES] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+        traceFileName   = None
     else:
         numFlows                = numFlows
         maxNumIncs              = maxNumIncs   
