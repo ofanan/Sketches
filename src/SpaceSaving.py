@@ -227,10 +227,11 @@ def runSS (mode,
     numFlows = 1276112 # 13,182,023 incs
     
     if traceFileName=='shortTest':
-        numFlows                = numFlows
-        maxNumIncs              = 20 #4000 #(width * depth * cntrSize**3)/2
-        numOfExps               = 2
-        verbose                 = [VERBOSE_RES] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+        numFlows      = numFlows
+        maxNumIncs    = 20 #4000 #(width * depth * cntrSize**3)/2
+        numOfExps     = 2
+        verbose       = [VERBOSE_RES] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+        traceFileName = None
     else:
         numFlows                = numFlows
         maxNumIncs              = maxNumIncs   
@@ -258,7 +259,8 @@ if __name__ == '__main__':
             # for mode in ['F3P_li_h3']:    
             # for mode in ['F2P_lli', 'CEDAR', 'Morris']:    
                 runSS (
-                    mode        = mode, 
+                    mode          = mode,
+                    traceFileName = 'shortTest'
                 )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
