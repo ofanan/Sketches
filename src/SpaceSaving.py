@@ -73,6 +73,7 @@ class SpaceSaving (CountMinSketch):
         if (settings.VERBOSE_FULL_RES in self.verbose):
             self.fullResFile = open (f'../res/ss_M{self.cacheSize}_{settings.getMachineStr()}_full.res', 'a+')
 
+        self.logFile =  None # default
         if VERBOSE_LOG in self.verbose or VERBOSE_DETAILED_LOG in self.verbose:
             self.logFile = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
             
@@ -122,7 +123,7 @@ class SpaceSaving (CountMinSketch):
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
                 if VERBOSE_LOG in self.verbose:
                     self.cntrMaster.printAllCntrs (self.logFile)
-                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
+                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, flowId%self.cacheSize, flowEstimatedVal, flowRealVal[flowId])) 
                 if VERBOSE_DETAILED_LOG in self.verbose and self.incNum>10000: #$$$
                     printf (self.logFile, 'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumAbsSqEr={:.1e}, sumRelSqEr={:.1e}\n' .format (self.incNum, flowRealVal[flowId], flowEstimatedVal, sqEr, sqEr/(flowRealVal[flowId])**2, self.sumSqAbsEr[self.expNum], self.sumSqRelEr[self.expNum]))
                 if self.incNum==self.maxNumIncs:
@@ -153,7 +154,6 @@ class SpaceSaving (CountMinSketch):
             
             for self.incNum in range(self.maxNumIncs):
                 flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
-                # flowId = mmh3.hash(str(flowId)) % self.numFlows
                 flowRealVal[flowId]     += 1
                 flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
@@ -161,7 +161,7 @@ class SpaceSaving (CountMinSketch):
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
                 if VERBOSE_LOG in self.verbose:
                     self.cntrMaster.printAllCntrs (self.logFile)
-                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
+                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, flowId%self.cacheSize, flowEstimatedVal, flowRealVal[flowId])) 
             if settings.VERBOSE_FULL_RES in self.verbose:
                 dict = settings
             
@@ -193,7 +193,8 @@ class SpaceSaving (CountMinSketch):
                     sumSqEr         = sumSqEr, 
                     statType        = statType, 
                     numMeausures    = self.incNum+1,
-                    verbose         = self.verbose
+                    verbose         = self.verbose,
+                    logFile         = self.logFile
                     )
                 dict = self.fillStatDictsFields(dict)
                 dict['rel_abs_n']   = rel_abs_n
@@ -230,7 +231,7 @@ def runSS (mode,
         numFlows      = numFlows
         maxNumIncs    = 20 #4000 #(width * depth * cntrSize**3)/2
         numOfExps     = 2
-        verbose       = [VERBOSE_RES] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+        verbose       = [VERBOSE_LOG, VERBOSE_RES] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
         traceFileName = None
     else:
         numFlows                = numFlows

@@ -1,7 +1,7 @@
 # Parameters and accessory functions
 # import math, random, os, pandas as pd
 import os, math, itertools, numpy as np, scipy.stats as st 
-from printf import printf
+from printf import printf, printarFp
 
 SEED    = 42
 INF_INT = 999999999
@@ -304,6 +304,7 @@ def calcPostSimStat (
         numMeausures    : int, # num of error measurements  
         statType        : str = 'normRmse', # Type of the statistic to write. May be either 'normRmse', or 'Mse'
         verbose         : list = [], # verbose level, defining the type and format of output
+        logFile         = None,
     ) -> dict: 
     """
     Calculate the post-sim stat - e.g., MSE/RMSE, with confidence intervals. 
@@ -318,8 +319,10 @@ def calcPostSimStat (
     else:
         error (f'In settings.calcPostSimStat(). Sorry, the requested statType {statType} is not supported.')
     if (VERBOSE_LOG in verbose):
-        printf (self.logFile, f'statType={statType}. Vec=')
-        printarFp (self.logFile, vec)
+        if logFile==None:
+            error ('settings.calcPostSimStat() was called with VERBOSE_LOG, but logFile==None')
+        printf (logFile, f'statType={statType}. Vec=')
+        printarFp (logFile, vec)
     avg           = np.average(vec)
     confIntervalVar  = confInterval (ar=vec, avg=avg)
     # maxMinRelDiff will hold the relative difference between the largest and the smallest value.

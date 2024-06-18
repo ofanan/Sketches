@@ -227,6 +227,7 @@ class CountMinSketch:
         if (settings.VERBOSE_FULL_RES in self.verbose):
             self.fullResFile = open (f'../res/cms_full.res', 'a+')
 
+        self.logFile =  None # default
         if VERBOSE_LOG in self.verbose or VERBOSE_DETAILED_LOG in self.verbose:
             self.logFile = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
             
@@ -348,7 +349,8 @@ class CountMinSketch:
                     sumSqEr         = sumSqEr, 
                     statType        = statType, 
                     numMeausures    = self.incNum+1,
-                    verbose         = self.verbose
+                    verbose         = self.verbose,
+                    logFile         = self.logFile
                     )
                 dict = self.fillStatDictsFields(dict)
                 dict['rel_abs_n']   = rel_abs_n
