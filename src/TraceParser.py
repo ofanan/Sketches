@@ -9,7 +9,7 @@ from   tictoc import tic, toc # my modules for measuring and print-out the simul
 from printf import printf, printarFp
 from settings import warning, error, indexOrNone, getTracesPath
 
-def parseTrace (
+def parseCsvTrace (
         maxNumRows      = float('inf'), # overall number of increments (# of pkts in the trace) 
         traceFileName   = None,
         verbose         = [] # verbose level, determined in settings.py.
@@ -21,8 +21,7 @@ def parseTrace (
     - print the trace's stat to a file.
     - print to file an compressed version of the trace, where each key is replaced by a unique flowId, allocated to each flow in sequential order of appearance in the trace. 
     """
-    relativePathToInputFile = settings.getRelativePathToTraceFile (traceFileName)
-    settings.checkIfInputFileExists (relativePathToInputFile)
+    relativePathToInputFile = settings.getRelativePathToTraceFile (traceFileName, exitError=True)
     csvFile = open (relativePathToInputFile, 'r')
     csvReader = csv.reader(csvFile) 
 
@@ -111,15 +110,7 @@ def calcTraceStat (
         printf (statFile, f'binFlowSizes={binFlowSizes[bin]}, binVal={binVal[bin]}\n')
     statFile.close()
     
-# parseTrace (
-#     traceFileName   = 'Caida1',
-#     verbose         = [settings.VERBOSE_RES] # verbose level, determined in settings.py.
-# )
-
-calcTraceStat (
-    traceFileName = 'Caida1',
-    maxNumOfRows  = float('inf'),
-    numFlows      = 1276112
+parseCsvTrace (
+    traceFileName = 'Caida2.csv',
+    verbose         = [settings.VERBOSE_RES] # verbose level, determined in settings.py.
 )
-
-# 1276112

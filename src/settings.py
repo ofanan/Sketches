@@ -228,14 +228,17 @@ def getTracesPath():
     """
     return '../../traces/'
 
-def getRelativePathToTraceFile (traceFileName):
+def getRelativePathToTraceFile (
+        traceFileName, 
+        exitError               = True
+        ):
     """
     Given a trace's file name, get the relative path to this trace file.
     The function also checks whether this trace file exists; otherwise, the run finishes with an appropriate error message.
     """
     # print (f'Note: we currently assume that all traces are in directory {getTracesPath()}, and in .txt format')
-    RelativePathToTraceFile = f'{getTracesPath()}Caida/{traceFileName}.txt'
-    checkIfInputFileExists (RelativePathToTraceFile)
+    RelativePathToTraceFile = f'{getTracesPath()}Caida/{traceFileName}'
+    checkIfInputFileExists (RelativePathToTraceFile, exitError)
     return RelativePathToTraceFile
 
 def extractParamsFromSettingStr (str):
@@ -350,3 +353,15 @@ def getFxpSettings (mode : str) -> dict:
     }
     
 
+def getSeadStatExpSize (
+        mode : str
+    )  -> int:
+    """
+    given the mode string of a static sead counter, get a dictionary detailing its settings (exponent).
+    """
+    if not(mode.startswith('SEAD_stat')):
+        error (f'In settings.getStatSeadExpSize(). Could not get SEAD_stat settings of mode {mode}')
+    if len (mode.split('_e'))<2:
+        error (f'settings.getSeadStatExpSize() was called with wrong mode {mode}')
+    return int(mode.split('_e')[1])
+    
