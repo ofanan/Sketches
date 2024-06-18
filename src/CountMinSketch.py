@@ -234,8 +234,8 @@ class CountMinSketch:
         """
         Print-screen an info msg about the parameters and hours of the simulation starting to run. 
         """             
-        print ('{} running sim at t={}. trace={}, numOfExps={}, mode={}, cntrSize={}, depth={}, width={}, numFlows={}' .format (
-                        str, datetime.now().strftime('%H:%M:%S'), self.traceFileName, self.numOfExps, self.mode, self.cntrSize, self.depth, self.width, self.numFlows))
+        print ('{} running sim at t={}. trace={}, numOfExps={}, mode={}, cntrSize={}, depth={}, width={}, numFlows={}, verbose={}' .format (
+                        str, datetime.now().strftime('%H:%M:%S'), self.traceFileName, self.numOfExps, self.mode, self.cntrSize, self.depth, self.width, self.numFlows, self.verbose))
 
     def runSimFromTrace (self):
         """
@@ -412,12 +412,12 @@ def runCMS (mode,
         width, depth            = width, depth
         numFlows                = numFlows
         numCntrsPerBkt          = 1 #16
-        maxNumIncs              = maxNumIncs   
-        numOfExps               = 10 #$$$ #100 
+        maxNumIncs              = 1000000 # maxNumIncs   
+        numOfExps               = 1 #$$$ #100 
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7
-        verbose                 = [VERBOSE_RES, VERBOSE_PCL] #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+        verbose                 = [VERBOSE_LOG_END_SIM] #[VERBOSE_RES, VERBOSE_PCL] #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     cms = CountMinSketch (
         width       = width, 
@@ -443,7 +443,7 @@ if __name__ == '__main__':
     try:
         cntrSize = 8
         for width in [2**i for i in range (10, 19)]:
-            for mode in ['SEAD_stat_e2']:    
+            for mode in ['SEAD_dyn']:    
             # for mode in ['SEAD_stat_e3']:    
             # for mode in ['SEAD_stat_e4']:    
             # for mode in ['F2P_li_h2']:    
