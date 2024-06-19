@@ -415,7 +415,7 @@ def runCMS (mode,
         numFlows                = numFlows
         numCntrsPerBkt          = 1 #16
         maxNumIncs              = maxNumIncs   
-        numOfExps               = 1 #$$$ #100 
+        numOfExps               = 10 #$$$ #100 
         numEpsilonStepsIceBkts  = 6 
         numEpsilonStepsInRegBkt = 5
         numEpsilonStepsInXlBkt  = 7

@@ -246,8 +246,8 @@ def runSS (mode,
         traceFileName   = None
     else:
         numFlows                = numFlows
-        maxNumIncs              = maxNumIncs   
-        numOfExps               = 10 #$$$ #100 
+        maxNumIncs              = 100 #maxNumIncs   
+        numOfExps               = 2 #$$$ #100 
         verbose                 = [VERBOSE_RES, VERBOSE_PCL] #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     ss = SpaceSaving (
@@ -266,13 +266,12 @@ def runSS (mode,
 if __name__ == '__main__':
     try:
         for cacheSize in [3]:
-            for mode in ['PerfectCounter']:    
-            # for mode in ['F2P_li_h2']:    
+            for mode in ['F2P_li_h2']:    
             # for mode in ['F3P_li_h3']:    
             # for mode in ['F2P_lli', 'CEDAR', 'Morris']:    
                 runSS (
                     mode          = mode,
-                    traceFileName = 'shortTest'
+                    traceFileName = 'Caida1.txt'
                 )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
