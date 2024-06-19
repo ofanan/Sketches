@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time, heapq
 import numpy as np
 from datetime import datetime
+from collections import defaultdict
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
 from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, calcPostSimStat
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
@@ -13,7 +14,7 @@ from CountMinSketch import CountMinSketch
 class SpaceSaving (CountMinSketch):
 
     # Generate a string that details the parameters' values.
-    genSettingsStr = lambda self : f'ss_{self.traceFileName}_{self.mode}_bit{self.cntrSize}'
+    genSettingsStr = lambda self : f'ss_{self.traceFileName}_{self.mode}_n{self.cntrSize}'
     
     def printCahe (self):
         """
@@ -25,23 +26,26 @@ class SpaceSaving (CountMinSketch):
         print ('')
         
     def __init__(self,
-        mode            = None, # the counter mode (e.g., SEC, AEE, realCounter).
+        mode            = None, # the counters' mode (e.g., SEC, AEE, realCounter).
         cntrSize        = 8, # num of bits in each counter
         verbose         = [], # The chosen verbose options, detailed in settings.py, determine the output (e.g., to a .pcl, .res or .log file).
         cacheSize       = 1, # number of counters -- actually, the cache's size
         numFlows        = 10, # the total number of flows to be estimated.
         seed            = settings.SEED,
+        traceFileName   = None,
     ):
         
         """
         """
-        self.cntrSize   = cntrSize
+        self.cntrSize, self.traceFileName = cntrSize, traceFileName
         self.cacheSize, self.numFlows, self.mode, self.seed = cacheSize, numFlows, mode, seed
         self.numCntrs = self.cacheSize
         self.verbose = verbose
+        self.cntrsAr = defaultdict(int)
+        self.minHeap = []
         self.genOutputDirectories ()
-        # To ease the finding of min item (without the need to perform cntr2num), we cache also the cached values.  
-        self.cache = [{'flowId' : None, 'val' : 0}]*self.cacheSize
+        self.genCntrMaster ()
+        self.openOutputFiles ()
 
     def incNQueryFlow(
             self, 
@@ -51,14 +55,33 @@ class SpaceSaving (CountMinSketch):
         Update the value for a single flow. Return the updated estimated value for this flow.
         To ease the finding of min item (without the need to perform cntr2num), we cache also the cached values.  
         """
-        cntrIdx = flowId%self.cacheSize
-        if self.cache[cntrIdx]['flowId'] == flowId: # the item is already cached
-            self.cache[cntrIdx]['val'] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob-inc. the counter, and get its val  
-        else: # the item is not cached yet
-            idxOfMinCntr = min(range(self.cacheSize), key=[item['val'] for item in self.cache].__getitem__) # find the index of the minimal cached item
-            self.cache[cntrIdx]['flowId'] = flowId # replace the item by the newly-inserted flowId
-            self.cache[cntrIdx]['val'] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=idxOfMinCntr) # prob'-inc. the value
-        return self.cache[cntrIdx]['val']
+        if flowId in self.cntrsAr:
+            self.cntrsAr[flowId] += 1
+        elif len(self.minHeap) < self.cacheSize:
+            self.cntrsAr[flowId] = 1
+            heapq.heappush(self.minHeap, (1, flowId))
+        else:
+            min_count, smallestFlow = heapq.heappop(self.minHeap)
+            del self.cntrsAr[smallestFlow]
+            self.cntrsAr[flowId] = min_count + 1
+            heapq.heappush(self.minHeap, (min_count + 1, flowId))
+        return self.cntrsAr[flowId]
+    # def incNQueryFlow(
+    #         self, 
+    #         flowId
+    #     ):
+    #     """
+    #     Update the value for a single flow. Return the updated estimated value for this flow.
+    #     To ease the finding of min item (without the need to perform cntr2num), we cache also the cached values.  
+    #     """
+    #     cntrIdx = flowId%self.cacheSize
+    #     if self.cache[cntrIdx]['flowId'] in [flowId, None]: # the item is already cached, or the 
+    #         self.cache[cntrIdx]['val'] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob-inc. the counter, and get its val  
+    #     else: # the item is not cached yet
+    #         idxOfMinCntr = min(range(self.cacheSize), key=[item['val'] for item in self.cache].__getitem__) # find the index of the minimal cached item
+    #         self.cache[cntrIdx]['flowId'] = flowId # replace the item by the newly-inserted flowId
+    #         self.cache[cntrIdx]['val'] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=idxOfMinCntr) # prob'-inc. the value
+    #     return self.cache[cntrIdx]['val']
    
     def openOutputFiles (self) -> None:
         """
@@ -76,7 +99,92 @@ class SpaceSaving (CountMinSketch):
         self.logFile =  None # default
         if VERBOSE_LOG in self.verbose or VERBOSE_DETAILED_LOG in self.verbose:
             self.logFile = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
-            
+            self.cntrMaster.setLogFile(self.logFile)
+
+    def genCntrMaster (self):
+        """
+        Generate self.cntrMaster according to the mode requested
+        self.cntrMaster is the entity that manages the counters - including incrementing and querying counters.
+        Documentation about the various CntrMaster's types is found in the corresponding .py files. 
+        """
+        if self.mode=='PerfectCounter':
+            self.cntrMaster = PerfectCounter.CntrMaster (
+                cntrSize    = self.cntrSize, 
+                numCntrs    = self.numCntrs, 
+                verbose     = self.verbose)
+        elif self.mode.startswith('SEAD_stat'):
+            expSize = getSeadStatExpSize (mode)
+            self.cntrMaster = SEAD_stat.CntrMaster (
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                expSize         = expSize,
+                verbose         = self.verbose)
+        elif self.mode=='SEAD_dyn':
+            self.cntrMaster = SEAD_dyn.CntrMaster (
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                verbose         = self.verbose)
+        elif self.mode.startswith('F2P') or self.mode.startswith('F3P'):
+            self.cntrMaster     = genCntrMasterFxp (
+                cntrSize        = self.cntrSize,
+                numCntrs        = self.numCntrs,
+                fxpSettingStr   = self.mode, 
+                verbose         = self.verbose)
+        elif self.mode=='Morris':
+            self.cntrMaster = Morris.CntrMaster (
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs,
+                cntrMaxVal      = self.cntrMaxVal,
+                verbose         = self.verbose)
+        elif self.mode=='CEDAR': 
+            self.cntrMaster = CEDAR.CntrMaster (
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                cntrMaxVal      = self.cntrMaxVal,
+                verbose         = self.verbose)
+        elif self.mode=='IceBuckets':
+            self.cntrMaster = Buckets.Buckets (
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                numCntrsPerBkt  = self.numCntrsPerBkt, 
+                mode            = 'ICE',
+                numEpsilonSteps = self.numEpsilonStepsIceBkts,
+                verbose         = self.verbose)
+        elif self.mode=='NiceBuckets':
+            self.cntrMaster = NiceBuckets.CntrMaster (
+                cntrSize                = self.cntrSize, 
+                numCntrs                = self.numCntrs, 
+                numCntrsPerRegBkt       = self.numCntrsPerBkt,
+                numCntrsPerXlBkt        = self.numCntrsPerBkt,
+                numEpsilonStepsInRegBkt = self.numEpsilonStepsInRegBkt,
+                numEpsilonStepsInXlBkt  = self.numEpsilonStepsInXlBkt,
+                numXlBkts               = self.depth,
+                verbose                 = self.verbose)
+        elif self.mode=='SecBuckets':
+             self.cntrMaster = Buckets.Buckets (
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                numCntrsPerBkt  = self.numCntrsPerBkt, 
+                mode            = 'SEC', 
+                verbose         = self.verbose)
+        elif self.mode=='F2pBuckets':
+            self.cntrMaster = Buckets.Buckets (
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                numCntrsPerBkt  = self.numCntrsPerBkt, 
+                mode            = 'F2P',
+                verbose         = self.verbose)
+        elif self.mode=='MecBuckets':
+            self.cntrMaster = Buckets.Buckets (
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                numCntrsPerBkt  = self.numCntrsPerBkt, 
+                mode            = 'MEC',
+                verbose         = self.verbose)
+        else:
+            error (f'Sorry, the mode {self.mode} that you requested is not supported')
+
+    
     def printSimMsg (self, str):
         """
         Print-screen an info msg about the parameters and hours of the simulation starting to run. 
@@ -97,7 +205,7 @@ class SpaceSaving (CountMinSketch):
             return
         self.cntrMaster.printAllCntrs (self.logFile)
         printf (self.logFile, 
-                'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
+                'incNum={}, hashedFlowId={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
                 self.incNum, flowId%self.cacheSize, estimatedVal, realVal)) 
 
     def runSimFromTrace (self):
@@ -108,10 +216,6 @@ class SpaceSaving (CountMinSketch):
         if self.numFlows==None:
             error ('In SpaceSaving.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
         self.genCntrMaster ()
-        if (VERBOSE_LOG in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
-            infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
-            self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
-            self.cntrMaster.setLogFile(self.logFile)
 
         relativePathToInputFile = settings.getRelativePathToTraceFile (self.traceFileName)
         for self.expNum in range (self.numOfExps):
@@ -121,10 +225,6 @@ class SpaceSaving (CountMinSketch):
             flowRealVal = [0] * self.numFlows
             self.incNum = 0
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
-            if (VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
-                infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
-                self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
-                self.cntrMaster.setLogFile(self.logFile)
             
             traceFile = open (relativePathToInputFile, 'r')
             for row in traceFile:            
@@ -164,11 +264,6 @@ class SpaceSaving (CountMinSketch):
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
             self.genCntrMaster ()
 
-            if (VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
-                infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
-                self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
-                self.cntrMaster.setLogFile(self.logFile)
-            
             for self.incNum in range(self.maxNumIncs):
                 flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
                 flowRealVal[flowId]     += 1
@@ -188,13 +283,12 @@ class SpaceSaving (CountMinSketch):
         self, 
         maxNumIncs     = 5000, # maximum # of increments (pkts in the trace), after which the simulation will be stopped. 
         numOfExps      = 1,  # number of repeated experiments. Relevant only for randomly-generated traces.
-        traceFileName  = None
         ):
         """
         Simulate the count min sketch
         """
         
-        self.maxNumIncs, self.numOfExps, self.traceFileName = maxNumIncs, numOfExps, traceFileName
+        self.maxNumIncs, self.numOfExps = maxNumIncs, numOfExps
         self.sumSqAbsEr  = [0] * self.numOfExps # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
         self.sumSqRelEr  = [0] * self.numOfExps # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
         self.printSimMsg ('Started')
@@ -260,16 +354,16 @@ def runSS (mode,
         verbose                 = [VERBOSE_RES, VERBOSE_PCL] #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
     
     ss = SpaceSaving (
-        cntrSize    = cntrSize, 
-        numFlows    = numFlows, 
-        verbose     = verbose,
-        mode        = mode,
-        cacheSize   = cacheSize,
+        cntrSize        = cntrSize, 
+        numFlows        = numFlows, 
+        verbose         = verbose,
+        mode            = mode,
+        cacheSize       = cacheSize,
+        traceFileName   = traceFileName
         )
     ss.sim (
         numOfExps      = numOfExps, 
         maxNumIncs     = maxNumIncs, 
-        traceFileName  = traceFileName
         )
     
 if __name__ == '__main__':
@@ -285,3 +379,19 @@ if __name__ == '__main__':
                 )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
+
+
+
+
+
+# # Usage example
+# if __name__ == "__main__":
+#     cacheSize = 5  # Top k elements to keep track of
+#     stream = ['a', 'b', 'c', 'a', 'b', 'a', 'd', 'e', 'e', 'e', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'a', 'b', 'c']
+#
+#     ss = SpaceSaving(cacheSize)
+#     for item in stream:
+#         ss.process(item)
+#
+#     top_k = ss.get_top_k()
+#     print("Top-k elements:", top_k)
