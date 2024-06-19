@@ -16,15 +16,6 @@ class SpaceSaving (CountMinSketch):
     # Generate a string that details the parameters' values.
     genSettingsStr = lambda self : f'ss_{self.traceFileName}_{self.mode}_n{self.cntrSize}'
     
-    def printCache (self):
-        """
-        Used for debugginign only.
-        print the id, level and CPU of each user in a heap.
-        """
-        for item in self.cache:
-            print (f'key = {item.key}, val = {item.value}')
-        print ('')
-        
     def __init__(self,
         mode            = None, # the counters' mode (e.g., SEC, AEE, realCounter).
         cntrSize        = 8, # num of bits in each counter
@@ -59,10 +50,12 @@ class SpaceSaving (CountMinSketch):
             if self.cache[cntrIdx]['flowId']==flowId: # found the flowId in the $
                 self.cache[cntrIdx]['val'] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob-inc. the counter, and get its val
                 hit = True # $ hit
+                break
             elif self.cache[cntrIdx]['flowId']==None: # the flowId isn't cached yet, and the $ is not full yet
-                self.cache[cntrIdx]['flowId'] = flowId # insert flowId into the $
+                self.cache[0]['flowId'] = flowId #$$$$ insert flowId into the $
                 self.cache[cntrIdx]['val'] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob-inc. the counter, and get its val
                 hit = True # $ hit
+                break
         if not(hit): # didn't found flowId in the $ --> insert it
             idxOfMinCntr = min(range(self.numCntrs), key=[item['val'] for item in self.cache].__getitem__) # find the index of the minimal cached item
             self.cache[cntrIdx]['flowId'] = flowId # replace the item by the newly-inserted flowId
@@ -87,7 +80,6 @@ class SpaceSaving (CountMinSketch):
             self.logFile = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
             self.cntrMaster.setLogFile(self.logFile)
 
-
     
     def printSimMsg (self, str):
         """
@@ -109,8 +101,8 @@ class SpaceSaving (CountMinSketch):
             return
         self.cntrMaster.printAllCntrs (self.logFile)
         printf (self.logFile, 
-                'incNum={}, hashedFlowId={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
-                self.incNum, flowId%self.numCntrs, estimatedVal, realVal)) 
+                ' incNum={}, cacheFlows={}, cacheVals={}, flowId={}, estimatedVal={:.0f} realVal={:.0f}' .format(
+                self.incNum, [item['flowId'] for item in self.cache], [item['val'] for item in self.cache], flowId, estimatedVal, realVal)) 
 
     def runSimFromTrace (self):
         """
@@ -169,7 +161,7 @@ class SpaceSaving (CountMinSketch):
             self.genCntrMaster ()
 
             for self.incNum in range(self.maxNumIncs):
-                flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
+                flowId = random.randint (0, self.numCntrs-1)
                 flowRealVal[flowId]     += 1
                 flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
@@ -220,7 +212,7 @@ class SpaceSaving (CountMinSketch):
                     self.dumpDictToPcl    (dict)
                 if VERBOSE_RES in self.verbose:
                     printf (self.resFile, f'{dict}\n\n') 
-        self.printSimMsg (f'Finished {self.incNum} increments')
+        self.printSimMsg (f'Finished {self.incNum+1} increments')
 
                 
     def fillStatDictsFields (self, dict) -> dict:
@@ -247,8 +239,8 @@ def runSS (mode,
     if traceFileName=='shortTest':
         numFlows        = 9
         cacheSize       = 3
-        maxNumIncs      = 20 #4000 #(width * depth * cntrSize**3)/2
-        numOfExps       = 2
+        maxNumIncs      = 10 #4000 #(width * depth * cntrSize**3)/2
+        numOfExps       = 1
         verbose         = [VERBOSE_LOG, VERBOSE_RES] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
         traceFileName   = None
     else:
@@ -283,19 +275,3 @@ if __name__ == '__main__':
                 )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
-
-
-
-
-
-# # Usage example
-# if __name__ == "__main__":
-#     cacheSize = 5  # Top k elements to keep track of
-#     stream = ['a', 'b', 'c', 'a', 'b', 'a', 'd', 'e', 'e', 'e', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'a', 'b', 'c']
-#
-#     ss = SpaceSaving(cacheSize)
-#     for item in stream:
-#         ss.process(item)
-#
-#     top_k = ss.get_top_k()
-#     print("Top-k elements:", top_k)
