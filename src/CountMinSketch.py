@@ -151,7 +151,7 @@ class CountMinSketch:
                 mode            = 'MEC',
                 verbose         = self.verbose)
         else:
-            error (f'Sorry, the mode {self.mode} that you requested is not supported')
+            error (f'In CountMinSketch.genCntrMaster(). Sorry, the mode {self.mode} that you requested is not supported')
 
     
     def genOutputDirectories (self):
