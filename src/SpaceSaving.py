@@ -54,7 +54,6 @@ class SpaceSaving (CountMinSketch):
         Update the value for a single flow. Return the updated estimated value for this flow.
         To ease the finding of min item (without the need to perform cntr2num), we cache also the cached values.  
         """
-        minVal = float ('infty')
         hit = False
         for cntrIdx in range(self.numCntrs): # loop over the cache's elements
             if self.cache[cntrIdx]['flowId']==flowId: # found the flowId in the $
