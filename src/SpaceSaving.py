@@ -36,7 +36,7 @@ class SpaceSaving (CountMinSketch):
         self.genCntrMaster ()
         self.openOutputFiles ()
         self.flowIds    = [None]*self.numCntrs
-        self.flowSizes  = [0]   *self.numCntrs
+        self.flowSizes  = np.zeros(self.numCntrs)
 
     def incNQueryFlow(
             self, 
@@ -58,9 +58,9 @@ class SpaceSaving (CountMinSketch):
                 hit = True # $ hit
                 break
         if not(hit): # didn't found flowId in the $ --> insert it
-            cntrIdx = min(range(self.numCntrs), key=self.flowSize.__getitem__) # find the index of the minimal cached item
+            cntrIdx = min(range(self.numCntrs), key=self.flowSizes.__getitem__) # find the index of the minimal cached item # to allow randomizing between all minimal items, np.where(a==a.min())
             self.flowIds  [cntrIdx] = flowId # replace the item by the newly-inserted flowId
-            self.flowSizes[cntrIdx] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=idxOfMinCntr) # prob'-inc. the value
+            self.flowSizes[cntrIdx] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob'-inc. the value
         return self.flowSizes[cntrIdx]
         
     def openOutputFiles (self) -> None:
@@ -162,7 +162,7 @@ class SpaceSaving (CountMinSketch):
             self.genCntrMaster ()
 
             for self.incNum in range(self.maxNumIncs):
-                flowId = random.randint (0, self.numCntrs-1)
+                flowId = random.randint (0, self.numFlows-1)
                 flowRealVal[flowId]     += 1
                 flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
@@ -182,7 +182,7 @@ class SpaceSaving (CountMinSketch):
         numOfExps      = 1,  # number of repeated experiments. Relevant only for randomly-generated traces.
         ):
         """
-        Simulate the count min sketch
+        Simulate the Space Saving cache.
         """
         
         self.maxNumIncs, self.numOfExps = maxNumIncs, numOfExps
