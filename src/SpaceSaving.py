@@ -35,7 +35,8 @@ class SpaceSaving (CountMinSketch):
         self.genOutputDirectories ()
         self.genCntrMaster ()
         self.openOutputFiles ()
-        self.cache = [{'flowId' : None, 'val' : 0}]*self.numCntrs
+        self.flowIds    = [None]*self.numCntrs
+        self.flowSizes  = [0]   *self.numCntrs
 
     def incNQueryFlow(
             self, 
@@ -47,20 +48,20 @@ class SpaceSaving (CountMinSketch):
         """
         hit = False
         for cntrIdx in range(self.numCntrs): # loop over the cache's elements
-            if self.cache[cntrIdx]['flowId']==flowId: # found the flowId in the $
-                self.cache[cntrIdx]['val'] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob-inc. the counter, and get its val
+            if self.flowIds[cntrIdx]==flowId: # found the flowId in the $
+                self.flowSizes[cntrIdx] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob-inc. the counter, and get its val
                 hit = True # $ hit
                 break
-            elif self.cache[cntrIdx]['flowId']==None: # the flowId isn't cached yet, and the $ is not full yet
-                self.cache[0]['flowId'] = flowId #$$$$ insert flowId into the $
-                self.cache[cntrIdx]['val'] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob-inc. the counter, and get its val
+            elif self.flowIds[cntrIdx]==None: # the flowId isn't cached yet, and the $ is not full yet
+                self.flowIds  [cntrIdx] = flowId # insert flowId into the $
+                self.flowSizes[cntrIdx] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob-inc. the counter, and get its val
                 hit = True # $ hit
                 break
         if not(hit): # didn't found flowId in the $ --> insert it
-            idxOfMinCntr = min(range(self.numCntrs), key=[item['val'] for item in self.cache].__getitem__) # find the index of the minimal cached item
-            self.cache[cntrIdx]['flowId'] = flowId # replace the item by the newly-inserted flowId
-            self.cache[cntrIdx]['val'] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=idxOfMinCntr) # prob'-inc. the value
-        return self.cache[cntrIdx]['val']
+            cntrIdx = min(range(self.numCntrs), key=self.flowSize.__getitem__) # find the index of the minimal cached item
+            self.flowIds  [cntrIdx] = flowId # replace the item by the newly-inserted flowId
+            self.flowSizes[cntrIdx] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=idxOfMinCntr) # prob'-inc. the value
+        return self.flowSizes[cntrIdx]
         
     def openOutputFiles (self) -> None:
         """
@@ -101,8 +102,8 @@ class SpaceSaving (CountMinSketch):
             return
         self.cntrMaster.printAllCntrs (self.logFile)
         printf (self.logFile, 
-                ' incNum={}, cacheFlows={}, cacheVals={}, flowId={}, estimatedVal={:.0f} realVal={:.0f}' .format(
-                self.incNum, [item['flowId'] for item in self.cache], [item['val'] for item in self.cache], flowId, estimatedVal, realVal)) 
+                ' incNum={}, flowIds={}, flowSizes={}, flowId={}, estimatedVal={:.0f} realVal={:.0f}' .format(
+                self.incNum, self.flowIds, self.flowSizes, flowId, estimatedVal, realVal)) 
 
     def runSimFromTrace (self):
         """
