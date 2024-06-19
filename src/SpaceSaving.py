@@ -16,7 +16,7 @@ class SpaceSaving (CountMinSketch):
     # Generate a string that details the parameters' values.
     genSettingsStr = lambda self : f'ss_{self.traceFileName}_{self.mode}_n{self.cntrSize}'
     
-    def printCahe (self):
+    def printCache (self):
         """
         Used for debugginign only.
         print the id, level and CPU of each user in a heap.
@@ -44,7 +44,7 @@ class SpaceSaving (CountMinSketch):
         self.genOutputDirectories ()
         self.genCntrMaster ()
         self.openOutputFiles ()
-        self.cache = [{'flowId' : None, 'cntrIdx' : None, 'val' : 0}]*self.numCntrs
+        self.cache = [{'flowId' : None, 'val' : 0}]*self.numCntrs
 
     def incNQueryFlow(
             self, 
@@ -61,6 +61,7 @@ class SpaceSaving (CountMinSketch):
                 self.cache[cntrIdx]['val'] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob-inc. the counter, and get its val
                 hit = True # $ hit
             elif self.cache[cntrIdx]['flowId']==None: # the flowId isn't cached yet, and the $ is not full yet
+                self.cache[cntrIdx]['flowId'] = flowId # insert flowId into the $
                 self.cache[cntrIdx]['val'] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob-inc. the counter, and get its val
                 hit = True # $ hit
         if not(hit): # didn't found flowId in the $ --> insert it
