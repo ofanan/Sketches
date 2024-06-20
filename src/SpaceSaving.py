@@ -114,7 +114,7 @@ class SpaceSaving (CountMinSketch):
             error ('In SpaceSaving.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
         self.genCntrMaster ()
 
-        relativePathToInputFile = settings.getRelativePathToTraceFile (self.traceFileName)
+        relativePathToInputFile = settings.getRelativePathToTraceFile (f'{self.traceFileName}.txt')
         for self.expNum in range (self.numOfExps):
             self.seed = self.expNum+1 
             random.seed (self.seed)
@@ -239,7 +239,6 @@ def runSS (mode,
             cntrSize        = 8, 
             cacheSize       = 3,
             maxNumIncs      = 10, #4000 #(width * depth * cntrSize**3)/2
-            numOfExps       = 1,
             verbose         = [VERBOSE_LOG, VERBOSE_RES], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             traceFileName   = traceFileName,
             mode            = mode,
@@ -248,14 +247,12 @@ def runSS (mode,
     else:
         ss = SpaceSaving (
             numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
-            maxNumIncs      = 1000000, #maxNumIncs   
-            numOfExps       = 10, 
             cacheSize       = cacheSize,
             verbose         = [VERBOSE_RES, VERBOSE_PCL], #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
             mode            = mode,
             traceFileName   = traceFileName
         )
-        ss.sim (numOfExps=10)
+        ss.sim (numOfExps=10, maxNumIncs=1000000)
     
 if __name__ == '__main__':
     try:
@@ -265,7 +262,7 @@ if __name__ == '__main__':
             # for mode in ['F2P_lli', 'CEDAR', 'Morris']:    
                 runSS (
                     mode          = mode,
-                    traceFileName = 'Caida1.txt',
+                    traceFileName = 'Caida1',
                     cacheSize   = 10,
                 )
     except KeyboardInterrupt:
