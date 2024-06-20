@@ -44,7 +44,7 @@ FP16modes = ['FP_e5', 'FP_e8'] #, 'FP_e10'] # 'FP_e5' is FP16. 'FP_e8' is BFloat
 FP19modes = ['FP_e5'] #, 'FP_e8' is very bad --> removing it.
 
 traceInfo = [{'trace' : 'Caida1', 'len' : 13182023, 'numFlows' : 1276112}, 
-            {'trace'  : 'Caida2', 'len' : 25000000, 'numFlows' : 1276112},
+            {'trace'  : 'Caida2', 'len' : 25000000, 'numFlows' : 807366, 'maxFlowSize' : 3128382},
             ]
 
 VECTOR_SIZE = 1000

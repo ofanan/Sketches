@@ -49,26 +49,6 @@ def parseCsvTrace (
             break
 
     printTraceStatToFile (traceFileName=traceFileName, flowSizes=flowSizes)
-    # statFile    = open (f'../res/{traceFileName}_stat.txt', 'w')
-    # numFlows    = len(flowSizes)
-    # printf (statFile, f'// numFlows = {numFlows}\n')
-    # printf (statFile, f'// flowSizes={flowSizes}\n')
-    # printf (statFile, f'// maxFlowSize={max(flowSizes)}\n')
-    # maxFlowSize = max (flowSizes)
-    # numBins = min (100, maxFlowSize+1)
-    # binSize = maxFlowSize // (numBins-1)
-    # binVal  = [None] * numBins 
-    # for bin in range(numBins):
-    #     binVal[bin] = len ([flowId for flowId in range(numFlows) if (flowRealVal[flowId]//binSize)==bin])
-    # binFlowSizes = [binSize*bin for bin in rangum zero flows={len ([item for item in flowRealVal if item==0])}, num non-zeros flows={len ([item for item in flowRealVal if item>0])}')
-    # printf (outputFile, f'\nmaxFlowSize={maxFlowSize}, binVal={binVal}')
-    # printf (outputFile, f'\nbinFlowSizes={binFlowSizes}')
-    # printf (outputFile, f'\nflowSizes={flowRealVal}')
-    # _, ax = plt.subplots()
-    # ax.plot ([binSize*bin for bin in range (numBins)], binVal)
-    # ax.set_yscale ('log')
-    # plt.savefig (f'../res/{outputFileName}.pdf', bbox_inches='tight')        
-
 
 def calcTraceStat (
         traceFileName = None,
@@ -92,6 +72,25 @@ def calcTraceStat (
         if rowNum>maxNumOfRows:
             break 
     printTraceStatToFile (traceFileName=traceFileName, flowSizes=flowSizes)
+    # statFile    = open (f'../res/{traceFileName}_stat.txt', 'w')
+    # numFlows    = len(flowSizes)
+    # printf (statFile, f'// numFlows = {numFlows}\n')
+    # printf (statFile, f'// flowSizes={flowSizes}\n')
+    # printf (statFile, f'// maxFlowSize={max(flowSizes)}\n')
+    # maxFlowSize = max (flowSizes)
+    # numBins = min (100, maxFlowSize+1)
+    # binSize = maxFlowSize // (numBins-1)
+    # binVal  = [None] * numBins 
+    # for bin in range(numBins):
+    #     binVal[bin] = len ([flowId for flowId in range(numFlows) if (flowRealVal[flowId]//binSize)==bin])
+    # binFlowSizes = [binSize*bin for bin in rangum zero flows={len ([item for item in flowRealVal if item==0])}, num non-zeros flows={len ([item for item in flowRealVal if item>0])}')
+    # printf (outputFile, f'\nmaxFlowSize={maxFlowSize}, binVal={binVal}')
+    # printf (outputFile, f'\nbinFlowSizes={binFlowSizes}')
+    # printf (outputFile, f'\nflowSizes={flowRealVal}')
+    # _, ax = plt.subplots()
+    # ax.plot ([binSize*bin for bin in range (numBins)], binVal)
+    # ax.set_yscale ('log')
+    # plt.savefig (f'../res/{outputFileName}.pdf', bbox_inches='tight')        
         
 def printTraceStatToFile (
     traceFileName    = None,
