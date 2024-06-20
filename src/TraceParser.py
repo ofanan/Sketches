@@ -78,7 +78,7 @@ def calcTraceStat (
     Collect stat about the trace, and print it to a file.
     The trace is merely a list of integers (keys), representing the flow to which each pkt belongs, in a .txt file.
     """
-    relativePathToTraceFile = settings.getRelativePathToTraceFile (traceFileName)
+    relativePathToTraceFile = settings.getRelativePathToTraceFile (f'{traceFileName}.txt')
     if numFlows==None:
         error ('In TraceParser.calcTraceStat(). Sorry, currently you must specify the num of flows for parsing the trace.')
     settings.checkIfInputFileExists (relativePathToTraceFile)
@@ -92,7 +92,7 @@ def calcTraceStat (
         if rowNum>maxNumOfRows:
             break 
         
-    statFile    = open (f'../res/{traceFileName}_stat.txt', 'a+')
+    statFile    = open (f'{settings.getRelativePathToTraceFile (traceFileName)}_stat.txt', 'a+')
     numFlows    = len(flowSizes)
     maxFlowSize = max(flowSizes)
     printf (statFile, f'// numFlows = {numFlows}\n')
@@ -115,4 +115,4 @@ def calcTraceStat (
 #     verbose         = [settings.VERBOSE_RES] # verbose level, determined in settings.py.
 # )
 
-calcTraceStat (traceFileName = 'Caida2.txt', numFlows = 10000000)
+calcTraceStat (traceFileName = 'Caida2', numFlows = 10000000)
