@@ -33,7 +33,7 @@ class CountMinSketch:
             cntrSize        = 2, # num of bits in each counter
             verbose         = [], # The chosen verbose options, detailed in settings.py, determine the output (e.g., to a .pcl, .res or .log file).
             seed            = settings.SEED,
-            maxValBy        = 'F2P_si_h2', # How to calculate the maximum value (for SEAD/CEDAR).   
+            maxValBy        = None, # How to calculate the maximum value (for SEAD/CEDAR).   
             numEpsilonStepsIceBkts  = 6, # number of "epsilon" steps in Ice Buckets.
             numEpsilonStepsInRegBkt = 5, # number of "epsilon" steps in regular buckets in NiceBuckets.
             numEpsilonStepsInXlBkt  = 6,  # number of "epsilon" steps in the XL buckets in NiceBuckets.
@@ -50,8 +50,8 @@ class CountMinSketch:
         if depth<2 or width<2:
             print (f'Note: CountMinSketch was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
-        if self.maxValBy.startswith('Caida'):
-            self.cntrMaxVal = settings.getTraceLen(self.maxValBy)
+        if self.maxValBy==None: # By default, the maximal counter's value is the trace length 
+            self.cntrMaxVal = settings.getTraceLen(self.traceFileName)
         else:
             self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
         self.mode, self.seed = mode, seed
@@ -220,10 +220,10 @@ class CountMinSketch:
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
         """      
         if VERBOSE_PCL in self.verbose:
-            self.pclOutputFile = open(f'../res/pcl_files/cms_{self.maxValBy}_{settings.getMachineStr()}.pcl', 'ab+')
+            self.pclOutputFile = open(f'../res/pcl_files/cms_{self.traceFileName}_{settings.getMachineStr()}.pcl', 'ab+')
 
         if (VERBOSE_RES in self.verbose):
-            self.resFile = open (f'../res/cms_{self.maxValBy}_{settings.getMachineStr()}.res', 'a+')
+            self.resFile = open (f'../res/cms_{self.traceFileName}_{settings.getMachineStr()}.res', 'a+')
             
         if (settings.VERBOSE_FULL_RES in self.verbose):
             self.fullResFile = open (f'../res/cms_full.res', 'a+')
@@ -382,11 +382,11 @@ class CountMinSketch:
         dict['width']       = self.width
         dict['numFlows']    = self.numFlows
         dict['seed']        = self.seed
+        dict['maxValBy']    = self.maxValBy
         return dict
     
 def runCMS (mode, 
     cntrSize        = 8,
-    maxValBy        = 'f2p_li_h2',
     maxNumIncs      = float ('inf'),
     width           = 2**10,
     depth           = 4,
@@ -401,6 +401,7 @@ def runCMS (mode,
             numFlows        = 10,
             numCntrsPerBkt  = 2,
             traceFileName   = traceFileName,
+            maxValBy        = 'F2P_li_h2',
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
             numEpsilonStepsInXlBkt  = 5,
@@ -416,12 +417,13 @@ def runCMS (mode,
             numCntrsPerBkt  = 1, #16
             cntrSize        = cntrSize, 
             traceFileName   = traceFileName,
+            maxValBy        = None,
             numEpsilonStepsIceBkts  = 6, 
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
-            verbose                 = [VERBOSE_RES] #[VERBOSE_RES, VERBOSE_PCL] #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+            verbose                 = [VERBOSE_RES, VERBOSE_PCL] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
         )
-        cms.sim (numOfExps=10)
+        cms.sim (numOfExps=10) #$$$$
     
 if __name__ == '__main__':
     try:
@@ -431,11 +433,10 @@ if __name__ == '__main__':
             # for mode in ['SEAD_stat_e3']:    
             # for mode in ['SEAD_stat_e4']:    
             # for mode in ['F2P_li_h2', 'F3P_li_h3']:    
-            for mode in ['CEDAR', 'Morris']:    
+            for mode in ['CEDAR', 'Morris']:     
                 runCMS (
                     mode        = mode, 
                     cntrSize    = cntrSize, 
-                    maxValBy    = None,
                     width       = width,
                     traceFileName = 'Caida2',
                 )
