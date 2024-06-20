@@ -51,7 +51,7 @@ class CountMinSketch:
             print (f'Note: CountMinSketch was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
         if self.maxValBy.startswith('Caida'):
-            self.cntrMaxVal = settings.getTraceLen('Caida1')
+            self.cntrMaxVal = settings.getTraceLen(self.maxValBy)
         else:
             self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
         self.mode, self.seed = mode, seed
@@ -294,10 +294,6 @@ class CountMinSketch:
         """
         Run a simulation with synthetic, randomly-generated, input.
         """
-             
-        self.traceFileName  = 'rand'
-        
-        randInput = True
         for self.expNum in range (self.numOfExps):
             flowRealVal = [0] * self.numFlows
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
@@ -332,7 +328,7 @@ class CountMinSketch:
         Simulate the count min sketch
         """
         
-        self.maxNumIncs, self.numOfExps, self.traceFileName = maxNumIncs, numOfExps, traceFileName
+        self.maxNumIncs, self.numOfExps, = maxNumIncs, numOfExps
         self.sumSqAbsEr  = [0] * self.numOfExps # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
         self.sumSqRelEr  = [0] * self.numOfExps # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
         self.printSimMsg ('Started')
@@ -389,23 +385,21 @@ class CountMinSketch:
         return dict
     
 def runCMS (mode, 
-    cntrSize    = 8,
-    runShortSim = True,
-    maxValBy    = 'f2p_li_h2',
-    maxNumIncs  = float ('inf'),
-    width       = 2**10,
-    depth       = 4,
+    cntrSize        = 8,
+    runShortSim     = True,
+    maxValBy        = 'f2p_li_h2',
+    maxNumIncs      = float ('inf'),
+    width           = 2**10,
+    depth           = 4,
+    traceFileName   = 'Rand' 
 ):
     """
     """   
-    traceFileName   = 'Caida1' 
-    numFlows = 1276112 # 13,182,023 incs
-    
     if traceFileName=='Rand':
         cms = CountMinSketch (
             width           = 2, 
             depth           = 2,
-            numFlows        = numFlows,
+            numFlows        = 10,
             numCntrsPerBkt  = 2,
             traceFileName   = traceFileName,
             numEpsilonStepsIceBkts  = 5, 
@@ -418,7 +412,7 @@ def runCMS (mode,
         cms = CountMinSketch (
             width           = width,
             depth           = depth,
-            numFlows        = numFlows,
+            numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
             mode            = mode,
             numCntrsPerBkt  = 1, #16
             cntrSize        = cntrSize, 
@@ -444,8 +438,9 @@ if __name__ == '__main__':
                     mode        = mode, 
                     cntrSize    = cntrSize, 
                     runShortSim = False,
-                    maxValBy    = 'Caida2',
-                    width       = width
+                    maxValBy    = None,
+                    width       = width,
+                    traceFileName = 'Caida2',
                 )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
