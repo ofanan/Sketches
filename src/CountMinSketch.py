@@ -4,7 +4,8 @@ import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
-from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, calcPostSimStat, getSeadStatExpSize
+from settings import warning, error, INF_INT, calcPostSimStat, getSeadStatExpSize
+from settings import VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp
 from SingleCntrSimulator import getFxpCntrMaxVal, genCntrMasterFxp
@@ -323,7 +324,7 @@ class CountMinSketch:
             
     def sim (
         self, 
-        maxNumIncs     = 5000, # maximum # of increments (pkts in the trace), after which the simulation will be stopped. 
+        maxNumIncs     = INF_INT, # maximum # of increments (pkts in the trace), after which the simulation will be stopped. 
         numOfExps      = 1,  # number of repeated experiments. Relevant only for randomly-generated traces.
         traceFileName  = None
         ):
@@ -406,14 +407,13 @@ def runCMS (mode,
             depth           = 2,
             numFlows        = numFlows,
             numCntrsPerBkt  = 2,
-            maxNumIncs      = 20, #4000 #(width * depth * cntrSize**3)/2
-            numOfExps       = 2,
             traceFileName   = traceFileName,
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
             numEpsilonStepsInXlBkt  = 5,
             verbose                 = [VERBOSE_RES] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
         )
+        cms.sim (numOfExps=1, maxNumIncs=20)
     else:
         cms = CountMinSketch (
             width           = width,
@@ -421,8 +421,6 @@ def runCMS (mode,
             numFlows        = numFlows,
             mode            = mode,
             numCntrsPerBkt  = 1, #16
-            maxNumIncs      = 100, #maxNumIncs   
-            numOfExps       = 10, #$$$ #100 
             cntrSize        = cntrSize, 
             traceFileName   = traceFileName,
             numEpsilonStepsIceBkts  = 6, 
@@ -430,10 +428,7 @@ def runCMS (mode,
             numEpsilonStepsInXlBkt  = 7,
             verbose                 = [VERBOSE_RES] #[VERBOSE_RES, VERBOSE_PCL] #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
         )
-    cms.sim (
-        numOfExps      = numOfExps, 
-        maxNumIncs     = maxNumIncs, 
-    )
+        cms.sim (numOfExps=10)
     
 if __name__ == '__main__':
     try:
