@@ -71,7 +71,7 @@ class SpaceSaving (CountMinSketch):
             self.pclOutputFile = open(f'../res/pcl_files/ss_M{self.numCntrs}_{settings.getMachineStr()}.pcl', 'ab+')
 
         if (VERBOSE_RES in self.verbose):
-            self.resFile = open (f'../res/ss_M{self.numCntrs}__{settings.getMachineStr()}.res', 'a+')
+            self.resFile = open (f'../res/ss_M{self.numCntrs}_{settings.getMachineStr()}.res', 'a+')
             
         if (settings.VERBOSE_FULL_RES in self.verbose):
             self.fullResFile = open (f'../res/ss_M{self.numCntrs}_{settings.getMachineStr()}_full.res', 'a+')
@@ -153,8 +153,6 @@ class SpaceSaving (CountMinSketch):
         Run a simulation with synthetic, randomly-generated, input.
         """
              
-        self.traceFileName  = 'rand'
-        
         randInput = True
         for self.expNum in range (self.numOfExps):
             flowRealVal = [0] * self.numFlows
@@ -191,7 +189,7 @@ class SpaceSaving (CountMinSketch):
         self.printSimMsg ('Started')
         self.openOutputFiles ()
         tic ()
-        if self.traceFileName==None: # random input
+        if self.traceFileName=='Rand': # random input
             self.runSimRandInput ()
         else: # read trace from a file
             self.runSimFromTrace ()
@@ -237,26 +235,26 @@ def runSS (mode,
     """   
     numFlows = 1276112 # 13,182,023 incs
     
-    if traceFileName=='shortTest':
-        numFlows        = 9
-        cacheSize       = 3
-        maxNumIncs      = 10 #4000 #(width * depth * cntrSize**3)/2
-        numOfExps       = 1
-        verbose         = [VERBOSE_LOG, VERBOSE_RES] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
-        traceFileName   = None
+    if traceFileName=='Rand':
+        ss = SpaceSaving (
+            numFlows        = 9,
+            cntrSize        = 8, 
+            cacheSize       = 3,
+            maxNumIncs      = 10, #4000 #(width * depth * cntrSize**3)/2
+            numOfExps       = 1,
+            verbose         = [VERBOSE_LOG, VERBOSE_RES], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+            traceFileName   = traceFileName,
+            mode            = mode,
+        )
     else:
-        numFlows                = numFlows
-        maxNumIncs              = 100 #maxNumIncs   
-        numOfExps               = 2 #$$$ #100 
-        verbose                 = [VERBOSE_RES, VERBOSE_PCL] #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
-    
-    ss = SpaceSaving (
-        cntrSize        = cntrSize, 
-        numFlows        = numFlows, 
-        verbose         = verbose,
-        mode            = mode,
-        cacheSize       = cacheSize,
-        traceFileName   = traceFileName
+        ss = SpaceSaving (
+            numFlows        = numFlows,
+            maxNumIncs      = 1000000, #maxNumIncs   
+            numOfExps       = 10, 
+            cacheSize       = 1000,
+            verbose         = [VERBOSE_RES, VERBOSE_PCL], #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+            mode            = mode,
+            traceFileName   = traceFileName
         )
     ss.sim (
         numOfExps      = numOfExps, 

@@ -110,7 +110,9 @@ def calcTraceStat (
         printf (statFile, f'binFlowSizes={binFlowSizes[bin]}, binVal={binVal[bin]}\n')
     statFile.close()
     
-parseCsvTrace (
-    traceFileName = 'Caida2.csv',
-    verbose         = [settings.VERBOSE_RES] # verbose level, determined in settings.py.
-)
+# parseCsvTrace (
+#     traceFileName = 'Caida2.csv',
+#     verbose         = [settings.VERBOSE_RES] # verbose level, determined in settings.py.
+# )
+
+calcTraceStat (traceFileName = 'Caida2.txt', numFlows = 10000000)

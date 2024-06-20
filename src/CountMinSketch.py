@@ -24,32 +24,32 @@ class CountMinSketch:
     genSettingsStr = lambda self : f'cms_{self.traceFileName}_{self.mode}_d{self.depth}_w{self.width}_f{self.numFlows}_bit{self.cntrSize}'
     
     def __init__(self,
-        width           = 2, # the number of counters per row.
-        depth           = 2, # the number of rows or hash functions.
-        numCntrsPerBkt  = 2,
-        numFlows        = 10, # the total number of flows to be estimated.
-        mode            = 'PerfectCounter', # the counter mode (e.g., SEC, AEE, realCounter).
-        cntrSize        = 2, # num of bits in each counter
-        verbose         = [], # The chosen verbose options, detailed in settings.py, determine the output (e.g., to a .pcl, .res or .log file).
-        seed            = settings.SEED,
-        maxValBy        = 'F2P_si_h2', # How to calculate the maximum value (for SEAD/CEDAR).   
-        numEpsilonStepsIceBkts  = 6, # number of "epsilon" steps in Ice Buckets.
-        numEpsilonStepsInRegBkt = 5, # number of "epsilon" steps in regular buckets in NiceBuckets.
-        numEpsilonStepsInXlBkt  = 6,  # number of "epsilon" steps in the XL buckets in NiceBuckets.
-
-                 ):
+            width           = 2, # the number of counters per row.
+            depth           = 2, # the number of rows or hash functions.
+            numCntrsPerBkt  = 2,
+            numFlows        = 10, # the total number of flows to be estimated.
+            mode            = 'PerfectCounter', # the counter mode (e.g., SEC, AEE, realCounter).
+            cntrSize        = 2, # num of bits in each counter
+            verbose         = [], # The chosen verbose options, detailed in settings.py, determine the output (e.g., to a .pcl, .res or .log file).
+            seed            = settings.SEED,
+            maxValBy        = 'F2P_si_h2', # How to calculate the maximum value (for SEAD/CEDAR).   
+            numEpsilonStepsIceBkts  = 6, # number of "epsilon" steps in Ice Buckets.
+            numEpsilonStepsInRegBkt = 5, # number of "epsilon" steps in regular buckets in NiceBuckets.
+            numEpsilonStepsInXlBkt  = 6,  # number of "epsilon" steps in the XL buckets in NiceBuckets.
+            traceFileName   = None,
+        ):
         
         """
         """
-        self.hyperSize      = 2
         self.numCntrsPerBkt = int(numCntrsPerBkt)
+        self.traceFileName  = traceFileName
+        self.maxValBy       = maxValBy
         if depth<1 or width<1 or cntrSize<1:
             error (f'CountMinSketch was called with depth={depth}, width={width}, cntrSize={cntrSize}. All these parameters should be at least 1.')
         if depth<2 or width<2:
             print (f'Note: CountMinSketch was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
-        self.maxValBy = maxValBy
-        if self.maxValBy=='Caida1':
+        if self.maxValBy.startswith('Caida'):
             self.cntrMaxVal = settings.getTraceLen('Caida1')
         else:
             self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
@@ -400,46 +400,40 @@ def runCMS (mode,
     traceFileName   = 'Caida1' 
     numFlows = 1276112 # 13,182,023 incs
     
-    if runShortSim:
-        width, depth            = 2, 2
-        numFlows                = numFlows
-        numCntrsPerBkt          = 2
-        maxNumIncs              = 20 #4000 #(width * depth * cntrSize**3)/2
-        numOfExps               = 2
-        numEpsilonStepsIceBkts  = 5 
-        numEpsilonStepsInRegBkt = 2
-        numEpsilonStepsInXlBkt  = 5
-        verbose                 = [VERBOSE_RES] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
-    else:
-        width, depth            = width, depth
-        numFlows                = numFlows
-        numCntrsPerBkt          = 1 #16
-        maxNumIncs              = maxNumIncs   
-        numOfExps               = 10 #$$$ #100 
-        numEpsilonStepsIceBkts  = 6 
-        numEpsilonStepsInRegBkt = 5
-        numEpsilonStepsInXlBkt  = 7
-        verbose                 = [VERBOSE_LOG_END_SIM] #[VERBOSE_RES, VERBOSE_PCL] #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
-    
-    cms = CountMinSketch (
-        width       = width, 
-        depth       = depth, 
-        cntrSize    = cntrSize, 
-        numFlows    = numFlows, 
-        verbose     = verbose,
-        mode        = mode,
-        maxValBy    = maxValBy,  
-        numCntrsPerBkt          = numCntrsPerBkt,
-        numEpsilonStepsIceBkts  = numEpsilonStepsIceBkts, 
-        numEpsilonStepsInRegBkt = numEpsilonStepsInRegBkt, 
-        numEpsilonStepsInXlBkt  = numEpsilonStepsInXlBkt,
+    if traceFileName=='Rand':
+        cms = CountMinSketch (
+            width           = 2, 
+            depth           = 2,
+            numFlows        = numFlows,
+            numCntrsPerBkt  = 2,
+            maxNumIncs      = 20, #4000 #(width * depth * cntrSize**3)/2
+            numOfExps       = 2,
+            traceFileName   = traceFileName,
+            numEpsilonStepsIceBkts  = 5, 
+            numEpsilonStepsInRegBkt = 2,
+            numEpsilonStepsInXlBkt  = 5,
+            verbose                 = [VERBOSE_RES] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
         )
-    cms.hyperSize = 2
+    else:
+        cms = CountMinSketch (
+            width           = width,
+            depth           = depth,
+            numFlows        = numFlows,
+            mode            = mode,
+            numCntrsPerBkt  = 1, #16
+            maxNumIncs      = 100, #maxNumIncs   
+            numOfExps       = 10, #$$$ #100 
+            cntrSize        = cntrSize, 
+            traceFileName   = traceFileName,
+            numEpsilonStepsIceBkts  = 6, 
+            numEpsilonStepsInRegBkt = 5,
+            numEpsilonStepsInXlBkt  = 7,
+            verbose                 = [VERBOSE_RES] #[VERBOSE_RES, VERBOSE_PCL] #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+        )
     cms.sim (
         numOfExps      = numOfExps, 
         maxNumIncs     = maxNumIncs, 
-        traceFileName  = traceFileName
-        )
+    )
     
 if __name__ == '__main__':
     try:
@@ -455,7 +449,7 @@ if __name__ == '__main__':
                     mode        = mode, 
                     cntrSize    = cntrSize, 
                     runShortSim = False,
-                    maxValBy    = 'Caida1',
+                    maxValBy    = 'Caida2',
                     width       = width
                 )
     except KeyboardInterrupt:

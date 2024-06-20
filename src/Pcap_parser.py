@@ -7,8 +7,6 @@ Output: a csv file, where:
 """
 from scapy.all import *
 import numpy as np, mmh3, csv, time
-# import datetime as dt
-# from numpy import infty
 import pandas as pd
 import settings
 
@@ -45,4 +43,4 @@ def parse_pcap_file (traceFileName     = 'equinix-nyc.dirB.20181220-140100.UTC.a
     print (f'finished parsing {pktNum} pkts by multirow after {time.time() - startTime} sec')
 
 
-parse_pcap_file (traceFileName='equinix-chicago.dirA.20160406-130000.UTC.anon.pcap')
+parse_pcap_file (traceFileName='equinix-nyc.dirA.20181220-130000.UTC.anon.pcap')
