@@ -7,7 +7,7 @@ from collections import defaultdict
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
 from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, calcPostSimStat
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
-from printf import printf, printarFp
+from printf import printf, printarFp 
 from SingleCntrSimulator import getFxpCntrMaxVal, genCntrMasterFxp
 from CountMinSketch import CountMinSketch
 
@@ -229,12 +229,10 @@ def runSS (mode,
     cntrSize    = 8,
     maxNumIncs  = float ('inf'),
     cacheSize   = 1,
-    traceFileName = 'Caida1.txt' 
+    traceFileName = 'Rand' 
 ):
     """
     """   
-    numFlows = 1276112 # 13,182,023 incs
-    
     if traceFileName=='Rand':
         ss = SpaceSaving (
             numFlows        = 9,
@@ -246,20 +244,18 @@ def runSS (mode,
             traceFileName   = traceFileName,
             mode            = mode,
         )
+        ss.sim (numOfExps=1, maxNumIncs=20)
     else:
         ss = SpaceSaving (
-            numFlows        = numFlows,
+            numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
             maxNumIncs      = 1000000, #maxNumIncs   
             numOfExps       = 10, 
-            cacheSize       = 1000,
+            cacheSize       = cacheSize,
             verbose         = [VERBOSE_RES, VERBOSE_PCL], #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
             mode            = mode,
             traceFileName   = traceFileName
         )
-    ss.sim (
-        numOfExps      = numOfExps, 
-        maxNumIncs     = maxNumIncs, 
-        )
+        ss.sim (numOfExps=10)
     
 if __name__ == '__main__':
     try:
@@ -269,7 +265,8 @@ if __name__ == '__main__':
             # for mode in ['F2P_lli', 'CEDAR', 'Morris']:    
                 runSS (
                     mode          = mode,
-                    traceFileName = 'Caida1.txt'
+                    traceFileName = 'Caida1.txt',
+                    cacheSize   = 10,
                 )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

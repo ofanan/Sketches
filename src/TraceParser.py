@@ -111,7 +111,7 @@ def calcTraceStat (
     statFile.close()
     
 # parseCsvTrace (
-#     traceFileName = 'Caida2.csv',
+#     traceFileName = 'Caida1.csv',
 #     verbose         = [settings.VERBOSE_RES] # verbose level, determined in settings.py.
 # )
 
