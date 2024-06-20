@@ -81,7 +81,6 @@ def calcTraceStat (
     relativePathToTraceFile = settings.getRelativePathToTraceFile (f'{traceFileName}.txt')
     if numFlows==None:
         error ('In TraceParser.calcTraceStat(). Sorry, currently you must specify the num of flows for parsing the trace.')
-    settings.checkIfInputFileExists (relativePathToTraceFile)
     traceFile = open (relativePathToTraceFile, 'r')
 
     rowNum = 0
@@ -92,7 +91,7 @@ def calcTraceStat (
         if rowNum>maxNumOfRows:
             break 
         
-    statFile    = open (f'{settings.getRelativePathToTraceFile (traceFileName)}_stat.txt', 'a+')
+    statFile    = open (settings.getRelativePathToTraceFile (f'{traceFileName}_stat.txt', exitError=False), 'a+')
     numFlows    = len(flowSizes)
     maxFlowSize = max(flowSizes)
     printf (statFile, f'// numFlows = {numFlows}\n')
