@@ -257,8 +257,8 @@ def runSS (mode,
 if __name__ == '__main__':
     try:
         for cacheSize in [2**i for i in range(10, 19)]:
-            for mode in ['F2P_li_h2', 'F3P_li_h3']:    
-            # for mode in ['F2P_lli', 'CEDAR', 'Morris']:    
+            # for mode in ['F2P_li_h2', 'F3P_li_h3']:    
+            for mode in ['CEDAR', 'Morris']:    
                 runSS (
                     mode            = mode,
                     traceFileName   = 'Caida2',
