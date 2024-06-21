@@ -256,14 +256,13 @@ def runSS (mode,
     
 if __name__ == '__main__':
     try:
-        for cacheSize in [3]:
-            for mode in ['F2P_li_h2']:    
-            # for mode in ['F3P_li_h3']:    
+        for cacheSize in [2**i for i in range(10, 19)]:
+            for mode in ['F2P_li_h2', 'F3P_li_h3']:    
             # for mode in ['F2P_lli', 'CEDAR', 'Morris']:    
                 runSS (
-                    mode          = mode,
-                    traceFileName = 'Caida2',
-                    cacheSize   = 10,
+                    mode            = mode,
+                    traceFileName   = 'Caida2',
+                    cacheSize       = cacheSize,
                 )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
