@@ -434,6 +434,7 @@ class ResFileParser (object):
             cntrSize    : int  = 8,
             statType    : str  = 'normRmse',
             rel_abs_n   : bool = False, # When True, consider relative errors, Else, consider absolute errors.
+            ignoreModes : list = [],# List of modes to NOT include in the plot
         ):
         """
         Generate a plot showing the error as a function of the counter's size.
@@ -453,14 +454,14 @@ class ResFileParser (object):
         if points == []:
             warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, width={width}')
         modes = [point['mode'] for point in points]
-        modes = [mode for mode in modes if mode not in ['F3P_li_h2']]
+        modes = [mode for mode in modes if mode not in ignoreModes]
         minY, maxY = float('inf'), 0 
         for mode in modes:
             pointsOfMode = [point for point in points if point['mode'] == mode]
             widths = [point['width'] for point in pointsOfMode]
-            minWidth = 2**10
-            minMemSize = 10**4
-            widths = [w for w in widths if w>=(minMemSize/8)]
+            minMemSizeInKB  = 10**0
+            minMemSize      = minMemSizeInKB * 2**10  
+            widths = [w for w in widths if w>=(minMemSize/4)]
             y = []
             for width in widths:
                 pointsToPlot = [point for point in pointsOfMode if point['width']==width]
@@ -473,28 +474,33 @@ class ResFileParser (object):
                 y.append(point['Avg'])
                 minY = min (minY, point['Avg'])
                 maxY = max (maxY, point['Avg'])
-            ax.plot ([4*w for w in widths], 
-                     y, 
-                     color      = colorOfMode[mode], 
-                     markersize = MARKER_SIZE_SMALL, 
-                     linewidth  = LINE_WIDTH, 
-                     label      = labelOfMode(point['mode']), 
-                     mfc        ='none') 
+            memSize = [4*w/(2**10) for w in widths] # Memory size in KB = width * depth (which is fixed 4) / 1024. 
+            ax.plot (
+                [m for m in memSize], 
+                y, 
+                color       = colorOfMode[mode],
+                marker      = '+', 
+                markersize  = MARKER_SIZE_SMALL, 
+                linewidth   = LINE_WIDTH, 
+                label       = labelOfMode(point['mode']), 
+                mfc         ='none',
+                # linestyle   ='None'
+            ) 
         
         plt.xlabel('Memory [KB]')
-        plt.ylabel('NRMSE')
+        plt.ylabel('Normalized RMSE')
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
-        plt.xlim ([minMemSize, 10**6])      
+        plt.xlim ([min(memSize), 10**3])      
         plt.ylim ([0.98*minY, 1.02*maxY])
         # plt.ylim ([10**(-5),0.0005])
         plt.yscale ('log')          
         plt.xscale ('log')          
-        outputFileName = f'cms_{traceName}.pdf' 
+        outputFileName = f'cms_{traceName}' 
         if not(USE_FRAME):
             seaborn.despine(left=True, bottom=True, right=True)
-        plt.savefig ('../res/{}.pdf' .format (outputFileName), bbox_inches='tight')        
+        plt.savefig (f'../res/{outputFileName}.pdf', bbox_inches='tight')        
         dupsFile.close()
         if not(foundDups) and os.path.isfile (f'../res/{dupsFileName}'):
             os.remove(f'../res/{dupsFileName}')            
@@ -1026,18 +1032,25 @@ def genUniqPcl (
     for point in points:
         pickle.dump(point, pclOutputFile) 
 
-def genErVsMemSizePlot ():
+def genErVsMemSizePlot (
+        ignoreModes : list = [],# List of modes to NOT include in the plot
+    ):
     
     myResFileParser = ResFileParser ()
-    traceName = 'Caida2'
+    traceName = 'Caida1'
     myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC.pcl')
     # for mode in ['F3P_li_h2', 'F3P_si_h2', 'F3P_si_h3' 
     #     myResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
-    myResFileParser.genErVsMemSizePlot (traceName=traceName)
+    myResFileParser.genErVsMemSizePlot (
+        traceName   = traceName,
+        ignoreModes = ignoreModes
+    )
 
 if __name__ == '__main__':
     try:
-        genErVsMemSizePlot ()
+        genErVsMemSizePlot (
+            ignoreModes = ['SEAD_dyn']
+        )
         # genUniqPcl (pclFileName=f'cms_Caida2_HPC.pcl')
         # genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()

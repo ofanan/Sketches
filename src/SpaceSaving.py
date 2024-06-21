@@ -262,7 +262,7 @@ if __name__ == '__main__':
             # for mode in ['F2P_lli', 'CEDAR', 'Morris']:    
                 runSS (
                     mode          = mode,
-                    traceFileName = 'Caida1',
+                    traceFileName = 'Caida2',
                     cacheSize   = 10,
                 )
     except KeyboardInterrupt:
