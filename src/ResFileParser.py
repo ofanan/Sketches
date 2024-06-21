@@ -43,7 +43,8 @@ PURPLE      = '#CC79A7'
 # The colors used for each alg's plot, in the dist' case
 colorOfMode = {
     'F3P'       : PURPLE,
-    'SEAD stat' : VERMILION,
+    'SEAD_stat_e3' : VERMILION,
+    'SEAD_stat_e4' : 'green',
     'SEAD dyn'  : VERMILION,
     'SEAD_dyn'  : VERMILION,
     'FP'        : BLUE,
@@ -438,7 +439,9 @@ class ResFileParser (object):
         Generate a plot showing the error as a function of the counter's size.
         """
     
-        debugFile = open ('../res/debug.txt', 'w')
+        dupsFileName = 'listOfDuplicateEntries.txt'
+        dupsFile = open (f'../res/{dupsFileName}', 'w')
+        foundDups = False
         self.setPltParams ()  # set the plot's parameters (formats of lines, markers, legends etc.).
         _, ax = plt.subplots()
 
@@ -463,8 +466,9 @@ class ResFileParser (object):
                 pointsToPlot = [point for point in pointsOfMode if point['width']==width]
                 if len(pointsToPlot)>1:
                     warning (f'found {len(pointsToPlot)} points for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}, width={width}, statType={statType}, rel_abs_n={rel_abs_n}. Printing the duplicated points to ../res/debug.txt')
+                    foundDups = True
                     for point in pointsToPlot: 
-                        printfDict (debugFile, point)
+                        printfDict (dupsFile, point)
                 point = pointsToPlot[0]
                 y.append(point['Avg'])
                 minY = min (minY, point['Avg'])
@@ -491,7 +495,9 @@ class ResFileParser (object):
         if not(USE_FRAME):
             seaborn.despine(left=True, bottom=True, right=True)
         plt.savefig ('../res/{}.pdf' .format (outputFileName), bbox_inches='tight')        
-                
+        dupsFile.close()
+        if not(foundDups) and os.path.isfile (f'../res/{dupsFileName}'):
+            os.remove(f'../res/{dupsFileName}')            
                 
     def genErVsCntrMaxValPlot (self, cntrSize=8, plotAbsEr=True):
         """
@@ -1023,15 +1029,16 @@ def genUniqPcl (
 def genErVsMemSizePlot ():
     
     myResFileParser = ResFileParser ()
-    myResFileParser.rdPcl (pclFileName=f'cms_Caida1_HPC.pcl')
+    traceName = 'Caida2'
+    myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC.pcl')
     # for mode in ['F3P_li_h2', 'F3P_si_h2', 'F3P_si_h3' 
     #     myResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
-    myResFileParser.genErVsMemSizePlot ()
+    myResFileParser.genErVsMemSizePlot (traceName=traceName)
 
 if __name__ == '__main__':
     try:
         genErVsMemSizePlot ()
-        # genUniqPcl (pclFileName=f'cms_F2P_li_h2_HPC_u.pcl')
+        # genUniqPcl (pclFileName=f'cms_Caida2_HPC.pcl')
         # genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()

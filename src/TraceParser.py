@@ -74,19 +74,21 @@ def calcTraceStat (
     printTraceStatToFile (traceFileName=traceFileName, flowSizes=flowSizes)
         
 def printTraceStatToFile (
-    traceFileName    = None,
-    flowSizes   = [],
+    traceFileName   = None,
+    flowSizes       = [],
     ):
     """
     Given a vector with the flowId accessed at each cycle, calculate the trace's stat.
     """    
     statFile    = open (settings.getRelativePathToTraceFile (f'{traceFileName}_stat.txt', exitError=False), 'a+')
-    flowSizes   = [f for f in flowSizes if f>0]
+    flowSizes   = np.array([f for f in flowSizes if f>0])
     numFlows    = len(flowSizes)
     maxFlowSize = max(flowSizes)
     printf (statFile, f'// numFlows = {numFlows}\n')
     printf (statFile, f'// flowSizes={flowSizes}\n')
     printf (statFile, f'// maxFlowSize={maxFlowSize}\n')
+    printf (statFile, f'// avgFlowSize={np.mean(flowSizes)}\n') 
+    printf (statFile, f'// stdevFlowSize={np.std(flowSizes)}\n')
     
     numBins = min (100, maxFlowSize+1)
     binSize = maxFlowSize // (numBins-1)
@@ -104,4 +106,4 @@ def printTraceStatToFile (
 #     verbose         = [settings.VERBOSE_RES] # verbose level, determined in settings.py.
 # )
 
-calcTraceStat (traceFileName = 'Caida2', numFlows = 10000000)
+calcTraceStat (traceFileName = 'Caida2', numFlows = 807367)
