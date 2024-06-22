@@ -1037,7 +1037,7 @@ def genErVsMemSizePlot (
     
     myResFileParser = ResFileParser ()
     traceName = 'Caida2'
-    myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC_bkp.pcl')
+    myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC.pcl')
     # for mode in ['F3P_li_h2', 'F3P_si_h2', 'F3P_si_h3' 
     #     myResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
     myResFileParser.genErVsMemSizePlot (
