@@ -43,8 +43,8 @@ FP8modes  = ['FP_e2', 'FP_e3', 'FP_e4', 'FP_e5']
 FP16modes = ['FP_e5', 'FP_e8'] #, 'FP_e10'] # 'FP_e5' is FP16. 'FP_e8' is BFloat.
 FP19modes = ['FP_e5'] #, 'FP_e8' is very bad --> removing it.
 
-traceInfo = [{'trace' : 'Caida1', 'len' : 13182023, 'numFlows' : 1276112}, 
-            {'trace'  : 'Caida2', 'len' : 25000000, 'numFlows' : 807366, 'maxFlowSize' : 3128382},
+traceInfo = [{'traceName' : 'Caida1', 'len' : 25000000, 'numFlows' : 1276112, 'maxFlowSize' : 1319880}, 
+            {'traceName' : 'Caida2', 'len' : 25000000, 'numFlows' : 807366, 'maxFlowSize' : 3128382},
             ]
 
 VECTOR_SIZE = 1000
@@ -104,29 +104,35 @@ def getConfByCntrSize (cntrSize):
     return listOfConfs[0]
    
 def getTraceLen (
-        trace : str
+        traceName
     ):
     """
     given the trace's name, return its len (# of incs).
     """
-    listOfTraces = [item for item in traceInfo if item['trace']==trace]
+    # if traceName.startswith(''):
+    #     error ('if')
+    # else:
+    #     error ('else')
+    # error (f'traceName=*{traceName}*Caida1*') #$$$
+    listOfTraces = [item for item in traceInfo if item['traceName']==traceName]
+    # error (listOfTraces) #$$$
     if (len(listOfTraces)<1): 
-        error (f'In settings.getTraceLen(). Sorry. No known traceInfo for trace={trace}')
+        error (f'In settings.getTraceLen(). Sorry. No known traceInfo for traceName={traceName}')
     elif (len(listOfTraces)>1):
-        error (f'In settings.getTraceLen(). Sorry. Too many known traces for trace={trace}')
+        error (f'In settings.getTraceLen(). Sorry. Too many known traces for trace={traceName}')
     return listOfTraces[0]['len']
    
 def getNumFlowsByTraceName (
-        trace : str
+        traceName : str
     ):
     """
     given the trace's name, return its len (# of incs).
     """
-    listOfTraces = [item for item in traceInfo if item['trace']==trace]
+    listOfTraces = [item for item in traceInfo if item['traceName']==traceName]
     if (len(listOfTraces)<1): 
-        error (f'In settings.getNumFlowsByTraceName(). Sorry. No known traceInfo for trace={trace}')
+        error (f'In settings.getNumFlowsByTraceName(). Sorry. No known traceInfo for trace={traceName}')
     elif (len(listOfTraces)>1):
-        error (f'In settings.getNumFlowsByTraceName(). Sorry. Too many known traces for trace={trace}')
+        error (f'In settings.getNumFlowsByTraceName(). Sorry. Too many known traces for trace={traceName}')
     return listOfTraces[0]['numFlows']
    
 def getCntrMaxValByCntrSize (cntrSize):
@@ -243,16 +249,18 @@ def getTracesPath():
     return '../../traces/'
 
 def getRelativePathToTraceFile (
-        traceFileName, 
-        exitError               = True
+        traceFileName,
+        checkIfFileExists = True, 
+        exitError         = True # exit with error if checkIfFileExists AND the given traceFileName does not exist
         ):
     """
     Given a trace's file name, get the relative path to this trace file.
-    The function also checks whether this trace file exists; otherwise, the run finishes with an appropriate error message.
+    The function also checks whether this trace file exists. 
     """
     # print (f'Note: we currently assume that all traces are in directory {getTracesPath()}, and in .txt format')
     RelativePathToTraceFile = f'{getTracesPath()}Caida/{traceFileName}'
-    checkIfInputFileExists (RelativePathToTraceFile, exitError)
+    if checkIfFileExists:
+        checkIfInputFileExists (RelativePathToTraceFile, exitError)
     return RelativePathToTraceFile
 
 def extractParamsFromSettingStr (str):

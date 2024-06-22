@@ -51,41 +51,57 @@ def parseCsvTrace (
     printTraceStatToFile (traceFileName=traceFileName, flowSizes=flowSizes)
 
 def calcTraceStat (
-        traceFileName = None,
+        traceName     = None,
         maxNumOfRows  = float('inf'),
-        numFlows      = None
+        numFlows      = 2000000
         ):
     """
     Collect stat about the trace, and print it to a file.
     The trace is merely a list of integers (keys), representing the flow to which each pkt belongs, in a .txt file.
     """
-    relativePathToTraceFile = settings.getRelativePathToTraceFile (f'{traceFileName}.txt')
+    relativePathToTraceFile = settings.getRelativePathToTraceFile (f'{traceName}.txt')
     if numFlows==None:
         error ('In TraceParser.calcTraceStat(). Sorry, currently you must specify the num of flows for parsing the trace.')
     traceFile = open (relativePathToTraceFile, 'r')
 
-    rowNum = 0
-    flowSizes = [0]*numFlows
+    flowSizes                 = np.zeros (numFlows,     dtype='int32')
+    interAppearanceVec        = np.zeros (maxNumOfRows, dtype='int32')
+    last_appearance_of        = np.zeros (numFlows,     dtype='int32')
+    idx_in_interAppearanceVec = 0
+    rowNum                      = 0
     for row in traceFile:            
         rowNum += 1
-        flowSizes[int(row)] += 1        
+        flowId = int(row)
+        flowSizes[flowId] += 1        
+        if last_appearance_of[flowId]>0: # This key has already appeared before #is the first appearance of this key
+            interAppearanceVec[idx_in_interAppearanceVec] = rowNum-last_appearance_of[flowId]
+            idx_in_interAppearanceVec += 1 
+        last_appearance_of[flowId] = rowNum
         if rowNum>maxNumOfRows:
             break 
-    printTraceStatToFile (traceFileName=traceFileName, flowSizes=flowSizes)
+        
+    interAppearanceVec = interAppearanceVec[:idx_in_interAppearanceVec]        
+    printTraceStatToFile (
+        traceName           = traceName, 
+        flowSizes           = flowSizes,
+        interAppearanceVec  = interAppearanceVec
+    )
         
 def printTraceStatToFile (
-    traceFileName   = None,
-    flowSizes       = [],
+    traceName       = None,
+    flowSizes           = [],
+    interAppearanceVec  = None
     ):
     """
     Given a vector with the flowId accessed at each cycle, calculate the trace's stat.
     """    
-    statFile    = open (settings.getRelativePathToTraceFile (f'{traceFileName}_stat.txt', exitError=False), 'a+')
+    statFile    = open (settings.getRelativePathToTraceFile (f'{traceName}_stat.txt', checkIfFileExists=False), 'w')
     flowSizes   = np.array([f for f in flowSizes if f>0])
     numFlows    = len(flowSizes)
     maxFlowSize = max(flowSizes)
     printf (statFile, f'// numFlows = {numFlows}\n')
-    printf (statFile, f'// flowSizes={flowSizes}\n')
+    printf (statFile, '// mean inter arrival = {:.2e}\n'  .format(np.mean(interAppearanceVec)))
+    printf (statFile, '// stdev inter arrival = {:.2e}\n' .format(np.std(interAppearanceVec)))
     printf (statFile, f'// maxFlowSize={maxFlowSize}\n')
     printf (statFile, f'// avgFlowSize={np.mean(flowSizes)}\n') 
     printf (statFile, f'// stdevFlowSize={np.std(flowSizes)}\n')
@@ -106,4 +122,8 @@ def printTraceStatToFile (
 #     verbose         = [settings.VERBOSE_RES] # verbose level, determined in settings.py.
 # )
 
-calcTraceStat (traceFileName = 'Caida2', numFlows = 807367)
+traceName = '‏‏Caida1'
+calcTraceStat (
+    traceName     = traceName, 
+    maxNumOfRows  = 25000000,
+)

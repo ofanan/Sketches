@@ -494,8 +494,7 @@ class ResFileParser (object):
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
         plt.xlim ([min(memSize), 10**3])      
         plt.ylim ([0.98*minY, 1.02*maxY])
-        # plt.ylim ([10**(-5),0.0005])
-        plt.yscale ('log')          
+        # plt.yscale ('log') #$$$          
         plt.xscale ('log')          
         outputFileName = f'cms_{traceName}' 
         if not(USE_FRAME):
@@ -1037,8 +1036,8 @@ def genErVsMemSizePlot (
     ):
     
     myResFileParser = ResFileParser ()
-    traceName = 'Caida1'
-    myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC.pcl')
+    traceName = 'Caida2'
+    myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC_bkp.pcl')
     # for mode in ['F3P_li_h2', 'F3P_si_h2', 'F3P_si_h3' 
     #     myResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
     myResFileParser.genErVsMemSizePlot (
@@ -1049,7 +1048,7 @@ def genErVsMemSizePlot (
 if __name__ == '__main__':
     try:
         genErVsMemSizePlot (
-            ignoreModes = ['SEAD_dyn']
+            ignoreModes = ['PerfectCounter', 'SEAD_dyn']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
         )
         # genUniqPcl (pclFileName=f'cms_Caida2_HPC.pcl')
         # genErVsCntrSizeSingleCntr ()
