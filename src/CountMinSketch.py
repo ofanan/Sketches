@@ -426,7 +426,7 @@ def runCMS (mode,
             numEpsilonStepsIceBkts  = 6, 
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
-            verbose                 = [VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+            verbose                 = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
         )
         cms.sim (numOfExps=10) 
     
