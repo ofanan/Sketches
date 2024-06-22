@@ -27,7 +27,12 @@ class CntrMaster (object):
         self.numCntrs   = int(numCntrs)
         self.verbose    = verbose
         
-    def printAllCntrs (self, outputFile) -> None:
+    def printAllCntrs (
+        self, 
+        outputFile,
+        printAlsoVec = False, # when True, print also the counters' vectors.
+        printAsInt   = False  # when True, print the value as an integer 
+        ) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
         Format print the values corresponding to all the counters in self.cntrs.
@@ -43,8 +48,13 @@ class CntrMaster (object):
                 for idx in range(self.numCntrs):
                     print (f'{self.queryCntr(cntrIdx=idx, getVal=True)} ')
         else:
-            for idx in range(self.numCntrs):
-                printf (outputFile, f'{self.queryCntr(cntrIdx=idx, getVal=True)} ')
+            if printAsInt:
+                for idx in range(self.numCntrs):
+                    printf (outputFile, '{:.0f} ' .format(self.queryCntr(cntrIdx=idx, getVal=True)))
+            else:
+                for idx in range(self.numCntrs):
+                    printf (outputFile, f'{self.queryCntr(cntrIdx=idx, getVal=True)} ')
+
 
     def printCntrsStat (self, 
                         outputFile, # file to which the stat will be written

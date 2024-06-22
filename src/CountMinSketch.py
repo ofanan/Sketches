@@ -287,8 +287,13 @@ class CountMinSketch:
         traceFile.close ()
     
         if VERBOSE_LOG_END_SIM in self.verbose:
-            self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr()) 
-            self.cntrMaster.printAllCntrs  (self.logFile)
+            self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr())
+            if self.mode.startswith('F2P') and (self.mode.split('F2P_')[1].startswith('li')  or self.mode.split('F2P_')[1].startswith('si')):
+                self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=True)
+            elif self.mode.startswith('F3P') and (self.mode.split('F3P_')[1].startswith('li')  or self.mode.split('F3P_')[1].startswith('si')):
+                self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=True)
+            else:
+                self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=False)
     
     def runSimRandInput (self):
         """
@@ -421,9 +426,9 @@ def runCMS (mode,
             numEpsilonStepsIceBkts  = 6, 
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
-            verbose                 = [VERBOSE_RES, VERBOSE_PCL] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+            verbose                 = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
         )
-        cms.sim (numOfExps=10) #$$$$
+        cms.sim (numOfExps=10) 
     
 if __name__ == '__main__':
     try:
