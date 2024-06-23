@@ -263,10 +263,14 @@ class CountMinSketch:
         """
         if VERBOSE_LOG_END_SIM in self.verbose:
             self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr())
-            if self.mode.startswith('F2P') and (self.mode.split('F2P_')[1].startswith('li')  or self.mode.split('F2P_')[1].startswith('si')):
-                self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=True)
-            elif self.mode.startswith('F3P') and (self.mode.split('F3P_')[1].startswith('li')  or self.mode.split('F3P_')[1].startswith('si')):
-                self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=True)
+            if self.mode.startswith('F2P'):
+                if (self.mode.split('F2P_')[1].startswith('li')  or self.mode.split('F2P_')[1].startswith('si')):
+                    # error (self.cntrMaster.cntrs) #$$$
+                    self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=True)
+            elif self.mode.startswith('F3P'): 
+                if (self.mode.split('F3P_')[1].startswith('li')  or self.mode.split('F3P_')[1].startswith('si')):
+                    error (self.cntrMaster.cntrs)
+                    self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=True)
             else:
                 self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=False)
     
@@ -342,10 +346,12 @@ class CountMinSketch:
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
                 if VERBOSE_LOG in self.verbose:
                     self.cntrMaster.printAllCntrs (self.logFile)
-                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
+                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId]))
             if settings.VERBOSE_FULL_RES in self.verbose:
                 dict = settings
-        self.logEndSim ()
+            
+            if self.expNum==0: # log only the first experiment
+                self.logEndSim ()
             
     def sim (
         self, 

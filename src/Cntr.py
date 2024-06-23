@@ -4,7 +4,7 @@ General class of counters, with some functionalities common to all the counters.
 import math, time, random, numpy as np
 
 import settings, Cntr
-from settings import VERBOSE_DEBUG
+from settings import VERBOSE_DEBUG, error
 from printf import printf
 
 class CntrMaster (object):
@@ -22,7 +22,7 @@ class CntrMaster (object):
         """
         
         if (cntrSize<3):
-            settings.error ('error: cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
+            error ('cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
         self.cntrSize   = int(cntrSize)
         self.numCntrs   = int(numCntrs)
         self.verbose    = verbose
@@ -48,7 +48,7 @@ class CntrMaster (object):
                 for idx in range(self.numCntrs):
                     print (f'{self.queryCntr(cntrIdx=idx, getVal=True)} ')
         else:
-            cntrVals = np.array (self.numCntrs)
+            cntrVals = np.empty (self.numCntrs)
             for idx in range(self.numCntrs):
                 cntrVals[idx] = self.queryCntr(cntrIdx=idx, getVal=True)
             printf (outputFile, 
@@ -111,7 +111,7 @@ class CntrMaster (object):
         if factor==1 and mult==False:
             return self.incCntrBy1GetVal (cntrIdx)
     
-        settings.error ('Sorry. Cntr.incCntr() is currently implemented only as incCntrBy1.')
+        settings ('Sorry. Cntr.incCntr() is currently implemented only as incCntrBy1.')
     
     def getAllVals (self, verbose=[]):
         """
