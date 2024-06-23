@@ -35,6 +35,8 @@ class CountMinSketch:
             verbose         = [], # The chosen verbose options, detailed in settings.py, determine the output (e.g., to a .pcl, .res or .log file).
             seed            = settings.SEED,
             maxValBy        = None, # How to calculate the maximum value (for SEAD/CEDAR).   
+            maxNumIncs      = INF_INT, # maximum # of increments (pkts in the trace), after which the simulation will be stopped. 
+            numOfExps       = 1,  # number of repeated experiments. Relevant only for randomly-generated traces.
             numEpsilonStepsIceBkts  = 6, # number of "epsilon" steps in Ice Buckets.
             numEpsilonStepsInRegBkt = 5, # number of "epsilon" steps in regular buckets in NiceBuckets.
             numEpsilonStepsInXlBkt  = 6,  # number of "epsilon" steps in the XL buckets in NiceBuckets.
@@ -51,8 +53,12 @@ class CountMinSketch:
         if depth<2 or width<2:
             print (f'Note: CountMinSketch was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
+        self.maxNumIncs, self.numOfExps, = maxNumIncs, numOfExps
         if self.maxValBy==None: # By default, the maximal counter's value is the trace length 
-            self.cntrMaxVal = settings.getTraceLen(self.traceFileName)
+            if self.traceFileName=='Rand':
+                self.cntrMaxVal = self.maxNumIncs
+            else:
+                self.cntrMaxVal = settings.getTraceLen(self.traceFileName)
         else:
             self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
         self.mode, self.seed = mode, seed
@@ -326,15 +332,12 @@ class CountMinSketch:
             
     def sim (
         self, 
-        maxNumIncs     = INF_INT, # maximum # of increments (pkts in the trace), after which the simulation will be stopped. 
-        numOfExps      = 1,  # number of repeated experiments. Relevant only for randomly-generated traces.
         traceFileName  = None
         ):
         """
         Simulate the count min sketch
         """
         
-        self.maxNumIncs, self.numOfExps, = maxNumIncs, numOfExps
         self.sumSqAbsEr  = [0] * self.numOfExps # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
         self.sumSqRelEr  = [0] * self.numOfExps # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
         self.printSimMsg ('Started')
@@ -407,13 +410,14 @@ def runCMS (mode,
             numFlows        = 10,
             numCntrsPerBkt  = 2,
             traceFileName   = traceFileName,
-            maxValBy        = 'F2P_li_h2',
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
             numEpsilonStepsInXlBkt  = 5,
-            verbose                 = [VERBOSE_LOG_END_SIM] # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+            verbose                 = [VERBOSE_LOG_END_SIM], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+            numOfExps               = 1, 
+            maxNumIncs              = 20
         )
-        cms.sim (numOfExps=1, maxNumIncs=20)
+        cms.sim ()
     else:
         cms = CountMinSketch (
             width           = width,
@@ -423,13 +427,13 @@ def runCMS (mode,
             numCntrsPerBkt  = 1, #16
             cntrSize        = cntrSize, 
             traceFileName   = traceFileName,
-            maxValBy        = None,
             numEpsilonStepsIceBkts  = 6, 
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
+            numOfExps               = 10, 
             verbose                 = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
         )
-        cms.sim (numOfExps=10) 
+        cms.sim ()
     
 if __name__ == '__main__':
     try:
