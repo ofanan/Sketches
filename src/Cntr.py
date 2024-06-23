@@ -52,7 +52,7 @@ class CntrMaster (object):
             for idx in range(self.numCntrs):
                 cntrVals[idx] = self.queryCntr(cntrIdx=idx, getVal=True)
             printf (outputFile, 
-                    '// minCntrVal={:.1f}, maxCntrVal={:.1f}, avgCntrVal={:.1f}'
+                    '// minCntrVal={:.1f}, maxCntrVal={:.1f}, avgCntrVal={:.1f} \n// cntrsVals:\n'
                     .format (np.min(cntrVals), np.max(cntrVals), np.average(cntrVals)))
             if printAsInt:
                 for cntrVal in cntrVals:
