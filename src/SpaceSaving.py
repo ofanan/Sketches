@@ -6,6 +6,7 @@ from datetime import datetime
 from collections import defaultdict
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
 from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, calcPostSimStat
+from settings import getRelativePathToTraceFile, checkIfInputFileExists
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp 
 from SingleCntrSimulator import getFxpCntrMaxVal, genCntrMasterFxp
@@ -115,6 +116,7 @@ class SpaceSaving (CountMinSketch):
         self.genCntrMaster ()
 
         relativePathToInputFile = settings.getRelativePathToTraceFile (f'{self.traceFileName}.txt')
+        checkIfInputFileExists (relativePathToInputFile)
         for self.expNum in range (self.numOfExps):
             self.seed = self.expNum+1 
             random.seed (self.seed)

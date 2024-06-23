@@ -5,6 +5,7 @@ import numpy as np
 from datetime import datetime
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
 from settings import warning, error, INF_INT, calcPostSimStat, getSeadStatExpSize
+from settings import checkIfInputFileExists, getRelativePathToTraceFile
 from settings import VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp
@@ -30,7 +31,7 @@ class CountMinSketch:
             numCntrsPerBkt  = 2,
             numFlows        = 10, # the total number of flows to be estimated.
             mode            = 'PerfectCounter', # the counter mode (e.g., SEC, AEE, realCounter).
-            cntrSize        = 2, # num of bits in each counter
+            cntrSize        = 8, # num of bits in each counter
             verbose         = [], # The chosen verbose options, detailed in settings.py, determine the output (e.g., to a .pcl, .res or .log file).
             seed            = settings.SEED,
             maxValBy        = None, # How to calculate the maximum value (for SEAD/CEDAR).   
@@ -252,8 +253,8 @@ class CountMinSketch:
             self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
             self.cntrMaster.setLogFile(self.logFile)
 
-        relativePathToInputFile = settings.getRelativePathToTraceFile (f'{self.traceFileName}.txt')
-        settings.checkIfInputFileExists (relativePathToInputFile)
+        relativePathToInputFile = getRelativePathToTraceFile (f'{self.traceFileName}.txt')
+        settings.checkIfInputFileExists (relativePathToInputFile, exitError=True)
         for self.expNum in range (self.numOfExps):
             self.seed = self.expNum+1 
             self.genCntrMaster () # Generate a fresh, empty CntrMaster, for each experiment

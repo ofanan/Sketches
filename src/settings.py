@@ -229,10 +229,10 @@ def checkIfInputFileExists (
     """
     if os.path.isfile (relativePathToInputFile):
         return True
-    warning (f'the input file {relativePathToInputFile} does not exist')
     if exitError:
-        exit ()
+        error (f'the input file {relativePathToInputFile} does not exist')
     else:
+        warning (f'the input file {relativePathToInputFile} does not exist')
         return False
 
 def getMachineStr ():
@@ -250,18 +250,12 @@ def getTracesPath():
 
 def getRelativePathToTraceFile (
         traceFileName,
-        checkIfFileExists = True, 
-        exitError         = True # exit with error if checkIfFileExists AND the given traceFileName does not exist
         ):
     """
     Given a trace's file name, get the relative path to this trace file.
-    The function also checks whether this trace file exists. 
+    The function doesn't checks whether this trace file exists. 
     """
-    # print (f'Note: we currently assume that all traces are in directory {getTracesPath()}, and in .txt format')
-    RelativePathToTraceFile = f'{getTracesPath()}Caida/{traceFileName}'
-    if checkIfFileExists:
-        checkIfInputFileExists (RelativePathToTraceFile, exitError)
-    return RelativePathToTraceFile
+    return f'{getTracesPath()}Caida/{traceFileName}'
 
 def extractParamsFromSettingStr (str):
     """

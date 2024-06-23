@@ -8,6 +8,7 @@ import settings
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp
 from settings import warning, error, indexOrNone, getTracesPath
+from settings import getRelativePathToTraceFile, checkIfInputFileExists 
 
 def parseCsvTrace (
         maxNumRows      = float('inf'), # overall number of increments (# of pkts in the trace) 
@@ -21,7 +22,8 @@ def parseCsvTrace (
     - print the trace's stat to a file.
     - print to file an compressed version of the trace, where each key is replaced by a unique flowId, allocated to each flow in sequential order of appearance in the trace. 
     """
-    relativePathToInputFile = settings.getRelativePathToTraceFile (traceFileName, exitError=True)
+    relativePathToInputFile = getRelativePathToTraceFile (traceFileName)
+    checkIfInputFileExists (relativePathToInputFile)
     csvFile = open (relativePathToInputFile, 'r')
     csvReader = csv.reader(csvFile) 
 
@@ -60,6 +62,7 @@ def calcTraceStat (
     The trace is merely a list of integers (keys), representing the flow to which each pkt belongs, in a .txt file.
     """
     relativePathToTraceFile = settings.getRelativePathToTraceFile (f'{traceName}.txt')
+    settings.checkIfInputFileExists (exitError=True)
     if numFlows==None:
         error ('In TraceParser.calcTraceStat(). Sorry, currently you must specify the num of flows for parsing the trace.')
     traceFile = open (relativePathToTraceFile, 'r')
@@ -95,7 +98,8 @@ def printTraceStatToFile (
     """
     Given a vector with the flowId accessed at each cycle, calculate the trace's stat.
     """    
-    statFile    = open (settings.getRelativePathToTraceFile (f'{traceName}_stat.txt', checkIfFileExists=False), 'w')
+    relativePathToStatFile = settings.getRelativePathToTraceFile (f'{traceName}_stat.txt')
+    statFile    = open (relativePathToStatFile, 'w')
     flowSizes   = np.array([f for f in flowSizes if f>0])
     numFlows    = len(flowSizes)
     maxFlowSize = max(flowSizes)
