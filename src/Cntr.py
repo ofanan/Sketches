@@ -3,7 +3,7 @@ General class of counters, with some functionalities common to all the counters.
 """ 
 import math, time, random, numpy as np
 
-import settings
+import settings, Cntr
 from settings import VERBOSE_DEBUG
 from printf import printf
 
@@ -28,10 +28,10 @@ class CntrMaster (object):
         self.verbose    = verbose
         
     def printAllCntrs (
-        self, 
-        outputFile,
-        printAlsoVec = False, # when True, print also the counters' vectors.
-        printAsInt   = False  # when True, print the value as an integer 
+            self, 
+            outputFile,
+            printAlsoVec = False, # when True, print also the counters' vectors.
+            printAsInt   = False  # when True, print the value as an integer 
         ) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
@@ -62,11 +62,12 @@ class CntrMaster (object):
                     printf (outputFile, f'{cntrVal} ')
 
 
-    def printCntrsStat (self, 
-                        outputFile, # file to which the stat will be written
-                        genPlot=False, # when True, plot the stat 
-                        outputFileName=None, # filename to which the .pdf plot will be saved
-                        ) -> None:
+    def printCntrsStat (
+            self, 
+            outputFile, # file to which the stat will be written
+            genPlot         = False, # when True, plot the stat 
+            outputFileName  = None, # filename to which the .pdf plot will be saved
+        ) -> None:
         """
         An empty function. Implemented only for compatibility with buckets, that do have such a func.
         """

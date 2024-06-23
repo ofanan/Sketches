@@ -292,7 +292,13 @@ class CountMinSketch:
                 if self.incNum==self.maxNumIncs:
                     break
         traceFile.close ()
-    
+        self.logEndSim ()
+
+    def logEndSim (self):
+        """
+        If VERBOSE_LOG_END_SIM is in the chosen verbose, output to a log file data 
+        about the counters' values at the end of the sim. 
+        """
         if VERBOSE_LOG_END_SIM in self.verbose:
             self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr())
             if self.mode.startswith('F2P') and (self.mode.split('F2P_')[1].startswith('li')  or self.mode.split('F2P_')[1].startswith('si')):
@@ -329,6 +335,7 @@ class CountMinSketch:
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
             if settings.VERBOSE_FULL_RES in self.verbose:
                 dict = settings
+        self.logEndSim ()
             
     def sim (
         self, 

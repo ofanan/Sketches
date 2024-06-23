@@ -1,10 +1,10 @@
 # A CounterMaster that manages an array of perfect counters.
 # Each perfect counter is an integer counter that can accurately count any integer value.
-
 import numpy as np
+import Cntr
 from printf import printf, printarFp
 
-class CntrMaster(object):
+class CntrMaster(Cntr.CntrMaster):
 
     genSettingsStr = lambda self : ''
 
@@ -24,19 +24,30 @@ class CntrMaster(object):
         """ 
         self.logFile = logFile
 
-    def printAllCntrs (self, outputFile) -> None:
+    def printAllCntrs (
+            self, 
+            outputFile,
+            printAlsoVec = False, # when True, print also the counters' vectors.
+            printAsInt   = False  # when True, print the value as an integer 
+        ) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
-        """
+        Format print the values corresponding to all the counters in self.cntrs.
+        Used for debugging/logging.
+        """        
         printf (outputFile, '\n[')
         for cntr in self.cntrs:
-            printf (outputFile, f'{cntr} ')
+            if printAsInt:
+                printf (outputFile, '{:.0f} ' .format (cntr))
+            else:
+                printf (outputFile, f'{cntr} ')
         printf (outputFile, ']')
     
     def rstAllCntrs(self):
         """
         """
         self.cntrs = [0 for i in range(self.numCntrs)]
+
     def rstCntr (self, cntrIdx=0):
         """
         """
