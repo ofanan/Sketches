@@ -59,7 +59,7 @@ class CntrMaster (object):
                     printf (outputFile, '{:.0f} ' .format(cntrVal))
             else:
                 for cntrVal in cntrVals:
-                    printf (outputFile, f'{cntrVal} ')
+                    printf (outputFile, '{:.1f} ' .format(cntrVal))
 
 
     def printCntrsStat (
