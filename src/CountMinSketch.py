@@ -40,7 +40,7 @@ class CountMinSketch:
             numEpsilonStepsIceBkts  = 6, # number of "epsilon" steps in Ice Buckets.
             numEpsilonStepsInRegBkt = 5, # number of "epsilon" steps in regular buckets in NiceBuckets.
             numEpsilonStepsInXlBkt  = 6,  # number of "epsilon" steps in the XL buckets in NiceBuckets.
-            traceFileName   = None,
+            traceFileName   = 'Rand',
         ):
         
         """
@@ -343,7 +343,7 @@ class CountMinSketch:
         self.printSimMsg ('Started')
         self.openOutputFiles ()
         tic ()
-        if self.traceFileName==None: # random input
+        if self.traceFileName=='Rand': # random input
             self.runSimRandInput ()
         else: # read trace from a file
             self.runSimFromTrace ()
