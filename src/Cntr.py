@@ -48,12 +48,18 @@ class CntrMaster (object):
                 for idx in range(self.numCntrs):
                     print (f'{self.queryCntr(cntrIdx=idx, getVal=True)} ')
         else:
+            cntrVals = np.array (self.numCntrs)
+            for idx in range(self.numCntrs):
+                cntrVals[idx] = self.queryCntr(cntrIdx=idx, getVal=True)
+            printf (outputFile, 
+                    '// minCntrVal={:.1f}, maxCntrVal={:.1f}, avgCntrVal={:.1f}'
+                    .format (np.min(cntrVals), np.max(cntrVals), np.average(cntrVals)))
             if printAsInt:
-                for idx in range(self.numCntrs):
-                    printf (outputFile, '{:.0f} ' .format(self.queryCntr(cntrIdx=idx, getVal=True)))
+                for cntrVal in cntrVals:
+                    printf (outputFile, '{:.0f} ' .format(cntrVal))
             else:
-                for idx in range(self.numCntrs):
-                    printf (outputFile, f'{self.queryCntr(cntrIdx=idx, getVal=True)} ')
+                for cntrVal in cntrVals:
+                    printf (outputFile, f'{cntrVal} ')
 
 
     def printCntrsStat (self, 
