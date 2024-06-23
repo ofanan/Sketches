@@ -35,18 +35,18 @@ class CntrMaster(Cntr.CntrMaster):
         Format print the values corresponding to all the counters in self.cntrs.
         Used for debugging/logging.
         """        
+        printf (outputFile, 
+                '// minCntrVal={:.1f}, maxCntrVal={:.1f}, avgCntrVal={:.1f}'
+                .format (np.min(self.cntrs), np.max(self.cntrs), np.average(self.cntrs)))
         printf (outputFile, '\n[')
         for cntr in self.cntrs:
-            if printAsInt:
-                printf (outputFile, '{:.0f} ' .format (cntr))
-            else:
-                printf (outputFile, f'{cntr} ')
+            printf (outputFile, f'{cntr} ')
         printf (outputFile, ']')
     
     def rstAllCntrs(self):
         """
         """
-        self.cntrs = [0 for i in range(self.numCntrs)]
+        self.cntrs = np.zeros (self.numCntrs, dtype='int32')
 
     def rstCntr (self, cntrIdx=0):
         """

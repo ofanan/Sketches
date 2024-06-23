@@ -236,7 +236,17 @@ class CountMinSketch:
             self.fullResFile = open (f'../res/cms_full.res', 'a+')
 
         self.logFile =  None # default
-        if VERBOSE_LOG in self.verbose or VERBOSE_DETAILED_LOG in self.verbose:
+        # if VERBOSE_LOG in self.verbose or VERBOSE_DETAILED_LOG in self.verbose:
+        #     self.logFile = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
+        #
+        # if (VERBOSE_LOG in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
+        #     infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
+        #     self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
+        #     self.cntrMaster.setLogFile(self.logFile)
+
+        if (VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
+            # infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
+            # self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
             self.logFile = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
             
     def printSimMsg (self, str):
@@ -246,6 +256,20 @@ class CountMinSketch:
         print ('{} running sim at t={}. trace={}, numOfExps={}, mode={}, cntrSize={}, depth={}, width={}, numFlows={}, verbose={}' .format (
                         str, datetime.now().strftime('%H:%M:%S'), self.traceFileName, self.numOfExps, self.mode, self.cntrSize, self.depth, self.width, self.numFlows, self.verbose))
 
+    def logEndSim (self):
+        """
+        If VERBOSE_LOG_END_SIM is in the chosen verbose, output to a log file data 
+        about the counters' values at the end of the sim. 
+        """
+        if VERBOSE_LOG_END_SIM in self.verbose:
+            self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr())
+            if self.mode.startswith('F2P') and (self.mode.split('F2P_')[1].startswith('li')  or self.mode.split('F2P_')[1].startswith('si')):
+                self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=True)
+            elif self.mode.startswith('F3P') and (self.mode.split('F3P_')[1].startswith('li')  or self.mode.split('F3P_')[1].startswith('si')):
+                self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=True)
+            else:
+                self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=False)
+    
     def runSimFromTrace (self):
         """
         Run a simulation where the input is taken from self.traceFileName.
@@ -254,10 +278,10 @@ class CountMinSketch:
         if self.numFlows==None:
             error ('In CountMinSketch.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
         self.genCntrMaster ()
-        if (VERBOSE_LOG in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
-            infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
-            self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
-            self.cntrMaster.setLogFile(self.logFile)
+        # if (VERBOSE_LOG in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
+        #     infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
+        #     self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
+        self.cntrMaster.setLogFile(self.logFile)
 
         relativePathToInputFile = getRelativePathToTraceFile (f'{self.traceFileName}.txt')
         settings.checkIfInputFileExists (relativePathToInputFile, exitError=True)
@@ -268,10 +292,10 @@ class CountMinSketch:
             self.incNum = 0
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
 
-            if (VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
-                infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
-                self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
-                self.cntrMaster.setLogFile(self.logFile)
+            # if (VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
+            #     infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
+            #     self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
+            #     self.cntrMaster.setLogFile(self.logFile)
             
             traceFile = open (relativePathToInputFile, 'r')
             for row in traceFile:            
@@ -294,20 +318,6 @@ class CountMinSketch:
         traceFile.close ()
         self.logEndSim ()
 
-    def logEndSim (self):
-        """
-        If VERBOSE_LOG_END_SIM is in the chosen verbose, output to a log file data 
-        about the counters' values at the end of the sim. 
-        """
-        if VERBOSE_LOG_END_SIM in self.verbose:
-            self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr())
-            if self.mode.startswith('F2P') and (self.mode.split('F2P_')[1].startswith('li')  or self.mode.split('F2P_')[1].startswith('si')):
-                self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=True)
-            elif self.mode.startswith('F3P') and (self.mode.split('F3P_')[1].startswith('li')  or self.mode.split('F3P_')[1].startswith('si')):
-                self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=True)
-            else:
-                self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=False)
-    
     def runSimRandInput (self):
         """
         Run a simulation with synthetic, randomly-generated, input.
@@ -317,11 +327,11 @@ class CountMinSketch:
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
             self.genCntrMaster ()
 
-            if (VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
-                infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
-                self.logFile = open (f'../res/log_files/{infoStr}.log', 'a+')
-                self.cntrMaster.setLogFile(self.logFile)
-            
+            # if (VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
+            #     infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
+            #     self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
+            self.cntrMaster.setLogFile(self.logFile)
+                        
             for self.incNum in range(self.maxNumIncs):
                 flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
                 # flowId = mmh3.hash(str(flowId)) % self.numFlows
