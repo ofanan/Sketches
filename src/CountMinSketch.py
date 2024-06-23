@@ -456,7 +456,7 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         runCMS (
-            mode            = 'PerfectCounter', 
+            mode            = 'F2P_li_h2', 
             cntrSize        = 8, 
             width           = 10,
             traceFileName   = 'Rand',
