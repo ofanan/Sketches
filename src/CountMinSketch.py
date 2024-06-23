@@ -416,6 +416,7 @@ def runCMS (mode,
             depth           = 2,
             numFlows        = 10,
             numCntrsPerBkt  = 2,
+            mode            = mode, 
             traceFileName   = traceFileName,
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
@@ -444,6 +445,13 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
+        runCMS (
+            mode            = 'PerfectCounter', 
+            cntrSize        = 8, 
+            width           = 10,
+            traceFileName   = 'Rand',
+        )
+        exit ()
         cntrSize = 8
         for width in [2**i for i in range (10, 19)]:
             # for mode  in ['PerfectCounter']:
