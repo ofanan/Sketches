@@ -79,7 +79,7 @@ class CntrMaster (Cntr.CntrMaster):
         Given a counter, as a binary vector (e.g., "11110"), return the number it represents.
         """
         if (len(cntr) != self.cntrSize): # if the cntr's size differs from the default, we have to update the basic params
-            settings.error (f'In F2P_{self.flavor()}.cntr2num(). the size of the given counter {cntr} is {len(cntr)} while CntrMaster was initialized with cntrSize={self.cntrSize}')
+            error (f'In F2P_sr.cntr2num(). the size of the given counter {cntr} is {len(cntr)} while CntrMaster was initialized with cntrSize={self.cntrSize}')
 
         hyperVec = cntr [0:self.hyperSize] 
         expSize = int(hyperVec, base=2) #(cntr [0:self.hyperSize],base=2) 
@@ -114,12 +114,12 @@ class CntrMaster (Cntr.CntrMaster):
         - If not - print an error msg and return False
         """
         if (hyperSize<1 or hyperSize>self.cntrSize-2):
-            error (f'Requested hyperSize {hyperSize} is not feasible for counter size {self.cntrSize}')
+            error (f'In F2P_Sr.setHyperSize(). Requested hyperSize {hyperSize} is not feasible for counter size {self.cntrSize}')
             return False
         self.hyperSize     = hyperSize
         self.expMaxSize    = 2**(self.hyperSize)-1 # the maximum value that can be represented by self.hyperSize bits, using standard binary representation. 
         if (self.hyperSize + self.expMaxSize > self.cntrSize-1):
-            error (f'Requested hyperSize {hyperSize} is not feasible for counter size {self.cntrSize}')
+            error (f'In F2P_Sr.setHyperSize(). Requested hyperSize {hyperSize} is not feasible for counter size {self.cntrSize}')
             return False
         return True
 

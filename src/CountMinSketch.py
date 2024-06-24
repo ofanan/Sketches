@@ -49,9 +49,9 @@ class CountMinSketch:
         self.traceFileName  = traceFileName
         self.maxValBy       = maxValBy
         if depth<1 or width<1 or cntrSize<1:
-            error (f'CountMinSketch was called with depth={depth}, width={width}, cntrSize={cntrSize}. All these parameters should be at least 1.')
+            error (f'CountMinSketch__init() was called with depth={depth}, width={width}, cntrSize={cntrSize}. All these parameters should be at least 1.')
         if depth<2 or width<2:
-            print (f'Note: CountMinSketch was called with depth={depth} and width={width}.')            
+            warning (f'CountMinSketch__init() was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
         self.maxNumIncs, self.numOfExps, = maxNumIncs, numOfExps
         if self.maxValBy==None: # By default, the maximal counter's value is the trace length 
@@ -71,9 +71,9 @@ class CountMinSketch:
         numBucketsFP = self.numCntrs / self.numCntrsPerBkt
         self.numBuckets = int(numBucketsFP)
         if numBucketsFP != self.numBuckets:
-            error (f'You chose numCntrs={self.numCntrs}, numCntrsPerBkt={self.numCntrsPerBkt}. However, numCntrs should be divisible by numCntrsPerBkt')           
+            error (f'CountMinSketch__init() was called with numCntrs={self.numCntrs}, numCntrsPerBkt={self.numCntrsPerBkt}. However, numCntrs should be divisible by numCntrsPerBkt')           
         if self.numBuckets < 1:
-            error (f'numOfBkts={self.numOfBkts}')
+            error (f'CountMinSketch.__init() was called with numOfBkts={self.numOfBkts}')
         self.conf       = settings.getConfByCntrSize (cntrSize=self.cntrSize)
         self.verbose = verbose
         self.genOutputDirectories ()
@@ -259,7 +259,6 @@ class CountMinSketch:
                     self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=True)
             elif self.mode.startswith('F3P'): 
                 if (self.mode.split('F3P_')[1].startswith('li')  or self.mode.split('F3P_')[1].startswith('si')):
-                    error (self.cntrMaster.cntrs)
                     self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=True)
             else:
                 self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=False)

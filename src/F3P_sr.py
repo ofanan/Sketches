@@ -32,7 +32,7 @@ class CntrMaster (F2P_sr.CntrMaster):
         """
         self.mantMinSize = self.cntrSize - self.hyperMaxSize - self.expMaxSize 
         if (self.mantMinSize<1):
-            error (f'cntrSize={self.cntrSize} and hyperMaxSize={self.hyperMaxSize} implies min mantissa size={self.mantMinSize}. Mantissa size should be at least 1. Please use a smaller hyperMaxSize')
+            error (f'In F3P_sr.calcParams(). cntrSize={self.cntrSize} and hyperMaxSize={self.hyperMaxSize} implies min mantissa size={self.mantMinSize}. Mantissa size should be at least 1. Please use a smaller hyperMaxSize')
         self.Vmax = 2**(self.expMaxSize+1)-1 
         self.setFlavorParams ()
         self.powerMin = self.expMinVal + self.bias + 1 
@@ -49,7 +49,7 @@ class CntrMaster (F2P_sr.CntrMaster):
         If the parameters are invalid (e.g., infeasible cntrSize), return None. 
         """
         if (cntrSize<3):
-            settings.error ('error: cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
+            error ('In F3P_sr.__init(): cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
         self.cntrSize   = int(cntrSize)
         self.numCntrs   = int(numCntrs)
         self.verbose    = verbose
@@ -67,7 +67,7 @@ class CntrMaster (F2P_sr.CntrMaster):
         Given a counter, as a binary vector (e.g., "11110"), return the number it represents.
         """
         if (len(cntr) != self.cntrSize): # if the cntr's size differs from the default, we have to update the basic params
-            settings.error (f'In F3P_{self.flavor()}.cntr2num(). the size of the given counter {cntr} is {len(cntr)} while CntrMaster was initialized with cntrSize={self.cntrSize}')
+            error (f'In F3P_{self.flavor()}.cntr2num(). the size of the given counter {cntr} is {len(cntr)} while CntrMaster was initialized with cntrSize={self.cntrSize}')
 
         # Extract the hyper-exponent field, and value
         self.hyperSize = settings.idxOfLeftmostZero (ar=cntr, maxIdx=self.hyperMaxSize)         
@@ -81,7 +81,7 @@ class CntrMaster (F2P_sr.CntrMaster):
         expVal  = self.expVec2expVal(expVec, expSize) 
         if (settings.VERBOSE_DEBUG in self.verbose):
             if (expVec != self.expVal2expVec(expVal, expSize=expSize)):   
-                error ('expVec={}, expVal={}, expSize={}, Back to expVec={}' .format (expVec, expVal, expSize, self.expVal2expVec(expVal, expSize)))
+                error ('In F3P_sr.cntr2num(). expVec={}, expVal={}, expSize={}, Back to expVec={}' .format (expVec, expVal, expSize, self.expVal2expVec(expVal, expSize)))
         mantVal = float (int (mantVec, base=2)) / 2**(self.cntrSize - expVecBegin - expSize)  
         if expVec == self.expMinVec:
             cntrVal  = mantVal * (2**self.powerMin)
@@ -111,9 +111,9 @@ class CntrMaster (F2P_sr.CntrMaster):
         - If not - finish with an error msg.
         """
         if (hyperMaxSize<1 or hyperMaxSize>self.cntrSize-2):
-            error (f'In F3P_sr: Requested hyperMaxSize {hyperMaxSize} is not feasible for counter size {self.cntrSize}')
+            error (f'In F3P_sr.setHyperSize(): Requested hyperMaxSize {hyperMaxSize} is not feasible for counter size {self.cntrSize}')
         self.hyperMaxSize  = hyperMaxSize
         self.expMaxSize    = self.hyperMaxSize # the maximum value that can be represented by self.hyperMaxSize bits, using standard binary representation. 
         if (self.hyperMaxSize + self.expMaxSize > self.cntrSize-1):
-            error (f'In F3P_sr: Requested hyperMaxSize {hyperMaxSize} is not feasible for counter size {self.cntrSize}')
+            error (f'In F3P_sr.setHyperSize(): Requested hyperMaxSize {hyperMaxSize} is not feasible for counter size {self.cntrSize}')
 

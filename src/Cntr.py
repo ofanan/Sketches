@@ -22,7 +22,7 @@ class CntrMaster (object):
         """
         
         if (cntrSize<3):
-            error ('cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
+            error ('In Cntr.__init(). cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
         self.cntrSize   = int(cntrSize)
         self.numCntrs   = int(numCntrs)
         self.verbose    = verbose
