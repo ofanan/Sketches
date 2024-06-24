@@ -448,14 +448,7 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
-        runCMS (
-            mode            = 'F2P_li_h2', 
-            cntrSize        = 8, 
-            width           = 10,
-            traceFileName   = 'Rand',
-        )
-        exit ()
-        cntrSize = 8
+        cntrSize = 10
         for width in [2**i for i in range (10, 19)]:
             # for mode  in ['PerfectCounter']:
             #     width = int(width/4)
@@ -466,7 +459,7 @@ if __name__ == '__main__':
                     mode        = mode, 
                     cntrSize    = cntrSize, 
                     width       = width,
-                    traceFileName = 'Rand',
+                    traceFileName = 'Caida1',
                 )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

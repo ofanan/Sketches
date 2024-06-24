@@ -496,7 +496,7 @@ class ResFileParser (object):
         plt.ylim ([0.98*minY, 1.02*maxY])
         # plt.yscale ('log') #$$$          
         plt.xscale ('log')          
-        outputFileName = f'cms_{traceName}' 
+        outputFileName = 'cms_{}_{}' .format (traceName, 'rel' if rel_abs_n else 'abs') 
         if not(USE_FRAME):
             seaborn.despine(left=True, bottom=True, right=True)
         plt.savefig (f'../res/{outputFileName}.pdf', bbox_inches='tight')        
@@ -1042,7 +1042,8 @@ def genErVsMemSizePlot (
     #     myResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
     myResFileParser.genErVsMemSizePlot (
         traceName   = traceName,
-        ignoreModes = ignoreModes
+        ignoreModes = ignoreModes,
+        rel_abs_n   = True
     )
 
 if __name__ == '__main__':
