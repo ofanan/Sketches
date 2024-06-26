@@ -62,15 +62,11 @@ class CntrMaster (F2P_lr.CntrMaster):
                 expVec = np.binary_repr(num=i, width=expSize)
                 expVal = self.expVec2expVal (expVec=expVec, expSize=expSize)
                 self.cntrppOfAbsExpVal[abs(expVal)] = hyperVec + np.binary_repr(num=i-1, width=expSize) + '0'*mantSize
-                # print (abs(expVal)) #$$
                 self.LsbVecOfAbsExpVal[abs(expVal)-1] = hyperVec + expVec 
             expVal = self.expVec2expVal (expVec='0'*expSize, expSize=expSize)
-            # print (abs(expVal)) #$$
             self.cntrppOfAbsExpVal[abs(expVal)] = np.binary_repr (expSize-1, self.hyperSize) + ('1'*(expSize-1) if expSize>1 else '') + '0'*(mantSize+1)
             self.LsbVecOfAbsExpVal[abs(expVal)-1] = hyperVec + '0'*expSize
-        # self.LsbVecOfAbsExpVal[1] = '0'*self.hyperSize 
         self.LsbVecOfAbsExpVal[self.Vmax-1] = '1'*(self.hyperSize + 2**self.hyperSize - 1) 
-        error (self.LsbVecOfAbsExpVal) #$$$
         
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
         """
@@ -123,5 +119,5 @@ class CntrMaster (F2P_lr.CntrMaster):
             print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={int(cntrppVal)}')
         return int(cntrppVal) 
         
-myF2P_li_cntr = CntrMaster (cntrSize=6, hyperSize=2) #$$$
+myF2P_li_cntr = CntrMaster (cntrSize=8, hyperSize=2) #$$$
             
