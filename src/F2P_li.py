@@ -68,8 +68,8 @@ class CntrMaster (F2P_lr.CntrMaster):
             # print (abs(expVal)) #$$
             self.cntrppOfAbsExpVal[abs(expVal)] = np.binary_repr (expSize-1, self.hyperSize) + ('1'*(expSize-1) if expSize>1 else '') + '0'*(mantSize+1)
             self.LsbVecOfAbsExpVal[abs(expVal)-1] = hyperVec + expVec 
-        self.LsbVecOfAbsExpVal[1] = '0'*self.hyperSize 
-        self.LsbVecOfAbsExpVal[0] = '0'*self.hyperSize 
+        # self.LsbVecOfAbsExpVal[1] = '0'*self.hyperSize 
+        self.LsbVecOfAbsExpVal[self.Vmax-1] = '1'*(self.hyperSize + 2**self.hyperSize - 1) 
         error (self.LsbVecOfAbsExpVal) #$$$
         
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
