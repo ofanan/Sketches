@@ -19,6 +19,9 @@ class CntrMaster (F2P_lr.CntrMaster):
     # Given the vector of the exponent, calculate the value it represents 
     expVec2expVal  = lambda self, expVec, expSize : -(2**expSize - 1 + int (expVec, base=2)) if expSize>0 else 0    
 
+    def halfAllCntrs (self):
+        None
+   
     def setFlavorParams (self):
         """
         set variables that are unique for 'li' flavor of F2P.
@@ -49,18 +52,26 @@ class CntrMaster (F2P_lr.CntrMaster):
             
         if any ([item>1 for item in self.probOfInc1]):
             error (f'F2P_li Got entry>1 for self.probOfInc1. self.probOfInc1={self.probOfInc1}')
-        # self.cntrppOfAbsExpVal[e] will hold the next cntr when the (mantissa of the) counter with expVal=e is saturated.
-        self.cntrppOfAbsExpVal = ['' for _ in range(self.Vmax)]
+        
+        self.cntrppOfAbsExpVal = ['']*(self.Vmax) # self.cntrppOfAbsExpVal[e] will hold the next cntr when the (mantissa of the) counter with expVal=e is saturated.
+        self.LsbVecOfAbsExpVal = ['']*(self.Vmax) # self.LsbVecOfAbsExpVal[e] will hold the LSB fields (hyperVec and expVec) of the vector when decreasing the vector's exponent whose current absolute value is e.
         for expSize in range(self.expMaxSize, 0, -1):
             hyperVec = np.binary_repr (expSize, self.hyperSize) 
             mantSize = self.cntrSize - self.hyperSize - expSize
             for i in range (2**expSize-1, 0, -1): 
                 expVec = np.binary_repr(num=i, width=expSize)
                 expVal = self.expVec2expVal (expVec=expVec, expSize=expSize)
-                self.cntrppOfAbsExpVal[abs(expVal)] = hyperVec + np.binary_repr(num=i-1, width=expSize) + '0'*mantSize 
+                self.cntrppOfAbsExpVal[abs(expVal)] = hyperVec + np.binary_repr(num=i-1, width=expSize) + '0'*mantSize
+                # print (abs(expVal)) #$$
+                self.LsbVecOfAbsExpVal[abs(expVal)-1] = hyperVec + expVec 
             expVal = self.expVec2expVal (expVec='0'*expSize, expSize=expSize)
+            # print (abs(expVal)) #$$
             self.cntrppOfAbsExpVal[abs(expVal)] = np.binary_repr (expSize-1, self.hyperSize) + ('1'*(expSize-1) if expSize>1 else '') + '0'*(mantSize+1)
-
+            self.LsbVecOfAbsExpVal[abs(expVal)-1] = hyperVec + expVec 
+        self.LsbVecOfAbsExpVal[1] = '0'*self.hyperSize 
+        self.LsbVecOfAbsExpVal[0] = '0'*self.hyperSize 
+        error (self.LsbVecOfAbsExpVal) #$$$
+        
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
         """
         Increment the counter to the closest higher value.
@@ -112,4 +123,5 @@ class CntrMaster (F2P_lr.CntrMaster):
             print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={int(cntrppVal)}')
         return int(cntrppVal) 
         
+myF2P_li_cntr = CntrMaster (cntrSize=6, hyperSize=2) #$$$
             

@@ -49,7 +49,7 @@ class CntrMaster (Cntr.CntrMaster):
         self.setFlavorParams ()
         self.powerMin = self.expMinVal + self.bias + 1 
         return True
-   
+
     def __init__ (self, 
                   cntrSize  : int = 8, # of bits in the cntr 
                   hyperSize : int = 1, # of bits in the hyper-exp field 

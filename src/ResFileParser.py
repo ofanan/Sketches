@@ -44,7 +44,7 @@ PURPLE      = '#CC79A7'
 colorOfMode = {
     'F3P'       : PURPLE,
     'SEAD_stat_e3' : VERMILION,
-    'SEAD_stat_e4' : 'green',
+    'SEAD_stat_e4' : 'black',
     'SEAD dyn'  : VERMILION,
     'SEAD_dyn'  : VERMILION,
     'FP'        : BLUE,
@@ -452,7 +452,7 @@ class ResFileParser (object):
                   point['rel_abs_n'] == rel_abs_n and 
                   point['cntrSize']  == cntrSize]
         if points == []:
-            warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, width={width}')
+            warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}')
         modes = [point['mode'] for point in points]
         modes = [mode for mode in modes if mode not in ignoreModes]
         minY, maxY = float('inf'), 0 
@@ -474,13 +474,13 @@ class ResFileParser (object):
                 y.append(point['Avg'])
                 minY = min (minY, point['Avg'])
                 maxY = max (maxY, point['Avg'])
-            memSize = [4*w/(2**10) for w in widths] # Memory size in KB = width * depth (which is fixed 4) / 1024. 
+            memSizes = [4*w/(2**10) for w in widths] # Memory size in KB = width * depth (which is fixed 4) / 1024. 
             ax.plot (
-                [m for m in memSize], 
+                [m for m in memSizes], 
                 y, 
                 color       = colorOfMode[mode],
                 marker      = '+', 
-                markersize  = MARKER_SIZE_SMALL, 
+                markersize  = MARKER_SIZE, 
                 linewidth   = LINE_WIDTH, 
                 label       = labelOfMode(point['mode']), 
                 mfc         ='none',
@@ -492,11 +492,11 @@ class ResFileParser (object):
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
-        plt.xlim ([min(memSize), 10**3])      
-        plt.ylim ([0.98*minY, 1.02*maxY])
+        plt.xlim ([0.95*min(memSizes), 10**3]) #$$$      
+        # plt.ylim ([0.98*minY, 1.02*maxY]) #$$
         # plt.yscale ('log') #$$$          
         plt.xscale ('log')          
-        outputFileName = 'cms_{}_{}' .format (traceName, 'rel' if rel_abs_n else 'abs') 
+        outputFileName = 'cms_{}_n{}_{}' .format (traceName, cntrSize, 'rel' if rel_abs_n else 'abs') 
         if not(USE_FRAME):
             seaborn.despine(left=True, bottom=True, right=True)
         plt.savefig (f'../res/{outputFileName}.pdf', bbox_inches='tight')        
@@ -1037,13 +1037,14 @@ def genErVsMemSizePlot (
     
     myResFileParser = ResFileParser ()
     traceName = 'Caida2'
-    myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC.pcl')
+    myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC.pcl')
     # for mode in ['F3P_li_h2', 'F3P_si_h2', 'F3P_si_h3' 
     #     myResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
     myResFileParser.genErVsMemSizePlot (
         traceName   = traceName,
         ignoreModes = ignoreModes,
-        rel_abs_n   = True
+        rel_abs_n   = False,
+        cntrSize    = 10,
     )
 
 if __name__ == '__main__':
