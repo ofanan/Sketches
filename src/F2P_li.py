@@ -5,7 +5,7 @@ import math, random, pickle, numpy as np
 
 from printf import printf
 import settings, F2P_lr
-from settings import VERBOSE_DEBUG, error
+from settings import VERBOSE_DEBUG, warning, error
 
 class CntrMaster (F2P_lr.CntrMaster):
     """
@@ -20,8 +20,29 @@ class CntrMaster (F2P_lr.CntrMaster):
     expVec2expVal  = lambda self, expVec, expSize : -(2**expSize - 1 + int (expVec, base=2)) if expSize>0 else 0    
 
     def halfAllCntrs (self):
-        None
-   
+        """
+        Half the values of all the counters
+        """
+        mantSizeBase = self.cntrSize - self.hyperSize # default value for the mantissa; to be refined within the loop 
+        for cntr in self.cntrs:
+            hyperVec  = cntr [0:self.hyperSize]
+            expSize   = int(hyperVec, base=2)  
+            mantSize  = mantSizeBase - expSize  
+            expVec    = cntr[self.hyperSize:self.hyperSize+expSize]
+            absExpVal = abs(self.expVec2expVal(expVec))
+            mantVec   = cntr[self.hyperSize+expSize:] 
+            if self.mantSizeOfAbsExpVal[absExpVal]==mantSize: 
+                cntr = self.LsbVecOfAbsExpVal[abs(expVal)] + mantVec
+            # Now we know that the mantissa field of the halved cntr should be 1-bit shorter
+            elif mantVec[0]==0 or random.random() < 0.5: # the lsb is reset, or we should trunc it 
+                cntr = self.LsbVecOfAbsExpVal[abs(expVal)] + mantVec[:1]
+            # should ceil the mantissa
+            elif mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should further increase the exponent
+                cntr = self.LsbVecOfAbsExpVal[absExpVal+1] + '0'*self.mantSizeOfAbsExpVal[absExpVal+1]
+            else:
+                mantVal = int (mantVec, base=2)
+                cntr = self.LsbVecOfAbsExpVal[absExpVal+1] + np.binary_repr(mantVal+1, self.mantSizeOfAbsExpVal[absExpVal])
+                
     def setFlavorParams (self):
         """
         set variables that are unique for 'li' flavor of F2P.
@@ -53,8 +74,8 @@ class CntrMaster (F2P_lr.CntrMaster):
         if any ([item>1 for item in self.probOfInc1]):
             error (f'F2P_li Got entry>1 for self.probOfInc1. self.probOfInc1={self.probOfInc1}')
         
-        self.cntrppOfAbsExpVal = ['']*(self.Vmax) # self.cntrppOfAbsExpVal[e] will hold the next cntr when the (mantissa of the) counter with expVal=e is saturated.
-        self.LsbVecOfAbsExpVal = ['']*(self.Vmax) # self.LsbVecOfAbsExpVal[e] will hold the LSB fields (hyperVec and expVec) of the vector when decreasing the vector's exponent whose current absolute value is e.
+        self.cntrppOfAbsExpVal   = ['']*(self.Vmax) # self.cntrppOfAbsExpVal[e] will hold the next cntr when the (mantissa of the) counter with expVal=e is saturated.
+        self.LsbVecOfAbsExpVal   = ['']*(self.Vmax) # self.LsbVecOfAbsExpVal[e] will hold the LSB fields (hyperVec and expVec) of the vector when decreasing the vector's exponent whose current absolute value is e.
         for expSize in range(self.expMaxSize, 0, -1):
             hyperVec = np.binary_repr (expSize, self.hyperSize) 
             mantSize = self.cntrSize - self.hyperSize - expSize
@@ -67,6 +88,7 @@ class CntrMaster (F2P_lr.CntrMaster):
             self.cntrppOfAbsExpVal[abs(expVal)] = np.binary_repr (expSize-1, self.hyperSize) + ('1'*(expSize-1) if expSize>1 else '') + '0'*(mantSize+1)
             self.LsbVecOfAbsExpVal[abs(expVal)-1] = hyperVec + '0'*expSize
         self.LsbVecOfAbsExpVal[self.Vmax-1] = '1'*(self.hyperSize + 2**self.hyperSize - 1) 
+        self.mantSizeOfAbsExpVal = [self.cntrSize - len(item) for item in self.LsbVecOfAbsExpVal] # self.mantSizeOfAbsExpVal[e] is the size of the mantissa field of the vector when decreasing the vector's exponent whose current absolute value is e.
         
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
         """
@@ -79,9 +101,9 @@ class CntrMaster (F2P_lr.CntrMaster):
         settings.error ('In F2P_li.incCntr(). Sorry, incCntr is currently supported only for factor=1 and mult=False')
     
     def incCntrBy1GetVal (self, 
-                    cntrIdx  = 0, # idx of the concrete counter to increment in the array
-                    forceInc = False # If forceInc==True, increment the counter. Else, inc the counter w.p. corresponding to the next counted value.
-                    ): 
+        cntrIdx  = 0, # idx of the concrete counter to increment in the array
+        forceInc = False # If forceInc==True, increment the counter. Else, inc the counter w.p. corresponding to the next counted value.
+    ): 
         """
         Increment the counter to the closest higher value.
         If the cntr reached its max val, or the randomization decides not to inc, merely return the cur cntr.
@@ -119,5 +141,5 @@ class CntrMaster (F2P_lr.CntrMaster):
             print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={int(cntrppVal)}')
         return int(cntrppVal) 
         
-myF2P_li_cntr = CntrMaster (cntrSize=8, hyperSize=2) #$$$
+myF2P_li_cntr = CntrMaster (cntrSize=6, hyperSize=2) #$$$
             
