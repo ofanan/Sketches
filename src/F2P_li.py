@@ -67,7 +67,7 @@ class CntrMaster (F2P_lr.CntrMaster):
             expVal = self.expVec2expVal (expVec='0'*expSize, expSize=expSize)
             # print (abs(expVal)) #$$
             self.cntrppOfAbsExpVal[abs(expVal)] = np.binary_repr (expSize-1, self.hyperSize) + ('1'*(expSize-1) if expSize>1 else '') + '0'*(mantSize+1)
-            self.LsbVecOfAbsExpVal[abs(expVal)-1] = hyperVec + expVec 
+            self.LsbVecOfAbsExpVal[abs(expVal)-1] = hyperVec + '0'*expSize
         # self.LsbVecOfAbsExpVal[1] = '0'*self.hyperSize 
         self.LsbVecOfAbsExpVal[self.Vmax-1] = '1'*(self.hyperSize + 2**self.hyperSize - 1) 
         error (self.LsbVecOfAbsExpVal) #$$$
