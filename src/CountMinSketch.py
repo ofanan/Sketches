@@ -271,9 +271,6 @@ class CountMinSketch:
         if self.numFlows==None:
             error ('In CountMinSketch.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
         self.genCntrMaster ()
-        # if (VERBOSE_LOG in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
-        #     infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
-        #     self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
         self.cntrMaster.setLogFile(self.logFile)
 
         relativePathToInputFile = getRelativePathToTraceFile (f'{self.traceFileName}.txt')
@@ -285,11 +282,6 @@ class CountMinSketch:
             self.incNum = 0
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
 
-            # if (VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
-            #     infoStr = '{}_{}' .format (self.genSettingsStr(), self.cntrMaster.genSettingsStr())
-            #     self.logFile = open (f'../res/log_files/{infoStr}.log', 'w')
-            #     self.cntrMaster.setLogFile(self.logFile)
-            
             traceFile = open (relativePathToInputFile, 'r')
             for row in traceFile:            
                 flowId = int(row) 

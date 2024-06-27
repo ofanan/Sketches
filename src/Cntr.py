@@ -77,7 +77,7 @@ class CntrMaster (object):
         """
         An empty function. Implemented only for compatibility with buckets, that do have such a func.
         """
-        None 
+        self.logFile = logFile 
     
     
     def rstCntr (self, cntrIdx=0):

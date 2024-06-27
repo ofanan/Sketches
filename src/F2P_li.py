@@ -5,7 +5,7 @@ import math, random, pickle, numpy as np
 
 from printf import printf
 import settings, F2P_lr
-from settings import VERBOSE_DEBUG, warning, error
+from settings import VERBOSE_DEBUG, VERBOSE_LOG, warning, error
 
 class CntrMaster (F2P_lr.CntrMaster):
     """
@@ -24,24 +24,38 @@ class CntrMaster (F2P_lr.CntrMaster):
         Half the values of all the counters
         """
         mantSizeBase = self.cntrSize - self.hyperSize # default value for the mantissa; to be refined within the loop 
-        for cntr in self.cntrs:
+        for num in range(2 ** self.cntrSize): #$$$
+            cntr = np.binary_repr(num, self.cntrSize) #$$$
+        # for cntr in self.cntrs: #$$$
             hyperVec  = cntr [0:self.hyperSize]
             expSize   = int(hyperVec, base=2)  
             mantSize  = mantSizeBase - expSize  
             expVec    = cntr[self.hyperSize:self.hyperSize+expSize]
-            absExpVal = abs(self.expVec2expVal(expVec))
+            absExpVal = abs(self.expVec2expVal(expVec=expVec, expSize=expSize))
             mantVec   = cntr[self.hyperSize+expSize:] 
+
+            if VERBOSE_LOG in self.verbose:
+                orgVal = self.cntr2num (cntr)
+                printf (self.logFile, 'cntr={}, absExpVal={}, orgVal={:.0f} ' .format(cntr, absExpVal, orgVal))
             if self.mantSizeOfAbsExpVal[absExpVal]==mantSize: 
-                cntr = self.LsbVecOfAbsExpVal[abs(expVal)] + mantVec
+                cntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
             # Now we know that the mantissa field of the halved cntr should be 1-bit shorter
-            elif mantVec[0]==0 or random.random() < 0.5: # the lsb is reset, or we should trunc it 
-                cntr = self.LsbVecOfAbsExpVal[abs(expVal)] + mantVec[:1]
+            elif mantVec[-1]=='0' or random.random()<0.5: # the lsb is reset, or we should trunc it 
+                cntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec[0:-1]
             # should ceil the mantissa
             elif mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should further increase the exponent
                 cntr = self.LsbVecOfAbsExpVal[absExpVal+1] + '0'*self.mantSizeOfAbsExpVal[absExpVal+1]
             else:
                 mantVal = int (mantVec, base=2)
-                cntr = self.LsbVecOfAbsExpVal[absExpVal+1] + np.binary_repr(mantVal+1, self.mantSizeOfAbsExpVal[absExpVal])
+                cntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize)[0:-1]
+            if VERBOSE_LOG in self.verbose:
+                val = self.cntr2num (cntr)
+                printf (self.logFile, f'halvedCntr={cntr} ')
+                if val==orgVal/2:
+                    printf (self.logFile, f'vals fit\n')
+                else:
+                    printf (self.logFile, 'val={:.0f}\n' .format(val))                    
+                
                 
     def setFlavorParams (self):
         """
@@ -140,6 +154,14 @@ class CntrMaster (F2P_lr.CntrMaster):
         if settings.VERBOSE_COUT_CNTRLINE in self.verbose:
             print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={int(cntrppVal)}')
         return int(cntrppVal) 
-        
-myF2P_li_cntr = CntrMaster (cntrSize=6, hyperSize=2) #$$$
+  
+#$$$      
+myF2P_li_cntr = CntrMaster (
+    cntrSize    = 6, 
+    hyperSize   = 2,
+    verbose     = [VERBOSE_LOG]
+) 
+logFile = open (f'../res/log_files/{myF2P_li_cntr.genSettingsStr()}.log', 'w')
+myF2P_li_cntr.setLogFile (logFile)
+myF2P_li_cntr.halfAllCntrs()
             
