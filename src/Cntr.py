@@ -29,7 +29,7 @@ class CntrMaster (object):
         
     def printAllCntrs (
             self, 
-            outputFile,
+            outputFile   = None,
             printAlsoVec = False, # when True, print also the counters' vectors.
             printAsInt   = False  # when True, print the value as an integer 
         ) -> None:
@@ -46,7 +46,7 @@ class CntrMaster (object):
                     print ('cntrVec={}, cntrVal={} ' .format (cntrDict['cntrVec'], cntrDict['val']))
             else:
                 for idx in range(self.numCntrs):
-                    print (f'{self.queryCntr(cntrIdx=idx, getVal=True)} ')
+                    print ('{:.0f} ' .format(self.queryCntr(cntrIdx=idx, getVal=True)))
         else:
             cntrVals = np.empty (self.numCntrs)
             for idx in range(self.numCntrs):

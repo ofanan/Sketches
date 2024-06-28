@@ -35,7 +35,8 @@ class CntrMaster (F2P_lr.CntrMaster):
         Half the values of all the counters
         """
         mantSizeBase = self.cntrSize - self.hyperSize # default value for the mantissa; to be refined within the loop 
-        for cntr in self.cntrs: 
+        for cntrIdx in range(self.numCntrs):
+            cntr      = self.cntrs[cntrIdx]   
             hyperVec  = cntr [0:self.hyperSize]
             expSize   = int(hyperVec, base=2)  
             mantSize  = mantSizeBase - expSize  
@@ -75,6 +76,7 @@ class CntrMaster (F2P_lr.CntrMaster):
                     cntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
             else: # No need to ceil the #
                 cntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
+            self.cntrs[cntrIdx] = cntr   
             if VERBOSE_DEBUG in self.verbose:
                 # printf (self.logFile, f'halvedCntr={cntr} ')
                 val = self.cntr2num (cntr)
@@ -160,7 +162,7 @@ class CntrMaster (F2P_lr.CntrMaster):
         if cntr==self.cntrMaxVec: # Asked to increment a saturated counter
             if self.dwnSmpl:
                 if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                    printf (self.logFile, f'bf dwnsmpling: Cntr={cntr} \n')
+                    printf (self.logFile, f'b4 dwnsmpling: Cntr={cntr} \n')
                 self.halfAllCntrs ()
                 self.bias += 1 
                 if VERBOSE_LOG_DWN_SMPL in self.verbose:
