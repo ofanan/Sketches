@@ -48,14 +48,15 @@ class CntrMaster (Cntr.CntrMaster):
         self.Vmax = 2**(self.expMaxSize+1)-1 # sum ([2**i for i in range (1, self.expMaxSize+1)])
         self.setFlavorParams ()
         self.powerMin = self.expMinVal + self.bias + 1 
+        self.cntrMaxVal = self.cntr2num (self.cntrMaxVec)
         return True
 
     def __init__ (self, 
-                  cntrSize  : int = 8, # of bits in the cntr 
-                  hyperSize : int = 1, # of bits in the hyper-exp field 
-                  numCntrs  : int = 1, # of cntrs in the cntrs' array
-                  verbose   = []    # the optional verbose values are detailed in settings.py
-                  ):
+            cntrSize  : int = 8, # of bits in the cntr 
+            hyperSize : int = 1, # of bits in the hyper-exp field 
+            numCntrs  : int = 1, # of cntrs in the cntrs' array
+            verbose   = []    # the optional verbose values are detailed in settings.py
+        ):
         
         """
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.

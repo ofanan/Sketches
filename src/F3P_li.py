@@ -69,6 +69,16 @@ class CntrMaster (F3P_lr.CntrMaster):
                 self.cntrppOfAbsExpVal[absExpVal] = '1'*(hyperSize-1) + '0' + '1'*(hyperSize-1) + '0'*mantSizeOfHyperSize[hyperSize-1]
                 absExpVal -= 1
         
+    def setDwnSmpl (
+            self, 
+            dwnSmpl   : bool = False, # When True, use down-sampling 
+        ):
+        
+        """
+        """
+        self.dwnSmpl = dwnSmpl
+        error ('In F3P_li.setDwnSmpl(). dwnSmpl is not implemented yet for F3P_li.')
+
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
         """
         Increment the counter to the closest higher value.

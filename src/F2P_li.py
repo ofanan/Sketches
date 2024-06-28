@@ -19,14 +19,22 @@ class CntrMaster (F2P_lr.CntrMaster):
     # Given the vector of the exponent, calculate the value it represents 
     expVec2expVal  = lambda self, expVec, expSize : -(2**expSize - 1 + int (expVec, base=2)) if expSize>0 else 0    
 
+
+    def setDwnSmpl (
+            self, 
+            dwnSmpl   : bool = False, # When True, use down-sampling 
+        ):
+        
+        """
+        """
+        self.dwnSmpl = dwnSmpl
+
     def halfAllCntrs (self):
         """
         Half the values of all the counters
         """
         mantSizeBase = self.cntrSize - self.hyperSize # default value for the mantissa; to be refined within the loop 
-        for num in range(2 ** self.cntrSize): #$$$
-            cntr = np.binary_repr(num, self.cntrSize) #$$$
-        # for cntr in self.cntrs: #$$$
+        for cntr in self.cntrs: 
             hyperVec  = cntr [0:self.hyperSize]
             expSize   = int(hyperVec, base=2)  
             mantSize  = mantSizeBase - expSize  
@@ -136,9 +144,10 @@ class CntrMaster (F2P_lr.CntrMaster):
             return self.incCntrBy1GetVal (cntrIdx=cntrIdx)
         settings.error ('In F2P_li.incCntr(). Sorry, incCntr is currently supported only for factor=1 and mult=False')
     
+
     def incCntrBy1GetVal (self, 
         cntrIdx  = 0, # idx of the concrete counter to increment in the array
-        forceInc = False # If forceInc==True, increment the counter. Else, inc the counter w.p. corresponding to the next counted value.
+        forceInc = False, # If forceInc==True, increment the counter. Else, inc the counter w.p. corresponding to the next counted value.
     ): 
         """
         Increment the counter to the closest higher value.
@@ -147,6 +156,17 @@ class CntrMaster (F2P_lr.CntrMaster):
         """
         
         cntr       = self.cntrs[cntrIdx]
+        if cntr==self.cntrMaxVec: # Asked to increment a saturated counter
+            if self.dwnSmpl:
+                if VERBOSE_LOG_DWN_SMPL in self.verbose:
+                    printf (self.logFile, f'bf dwnsmpling: Cntr={cntr} \n')
+                self.halfAllCntrs ()
+                self.bias += 1 
+                if VERBOSE_LOG_DWN_SMPL in self.verbose:
+                    printf (self.logFile, f'after dwnsmpling: Cntr={cntr} \n')
+                return self.cntr2num (cntr)
+            else:
+                return self.cntrMaxVal
         hyperVec   = cntr [0:self.hyperSize]
         expSize    = int(hyperVec, base=2)
         expVec     = cntr[self.hyperSize:self.hyperSize+expSize]
@@ -177,13 +197,11 @@ class CntrMaster (F2P_lr.CntrMaster):
             print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={int(cntrppVal)}')
         return int(cntrppVal) 
   
-#$$$      
-myF2P_li_cntr = CntrMaster (
-    cntrSize    = 6, 
-    hyperSize   = 2,
-    verbose     = [VERBOSE_DEBUG]
-) 
-logFile = open (f'../res/log_files/{myF2P_li_cntr.genSettingsStr()}.log', 'w')
-myF2P_li_cntr.setLogFile (logFile)
-myF2P_li_cntr.halfAllCntrs()
-            
+# myF2P_li_cntr = CntrMaster (
+#     cntrSize    = 10, 
+#     hyperSize   = 2,
+#     verbose     = [VERBOSE_DEBUG]
+# ) 
+# logFile = open (f'../res/log_files/{myF2P_li_cntr.genSettingsStr()}.log', 'w')
+# myF2P_li_cntr.setLogFile (logFile)
+# myF2P_li_cntr.halfAllCntrs()

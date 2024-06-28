@@ -6,7 +6,7 @@ from datetime import datetime
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
 from settings import warning, error, INF_INT, calcPostSimStat, getSeadStatExpSize
 from settings import checkIfInputFileExists, getRelativePathToTraceFile
-from settings import VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM
+from settings import VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, VERBOSE_PROGRESS, VERBOSE_LOG_DWN_SMPL
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp
 from SingleCntrSimulator import getFxpCntrMaxVal, genCntrMasterFxp
@@ -37,10 +37,11 @@ class CountMinSketch:
             maxValBy        = None, # How to calculate the maximum value (for SEAD/CEDAR).   
             maxNumIncs      = INF_INT, # maximum # of increments (pkts in the trace), after which the simulation will be stopped. 
             numOfExps       = 1,  # number of repeated experiments. Relevant only for randomly-generated traces.
+            traceFileName   = 'Rand',
+            dwnSmpl         = False,
             numEpsilonStepsIceBkts  = 6, # number of "epsilon" steps in Ice Buckets.
             numEpsilonStepsInRegBkt = 5, # number of "epsilon" steps in regular buckets in NiceBuckets.
             numEpsilonStepsInXlBkt  = 6,  # number of "epsilon" steps in the XL buckets in NiceBuckets.
-            traceFileName   = 'Rand',
         ):
         
         """
@@ -48,6 +49,7 @@ class CountMinSketch:
         self.numCntrsPerBkt = int(numCntrsPerBkt)
         self.traceFileName  = traceFileName
         self.maxValBy       = maxValBy
+        self.dwnSmpl        = dwnSmpl 
         if depth<1 or width<1 or cntrSize<1:
             error (f'CountMinSketch__init() was called with depth={depth}, width={width}, cntrSize={cntrSize}. All these parameters should be at least 1.')
         if depth<2 or width<2:
@@ -106,7 +108,9 @@ class CountMinSketch:
                 cntrSize        = self.cntrSize,
                 numCntrs        = self.numCntrs,
                 fxpSettingStr   = self.mode, 
-                verbose         = self.verbose)
+                verbose         = self.verbose
+            )
+            self.cntrMaster.setDwnSmpl (self.dwnSmpl)
         elif self.mode=='Morris':
             self.cntrMaster = Morris.CntrMaster (
                 cntrSize        = self.cntrSize, 
@@ -185,7 +189,27 @@ class CountMinSketch:
         if not (os.path.exists('../res/pcl_files')):
             os.makedirs ('../res/pcl_files')
 
-    def incNQueryFlow(self, flowId, mult=False, factor=1):
+    def queryFlow (
+            self, 
+            flowId, 
+        ):
+        """
+        Returns the estimated value for this flow, namely, the minimum of the corresponding counters.
+        """
+        val = math.inf
+        for row in range(self.depth):
+            val = min (
+                val, 
+                self.cntrMaster.cntr2num(self.cntrMaster.cntrs[self.mat2aridx (row=row, col=self.hashOfFlow (flowId=flowId, row=row))])
+            )
+        return val
+
+    def incNQueryFlow (
+            self, 
+            flowId, 
+            mult    = False, 
+            factor  = 1
+        ):
         """
         Update the value for a single flow. 
         Return the updated estimated value for this flow.
@@ -194,7 +218,10 @@ class CountMinSketch:
         """
         flowValAfterInc = math.inf
         for row in range(self.depth):
-            flowValAfterInc = min (flowValAfterInc, self.cntrMaster.incCntrBy1GetVal(cntrIdx=self.mat2aridx (row=row, col=self.hashOfFlow (flowId=flowId, row=row))))
+            flowValAfterInc = min (
+                flowValAfterInc, 
+                self.cntrMaster.incCntrBy1GetVal(cntrIdx=self.mat2aridx (row=row, col=self.hashOfFlow (flowId=flowId, row=row))) # dwnSmpl=self.dwnSmpl)
+            )
         return flowValAfterInc
 
     def queryFlow(self, flow):
@@ -237,7 +264,10 @@ class CountMinSketch:
 
         self.logFile =  None # default
 
-        if (VERBOSE_LOG in self.verbose) or (settings.VERBOSE_PROGRESS in self.verbose) or (VERBOSE_LOG_END_SIM in self.verbose):
+        if VERBOSE_LOG in self.verbose or \
+            VERBOSE_PROGRESS in self.verbose or \
+            VERBOSE_LOG_END_SIM in self.verbose or \
+            VERBOSE_LOG_DWN_SMPL in self.verbose:
             self.logFile = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
             
     def printSimMsg (self, str):
@@ -287,8 +317,10 @@ class CountMinSketch:
                 flowId = int(row) 
                 self.incNum  += 1                
                 flowRealVal[flowId]     += 1
-                
-                flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
+                # if self.smplProb==1 or random.random() < self.smplProb:
+                flowEstimatedVal = self.incNQueryFlow (flowId=flowId)
+                # else: # By downsample, no need to inc this packet; only estimate the flow's size
+                #     flowEstimatedVal   = self.queryFlow (flowId=flowId)
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr    
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
@@ -333,12 +365,13 @@ class CountMinSketch:
             
     def sim (
         self, 
-        traceFileName  = None
+        traceFileName   = None,
         ):
         """
         Simulate the count min sketch
         """
         
+        # self.smplProb   = 1
         self.sumSqAbsEr  = [0] * self.numOfExps # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
         self.sumSqRelEr  = [0] * self.numOfExps # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
         self.printSimMsg ('Started')
@@ -400,7 +433,8 @@ def runCMS (mode,
     maxNumIncs      = float ('inf'),
     width           = 2**10,
     depth           = 4,
-    traceFileName   = 'Rand' 
+    traceFileName   = 'Rand', 
+    dwnSmpl         = False,
 ):
     """
     """   
@@ -411,11 +445,12 @@ def runCMS (mode,
             numFlows        = 10,
             numCntrsPerBkt  = 2,
             mode            = mode, 
+            dwnSmpl         = dwnSmpl,
             traceFileName   = traceFileName,
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
             numEpsilonStepsInXlBkt  = 5,
-            verbose                 = [VERBOSE_LOG_END_SIM], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+            verbose                 = [VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
             maxNumIncs              = 20
         )
@@ -429,6 +464,7 @@ def runCMS (mode,
             numCntrsPerBkt  = 1, #16
             cntrSize        = cntrSize, 
             traceFileName   = traceFileName,
+            dwnSmpl         = dwnSmpl,
             numEpsilonStepsIceBkts  = 6, 
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
@@ -450,7 +486,8 @@ if __name__ == '__main__':
                     mode        = mode, 
                     cntrSize    = cntrSize, 
                     width       = width,
-                    traceFileName = 'Caida1',
+                    dwnSmpl     = False,
+                    traceFileName = 'Rand',
                 )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

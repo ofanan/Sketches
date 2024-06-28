@@ -33,7 +33,8 @@ VERBOSE_NOTE            = 8 # print to stdout notes, e.g. when the target cntr v
 VERBOSE_LOG             = 9
 VERBOSE_LOG_END_SIM     = 10
 VERBOSE_DETAILED_LOG    = 11
-VERBOSE_PROGRESS        = 12 # Print periodical output notifying the progress. Used to control long runs.
+VERBOSE_LOG_DWN_SMPL    = 12
+VERBOSE_PROGRESS        = 13 # Print periodical output notifying the progress. Used to control long runs.
 VERBOSE_LOG_CNTRLINE    = 14  
 VERBOSE_PLOT            = 15
 
