@@ -450,9 +450,10 @@ def runCMS (mode,
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
             numEpsilonStepsInXlBkt  = 5,
-            verbose                 = [VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+            verbose                 = [VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
-            maxNumIncs              = 20
+            maxNumIncs              = 99999,
+            cntrSize                = cntrSize, 
         )
         cms.sim ()
     else:
@@ -475,18 +476,18 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
-        cntrSize = 10
-        for width in [2**i for i in range (10, 19)]:
+        cntrSize = 6
+        for width in [2]: #[2**i for i in range (10, 19)]:
             # for mode  in ['PerfectCounter']:
             #     width = int(width/4)
             # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
-            for mode in ['F2P_li_h2', 'F3P_li_h3']:    
+            for mode in ['F2P_li_h2']:    
             # for mode in ['CEDAR', 'Morris']:     
                 runCMS (
                     mode        = mode, 
                     cntrSize    = cntrSize, 
                     width       = width,
-                    dwnSmpl     = False,
+                    dwnSmpl     = True,
                     traceFileName = 'Rand',
                 )
     except KeyboardInterrupt:
