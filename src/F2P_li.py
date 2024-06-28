@@ -38,25 +38,35 @@ class CntrMaster (F2P_lr.CntrMaster):
             if VERBOSE_LOG in self.verbose:
                 orgVal = self.cntr2num (cntr)
                 printf (self.logFile, 'cntr={}, absExpVal={}, orgVal={:.0f} ' .format(cntr, absExpVal, orgVal))
+            truncated = False # By default, we didn't truncate the # when dividing by 2 --> no need to round. 
+            
             if absExpVal==self.Vmax-1: # The edge case of sub-normal values: need to only divide the mantissa; no need (and cannot) further decrease the exponent
                 if mantVec[-1]=='1':
                     truncated = True
                 mantVec = mantVec >> 1 # divide the mantissa by 2 (by right-shift) 
-                if truncated and random.random()>=0.5: # if the removed bit was '1', add '1' w.p. 0.5 
-                    mantVec = np.binary_repr(num=int(mantVec, base=2)+1, mantSize)    
-                cntr = hyperVec + expVec + mantVec
-            elif self.mantSizeOfAbsExpVal[absExpVal]==mantSize: 
+            elif absExpVal==self.Vmax-1: # The edge case of 1-above sub-normal values: need to only right-shift the value, and insert '1' in the new leftmost mantissa bit. 
+                if mantVec[-1]=='1':
+                    truncated = True
+                mantVec = '1' + mantVec[0:-1]
+                # if truncated and random.random()>=0.5: # if the removed bit was '1', add '1' w.p. 0.5 
+                #     mantVec = np.binary_repr(num=int(mantVec, base=2)+1, mantSize)    
+                # cntr = hyperVec + expVec + mantVec
+            # elif self.mantSizeOfAbsExpVal[absExpVal]==mantSize: 
+            #     cntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
+                
+            elif self.mantSizeOfAbsExpVal[absExpVal]<mantSize: #the mantissa field of the halved cntr should be 1-bit shorter
+                if mantVec[-1]=='1':
+                    truncated = True
+                mantVec = mantVec[0:-1]
+            
+            if truncated and random.random()<0.5: # need to ceil the #                             
+                if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should further increase the exponent
+                    cntr = self.LsbVecOfAbsExpVal[absExpVal+1] + '0'*self.mantSizeOfAbsExpVal[absExpVal+1]
+                else:
+                    mantVal = int (mantVec, base=2)
+                    cntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize)[0:-1]
+            else: # No need to ceil the #
                 cntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
-            # Now we know that the mantissa field of the halved cntr should be 1-bit shorter
-            elif mantVec[-1]=='0' or random.random()<0.5: # the lsb is reset, or we should trunc it 
-                cntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec[0:-1]
-
-            # should ceil the mantissa
-            elif mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should further increase the exponent
-                cntr = self.LsbVecOfAbsExpVal[absExpVal+1] + '0'*self.mantSizeOfAbsExpVal[absExpVal+1]
-            else:
-                mantVal = int (mantVec, base=2)
-                cntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize)[0:-1]
             if VERBOSE_LOG in self.verbose:
                 val = self.cntr2num (cntr)
                 printf (self.logFile, f'halvedCntr={cntr} ')
