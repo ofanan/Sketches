@@ -34,14 +34,23 @@ class CntrMaster (F2P_lr.CntrMaster):
             absExpVal = abs(self.expVec2expVal(expVec=expVec, expSize=expSize))
             mantVec   = cntr[self.hyperSize+expSize:] 
 
+            # Need to code the special case of (sub) normal values.
             if VERBOSE_LOG in self.verbose:
                 orgVal = self.cntr2num (cntr)
                 printf (self.logFile, 'cntr={}, absExpVal={}, orgVal={:.0f} ' .format(cntr, absExpVal, orgVal))
-            if self.mantSizeOfAbsExpVal[absExpVal]==mantSize: 
+            if absExpVal==self.Vmax-1: # The edge case of sub-normal values: need to only divide the mantissa; no need (and cannot) further decrease the exponent
+                if mantVec[-1]=='1':
+                    truncated = True
+                mantVec = mantVec >> 1 # divide the mantissa by 2 (by right-shift) 
+                if truncated and random.random()>=0.5: # if the removed bit was '1', add '1' w.p. 0.5 
+                    mantVec = np.binary_repr(num=int(mantVec, base=2)+1, mantSize)    
+                cntr = hyperVec + expVec + mantVec
+            elif self.mantSizeOfAbsExpVal[absExpVal]==mantSize: 
                 cntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
             # Now we know that the mantissa field of the halved cntr should be 1-bit shorter
             elif mantVec[-1]=='0' or random.random()<0.5: # the lsb is reset, or we should trunc it 
                 cntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec[0:-1]
+
             # should ceil the mantissa
             elif mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should further increase the exponent
                 cntr = self.LsbVecOfAbsExpVal[absExpVal+1] + '0'*self.mantSizeOfAbsExpVal[absExpVal+1]
@@ -51,7 +60,7 @@ class CntrMaster (F2P_lr.CntrMaster):
             if VERBOSE_LOG in self.verbose:
                 val = self.cntr2num (cntr)
                 printf (self.logFile, f'halvedCntr={cntr} ')
-                if val==orgVal/2:
+                if val==float(orgVal)/2:
                     printf (self.logFile, f'vals fit\n')
                 else:
                     printf (self.logFile, 'val={:.0f}\n' .format(val))                    
