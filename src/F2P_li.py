@@ -35,9 +35,8 @@ class CntrMaster (F2P_lr.CntrMaster):
             mantVec   = cntr[self.hyperSize+expSize:] 
 
             # Need to code the special case of (sub) normal values.
-            if VERBOSE_LOG in self.verbose:
+            if VERBOSE_DEBUG in self.verbose:
                 orgVal = self.cntr2num (cntr)
-                printf (self.logFile, 'cntr={}, absExpVal={}, orgVal={:.0f} ' .format(cntr, absExpVal, orgVal))
             truncated = False # By default, we didn't truncate the # when dividing by 2 --> no need to round. 
             
             if absExpVal==self.Vmax-1: # The edge case of sub-normal values: need to only divide the mantissa; no need (and cannot) further decrease the exponent
@@ -54,7 +53,7 @@ class CntrMaster (F2P_lr.CntrMaster):
                 mantVec   = mantVec[0:-1]
                 mantSize -= 1
             
-            if VERBOSE_LOG in self.verbose:
+            if VERBOSE_DEBUG in self.verbose:
                 self.cntrs[0] = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
                 floorVal      = self.cntr2num(self.cntrs[0])
                 ceilVal       = self.incCntrBy1GetVal(forceInc=True) 
@@ -67,15 +66,17 @@ class CntrMaster (F2P_lr.CntrMaster):
                     cntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
             else: # No need to ceil the #
                 cntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
-            if VERBOSE_LOG in self.verbose:
-                printf (self.logFile, f'halvedCntr={cntr} ')
+            if VERBOSE_DEBUG in self.verbose:
+                # printf (self.logFile, f'halvedCntr={cntr} ')
                 val = self.cntr2num (cntr)
                 if val==float(orgVal)/2:
-                    printf (self.logFile, f'vals fit\n')
+                    # printf (self.logFile, f'vals fit\n')
+                    None
                 else:
                     if not (val in [floorVal, ceilVal]):
-                        error ('rgrg')
-                        printf (self.logFile, 'val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}\n' .format(val, floorVal, ceilVal))                    
+                        error ('orgVal/2={:.0f}, val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}' 
+                               .format (float(orgVal)/2, val, floorVal, ceilVal))
+                        # printf (self.logFile, 'val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}\n' .format(val, floorVal, ceilVal))                    
                 
                 
     def setFlavorParams (self):
@@ -180,7 +181,7 @@ class CntrMaster (F2P_lr.CntrMaster):
 myF2P_li_cntr = CntrMaster (
     cntrSize    = 6, 
     hyperSize   = 2,
-    verbose     = [VERBOSE_LOG]
+    verbose     = [VERBOSE_DEBUG]
 ) 
 logFile = open (f'../res/log_files/{myF2P_li_cntr.genSettingsStr()}.log', 'w')
 myF2P_li_cntr.setLogFile (logFile)
