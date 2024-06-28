@@ -283,15 +283,16 @@ class CountMinSketch:
         about the counters' values at the end of the sim. 
         """
         if VERBOSE_LOG_END_SIM in self.verbose:
+            printf (self.logFile, '\nAt the end of sim:\n')
             self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr())
             if self.mode.startswith('F2P'):
                 if (self.mode.split('F2P_')[1].startswith('li')  or self.mode.split('F2P_')[1].startswith('si')):
-                    self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=True)
+                    self.cntrMaster.printAllCntrs  (self.logFile)
             elif self.mode.startswith('F3P'): 
                 if (self.mode.split('F3P_')[1].startswith('li')  or self.mode.split('F3P_')[1].startswith('si')):
-                    self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=True)
+                    self.cntrMaster.printAllCntrs  (self.logFile)
             else:
-                self.cntrMaster.printAllCntrs  (self.logFile, printAsInt=False)
+                self.cntrMaster.printAllCntrs  (self.logFile)
     
     def runSimFromTrace (self):
         """
@@ -359,7 +360,6 @@ class CountMinSketch:
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId]))
             if settings.VERBOSE_FULL_RES in self.verbose:
                 dict = settings
-            
             if self.expNum==0: # log only the first experiment
                 self.logEndSim ()
             

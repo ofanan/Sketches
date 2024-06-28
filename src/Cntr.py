@@ -31,7 +31,6 @@ class CntrMaster (object):
             self, 
             outputFile   = None,
             printAlsoVec = False, # when True, print also the counters' vectors.
-            printAsInt   = False  # when True, print the value as an integer 
         ) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
@@ -46,7 +45,7 @@ class CntrMaster (object):
                     print ('cntrVec={}, cntrVal={} ' .format (cntrDict['cntrVec'], cntrDict['val']))
             else:
                 for idx in range(self.numCntrs):
-                    print ('{:.0f} ' .format(self.queryCntr(cntrIdx=idx, getVal=True)))
+                    print ('{} ' .format(self.queryCntr(cntrIdx=idx, getVal=True)))
         else:
             cntrVals = np.empty (self.numCntrs)
             for idx in range(self.numCntrs):
@@ -54,12 +53,8 @@ class CntrMaster (object):
             printf (outputFile, 
                     '// minCntrVal={:.1f}, maxCntrVal={:.1f}, avgCntrVal={:.1f} \n// cntrsVals:\n'
                     .format (np.min(cntrVals), np.max(cntrVals), np.average(cntrVals)))
-            if printAsInt:
-                for cntrVal in cntrVals:
-                    printf (outputFile, '{:.0f} ' .format(cntrVal))
-            else:
-                for cntrVal in cntrVals:
-                    printf (outputFile, '{:.1f} ' .format(cntrVal))
+            for cntrVal in cntrVals:
+                printf (outputFile, '{:.1f} ' .format(cntrVal))
 
 
     def printCntrsStat (

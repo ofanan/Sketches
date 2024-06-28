@@ -137,6 +137,35 @@ class CntrMaster (F2P_lr.CntrMaster):
         self.LsbVecOfAbsExpVal[self.Vmax-1] = '1'*(self.hyperSize + 2**self.hyperSize - 1) 
         self.mantSizeOfAbsExpVal = [self.cntrSize - len(item) for item in self.LsbVecOfAbsExpVal] # self.mantSizeOfAbsExpVal[e] is the size of the mantissa field of the vector when decreasing the vector's exponent whose current absolute value is e.
         
+    def printAllCntrs (
+            self, 
+            outputFile   = None,
+            printAlsoVec = False, # when True, print also the counters' vectors.
+        ) -> None:
+        """
+        Format-print all the counters as a single the array, to the given file.
+        Format print the values corresponding to all the counters in self.cntrs.
+        Used for debugging/logging.
+        """        
+        if outputFile==None:
+            print (f'Printing all cntrs.')
+            if printAlsoVec:
+                for idx in range(self.numCntrs):
+                    cntrDict = self.queryCntr (idx, getVal=False)
+                    print ('cntrVec={}, cntrVal={} ' .format (cntrDict['cntrVec'], cntrDict['val']))
+            else:
+                for idx in range(self.numCntrs):
+                    print ('{:.0f} ' .format(self.queryCntr(cntrIdx=idx, getVal=True)))
+        else:
+            cntrVals = np.empty (self.numCntrs)
+            for idx in range(self.numCntrs):
+                cntrVals[idx] = self.queryCntr(cntrIdx=idx, getVal=True)
+            # printf (outputFile, 
+            #         '// minCntrVal={:.0f}, maxCntrVal={:.0f}, avgCntrVal={:.0f} \n// cntrsVals:\n'
+            #         .format (np.min(cntrVals), np.max(cntrVals), np.average(cntrVals)))
+            for cntrVal in cntrVals:
+                printf (outputFile, '{:.0f} ' .format(cntrVal))
+
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
         """
         Increment the counter to the closest higher value.
@@ -162,11 +191,13 @@ class CntrMaster (F2P_lr.CntrMaster):
         if cntr==self.cntrMaxVec: # Asked to increment a saturated counter
             if self.dwnSmpl:
                 if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                    printf (self.logFile, f'b4 dwnsmpling: Cntr={cntr} \n')
+                    printf (self.logFile, f'\nb4 dwnsmpling:\n')
+                    self.printAllCntrs (self.logFile)
                 self.halfAllCntrs ()
                 self.bias += 1 
                 if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                    printf (self.logFile, f'after dwnsmpling: Cntr={cntr} \n')
+                    printf (self.logFile, f'\nafter dwnsmpling:\n')
+                    self.printAllCntrs (self.logFile)
                 return self.cntr2num (cntr)
             else:
                 return self.cntrMaxVal
