@@ -307,3 +307,4 @@ class CntrMaster (Cntr.CntrMaster):
 #             printf(outputFile, '{}={:.1f}\n'.format(item['cntrVec'], item['val']))
 
 # \frac{\left(\left(1+2\cdot \:\:x^2\right)^L-1\right)}{2x^2}\left(1+x^2\right)
+
