@@ -79,16 +79,13 @@ class CntrMaster (F2P_lr.CntrMaster):
                 cntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
             self.cntrs[cntrIdx] = cntr   
             if VERBOSE_DEBUG in self.verbose:
-                # printf (self.logFile, f'halvedCntr={cntr} ')
                 val = self.cntr2num (cntr)
                 if val==float(orgVal)/2:
-                    # printf (self.logFile, f'vals fit\n')
                     None
                 else:
                     if not (val in [floorVal, ceilVal]):
                         error ('orgVal/2={:.0f}, val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}' 
                                .format (float(orgVal)/2, val, floorVal, ceilVal))
-                        # printf (self.logFile, 'val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}\n' .format(val, floorVal, ceilVal))                    
                 
                 
     def setFlavorParams (self):

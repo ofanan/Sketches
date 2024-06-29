@@ -4,6 +4,8 @@ import random, math, numpy as np
 
 from printf import printf
 import settings, Cntr
+from settings import warning, error
+from settings import VERBOSE_DEBUG
 
 # The 'delta' parameter determines CEDAR's accuracy.
 # Given a counter size and maximum value to count, the function findMinDeltaByMaxVal finds the minimal delta. using binary search.
@@ -48,12 +50,12 @@ class CntrMaster (Cntr.CntrMaster):
     cntr2num = lambda self, cntr : self.cntrInt2num (int (cntr, base=2))
 
     def __init__(self, 
-                 cntrSize       = 8, # num of bits in each counter.
-                 delta          = None, # Delta - the max relative error, as detailed in the paper CEDAR. 
-                 numCntrs       = 1, # number of counters in the array.
-                 cntrMaxVal     = None, # Max value to be reached by a counter. When Delta==None, the initiator uses this value, and calculates (using binary search) the minimum delta that allows reaching this maximum value.
-                 verbose        = [], 
-                 ):
+            cntrSize       = 8, # num of bits in each counter.
+            delta          = None, # Delta - the max relative error, as detailed in the paper CEDAR. 
+            numCntrs       = 1, # number of counters in the array.
+            cntrMaxVal     = None, # Max value to be reached by a counter. When Delta==None, the initiator uses this value, and calculates (using binary search) the minimum delta that allows reaching this maximum value.
+            verbose        = [], 
+        ):
         """
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
         """
@@ -265,22 +267,30 @@ class CntrMaster (Cntr.CntrMaster):
             self.cntrs = [i for i in range(self.numCntrs)]
                         
         for cntrIdx in range(self.numCntrs):
-            orgVal = self.prevEstimators[self.cntrs[cntrIdx]]
+            orgVal = prevEstimators[self.cntrs[cntrIdx]]
             newEstIdx = 0
             while self.estimators[newEstIdx] < orgVal:
                 newEstIdx += 1
             # Now we know that self.estimators[newEstIdx] >= orgVal
             if self.estimators[newEstIdx]==orgVal:
-                self.numCntrs[cntrIdx] = newEstIdx
-            elif random.random() < (orgVal-self.estimators[newEstIdx-1])/(self.estimators[newEstIdx]-self.estimators[newEstIdx-1]):
-                self.numCntrs[cntrIdx] = newEstIdx
+                self.cntrs[cntrIdx] = newEstIdx
+                if VERBOSE_DEBUG in self.verbose:
+                    printf (self.logFile, 'orgVal=val={:.1f}\n' .format (orgVal))
+                continue
+            if random.random() < (orgVal-self.estimators[newEstIdx-1])/(self.estimators[newEstIdx]-self.estimators[newEstIdx-1]):
+                self.cntrs[cntrIdx] = newEstIdx
             else:
-                self.numCntrs[cntrIdx] = newEstIdx-1
+                self.cntrs[cntrIdx] = newEstIdx-1
             if VERBOSE_DEBUG in self.verbose:
                 floorVal = self.estimators[newEstIdx-1]
                 ceilVal  = self.estimators[newEstIdx]
-                printf (self.logFile, 'orgVal/2={:.1f}, floorVal={:.1f}, ceilVal={:.1f}, val={:.1f}' 
-                       .format (orgVal, floorVal, ceilVal, self.estimators[cntrIdx]))
+                printf (self.logFile, 'orgVal={:.1f}, floorVal={:.1f}, ceilVal={:.1f}, val={:.1f}\n' 
+                       .format (orgVal, floorVal, ceilVal, self.estimators[self.cntrs[cntrIdx]]))
+        
+        if VERBOSE_DEBUG in self.verbose:
+            printf (self.logFile, 'Printing all estimators\n')
+            for estimator in self.estimators:
+                printf (self.logFile, '{:.1f} ' .format(estimator)) 
         
     def setDwnSmpl (
             self, 
@@ -333,7 +343,9 @@ class CntrMaster (Cntr.CntrMaster):
 
 
 myCntrMaster = CntrMaster (
+    numCntrs    = 2**6,
     cntrSize    = 6, 
+    cntrMaxVal  = 1000,
     verbose     = [VERBOSE_DEBUG]
 ) 
 logFile = open (f'../res/log_files/{myCntrMaster.genSettingsStr()}.log', 'w')
