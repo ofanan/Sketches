@@ -53,9 +53,9 @@ class CntrMaster (object):
             cntrVals = np.empty (self.numCntrs)
             for idx in range(self.numCntrs):
                 cntrVals[idx] = self.queryCntr(cntrIdx=idx, getVal=True)
-            printf (outputFile, 
-                    '// minCntrVal={:.1f}, maxCntrVal={:.1f}, avgCntrVal={:.1f} \n// cntrsVals:\n'
-                    .format (np.min(cntrVals), np.max(cntrVals), np.average(cntrVals)))
+            # printf (outputFile, 
+            #         '// minCntrVal={:.1f}, maxCntrVal={:.1f}, avgCntrVal={:.1f} \n// cntrsVals:\n'
+            #         .format (np.min(cntrVals), np.max(cntrVals), np.average(cntrVals)))
             for cntrVal in cntrVals:
                 printf (outputFile, '{:.1f} ' .format(cntrVal))
 

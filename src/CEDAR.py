@@ -5,7 +5,7 @@ import random, math, numpy as np
 from printf import printf
 import settings, Cntr
 from settings import warning, error
-from settings import VERBOSE_DEBUG
+from settings import VERBOSE_DEBUG, VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL
 
 # The 'delta' parameter determines CEDAR's accuracy.
 # Given a counter size and maximum value to count, the function findMinDeltaByMaxVal finds the minimal delta. using binary search.
@@ -176,7 +176,13 @@ class CntrMaster (Cntr.CntrMaster):
         """
         if (self.cntrs[cntrIdx] == self.numEstimators-1): # reached the largest estimator --> cannot further inc
             if self.dwnSmpl:
-                self.dwnSmpl ()
+                if VERBOSE_LOG_DWN_SMPL in self.verbose:
+                    printf (self.logFile, f'\nb4 upScaling:\n')
+                    self.printAllCntrs (self.logFile)
+                self.upScale ()
+                if VERBOSE_LOG_DWN_SMPL in self.verbose:
+                    printf (self.logFile, f'\nafter upScaling:\n')
+                    self.printAllCntrs (self.logFile)
             return self.estimators[self.cntrs[cntrIdx]]
         if random.random() < 1/self.diffs[self.cntrs[cntrIdx]]:
             self.cntrs[cntrIdx] += 1
@@ -201,8 +207,10 @@ class CntrMaster (Cntr.CntrMaster):
 
     def findMinDeltaByMaxVal (
             self,
-            targetMaxVal,
-            resolution = 0.0000001,             
+            targetMaxVal, # Value that the counter must reach
+            resolution = 0.0000001, # minimal resolution (stopping condition) at the binary search
+            deltaLo     = None,     # lowest value of the delta to consider at the binary search. When None, use pre-computed values.             
+            deltaHi     = None,     # highest value of the delta to consider at the binary search. When None, use pre-computed values.             
             ):
         """
         Given a target maximum countable value, return the minimal 'delta' parameter that reaches this value, 
@@ -216,7 +224,8 @@ class CntrMaster (Cntr.CntrMaster):
         """
 
         preComputedDatum = self.findPreComputedDatum ()
-        deltaLo, deltaHi = preComputedDatum['deltaLo'], preComputedDatum['deltaHi']
+        if deltaLo==None:
+            deltaLo, deltaHi = preComputedDatum['deltaLo'], preComputedDatum['deltaHi']
 
         # check first the extreme cases
         self.delta = deltaHi
@@ -250,7 +259,7 @@ class CntrMaster (Cntr.CntrMaster):
                 deltaHi = self.delta
         return self.delta             
 
-    def dwnSmpl (self):
+    def upScale (self):
         """
         Allow down-sampling:
         - Calculate a new "delta" parameter that allows reaching a higher cntrMaxVal.
@@ -261,7 +270,11 @@ class CntrMaster (Cntr.CntrMaster):
         prevCntrMaxVal   = self.cntrMaxVal 
         self.cntrMaxVal *= 2
         
-        self.findMinDeltaByMaxVal (targetMaxVal = self.cntrMaxVal)                
+        self.findMinDeltaByMaxVal (
+            targetMaxVal    = self.cntrMaxVal,
+            deltaLo         = 0.00001,
+            deltaHi         = 0.4
+        )                
                 
         if VERBOSE_DEBUG in self.verbose:
             self.cntrs = [i for i in range(self.numCntrs)]
@@ -342,12 +355,12 @@ class CntrMaster (Cntr.CntrMaster):
 # \frac{\left(\left(1+2\cdot \:\:x^2\right)^L-1\right)}{2x^2}\left(1+x^2\right)
 
 
-myCntrMaster = CntrMaster (
-    numCntrs    = 2**6,
-    cntrSize    = 6, 
-    cntrMaxVal  = 1000,
-    verbose     = [VERBOSE_DEBUG]
-) 
-logFile = open (f'../res/log_files/{myCntrMaster.genSettingsStr()}.log', 'w')
-myCntrMaster.setLogFile (logFile)
-myCntrMaster.dwnSmpl()
+# myCntrMaster = CntrMaster (
+#     numCntrs    = 2**6,
+#     cntrSize    = 6, 
+#     cntrMaxVal  = 1000,
+#     verbose     = [VERBOSE_DEBUG]
+# ) 
+# logFile = open (f'../res/log_files/{myCntrMaster.genSettingsStr()}.log', 'w')
+# myCntrMaster.setLogFile (logFile)
+# myCntrMaster.upScale()

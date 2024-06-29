@@ -29,7 +29,7 @@ class CntrMaster (F2P_lr.CntrMaster):
         """
         self.dwnSmpl = dwnSmpl
 
-    def dwnSmpl (self):
+    def upScale (self):
         """
         Allow down-sampling:
         - Half the values of all the counters.
@@ -189,12 +189,12 @@ class CntrMaster (F2P_lr.CntrMaster):
         if cntr==self.cntrMaxVec: # Asked to increment a saturated counter
             if self.dwnSmpl:
                 if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                    printf (self.logFile, f'\nb4 dwnsmpling:\n')
+                    printf (self.logFile, f'\nb4 upScaling:\n')
                     self.printAllCntrs (self.logFile)
-                self.dwnSmpl ()
+                self.upScale ()
                 self.bias += 1 
                 if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                    printf (self.logFile, f'\nafter dwnsmpling:\n')
+                    printf (self.logFile, f'\nafter upScaling:\n')
                     self.printAllCntrs (self.logFile)
                 return self.cntr2num (cntr)
             else:
@@ -236,4 +236,4 @@ class CntrMaster (F2P_lr.CntrMaster):
 # ) 
 # logFile = open (f'../res/log_files/{myF2P_li_cntr.genSettingsStr()}.log', 'w')
 # myF2P_li_cntr.setLogFile (logFile)
-# myF2P_li_cntr.dwnSmpl()
+# myF2P_li_cntr.upScale()
