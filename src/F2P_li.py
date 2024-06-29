@@ -25,14 +25,15 @@ class CntrMaster (F2P_lr.CntrMaster):
             self, 
             dwnSmpl   : bool = False, # When True, use down-sampling 
         ):
-        
         """
         """
         self.dwnSmpl = dwnSmpl
 
-    def halfAllCntrs (self):
+    def dwnSmpl (self):
         """
-        Half the values of all the counters
+        Allow down-sampling:
+        - Half the values of all the counters.
+        - Increase the bias value added to the exponent, to return the counters to roughly their original values.
         """
         mantSizeBase = self.cntrSize - self.hyperSize # default value for the mantissa; to be refined within the loop 
         for cntrIdx in range(self.numCntrs):
@@ -193,7 +194,7 @@ class CntrMaster (F2P_lr.CntrMaster):
                 if VERBOSE_LOG_DWN_SMPL in self.verbose:
                     printf (self.logFile, f'\nb4 dwnsmpling:\n')
                     self.printAllCntrs (self.logFile)
-                self.halfAllCntrs ()
+                self.dwnSmpl ()
                 self.bias += 1 
                 if VERBOSE_LOG_DWN_SMPL in self.verbose:
                     printf (self.logFile, f'\nafter dwnsmpling:\n')
@@ -238,4 +239,4 @@ class CntrMaster (F2P_lr.CntrMaster):
 # ) 
 # logFile = open (f'../res/log_files/{myF2P_li_cntr.genSettingsStr()}.log', 'w')
 # myF2P_li_cntr.setLogFile (logFile)
-# myF2P_li_cntr.halfAllCntrs()
+# myF2P_li_cntr.dwnSmpl()

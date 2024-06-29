@@ -9,6 +9,9 @@ from printf import printf
 
 class CntrMaster (object):
     
+    # Generates a string that details the counter's settings (param vals).
+    genSettingsStr = lambda self : f'cntr_n{self.cntrSize}'
+    
     # Return a range with all the legal combinations for the counter. For most counters this includes all the possible binary comb's.  
     getAllCombinations = lambda self, cntrSize : range (2**cntrSize)
     
@@ -125,6 +128,25 @@ class CntrMaster (object):
             for item in listOfVals:
                 printf (outputFile, '{}={}\n' .format (item['cntrVec'], item['val']))
         return [item['val'] for item in listOfVals]
+
+    def setDwnSmpl (
+            self, 
+            dwnSmpl   : bool = False, # When True, use down-sampling 
+        ):        
+        """
+        Set the down-sampling for relevant cntr's types (child classes).
+        By default, this feature is not supported, and therefore the run ends with an error message.
+        """
+        error ('In Cntr.setDwnSmpl(). Sorry. Down sampling is not yet implemented for self.genSettingsStr()')
+
+    def dwnSmpl (
+            self
+        ):
+        """
+        down-sample.
+        By default, this feature is not supported, and therefore the run ends with an error message.
+        """
+        error ('In Cntr.dwnSmpl(). Sorry. Down sampling is not yet implemented for self.genSettingsStr()')
 
     def rstAllCntrs (self):
         """

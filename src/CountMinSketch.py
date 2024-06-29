@@ -110,7 +110,6 @@ class CountMinSketch:
                 fxpSettingStr   = self.mode, 
                 verbose         = self.verbose
             )
-            self.cntrMaster.setDwnSmpl (self.dwnSmpl)
         elif self.mode=='Morris':
             self.cntrMaster = Morris.CntrMaster (
                 cntrSize        = self.cntrSize, 
@@ -164,6 +163,9 @@ class CountMinSketch:
                 verbose         = self.verbose)
         else:
             error (f'In CountMinSketch.genCntrMaster(). Sorry, the mode {self.mode} that you requested is not supported')
+        
+        if self.dwnSmpl:
+            self.cntrMaster.setDwnSmpl (self.dwnSmpl)
 
     
     def genOutputDirectories (self):
@@ -477,7 +479,7 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         cntrSize = 6
-        for width in [2]: #[2**i for i in range (10, 19)]:
+        for width in [2**i for i in range (10, 19)]:
             # for mode  in ['PerfectCounter']:
             #     width = int(width/4)
             # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
@@ -488,7 +490,7 @@ if __name__ == '__main__':
                     cntrSize    = cntrSize, 
                     width       = width,
                     dwnSmpl     = True,
-                    traceFileName = 'Rand',
+                    traceFileName = 'Caida2',
                 )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

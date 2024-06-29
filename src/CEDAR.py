@@ -32,8 +32,8 @@ class CntrMaster (Cntr.CntrMaster):
     # Generates a string that details the counter's settings (param vals).
     genSettingsStr = lambda self : 'Cedar_n{}_d{:.6f}'.format(self.cntrSize, self.delta)
     
-    # This is the CEDAR formula to calculate the diff given the delta and the sum of the previous diffs
-    calc_diff = lambda self, sum_of_prev_diffs: (1 + 2 * self.delta ** 2 * sum_of_prev_diffs) / (1 - self.delta ** 2)
+    # Calculate the diff of an estimator from the previous estimator, given the sum of the previous diffs
+    calcDiff = lambda self, sum_of_prev_diffs: (1 + 2 * self.delta ** 2 * sum_of_prev_diffs) / (1 - self.delta ** 2)
 
     # print the details of the counter in a convenient way
     printCntrLine = lambda self, cntrSize, delta, numCntrs, mantVal, cntrVal: print('cntrSize={}, delta={}' .format(cntrSize, delta))
@@ -46,9 +46,6 @@ class CntrMaster (Cntr.CntrMaster):
     
     # Given the cntr's vector, returns the it represents value
     cntr2num = lambda self, cntr : self.cntrInt2num (int (cntr, base=2))
-
-    # Calculate the diff between 2 sequencing estimators.
-    calcDiff = lambda self, estimator : (1 + 2*self.delta^2 * estimator) / (1 - self.delta^2)
 
     def __init__(self, 
                  cntrSize       = 8, # num of bits in each counter.
@@ -69,6 +66,8 @@ class CntrMaster (Cntr.CntrMaster):
                 if (cntrMaxVal==None):
                     print ('error: the input arguments should include either delta or cntrMaxVal')
                     exit ()
+                
+                # Delta is not given, but cntrMaxVal is given --> calculate the optimal delta for this cntrSize and cntrMaxVal
                 self.cntrMaxVal = cntrMaxVal
                 if (settings.VERBOSE_DETAILS in self.verbose):
                     self.detailFile = open ('../log/CEDAR_details.log', 'w')
@@ -80,7 +79,7 @@ class CntrMaster (Cntr.CntrMaster):
                 
         else:
             self.delta         = delta
-            self.calcDiffsNSharedEstimatorsByDelta ()
+            [self.diffs, self.estimators] = self.calcDiffsNSharedEstimators ()
         
     
     def findPreComputedDatum (self):
@@ -109,17 +108,20 @@ class CntrMaster (Cntr.CntrMaster):
             settings.error ('in CEDAR.rst() : sorry, cntrSize>32 is not supported yet.')
 
         
-    def calcDiffsNSharedEstimators (self):
+    def calcDiffsNSharedEstimators (
+            self,
+            delta = None # CEDAR's delta parameter, defining the accuracy. When None, use self.delta
+            ):
         """
         Calculate the values of the shared estimators and the diffs between them based on the delta accuracy parameter, as detailed in the paper CEDAR.
         """
         self.estimators = np.zeros (self.numEstimators)
         self.diffs      = np.zeros (self.numEstimators-1) 
         for i in range (1, self.numEstimators):
-            self.diffs[i-1] = self.calc_diff(self.estimators[i-1])
+            self.diffs[i-1] = self.calcDiff(self.estimators[i-1])
             self.estimators[i] = self.estimators[i-1] + self.diffs[i-1] 
         self.cntrMaxVal = self.estimators[-1]
-
+    
     
     def rstCntr (self, cntrIdx=0):
         """
@@ -193,18 +195,6 @@ class CntrMaster (Cntr.CntrMaster):
         settings.checkCntrIdx(cntrIdx=cntrIdx, numCntrs=self.numCntrs, cntrType='CEDAR')
         return {'cntrVec': np.binary_repr(self.cntrs[cntrIdx], self.cntrSize), 'val': self.estimators[self.cntrs[cntrIdx]]}
 
-    def calcDiffsNSharedEstimatorsByDelta (self):
-        """
-        Calculate the values of the shared estimators and the diffs between them based on the delta accuracy parameter, as detailed in the paper CEDAR.
-        """
-        self.estimators = np.zeros (self.numEstimators)
-        self.diffs             = np.zeros (self.numEstimators-1) 
-        for i in range (1, self.numEstimators):
-            self.diffs[i-1] = self.calc_diff(self.estimators[i-1])
-            self.estimators[i] = self.estimators[i-1] + self.diffs[i-1] 
-        self.cntrMaxVal = self.estimators[-1]
-
-    
     def findMinDeltaByMaxVal (
             self,
             targetMaxVal,
@@ -226,19 +216,19 @@ class CntrMaster (Cntr.CntrMaster):
 
         # check first the extreme cases
         self.delta = deltaHi
-        self.calcDiffsNSharedEstimatorsByDelta ()
+        [self.diffs, self.estimators] = self.calcDiffsNSharedEstimators ()
         if (self.cntrMaxVal < targetMaxVal):
             print ('cannot reach maxVal={} even with highest delta, deltaHi={}. Skipping binary search' .format (targetMaxVal, deltaHi))
             return
 
         while (True):
             if (deltaHi - deltaLo < resolution): # converged. Still, need to check whether this delta is high enough.
-                self.calcDiffsNSharedEstimatorsByDelta ()
+                [self.diffs, self.estimators] = self.calcDiffsNSharedEstimators ()
                 if (self.cntrMaxVal >= targetMaxVal): # can reach maxVal with this delta --> Good
                     return
                 # now we know that cannot reach targetMaxVal with the current delta
                 self.delta += resolution
-                self.calcDiffsNSharedEstimatorsByDelta ()
+                [self.diffs, self.estimators] = self.calcDiffsNSharedEstimators ()
                 if (self.cntrMaxVal < targetMaxVal): 
                     print ('problem at binary search')
                     exit ()
@@ -247,7 +237,7 @@ class CntrMaster (Cntr.CntrMaster):
             self.delta = (deltaLo + deltaHi)/2
             if (settings.VERBOSE_DETAILS in self.verbose):
                 printf (self.detailFile, 'delta={}\n' .format (self.delta))
-            self.calcDiffsNSharedEstimatorsByDelta ()
+            [self.diffs, self.estimators] = self.calcDiffsNSharedEstimators ()
             if (self.cntrMaxVal==targetMaxVal): # found exact match 
                 break
             if (self.cntrMaxVal < targetMaxVal): # can't reach maxVal with this delta --> need larger delta value
@@ -255,6 +245,27 @@ class CntrMaster (Cntr.CntrMaster):
             else: # maxVal > targetMaxVal --> reached the maximum value - try to decrease delta, to find a tighter value.
                 deltaHi = self.delta
         return self.delta             
+
+    def dwnSmpl (self):
+        """
+        Allow down-sampling:
+        - Half the values of all the counters.
+        - Increase the bias value added to the exponent, to return the counters to roughly their original values.
+        """
+        prevDelta, prevDiffs, prevEstimators = self.delta, self.diffs.copy(), self.estimators.copy()
+        prevCntrMaxVal   = self.cntrMaxVal 
+        self.cntrMaxVal *= 2
+        
+                
+        [self.diffs, self.stimators] = self.calcDiffsNSharedEstimators ()
+                
+    def setDwnSmpl (
+            self, 
+            dwnSmpl   : bool = False, # When True, use down-sampling 
+        ):
+        """
+        """
+        self.dwnSmpl = dwnSmpl
 
     def printCntrs (self, outputFile=None) -> None:
         """
