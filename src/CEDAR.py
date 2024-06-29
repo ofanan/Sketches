@@ -79,7 +79,7 @@ class CntrMaster (Cntr.CntrMaster):
                 
         else:
             self.delta         = delta
-            [self.diffs, self.estimators] = self.calcDiffsNSharedEstimators ()
+            self.calcDiffsNSharedEstimators ()
         
     
     def findPreComputedDatum (self):
@@ -173,6 +173,8 @@ class CntrMaster (Cntr.CntrMaster):
         """
         """
         if (self.cntrs[cntrIdx] == self.numEstimators-1): # reached the largest estimator --> cannot further inc
+            if self.dwnSmpl:
+                self.dwnSmpl ()
             return self.estimators[self.cntrs[cntrIdx]]
         if random.random() < 1/self.diffs[self.cntrs[cntrIdx]]:
             self.cntrs[cntrIdx] += 1
@@ -216,19 +218,19 @@ class CntrMaster (Cntr.CntrMaster):
 
         # check first the extreme cases
         self.delta = deltaHi
-        [self.diffs, self.estimators] = self.calcDiffsNSharedEstimators ()
+        self.calcDiffsNSharedEstimators ()
         if (self.cntrMaxVal < targetMaxVal):
             print ('cannot reach maxVal={} even with highest delta, deltaHi={}. Skipping binary search' .format (targetMaxVal, deltaHi))
             return
 
         while (True):
             if (deltaHi - deltaLo < resolution): # converged. Still, need to check whether this delta is high enough.
-                [self.diffs, self.estimators] = self.calcDiffsNSharedEstimators ()
+                self.calcDiffsNSharedEstimators ()
                 if (self.cntrMaxVal >= targetMaxVal): # can reach maxVal with this delta --> Good
                     return
                 # now we know that cannot reach targetMaxVal with the current delta
                 self.delta += resolution
-                [self.diffs, self.estimators] = self.calcDiffsNSharedEstimators ()
+                self.calcDiffsNSharedEstimators ()
                 if (self.cntrMaxVal < targetMaxVal): 
                     print ('problem at binary search')
                     exit ()
@@ -237,7 +239,7 @@ class CntrMaster (Cntr.CntrMaster):
             self.delta = (deltaLo + deltaHi)/2
             if (settings.VERBOSE_DETAILS in self.verbose):
                 printf (self.detailFile, 'delta={}\n' .format (self.delta))
-            [self.diffs, self.estimators] = self.calcDiffsNSharedEstimators ()
+            self.calcDiffsNSharedEstimators ()
             if (self.cntrMaxVal==targetMaxVal): # found exact match 
                 break
             if (self.cntrMaxVal < targetMaxVal): # can't reach maxVal with this delta --> need larger delta value
@@ -249,16 +251,37 @@ class CntrMaster (Cntr.CntrMaster):
     def dwnSmpl (self):
         """
         Allow down-sampling:
-        - Half the values of all the counters.
-        - Increase the bias value added to the exponent, to return the counters to roughly their original values.
+        - Calculate a new "delta" parameter that allows reaching a higher cntrMaxVal.
+        - Calculate new cntrs' value to keep roughly the estimation as before the upscale.  
         """
-        prevDelta, prevDiffs, prevEstimators = self.delta, self.diffs.copy(), self.estimators.copy()
+        prevEstimators = self.estimators.copy()
+        # prevDelta, prevDiffs, prevEstimators = self.delta, self.diffs.copy(), self.estimators.copy()
         prevCntrMaxVal   = self.cntrMaxVal 
         self.cntrMaxVal *= 2
         
+        self.findMinDeltaByMaxVal (targetMaxVal = self.cntrMaxVal)                
                 
-        [self.diffs, self.stimators] = self.calcDiffsNSharedEstimators ()
-                
+        if VERBOSE_DEBUG in self.verbose:
+            self.cntrs = [i for i in range(self.numCntrs)]
+                        
+        for cntrIdx in range(self.numCntrs):
+            orgVal = self.prevEstimators[self.cntrs[cntrIdx]]
+            newEstIdx = 0
+            while self.estimators[newEstIdx] < orgVal:
+                newEstIdx += 1
+            # Now we know that self.estimators[newEstIdx] >= orgVal
+            if self.estimators[newEstIdx]==orgVal:
+                self.numCntrs[cntrIdx] = newEstIdx
+            elif random.random() < (orgVal-self.estimators[newEstIdx-1])/(self.estimators[newEstIdx]-self.estimators[newEstIdx-1]):
+                self.numCntrs[cntrIdx] = newEstIdx
+            else:
+                self.numCntrs[cntrIdx] = newEstIdx-1
+            if VERBOSE_DEBUG in self.verbose:
+                floorVal = self.estimators[newEstIdx-1]
+                ceilVal  = self.estimators[newEstIdx]
+                printf (self.logFile, 'orgVal/2={:.1f}, floorVal={:.1f}, ceilVal={:.1f}, val={:.1f}' 
+                       .format (orgVal, floorVal, ceilVal, self.estimators[cntrIdx]))
+        
     def setDwnSmpl (
             self, 
             dwnSmpl   : bool = False, # When True, use down-sampling 
@@ -308,3 +331,11 @@ class CntrMaster (Cntr.CntrMaster):
 
 # \frac{\left(\left(1+2\cdot \:\:x^2\right)^L-1\right)}{2x^2}\left(1+x^2\right)
 
+
+myCntrMaster = CntrMaster (
+    cntrSize    = 6, 
+    verbose     = [VERBOSE_DEBUG]
+) 
+logFile = open (f'../res/log_files/{myCntrMaster.genSettingsStr()}.log', 'w')
+myCntrMaster.setLogFile (logFile)
+myCntrMaster.dwnSmpl()
