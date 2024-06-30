@@ -39,7 +39,7 @@ class CntrMaster (F2P_lr.CntrMaster):
                 val = super(CntrMaster, self).cntr2num (cntr=cntr)
                 upScaledVal = val/self.globalIncProb
                 printf (self.logFile, 'val={:.0f}, upScaledVal={:.0f}\n' .format(val, upScaledVal))
-            return super(CntrMaster, self).cntr2num (cntr=cntr)/self.globalIncProb #$$$
+            return super(CntrMaster, self).cntr2num (cntr=cntr)/self.globalIncProb 
         else:
             return super(CntrMaster, self).cntr2num (cntr=cntr)
 
@@ -286,7 +286,6 @@ class CntrMaster (F2P_lr.CntrMaster):
 
         # now we know that we have to inc. the cntr
         if mantVec == '1'*mantSize: # the mantissa overflowed
-            print (f'cntr={self.cntrs[cntrIdx]}')
             self.cntrs[cntrIdx] = self.cntrppOfAbsExpVal[abs(expVal)]
             if len(self.cntrs[cntrIdx])!=self.cntrSize:
                 error (f'1. cntrSize={len(self.cntrs[cntrIdx])}')
