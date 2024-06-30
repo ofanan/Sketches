@@ -38,8 +38,8 @@ class CntrMaster (F2P_lr.CntrMaster):
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
                 val = super(CntrMaster, self).cntr2num (cntr=cntr)
                 upScaledVal = val/self.globalIncProb
-                printf (self.logFile, f'val={val}, upScaledVal={upScaledVal}\n')
-            return super(CntrMaster, self).cntr2num (cntr=cntr)/self.globalIncProb
+                printf (self.logFile, 'val={:.0f}, upScaledVal={:.0f}\n' .format(val, upScaledVal))
+            return super(CntrMaster, self).cntr2num (cntr=cntr)/self.globalIncProb #$$$
         else:
             return super(CntrMaster, self).cntr2num (cntr=cntr)
 
@@ -242,54 +242,58 @@ class CntrMaster (F2P_lr.CntrMaster):
         cntrIdx  = 0, # idx of the concrete counter to increment in the array
     ): 
         """
-        Increment the counter to the closest higher value.
-        If the cntr reached its max val, or the randomization decides not to inc, merely return the cur cntr.
-        Return the counter's value after the increment        
+        Increment the counter to the closest higher value, when down-sampling is enabled.
+        If the cntr reached its max val, up-scale and perform down-sampling.  
+        If the randomization decides not to inc, merely return the cur cntr.
+        Return the counter's value after the increment.        
         """
 
-        cntr = self.cntrs[cntrIdx]
-        if self.allowDwnSmpl:
-            if self.globalIncProb<1 and random.random()<self.globalIncProb: # consider first the case where we do not need to increment the counter - only sample its value 
-                return self.cntr2num (cntr)
+        if self.globalIncProb<1 and random.random()<self.globalIncProb: # consider first the case where we do not need to increment the counter - only sample its value 
+            return self.cntr2num (self.cntrs[cntrIdx])
 
-            # now we know that we should consider incrementing the counter
-            if cntr==self.cntrMaxVec: # Asked to increment a saturated counter
-                if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                    printf (self.logFile, f'\nb4 upScaling:\n')
-                    self.printAllCntrs (self.logFile)
-                self.upScale ()
-                self.globalIncProb /= 2
-                if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                    printf (self.logFile, f'\nafter upScaling:\n')
-                    self.printAllCntrs (self.logFile)
+        # now we know that we should consider incrementing the counter
+        if self.cntrs[cntrIdx]==self.cntrMaxVec: # Asked to increment a saturated counter
+            if VERBOSE_LOG_DWN_SMPL in self.verbose:
+                printf (self.logFile, f'\nb4 upScaling:\n')
+                self.printAllCntrs (self.logFile)
+            self.upScale ()
+            self.globalIncProb /= 2
+            if VERBOSE_LOG_DWN_SMPL in self.verbose:
+                printf (self.logFile, f'\nafter upScaling:\n')
+                self.printAllCntrs (self.logFile)
+
+        if self.cntrs[cntrIdx]==self.cntrMaxVec: # Asked to increment a saturated counter
+            error (f'cntr={self.cntrs[cntrIdx]} after upScaling')
             
-        # now we decided to indeed consider incrementing the counter, as usual 
-        cntr       = self.cntrs[cntrIdx]
-        if cntr==self.cntrMaxVec: # Asked to increment a saturated counter
-            error ('In F2P_li.incCntrBy1GetVal(). Asked to increment a saturated cntr after up-scaling')
-
-        hyperVec   = cntr [0:self.hyperSize]
-        expSize    = int(hyperVec, base=2)
-        expVec     = cntr[self.hyperSize:self.hyperSize+expSize]
-        expVal     = int (self.expVec2expVal(expVec, expSize))
-        mantSize   = self.cntrSize - self.hyperSize - expSize 
-        mantVec    = cntr[-mantSize:]
-        mantIntVal = int (mantVec, base=2)
-        mantVal    = float (mantIntVal) / 2**(self.cntrSize - self.hyperSize - expSize)  
+        # Consider incrementing the counter, as usual
+        cntr = self.cntrs[cntrIdx]
+        hyperVec    = cntr [0:self.hyperSize]
+        expSize     = int(hyperVec, base=2)
+        expVec      = cntr[self.hyperSize:self.hyperSize+expSize]
+        expVal      = int (self.expVec2expVal(expVec, expSize))
+        mantSize    = self.cntrSize - self.hyperSize - expSize 
+        mantVec     = cntr[-mantSize:]
+        mantIntVal  = int (mantVec, base=2)
+        mantVal     = float (mantIntVal) / 2**(self.cntrSize - self.hyperSize - expSize)  
 
         if expVec == self.expMinVec:
             cntrCurVal = mantVal * (2**self.powerMin)
         else:
             cntrCurVal = (1 + mantVal) * (2**(expVal+self.bias))
         
-        if (self.cntrs[cntrIdx]==self.cntrMaxVec or random.random() > self.probOfInc1[abs(expVal)]): 
+        if (random.random() > self.probOfInc1[abs(expVal)]): 
             return int(cntrCurVal)    
 
         # now we know that we have to inc. the cntr
         if mantVec == '1'*mantSize: # the mantissa overflowed
+            print (f'cntr={self.cntrs[cntrIdx]}')
             self.cntrs[cntrIdx] = self.cntrppOfAbsExpVal[abs(expVal)]
+            if len(self.cntrs[cntrIdx])!=self.cntrSize:
+                error (f'1. cntrSize={len(self.cntrs[cntrIdx])}')
         else:
             self.cntrs[cntrIdx] = hyperVec + expVec + np.binary_repr(num=mantIntVal+1, width=mantSize) 
+            if len(self.cntrs[cntrIdx])!=self.cntrSize:
+                error (f'2. cntrSize={len(self.cntrs[cntrIdx])}')
         return self.cntr2num(self.cntrs[cntrIdx])
 #     cntrSize    = 10, 
 #     hyperSize   = 2,
