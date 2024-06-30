@@ -27,7 +27,21 @@ class CntrMaster (F2P_lr.CntrMaster):
         ):
         """
         """
-        self.dwnSmpl = dwnSmpl
+        self.allowDwnSmpl  = dwnSmpl
+        self.globalIncProb = 1.0 # Probability to consider an increment for any counter. After up-scaling, this probability decreases.
+
+    def cntr2num (self, cntr):
+        """
+        Given a counter, as a binary vector (e.g., "11110"), return the number it represents.
+        """
+        if self.allowDwnSmpl:
+            if VERBOSE_LOG_DWN_SMPL in self.verbose:
+                val = super(CntrMaster, self).cntr2num (cntr=cntr)
+                upScaledVal = val/self.globalIncProb
+                printf (self.logFile, f'val={val}, upScaledVal={upScaledVal}\n')
+            return super(CntrMaster, self).cntr2num (cntr=cntr)/self.globalIncProb
+        else:
+            return super(CntrMaster, self).cntr2num (cntr=cntr)
 
     def upScale (self):
         """
@@ -163,6 +177,7 @@ class CntrMaster (F2P_lr.CntrMaster):
             #         .format (np.min(cntrVals), np.max(cntrVals), np.average(cntrVals)))
             for cntrVal in cntrVals:
                 printf (outputFile, '{:.0f} ' .format(cntrVal))
+            printf (outputFile, '\n')
 
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
         """
@@ -175,7 +190,8 @@ class CntrMaster (F2P_lr.CntrMaster):
         settings.error ('In F2P_li.incCntr(). Sorry, incCntr is currently supported only for factor=1 and mult=False')
     
 
-    def incCntrBy1GetVal (self, 
+    def incCntrBy1GetVal (
+        self, 
         cntrIdx  = 0, # idx of the concrete counter to increment in the array
         forceInc = False, # If forceInc==True, increment the counter. Else, inc the counter w.p. corresponding to the next counted value.
     ): 
@@ -184,21 +200,13 @@ class CntrMaster (F2P_lr.CntrMaster):
         If the cntr reached its max val, or the randomization decides not to inc, merely return the cur cntr.
         Return the counter's value after the increment        
         """
-        
+
+        if self.allowDwnSmpl:
+            self.incCntrBy1GetValWDwnSmpl (cntrIdx)
+
         cntr       = self.cntrs[cntrIdx]
         if cntr==self.cntrMaxVec: # Asked to increment a saturated counter
-            if self.dwnSmpl:
-                if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                    printf (self.logFile, f'\nb4 upScaling:\n')
-                    self.printAllCntrs (self.logFile)
-                self.upScale ()
-                self.bias += 1 
-                if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                    printf (self.logFile, f'\nafter upScaling:\n')
-                    self.printAllCntrs (self.logFile)
-                return self.cntr2num (cntr)
-            else:
-                return self.cntrMaxVal
+            return self.cntrMaxVal
         hyperVec   = cntr [0:self.hyperSize]
         expSize    = int(hyperVec, base=2)
         expVec     = cntr[self.hyperSize:self.hyperSize+expSize]
@@ -229,7 +237,60 @@ class CntrMaster (F2P_lr.CntrMaster):
             print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={int(cntrppVal)}')
         return int(cntrppVal) 
   
-# myF2P_li_cntr = CntrMaster (
+    def incCntrBy1GetValWDwnSmpl (
+        self, 
+        cntrIdx  = 0, # idx of the concrete counter to increment in the array
+    ): 
+        """
+        Increment the counter to the closest higher value.
+        If the cntr reached its max val, or the randomization decides not to inc, merely return the cur cntr.
+        Return the counter's value after the increment        
+        """
+
+        cntr = self.cntrs[cntrIdx]
+        if self.allowDwnSmpl:
+            if self.globalIncProb<1 and random.random()<self.globalIncProb: # consider first the case where we do not need to increment the counter - only sample its value 
+                return self.cntr2num (cntr)
+
+            # now we know that we should consider incrementing the counter
+            if cntr==self.cntrMaxVec: # Asked to increment a saturated counter
+                if VERBOSE_LOG_DWN_SMPL in self.verbose:
+                    printf (self.logFile, f'\nb4 upScaling:\n')
+                    self.printAllCntrs (self.logFile)
+                self.upScale ()
+                self.globalIncProb /= 2
+                if VERBOSE_LOG_DWN_SMPL in self.verbose:
+                    printf (self.logFile, f'\nafter upScaling:\n')
+                    self.printAllCntrs (self.logFile)
+            
+        # now we decided to indeed consider incrementing the counter, as usual 
+        cntr       = self.cntrs[cntrIdx]
+        if cntr==self.cntrMaxVec: # Asked to increment a saturated counter
+            error ('In F2P_li.incCntrBy1GetVal(). Asked to increment a saturated cntr after up-scaling')
+
+        hyperVec   = cntr [0:self.hyperSize]
+        expSize    = int(hyperVec, base=2)
+        expVec     = cntr[self.hyperSize:self.hyperSize+expSize]
+        expVal     = int (self.expVec2expVal(expVec, expSize))
+        mantSize   = self.cntrSize - self.hyperSize - expSize 
+        mantVec    = cntr[-mantSize:]
+        mantIntVal = int (mantVec, base=2)
+        mantVal    = float (mantIntVal) / 2**(self.cntrSize - self.hyperSize - expSize)  
+
+        if expVec == self.expMinVec:
+            cntrCurVal = mantVal * (2**self.powerMin)
+        else:
+            cntrCurVal = (1 + mantVal) * (2**(expVal+self.bias))
+        
+        if (self.cntrs[cntrIdx]==self.cntrMaxVec or random.random() > self.probOfInc1[abs(expVal)]): 
+            return int(cntrCurVal)    
+
+        # now we know that we have to inc. the cntr
+        if mantVec == '1'*mantSize: # the mantissa overflowed
+            self.cntrs[cntrIdx] = self.cntrppOfAbsExpVal[abs(expVal)]
+        else:
+            self.cntrs[cntrIdx] = hyperVec + expVec + np.binary_repr(num=mantIntVal+1, width=mantSize) 
+        return self.cntr2num(self.cntrs[cntrIdx])
 #     cntrSize    = 10, 
 #     hyperSize   = 2,
 #     verbose     = [VERBOSE_DEBUG]

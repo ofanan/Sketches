@@ -16,9 +16,9 @@ class CntrMaster (object):
     getAllCombinations = lambda self, cntrSize : range (2**cntrSize)
     
     def __init__ (self, 
-        cntrSize=4,   # num of bits in each counter.
-        numCntrs=1,   # number of counters in the array. 
-        verbose=[]    # one of the verbose macros, detailed in settings.py
+        cntrSize    = 4,   # num of bits in each counter.
+        numCntrs    = 1,   # number of counters in the array. 
+        verbose     = []    # one of the verbose macros, detailed in settings.py
     ):
         """
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
@@ -26,9 +26,10 @@ class CntrMaster (object):
         
         if (cntrSize<3):
             error ('In Cntr.__init(). cntrSize requested is {}. However, cntrSize should be at least 3.' .format (cntrSize))
-        self.cntrSize   = int(cntrSize)
-        self.numCntrs   = int(numCntrs)
-        self.verbose    = verbose
+        self.cntrSize       = int(cntrSize)
+        self.numCntrs       = int(numCntrs)
+        self.verbose        = verbose
+        self.allowDwnSmpl   = False # Default; down-sampling is allowed only for some concrete child classes, that set this parameter. 
         
     def printAllCntrs (
             self, 
@@ -58,6 +59,7 @@ class CntrMaster (object):
             #         .format (np.min(cntrVals), np.max(cntrVals), np.average(cntrVals)))
             for cntrVal in cntrVals:
                 printf (outputFile, '{:.1f} ' .format(cntrVal))
+            printf (outputFile, '\n')
 
 
     def printCntrsStat (

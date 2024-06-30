@@ -175,7 +175,7 @@ class CntrMaster (Cntr.CntrMaster):
         """
         """
         if (self.cntrs[cntrIdx] == self.numEstimators-1): # reached the largest estimator --> cannot further inc
-            if self.dwnSmpl:
+            if self.allowDwnSmpl:
                 if VERBOSE_LOG_DWN_SMPL in self.verbose:
                     printf (self.logFile, f'\nb4 upScaling:\n')
                     self.printAllCntrs (self.logFile)
@@ -311,7 +311,7 @@ class CntrMaster (Cntr.CntrMaster):
         ):
         """
         """
-        self.dwnSmpl = dwnSmpl
+        self.allowDwnSmpl = dwnSmpl
 
     def printCntrs (self, outputFile=None) -> None:
         """
