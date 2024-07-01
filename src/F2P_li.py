@@ -20,29 +20,6 @@ class CntrMaster (F2P_lr.CntrMaster):
     # Given the vector of the exponent, calculate the value it represents 
     expVec2expVal  = lambda self, expVec, expSize : -(2**expSize - 1 + int (expVec, base=2)) if expSize>0 else 0    
 
-
-    def setDwnSmpl (
-            self, 
-            dwnSmpl   : bool = False, # When True, use down-sampling 
-        ):
-        """
-        """
-        self.allowDwnSmpl  = dwnSmpl
-        self.globalIncProb = 1.0 # Probability to consider an increment for any counter. After up-scaling, this probability decreases.
-
-    def cntr2num (self, cntr):
-        """
-        Given a counter, as a binary vector (e.g., "11110"), return the number it represents.
-        """
-        if self.allowDwnSmpl:
-            if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                val = super(CntrMaster, self).cntr2num (cntr=cntr)
-                upScaledVal = val/self.globalIncProb
-                printf (self.logFile, 'val={:.0f}, upScaledVal={:.0f}\n' .format(val, upScaledVal))
-            return super(CntrMaster, self).cntr2num (cntr=cntr)/self.globalIncProb 
-        else:
-            return super(CntrMaster, self).cntr2num (cntr=cntr)
-
     def upScale (self):
         """
         Allow down-sampling:
@@ -134,7 +111,6 @@ class CntrMaster (F2P_lr.CntrMaster):
             error (f'F2P_li Got entry>1 for self.probOfInc1. self.probOfInc1={self.probOfInc1}')
         
         self.cntrppOfAbsExpVal   = ['']*(self.Vmax) # self.cntrppOfAbsExpVal[e] will hold the next cntr when the (mantissa of the) counter with expVal=e is saturated.
-        self.LsbVecOfAbsExpVal   = ['']*(self.Vmax) # self.LsbVecOfAbsExpVal[e] will hold the LSB fields (hyperVec and expVec) of the vector when decreasing the vector's exponent whose current absolute value is e.
         for expSize in range(self.expMaxSize, 0, -1):
             hyperVec = np.binary_repr (expSize, self.hyperSize) 
             mantSize = self.cntrSize - self.hyperSize - expSize
@@ -142,12 +118,8 @@ class CntrMaster (F2P_lr.CntrMaster):
                 expVec = np.binary_repr(num=i, width=expSize)
                 expVal = self.expVec2expVal (expVec=expVec, expSize=expSize)
                 self.cntrppOfAbsExpVal[abs(expVal)] = hyperVec + np.binary_repr(num=i-1, width=expSize) + '0'*mantSize
-                self.LsbVecOfAbsExpVal[abs(expVal)-1] = hyperVec + expVec 
             expVal = self.expVec2expVal (expVec='0'*expSize, expSize=expSize)
             self.cntrppOfAbsExpVal[abs(expVal)] = np.binary_repr (expSize-1, self.hyperSize) + ('1'*(expSize-1) if expSize>1 else '') + '0'*(mantSize+1)
-            self.LsbVecOfAbsExpVal[abs(expVal)-1] = hyperVec + '0'*expSize
-        self.LsbVecOfAbsExpVal[self.Vmax-1] = '1'*(self.hyperSize + 2**self.hyperSize - 1) 
-        self.mantSizeOfAbsExpVal = [self.cntrSize - len(item) for item in self.LsbVecOfAbsExpVal] # self.mantSizeOfAbsExpVal[e] is the size of the mantissa field of the vector when decreasing the vector's exponent whose current absolute value is e.
         
     def printAllCntrs (
             self, 
@@ -172,9 +144,6 @@ class CntrMaster (F2P_lr.CntrMaster):
             cntrVals = np.empty (self.numCntrs)
             for idx in range(self.numCntrs):
                 cntrVals[idx] = self.queryCntr(cntrIdx=idx, getVal=True)
-            # printf (outputFile, 
-            #         '// minCntrVal={:.0f}, maxCntrVal={:.0f}, avgCntrVal={:.0f} \n// cntrsVals:\n'
-            #         .format (np.min(cntrVals), np.max(cntrVals), np.average(cntrVals)))
             for cntrVal in cntrVals:
                 printf (outputFile, '{:.0f} ' .format(cntrVal))
             printf (outputFile, '\n')
@@ -200,9 +169,6 @@ class CntrMaster (F2P_lr.CntrMaster):
         If the cntr reached its max val, or the randomization decides not to inc, merely return the cur cntr.
         Return the counter's value after the increment        
         """
-
-        if self.allowDwnSmpl:
-            self.incCntrBy1GetValWDwnSmpl (cntrIdx)
 
         cntr       = self.cntrs[cntrIdx]
         if cntr==self.cntrMaxVec: # Asked to increment a saturated counter
@@ -237,67 +203,3 @@ class CntrMaster (F2P_lr.CntrMaster):
             print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={int(cntrppVal)}')
         return int(cntrppVal) 
   
-    def incCntrBy1GetValWDwnSmpl (
-        self, 
-        cntrIdx  = 0, # idx of the concrete counter to increment in the array
-    ): 
-        """
-        Increment the counter to the closest higher value, when down-sampling is enabled.
-        If the cntr reached its max val, up-scale and perform down-sampling.  
-        If the randomization decides not to inc, merely return the cur cntr.
-        Return the counter's value after the increment.        
-        """
-
-        if self.globalIncProb<1 and random.random()<self.globalIncProb: # consider first the case where we do not need to increment the counter - only sample its value 
-            return self.cntr2num (self.cntrs[cntrIdx])
-
-        # now we know that we should consider incrementing the counter
-        if self.cntrs[cntrIdx]==self.cntrMaxVec: # Asked to increment a saturated counter
-            if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                printf (self.logFile, f'\nb4 upScaling:\n')
-                self.printAllCntrs (self.logFile)
-            self.upScale ()
-            self.globalIncProb /= 2
-            if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                printf (self.logFile, f'\nafter upScaling:\n')
-                self.printAllCntrs (self.logFile)
-
-        if self.cntrs[cntrIdx]==self.cntrMaxVec: # Asked to increment a saturated counter
-            error (f'cntr={self.cntrs[cntrIdx]} after upScaling')
-            
-        # Consider incrementing the counter, as usual
-        cntr = self.cntrs[cntrIdx]
-        hyperVec    = cntr [0:self.hyperSize]
-        expSize     = int(hyperVec, base=2)
-        expVec      = cntr[self.hyperSize:self.hyperSize+expSize]
-        expVal      = int (self.expVec2expVal(expVec, expSize))
-        mantSize    = self.cntrSize - self.hyperSize - expSize 
-        mantVec     = cntr[-mantSize:]
-        mantIntVal  = int (mantVec, base=2)
-        mantVal     = float (mantIntVal) / 2**(self.cntrSize - self.hyperSize - expSize)  
-
-        if expVec == self.expMinVec:
-            cntrCurVal = mantVal * (2**self.powerMin)
-        else:
-            cntrCurVal = (1 + mantVal) * (2**(expVal+self.bias))
-        
-        if (random.random() > self.probOfInc1[abs(expVal)]): 
-            return int(cntrCurVal)    
-
-        # now we know that we have to inc. the cntr
-        if mantVec == '1'*mantSize: # the mantissa overflowed
-            self.cntrs[cntrIdx] = self.cntrppOfAbsExpVal[abs(expVal)]
-            if len(self.cntrs[cntrIdx])!=self.cntrSize:
-                error (f'1. cntrSize={len(self.cntrs[cntrIdx])}')
-        else:
-            self.cntrs[cntrIdx] = hyperVec + expVec + np.binary_repr(num=mantIntVal+1, width=mantSize) 
-            if len(self.cntrs[cntrIdx])!=self.cntrSize:
-                error (f'2. cntrSize={len(self.cntrs[cntrIdx])}')
-        return self.cntr2num(self.cntrs[cntrIdx])
-#     cntrSize    = 10, 
-#     hyperSize   = 2,
-#     verbose     = [VERBOSE_DEBUG]
-# ) 
-# logFile = open (f'../res/log_files/{myF2P_li_cntr.genSettingsStr()}.log', 'w')
-# myF2P_li_cntr.setLogFile (logFile)
-# myF2P_li_cntr.upScale()

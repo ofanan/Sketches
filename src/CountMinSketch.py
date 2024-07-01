@@ -218,6 +218,8 @@ class CountMinSketch:
         - Update the corresponding counters.
         - Return the minimum of the corresponding counters.
         """
+        if self.incNum==12:
+            print ('12')
         flowValAfterInc = math.inf
         for row in range(self.depth):
             flowValAfterInc = min (
@@ -309,7 +311,8 @@ class CountMinSketch:
         relativePathToInputFile = getRelativePathToTraceFile (f'{self.traceFileName}.txt')
         settings.checkIfInputFileExists (relativePathToInputFile, exitError=True)
         for self.expNum in range (self.numOfExps):
-            self.seed = self.expNum+1 
+            self.seed = self.expNum+1
+            random.seed (self.seed) 
             self.genCntrMaster () # Generate a fresh, empty CntrMaster, for each experiment
             flowRealVal = [0] * self.numFlows
             self.incNum = 0
@@ -455,7 +458,7 @@ def runCMS (mode,
             numEpsilonStepsInXlBkt  = 5,
             verbose                 = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
-            maxNumIncs              = 2222,
+            maxNumIncs              = 999,
             maxValBy                = 'F2P_li_h1',
             cntrSize                = cntrSize, 
         )
