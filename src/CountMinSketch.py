@@ -461,7 +461,7 @@ def runCMS (mode,
             numEpsilonStepsInXlBkt  = 5,
             verbose                 = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
-            maxNumIncs              = 999,
+            maxNumIncs              = 2222,
             maxValBy                = 'F2P_li_h1',
             cntrSize                = cntrSize, 
         )
@@ -487,12 +487,12 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
-        cntrSize = 4
+        cntrSize = 8
         for width in [2]: #[2**i for i in range (10, 19)]:
             # for mode  in ['PerfectCounter']:
             #     width = int(width/4)
             # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
-            for mode in ['F2P_li_h1_ds']:    
+            for mode in ['F2P_li_h2_ds']:    
             # for mode in ['CEDAR']:    
                         # for mode in ['CEDAR', 'Morris']:     
                 runCMS (
