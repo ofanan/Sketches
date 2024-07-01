@@ -103,14 +103,12 @@ class CountMinSketch:
                 numCntrs        = self.numCntrs, 
                 verbose         = self.verbose)
         elif self.mode.startswith('F2P') or self.mode.startswith('F3P'):
-            print (f'mode={self.mode}') #$$$
             self.cntrMaster     = genCntrMasterFxp (
                 cntrSize        = self.cntrSize,
                 numCntrs        = self.numCntrs,
                 fxpSettingStr   = self.mode, 
                 verbose         = self.verbose
             )
-            error (f'hyperSize={self.cntrMaster.hyperSize}') #$$$
         elif self.mode=='Morris':
             self.cntrMaster = Morris.CntrMaster (
                 cntrSize        = self.cntrSize, 
@@ -180,8 +178,8 @@ class CountMinSketch:
         """      
         if settings.VERBOSE_DETAILED_RES in self.verbose or settings.VERBOSE_FULL_RES in self.verbose:
             self.verbose.append (VERBOSE_RES)
-        # if not (VERBOSE_PCL in self.verbose):
-        #     print ('Note: verbose does not include .pcl')  
+        if not (VERBOSE_PCL in self.verbose):
+            print ('Note: verbose does not include .pcl')  
         
         pwdStr = os.getcwd()
         if (pwdStr.find ('itamarc')>-1): # the string 'HPC' appears in the path only in HPC runs
@@ -206,7 +204,9 @@ class CountMinSketch:
         for row in range(self.depth):
             val = min (
                 val, 
-                self.cntrMaster.cntr2num(self.cntrMaster.cntrs[self.mat2aridx (row=row, col=self.hashOfFlow (flowId=flowId, row=row))])
+                self.cntrMaster.cntr2num (
+                    self.cntrMaster.cntrs[self.mat2aridx (row=row, col=self.hashOfFlow (flowId=flowId, row=row))]
+                )
             )
         return val
 
@@ -222,8 +222,6 @@ class CountMinSketch:
         - Update the corresponding counters.
         - Return the minimum of the corresponding counters.
         """
-        if self.incNum==12:
-            print ('12')
         flowValAfterInc = math.inf
         for row in range(self.depth):
             flowValAfterInc = min (
@@ -326,7 +324,7 @@ class CountMinSketch:
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr    
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
-                if VERBOSE_LOG in self.verbose: #$$$$
+                if VERBOSE_LOG in self.verbose: 
                     self.cntrMaster.printAllCntrs (self.logFile)
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId]))
                 if VERBOSE_DETAILED_LOG in self.verbose and self.incNum>10000: #$$$
@@ -452,8 +450,8 @@ def runCMS (mode,
             numEpsilonStepsInXlBkt  = 5,
             verbose                 = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
-            maxNumIncs              = 2222,
-            maxValBy                = 'F2P_li_h1',
+            maxNumIncs              = 555555,
+            maxValBy                = 'F2P_li_h2',
             cntrSize                = cntrSize, 
         )
         cms.sim ()
@@ -483,7 +481,7 @@ if __name__ == '__main__':
             #     width = int(width/4)
             # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
             for mode in ['F2P_li_h2_ds']:    
-            # for mode in ['CEDAR']:    
+            # for mode in ['CEDAR_ds']:    
                         # for mode in ['CEDAR', 'Morris']:     
                 runCMS (
                     mode        = mode, 
@@ -492,4 +490,4 @@ if __name__ == '__main__':
                     traceFileName = 'Caida2',
                 )
     except KeyboardInterrupt:
-        print('Keyboard interrupt.')
+        print ('Keyboard interrupt.')

@@ -127,13 +127,14 @@ class CntrMaster (F2P_li.CntrMaster):
         Return the counter's value after the increment.        
         """
 
-        if self.globalIncProb<1 and random.random()<self.globalIncProb: # consider first the case where we do not need to increment the counter - only sample its value 
+        if self.globalIncProb<1 and random.random()>self.globalIncProb: # consider first the case where we do not need to increment the counter - only sample its value 
             return self.cntr2num (self.cntrs[cntrIdx])
 
         # now we know that we should consider incrementing the counter
         if self.cntrs[cntrIdx]==self.cntrMaxVec: # Asked to increment a saturated counter
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                printf (self.logFile, f'\ncntr={self.cntrs[cntrIdx]}, cntrVal={self.cntr2num(self.cntrs[cntrIdx])}, cntrMaxVal={self.cntrMaxVal}, cntrValByDiv={self.cntrMaxVal/self.globalIncProb}. UpScaling.')
+                printf (self.logFile, '\ncntr={}, cntrVal={:.0f}, curCntrMaxVal={:.0f}. upScaling.\n' .format
+                        (self.cntrs[cntrIdx], self.cntr2num(self.cntrs[cntrIdx]), self.cntrMaxVal/self.globalIncProb))
                 # printf (self.logFile, f'\nb4 upScaling:\n')
                 # self.printAllCntrs (self.logFile)
             self.upScale ()

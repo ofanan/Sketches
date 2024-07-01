@@ -41,13 +41,12 @@ class CntrMaster (Cntr.CntrMaster):
     printCntrLine = lambda self, cntrSize, delta, numCntrs, mantVal, cntrVal: print('cntrSize={}, delta={}' .format(cntrSize, delta))
 
     # Given the cntr's integer value, returns the value it represents 
-    cntrInt2num = lambda self, i: self.estimators[i]
+    cntr2num = lambda self, i: self.estimators[i]
+    # # Given the cntr's vector, returns the it represents value #$$$
+    # cntr2num = lambda self, cntr : self.cntrInt2num (int (cntr, base=2)) #$$$
     
     # Given the cntr's index, returns estimation
     estimatedValOfCntrIdx = lambda self, idx : self.estimators[self.cntrs[idx]]
-    
-    # Given the cntr's vector, returns the it represents value
-    cntr2num = lambda self, cntr : self.cntrInt2num (int (cntr, base=2))
 
     def __init__(self, 
             cntrSize       = 8, # num of bits in each counter.

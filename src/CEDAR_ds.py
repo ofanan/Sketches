@@ -17,12 +17,15 @@ class CntrMaster (CEDAR.CntrMaster):
         """
         if (self.cntrs[cntrIdx] == self.numEstimators-1): # reached the largest estimator --> cannot further inc
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                printf (self.logFile, f'\nb4 upScaling:\n')
-                self.printAllCntrs (self.logFile)
+                # printf (self.logFile, f'cntrIdx={cntrIdx}, cntr={self.cntrs[cntrIdx]}') #$$
+                # printf (self.logFile, f'cntrVal={self.cntr2num(self.cntrs[cntrIdx])}\n') #$$
+                printf (self.logFile, '\ncntrVal={:.0f}, cntrMaxVal={:.0f}. upScaling.\n' .format(self.cntr2num(self.cntrs[cntrIdx]), self.cntrMaxVal))
+                # printf (self.logFile, f'\nb4 upScaling:\n')
+                # self.printAllCntrs (self.logFile)
             self.upScale ()
-            if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                printf (self.logFile, f'\nafter upScaling:\n')
-                self.printAllCntrs (self.logFile)
+            # if VERBOSE_LOG_DWN_SMPL in self.verbose:
+            #     printf (self.logFile, f'\nafter upScaling:\n')
+            #     self.printAllCntrs (self.logFile)
             return self.estimators[self.cntrs[cntrIdx]]
         if random.random() < 1/self.diffs[self.cntrs[cntrIdx]]:
             self.cntrs[cntrIdx] += 1
