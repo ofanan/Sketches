@@ -89,7 +89,7 @@ class CntrMaster (F2P_lr.CntrMaster):
         mantMinSize         = self.cntrSize - (self.hyperSize + 2**self.hyperSize-1)
         self.cntrZeroVec    = '1'*(self.cntrSize-mantMinSize) + '0'*mantMinSize  #np.binary_repr(0, self.cntrSize)  
         self.cntrMaxVec     = '0'*self.hyperSize + '1'*(self.cntrSize-self.hyperSize) #np.binary_repr((1<<self.cntrSize)-1, self.cntrSize)
-
+        
         self.probOfInc1 = np.zeros (self.Vmax)
         for expSize in range(0, self.expMaxSize+1):
             mantSize = self.cntrSize - self.hyperSize - expSize

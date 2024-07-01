@@ -592,6 +592,9 @@ def genCntrMasterFxp (
             return F2P_lr.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperSize=hyperSize, verbose=verbose)
         elif flavor=='li':
             if dwnSmpl:
+                print (f'nanas hyperSize={hyperSize}')
+                gamad = F2P_li_ds.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperSize=hyperSize, verbose=verbose) #$$$
+                error (f'gamad hyperSize={gamad.hyperSize}')
                 return F2P_li_ds.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperSize=hyperSize, verbose=verbose)
             else:
                 return F2P_li.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperSize=hyperSize, verbose=verbose)

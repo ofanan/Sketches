@@ -29,8 +29,10 @@ class CntrMaster (F2P_li.CntrMaster):
         self.globalIncProb = 1.0 # Probability to consider an increment for any counter. After up-scaling, this probability decreases.
         super(CntrMaster, self).__init__ (
             cntrSize    = cntrSize, 
-            numCntrs    = numCntrs, 
-            verbose     = verbose)
+            numCntrs    = numCntrs,
+            hyperSize   = hyperSize, 
+            verbose     = verbose
+        )
 
     def setFlavorParams (self):
         """
@@ -131,13 +133,14 @@ class CntrMaster (F2P_li.CntrMaster):
         # now we know that we should consider incrementing the counter
         if self.cntrs[cntrIdx]==self.cntrMaxVec: # Asked to increment a saturated counter
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                printf (self.logFile, f'\nb4 upScaling:\n')
-                self.printAllCntrs (self.logFile)
+                printf (self.logFile, f'\ncntr={self.cntrs[cntrIdx]}, cntrVal={self.cntr2num(self.cntrs[cntrIdx])}, cntrMaxVal={self.cntrMaxVal}, cntrValByDiv={self.cntrMaxVal/self.globalIncProb}. UpScaling.')
+                # printf (self.logFile, f'\nb4 upScaling:\n')
+                # self.printAllCntrs (self.logFile)
             self.upScale ()
             self.globalIncProb /= 2
-            if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                printf (self.logFile, f'\nafter upScaling:\n')
-                self.printAllCntrs (self.logFile)
+            # if VERBOSE_LOG_DWN_SMPL in self.verbose:
+            #     printf (self.logFile, f'\nafter upScaling:\n')
+            #     self.printAllCntrs (self.logFile)
 
         if self.cntrs[cntrIdx]==self.cntrMaxVec: # Asked to increment a saturated counter
             error (f'cntr={self.cntrs[cntrIdx]} after upScaling')
@@ -172,10 +175,3 @@ class CntrMaster (F2P_li.CntrMaster):
             if len(self.cntrs[cntrIdx])!=self.cntrSize:
                 error (f'2. cntrSize={len(self.cntrs[cntrIdx])}')
         return self.cntr2num(self.cntrs[cntrIdx])
-#     cntrSize    = 10, 
-#     hyperSize   = 2,
-#     verbose     = [VERBOSE_DEBUG]
-# ) 
-# logFile = open (f'../res/log_files/{myF2P_li_cntr.genSettingsStr()}.log', 'w')
-# myF2P_li_cntr.setLogFile (logFile)
-# myF2P_li_cntr.upScale()

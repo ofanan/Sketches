@@ -38,7 +38,6 @@ class CountMinSketch:
             maxNumIncs      = INF_INT, # maximum # of increments (pkts in the trace), after which the simulation will be stopped. 
             numOfExps       = 1,  # number of repeated experiments. Relevant only for randomly-generated traces.
             traceFileName   = 'Rand',
-            dwnSmpl         = False,
             numEpsilonStepsIceBkts  = 6, # number of "epsilon" steps in Ice Buckets.
             numEpsilonStepsInRegBkt = 5, # number of "epsilon" steps in regular buckets in NiceBuckets.
             numEpsilonStepsInXlBkt  = 6,  # number of "epsilon" steps in the XL buckets in NiceBuckets.
@@ -46,10 +45,11 @@ class CountMinSketch:
         
         """
         """
-        self.numCntrsPerBkt = int(numCntrsPerBkt)
-        self.traceFileName  = traceFileName
-        self.maxValBy       = maxValBy
-        self.dwnSmpl        = dwnSmpl 
+        self.mode, self.seed = mode, seed
+        self.numCntrsPerBkt  = int(numCntrsPerBkt)
+        self.traceFileName   = traceFileName
+        self.maxValBy        = maxValBy
+        self.dwnSmpl         = self.mode.endswith('_ds')
         if depth<1 or width<1 or cntrSize<1:
             error (f'CountMinSketch__init() was called with depth={depth}, width={width}, cntrSize={cntrSize}. All these parameters should be at least 1.')
         if depth<2 or width<2:
@@ -63,7 +63,6 @@ class CountMinSketch:
                 self.cntrMaxVal = settings.getTraceLen(self.traceFileName)
         else:
             self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
-        self.mode, self.seed = mode, seed
         random.seed (self.seed)
         self.numEpsilonStepsInRegBkt    = numEpsilonStepsInRegBkt
         self.numEpsilonStepsInXlBkt     = numEpsilonStepsInXlBkt
@@ -104,12 +103,14 @@ class CountMinSketch:
                 numCntrs        = self.numCntrs, 
                 verbose         = self.verbose)
         elif self.mode.startswith('F2P') or self.mode.startswith('F3P'):
+            print (f'mode={self.mode}') #$$$
             self.cntrMaster     = genCntrMasterFxp (
                 cntrSize        = self.cntrSize,
                 numCntrs        = self.numCntrs,
                 fxpSettingStr   = self.mode, 
                 verbose         = self.verbose
             )
+            error (f'hyperSize={self.cntrMaster.hyperSize}') #$$$
         elif self.mode=='Morris':
             self.cntrMaster = Morris.CntrMaster (
                 cntrSize        = self.cntrSize, 
@@ -227,7 +228,7 @@ class CountMinSketch:
         for row in range(self.depth):
             flowValAfterInc = min (
                 flowValAfterInc, 
-                self.cntrMaster.incCntrBy1GetVal(cntrIdx=self.mat2aridx (row=row, col=self.hashOfFlow (flowId=flowId, row=row))) # dwnSmpl=self.dwnSmpl)
+                self.cntrMaster.incCntrBy1GetVal(cntrIdx=self.mat2aridx (row=row, col=self.hashOfFlow (flowId=flowId, row=row))) 
             )
         return flowValAfterInc
 
@@ -292,14 +293,7 @@ class CountMinSketch:
         if VERBOSE_LOG_END_SIM in self.verbose:
             printf (self.logFile, '\nAt the end of sim:\n')
             self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr())
-            if self.mode.startswith('F2P'):
-                if (self.mode.split('F2P_')[1].startswith('li')  or self.mode.split('F2P_')[1].startswith('si')):
-                    self.cntrMaster.printAllCntrs  (self.logFile)
-            elif self.mode.startswith('F3P'): 
-                if (self.mode.split('F3P_')[1].startswith('li')  or self.mode.split('F3P_')[1].startswith('si')):
-                    self.cntrMaster.printAllCntrs  (self.logFile)
-            else:
-                self.cntrMaster.printAllCntrs  (self.logFile)
+            self.cntrMaster.printAllCntrs  (self.logFile)
     
     def runSimFromTrace (self):
         """
@@ -308,8 +302,6 @@ class CountMinSketch:
 
         if self.numFlows==None:
             error ('In CountMinSketch.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
-        self.genCntrMaster ()
-        self.cntrMaster.setLogFile(self.logFile)
 
         relativePathToInputFile = getRelativePathToTraceFile (f'{self.traceFileName}.txt')
         settings.checkIfInputFileExists (relativePathToInputFile, exitError=True)
@@ -317,6 +309,7 @@ class CountMinSketch:
             self.seed = self.expNum+1
             random.seed (self.seed) 
             self.genCntrMaster () # Generate a fresh, empty CntrMaster, for each experiment
+            self.cntrMaster.setLogFile(self.logFile)
             flowRealVal = [0] * self.numFlows
             self.incNum = 0
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
@@ -333,9 +326,9 @@ class CountMinSketch:
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr    
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
-                if VERBOSE_LOG in self.verbose:
+                if VERBOSE_LOG in self.verbose: #$$$$
                     self.cntrMaster.printAllCntrs (self.logFile)
-                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId])) 
+                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId]))
                 if VERBOSE_DETAILED_LOG in self.verbose and self.incNum>10000: #$$$
                     printf (self.logFile, 'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumAbsSqEr={:.1e}, sumRelSqEr={:.1e}\n' .format (self.incNum, flowRealVal[flowId], flowEstimatedVal, sqEr, sqEr/(flowRealVal[flowId])**2, self.sumSqAbsEr[self.expNum], self.sumSqRelEr[self.expNum]))
                     # printf (self.logFile, f'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumAbsSqEr={:.1e}\n' .format (self.incNum, flowRealVal[flowId], flowEstimatedVal, sqEr, sqEr/(flowRealVal[flowId])**2, self.sumSqAbsEr[self.expNum]))
@@ -443,7 +436,6 @@ def runCMS (mode,
     width           = 2**10,
     depth           = 4,
     traceFileName   = 'Rand', 
-    dwnSmpl         = False,
 ):
     """
     """   
@@ -454,7 +446,6 @@ def runCMS (mode,
             numFlows        = 10,
             numCntrsPerBkt  = 2,
             mode            = mode, 
-            dwnSmpl         = dwnSmpl,
             traceFileName   = traceFileName,
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
@@ -476,19 +467,18 @@ def runCMS (mode,
             numCntrsPerBkt  = 1, #16
             cntrSize        = cntrSize, 
             traceFileName   = traceFileName,
-            dwnSmpl         = dwnSmpl,
             numEpsilonStepsIceBkts  = 6, 
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
             numOfExps               = 10, 
-            verbose                 = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+            verbose                 = [VERBOSE_LOG_DWN_SMPL] #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
         )
         cms.sim ()
     
 if __name__ == '__main__':
     try:
         cntrSize = 8
-        for width in [2]: #[2**i for i in range (10, 19)]:
+        for width in [2**i for i in range (10, 19)]:
             # for mode  in ['PerfectCounter']:
             #     width = int(width/4)
             # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
@@ -499,8 +489,7 @@ if __name__ == '__main__':
                     mode        = mode, 
                     cntrSize    = cntrSize, 
                     width       = width,
-                    dwnSmpl     = True,
-                    traceFileName = 'Rand',
+                    traceFileName = 'Caida2',
                 )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
