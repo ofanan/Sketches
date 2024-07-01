@@ -369,7 +369,8 @@ def getFxpSettings (mode : str) -> dict:
     return {
         'nSystem'   : nSystem,
         'flavor'    : mode.split(f'{nSystem}_')[1].split('_')[0],
-        'hyperSize' : int(mode.split('_h')[1].split('_')[0])
+        'hyperSize' : int(mode.split('_h')[1].split('_')[0]),
+        'downSmpl'  : True if mode.endswith('_ds') else False
     }
     
 

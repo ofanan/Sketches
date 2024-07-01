@@ -5,6 +5,7 @@ import math, random, pickle, numpy as np
 import settings, Cntr
 from settings import error, warning, VERBOSE_RES
 from printf import printf
+# from builtins import False
 
 class CntrMaster (Cntr.CntrMaster):
     """

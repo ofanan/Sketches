@@ -25,12 +25,12 @@ class CntrMaster (F2P_li.CntrMaster):
         """
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
         If the parameters are invalid (e.g., infeasible cntrSize), return None. 
-        """        
+        """       
+        self.globalIncProb = 1.0 # Probability to consider an increment for any counter. After up-scaling, this probability decreases.
         super(CntrMaster, self).__init__ (
             cntrSize    = cntrSize, 
             numCntrs    = numCntrs, 
             verbose     = verbose)
-        self.globalIncProb = 1.0 # Probability to consider an increment for any counter. After up-scaling, this probability decreases.
 
     def setFlavorParams (self):
         """
@@ -54,10 +54,6 @@ class CntrMaster (F2P_li.CntrMaster):
         """
         Given a counter, as a binary vector (e.g., "11110"), return the number it represents.
         """
-        if VERBOSE_LOG_DWN_SMPL in self.verbose:
-            val = super(CntrMaster, self).cntr2num (cntr=cntr)
-            upScaledVal = val/self.globalIncProb
-            printf (self.logFile, 'val={:.0f}, upScaledVal={:.0f}\n' .format(val, upScaledVal))
         return super(CntrMaster, self).cntr2num (cntr=cntr)/self.globalIncProb 
 
     def upScale (self):

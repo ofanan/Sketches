@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
-import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
+import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_si, Morris, CEDAR, CEDAR_ds
 from settings import warning, error, INF_INT, calcPostSimStat, getSeadStatExpSize
 from settings import checkIfInputFileExists, getRelativePathToTraceFile
 from settings import VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, VERBOSE_PROGRESS, VERBOSE_LOG_DWN_SMPL
@@ -116,6 +116,12 @@ class CountMinSketch:
                 numCntrs        = self.numCntrs,
                 cntrMaxVal      = self.cntrMaxVal,
                 verbose         = self.verbose)
+        elif self.mode=='CEDAR_ds': 
+            self.cntrMaster = CEDAR_ds.CntrMaster (
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs, 
+                cntrMaxVal      = self.cntrMaxVal,
+                verbose         = self.verbose)
         elif self.mode=='CEDAR': 
             self.cntrMaster = CEDAR.CntrMaster (
                 cntrSize        = self.cntrSize, 
@@ -164,9 +170,6 @@ class CountMinSketch:
         else:
             error (f'In CountMinSketch.genCntrMaster(). Sorry, the mode {self.mode} that you requested is not supported')
         
-        if self.dwnSmpl:
-            self.cntrMaster.setDwnSmpl (self.dwnSmpl)
-
     
     def genOutputDirectories (self):
         """
@@ -489,7 +492,7 @@ if __name__ == '__main__':
             # for mode  in ['PerfectCounter']:
             #     width = int(width/4)
             # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
-            for mode in ['F2P_li_h1']:    
+            for mode in ['F2P_li_h1_ds']:    
             # for mode in ['CEDAR']:    
                         # for mode in ['CEDAR', 'Morris']:     
                 runCMS (

@@ -5,7 +5,7 @@ import os, math, pickle, time, random #sys
 from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
 import settings, Cntr, CEDAR, Morris, AEE, FP, SEAD_stat, SEAD_dyn   
-import F2P_sr, F2P_lr, F2P_li, F2P_si, F3P_sr, F3P_lr, F3P_li, F3P_si   
+import F2P_sr, F2P_lr, F2P_li, F2P_li_ds, F2P_si, F3P_sr, F3P_lr, F3P_li, F3P_si   
 from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS, VERBOSE_COUT_CONF, VERBOSE_COUT_CNTRLINE
 from settings import getFxpSettings
 from datetime import datetime
@@ -584,13 +584,17 @@ def genCntrMasterFxp (
         nSystem     = cntrSettings['nSystem']
         hyperSize   = cntrSettings['hyperSize']
         flavor      = cntrSettings['flavor']
+        dwnSmpl     = cntrSettings['downSmpl']
     if nSystem=='F2P':
         if flavor=='sr':
             return F2P_sr.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperSize=hyperSize, verbose=verbose)
         elif flavor=='lr':
             return F2P_lr.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperSize=hyperSize, verbose=verbose)
         elif flavor=='li':
-            return F2P_li.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperSize=hyperSize, verbose=verbose)
+            if dwnSmpl:
+                return F2P_li_ds.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperSize=hyperSize, verbose=verbose)
+            else:
+                return F2P_li.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperSize=hyperSize, verbose=verbose)
         elif flavor=='si':
             return F2P_si.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperSize=hyperSize, verbose=verbose)
         else:
