@@ -5,7 +5,7 @@ import numpy as np
 from datetime import datetime
 from collections import defaultdict
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
-from settings import warning, error, INF_INT, VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, calcPostSimStat
+from settings import warning, error, INF_INT, VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, calcPostSimStat
 from settings import getRelativePathToTraceFile, checkIfInputFileExists
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp 
@@ -174,6 +174,7 @@ class SpaceSaving (CountMinSketch):
             flowRealVal = [0] * self.numFlows
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
             self.genCntrMaster ()
+            self.setLogFile (self.logFile)
 
             for self.incNum in range(self.maxNumIncs):
                 flowId = random.randint (0, self.numFlows-1)
@@ -249,17 +250,18 @@ def runSS (mode,
     if traceFileName=='Rand':
         ss = SpaceSaving (
             numFlows        = 9,
-            cntrSize        = 8, 
+            cntrSize        = cntrSize, 
             cacheSize       = 3,
-            verbose         = [VERBOSE_LOG, VERBOSE_RES], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+            verbose         = [VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             traceFileName   = traceFileName,
             mode            = mode,
             numOfExps       = 1, 
-            maxNumIncs      = 20
+            maxNumIncs      = 2222
         )
         ss.sim ()
     else:
         ss = SpaceSaving (
+            cntrSize        = cntrSize,
             numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
             cacheSize       = cacheSize,
             verbose         = [VERBOSE_RES, VERBOSE_PCL], #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
@@ -275,6 +277,7 @@ if __name__ == '__main__':
             # for mode in ['F2P_li_h2', 'F3P_li_h3']:    
             for mode in ['CEDAR_ds']:    
                 runSS (
+                    cntrSize        = 4,
                     mode            = mode,
                     cacheSize       = cacheSize,
                     traceFileName   = 'Rand',
