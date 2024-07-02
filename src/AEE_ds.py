@@ -44,8 +44,39 @@ class CntrMaster (AEE.CntrMaster):
                 self.cntrs[i] //= 2  
         self.p /= 2
 
-aee_cntrMaster = CntrMaster (
-    cntrMaxVal = 30, # Denoted N in [AEE] 
-    cntrSize   = 4, # num of bits in each counter. 
-)
-# printAllVals(cntrSize=8, cntrMaxVal=1488888, verbose=[settings.VERBOSE_RES])
+def printAllVals (cntrSize=4, cntrMaxVal=100, verbose=[]):
+    """
+    Loop over all the binary combinations of the given counter size. 
+    For each combination, print to file the respective counter, and its value. 
+    The prints are sorted in an increasing order of values.
+    """
+    if cntrMaxVal < 2**cntrSize:
+        settings.error (f'cntrMaxVal={cntrMaxVal} while max accurately representable value for {cntrSize}-bit counter is {2**cntrSize-1}')
+    myCntrMaster = CntrMaster(            
+        cntrMaxVal    = cntrMaxVal, # Denoted N in [AEE] 
+        cntrSize      = cntrSize, # num of bits in each counter. 
+        numCntrs      = 1, # number of counters in the array.
+    )
+
+    if (settings.VERBOSE_RES in verbose):
+        outputFile    = open ('../res/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
+    
+    print ('running printAllVals')
+    listOfVals = []
+    for i in range (2**cntrSize):
+        listOfVals.append ({'cntrVec' : i, 'val' : myCntrMaster.cntr2num(i)})
+
+    if (settings.VERBOSE_RES in verbose):
+        for item in listOfVals:
+            printf (outputFile, '{}={:.2f}\n' .format (item['cntrVec'], item['val']))
+    
+    if (settings.VERBOSE_PCL in verbose):
+        with open('../res/pcl_files/{}.pcl' .format (myCntrMaster.genSettingsStr()), 'wb') as pclOutputFile:
+            pickle.dump(listOfVals, pclOutputFile)
+
+# aee_cntrMaster = CntrMaster (
+#     cntrMaxVal = 30, # Denoted N in [AEE] 
+#     cntrSize   = 4, # num of bits in each counter. 
+# )
+printAllVals(cntrSize=4, cntrMaxVal=10000, verbose=[settings.VERBOSE_RES])
+
