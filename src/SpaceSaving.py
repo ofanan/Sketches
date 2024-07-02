@@ -174,7 +174,7 @@ class SpaceSaving (CountMinSketch):
             flowRealVal = [0] * self.numFlows
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
             self.genCntrMaster ()
-            self.setLogFile (self.logFile)
+            self.cntrMaster.setLogFile (self.logFile)
 
             for self.incNum in range(self.maxNumIncs):
                 flowId = random.randint (0, self.numFlows-1)
@@ -256,7 +256,7 @@ def runSS (mode,
             traceFileName   = traceFileName,
             mode            = mode,
             numOfExps       = 1, 
-            maxNumIncs      = 2222
+            maxNumIncs      = 99999
         )
         ss.sim ()
     else:
@@ -277,7 +277,7 @@ if __name__ == '__main__':
             # for mode in ['F2P_li_h2', 'F3P_li_h3']:    
             for mode in ['CEDAR_ds']:    
                 runSS (
-                    cntrSize        = 4,
+                    cntrSize        = 6,
                     mode            = mode,
                     cacheSize       = cacheSize,
                     traceFileName   = 'Rand',
