@@ -5,7 +5,7 @@ import numpy as np
 from datetime import datetime
 from collections import defaultdict
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
-from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, calcPostSimStat
+from settings import warning, error, INF_INT, VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, calcPostSimStat
 from settings import getRelativePathToTraceFile, checkIfInputFileExists
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp 
@@ -27,11 +27,14 @@ class SpaceSaving (CountMinSketch):
         seed            = settings.SEED,
         traceFileName   = None,
         maxValBy        = None, # How to calculate the maximum value (for SEAD/CEDAR).   
+        numOfExps       = 1, 
+        maxNumIncs      = INF_INT, # maximum # of increments (pkts in the trace), after which the simulation will be stopped. 
     ):
         
         """
         """
         self.cntrSize, self.traceFileName = cntrSize, traceFileName
+        self.maxNumIncs, self.numOfExps, = maxNumIncs, numOfExps
         self.numCntrs, self.numFlows, self.mode, self.seed = cacheSize, numFlows, mode, seed
         self.verbose = verbose
         self.cntrsAr = defaultdict(int)
@@ -39,6 +42,8 @@ class SpaceSaving (CountMinSketch):
         self.openOutputFiles ()
         self.flowIds    = [None]*self.numCntrs
         self.flowSizes  = np.zeros(self.numCntrs)
+        self.dwnSmpl         = self.mode.endswith('_ds')
+        self.maxValBy        = maxValBy
         if self.maxValBy==None: # By default, the maximal counter's value is the trace length 
             if self.traceFileName=='Rand':
                 self.cntrMaxVal = self.maxNumIncs
@@ -91,7 +96,6 @@ class SpaceSaving (CountMinSketch):
            VERBOSE_DETAILED_LOG in self.verbose or\
            VERBOSE_LOG_DWN_SMPL in self.verbose:
             self.logFile = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
-            self.cntrMaster.setLogFile(self.logFile)
     
     def printSimMsg (self, str):
         """
@@ -253,17 +257,20 @@ def runSS (mode,
             verbose         = [VERBOSE_LOG, VERBOSE_RES], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             traceFileName   = traceFileName,
             mode            = mode,
+            numOfExps       = 1, 
+            maxNumIncs      = 20
         )
-        ss.sim (numOfExps=1, maxNumIncs=20)
+        ss.sim ()
     else:
         ss = SpaceSaving (
             numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
             cacheSize       = cacheSize,
             verbose         = [VERBOSE_RES, VERBOSE_PCL], #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
             mode            = mode,
-            traceFileName   = traceFileName
+            traceFileName   = traceFileName,
+            numOfExps       = 10, 
         )
-        ss.sim (numOfExps=10, maxNumIncs=1000000)
+        ss.sim ()
     
 if __name__ == '__main__':
     try:
