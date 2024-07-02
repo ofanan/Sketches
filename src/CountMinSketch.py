@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
-import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_si, Morris, CEDAR, CEDAR_ds
+import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_si, Morris, CEDAR, CEDAR_ds, AEE_ds
 from settings import warning, error, INF_INT, calcPostSimStat, getSeadStatExpSize
 from settings import checkIfInputFileExists, getRelativePathToTraceFile
 from settings import VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, VERBOSE_PROGRESS, VERBOSE_LOG_DWN_SMPL
@@ -165,6 +165,12 @@ class CountMinSketch:
                 numCntrs        = self.numCntrs, 
                 numCntrsPerBkt  = self.numCntrsPerBkt, 
                 mode            = 'MEC',
+                verbose         = self.verbose)
+        elif self.mode=='AEE_ds':
+            self.cntrMaster = AEE_ds.CntrMaster (
+                cntrSize        = self.cntrSize, 
+                numCntrs        = self.numCntrs,
+                cntrMaxVal      = self.cntrMaxVal,
                 verbose         = self.verbose)
         else:
             error (f'In CountMinSketch.genCntrMaster(). Sorry, the mode {self.mode} that you requested is not supported')
@@ -450,7 +456,7 @@ def runCMS (mode,
             numEpsilonStepsInXlBkt  = 5,
             verbose                 = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
-            maxNumIncs              = 555555,
+            maxNumIncs              = 100,
             maxValBy                = 'F2P_li_h2',
             cntrSize                = cntrSize, 
         )
@@ -475,19 +481,20 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
-        cntrSize = 8
-        for width in [2**i for i in range (10, 19)]:
+        cntrSize = 6
+        for width in [2]: #[2**i for i in range (10, 19)]:
             # for mode  in ['PerfectCounter']:
             #     width = int(width/4)
             # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
-            for mode in ['F2P_li_h2_ds']:    
+            # for mode in ['F2P_li_h2_ds']:    
             # for mode in ['CEDAR_ds']:    
+            for mode in ['AEE_ds']:    
                         # for mode in ['CEDAR', 'Morris']:     
                 runCMS (
                     mode        = mode, 
                     cntrSize    = cntrSize, 
                     width       = width,
-                    traceFileName = 'Caida2',
+                    traceFileName = 'Rand',
                 )
     except KeyboardInterrupt:
         print ('Keyboard interrupt.')

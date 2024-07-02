@@ -428,8 +428,7 @@ class SingleCntrSimulator (object):
         elif (self.mode=='Morris'):
             self.cntrRecord = {'mode' : self.mode, 'cntr' : Morris.CntrMaster(cntrSize=self.cntrSize, cntrMaxVal=self.cntrMaxVal)}
         elif (self.mode=='AEE'):
-            error ('In AEE')
-            self.cntrRecord = {'mode' : self.mode, 'cntr' : Morris.CntrMaster(cntrSize=self.cntrSize, cntrMaxVal=self.cntrMaxVal)}
+            self.cntrRecord = {'mode' : self.mode, 'cntr' : AEE.CntrMaster(cntrSize=self.cntrSize, cntrMaxVal=self.cntrMaxVal)}
         else:
             settings.error ('mode {} that you chose is not supported' .format (self.mode))
 
@@ -775,7 +774,7 @@ def main ():
     # getAllCntrsMaxValsFxP ()
     maxValBy = 'F2P_li_h2'
     modes = ['AEE'] #[maxValBy, 'CEDAR', 'Morris', 'SEAD_dyn']
-    for cntrSize in [6]:
+    for cntrSize in [16]:
         simController = SingleCntrSimulator (verbose = []) #VERBOSE_RES, VERBOSE_PCL])
         numSettings = getFxpSettings (maxValBy)
         cntrMaxVal = getCntrsMaxValsFxp (
@@ -783,8 +782,7 @@ def main ():
             flavor          = numSettings['flavor'], 
             hyperSizeRange  = [numSettings['hyperSize']], # list of hyper-sizes to consider  
             cntrSizeRange   = [cntrSize], # list of cntrSizes to consider
-            # dwnSmpl         = False,
-            verbose         = [],
+            verbose         = [VERBOSE_RES, VERBOSE_PCL],
         )
         for mode in modes:
             simController.runSingleCntrSingleMode \
@@ -792,7 +790,7 @@ def main ():
                 mode            = mode, 
                 cntrSize        = cntrSize, 
                 cntrMaxVal      = cntrMaxVal,
-                numOfExps       = 1, #100,
+                numOfExps       = 100,
                 erTypes         = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
             )
         
