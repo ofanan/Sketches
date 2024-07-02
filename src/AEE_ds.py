@@ -91,5 +91,5 @@ cntrMaster = CntrMaster (
 logFile = open ('../res/log_files/AEE_ds.log', 'w')
 cntrMaster.setLogFile (logFile)
 for i in range (100):
-    cntrMaster.incCntrBy1GetVal(i)
+    cntrMaster.incCntrBy1GetVal()
     
