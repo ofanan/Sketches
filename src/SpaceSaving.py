@@ -11,6 +11,7 @@ from   tictoc import tic, toc # my modules for measuring and print-out the simul
 from printf import printf, printarFp 
 from SingleCntrSimulator import getFxpCntrMaxVal, genCntrMasterFxp
 from CountMinSketch import CountMinSketch
+from _ast import Or
 
 class SpaceSaving (CountMinSketch):
 
@@ -78,10 +79,11 @@ class SpaceSaving (CountMinSketch):
             self.fullResFile = open (f'../res/ss_M{self.numCntrs}_{settings.getMachineStr()}_full.res', 'a+')
 
         self.logFile =  None # default
-        if VERBOSE_LOG in self.verbose or VERBOSE_DETAILED_LOG in self.verbose:
+        if VERBOSE_LOG in self.verbose or \
+           VERBOSE_DETAILED_LOG in self.verbose or\
+           VERBOSE_LOG_DWN_SMPL in self.verbose:
             self.logFile = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
             self.cntrMaster.setLogFile(self.logFile)
-
     
     def printSimMsg (self, str):
         """
@@ -113,7 +115,6 @@ class SpaceSaving (CountMinSketch):
 
         if self.numFlows==None:
             error ('In SpaceSaving.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
-        self.genCntrMaster ()
 
         relativePathToInputFile = settings.getRelativePathToTraceFile (f'{self.traceFileName}.txt')
         checkIfInputFileExists (relativePathToInputFile)
@@ -121,6 +122,7 @@ class SpaceSaving (CountMinSketch):
             self.seed = self.expNum+1 
             random.seed (self.seed)
             self.genCntrMaster () # Generate a fresh, empty CntrMaster, for each experiment
+            self.cntrMaster.setLogFile(self.logFile)
             flowRealVal = [0] * self.numFlows
             self.incNum = 0
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
@@ -258,13 +260,13 @@ def runSS (mode,
     
 if __name__ == '__main__':
     try:
-        for cacheSize in [2**i for i in range(10, 19)]:
+        for cacheSize in [2]: #[2**i for i in range(10, 19)]:
             # for mode in ['F2P_li_h2', 'F3P_li_h3']:    
-            for mode in ['CEDAR', 'Morris']:    
+            for mode in ['CEDAR_ds']:    
                 runSS (
                     mode            = mode,
-                    traceFileName   = 'Caida2',
                     cacheSize       = cacheSize,
+                    traceFileName   = 'Rand',
                 )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
