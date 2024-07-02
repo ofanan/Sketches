@@ -351,6 +351,7 @@ class CountMinSketch:
             self.genCntrMaster ()
 
             self.cntrMaster.setLogFile(self.logFile)
+            printf (self.logFile, f'// cntrMaxVal = {self.cntrMaxVal}\n')
                         
             for self.incNum in range(self.maxNumIncs):
                 flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
@@ -456,7 +457,7 @@ def runCMS (mode,
             numEpsilonStepsInXlBkt  = 5,
             verbose                 = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
-            maxNumIncs              = 100,
+            maxNumIncs              = 333333,
             maxValBy                = 'F2P_li_h2',
             cntrSize                = cntrSize, 
         )
@@ -481,8 +482,8 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
-        cntrSize = 6
-        for width in [2]: #[2**i for i in range (10, 19)]:
+        cntrSize = 8
+        for width in [2**i for i in range (10, 19)]:
             # for mode  in ['PerfectCounter']:
             #     width = int(width/4)
             # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
@@ -494,7 +495,7 @@ if __name__ == '__main__':
                     mode        = mode, 
                     cntrSize    = cntrSize, 
                     width       = width,
-                    traceFileName = 'Rand',
+                    traceFileName = 'Caida2',
                 )
     except KeyboardInterrupt:
         print ('Keyboard interrupt.')

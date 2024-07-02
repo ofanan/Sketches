@@ -83,13 +83,13 @@ def printAllVals (cntrSize=4, cntrMaxVal=100, verbose=[]):
             pickle.dump(listOfVals, pclOutputFile)
 
 # printAllVals(cntrSize=4, cntrMaxVal=10000, verbose=[settings.VERBOSE_RES])
-cntrMaster = CntrMaster (
-    cntrMaxVal  = 30, # Denoted N in [AEE] 
-    cntrSize    = 4, # num of bits in each counter.
-    verbose     = [VERBOSE_LOG_DWN_SMPL]  
-)
-logFile = open ('../res/log_files/AEE_ds.log', 'w')
-cntrMaster.setLogFile (logFile)
-for i in range (100):
-    cntrMaster.incCntrBy1GetVal()
+# cntrMaster = CntrMaster (
+#     cntrMaxVal  = 30, # Denoted N in [AEE] 
+#     cntrSize    = 4, # num of bits in each counter.
+#     verbose     = [VERBOSE_LOG_DWN_SMPL]  
+# )
+# logFile = open ('../res/log_files/AEE_ds.log', 'w')
+# cntrMaster.setLogFile (logFile)
+# for i in range (100):
+#     cntrMaster.incCntrBy1GetVal()
     
