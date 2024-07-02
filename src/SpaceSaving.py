@@ -109,16 +109,20 @@ class SpaceSaving (CountMinSketch):
             self, 
             flowId, 
             estimatedVal, 
-            realVal):
+            realVal
+        ):
         """
         Print a log line to the logFile during simulation
         """
         if not(VERBOSE_LOG in self.verbose):
             return
+        if realVal%1>0: #$$$
+            error ('BANG')                
         self.cntrMaster.printAllCntrs (self.logFile)
+        flowSizes = [int(f) for f in self.flowSizes]
         printf (self.logFile, 
-                ' incNum={}, flowIds={}, flowSizes={}, flowId={}, estimatedVal={:.0f} realVal={:.0f}' .format(
-                self.incNum, self.flowIds, self.flowSizes, flowId, estimatedVal, realVal)) 
+                ' incNum={}, flowId={}, flowSizes={}, estimatedVal={:.0f} realVal={}\n' .format(
+                self.incNum, flowId, flowSizes, estimatedVal, realVal)) 
 
     def runSimFromTrace (self):
         """
@@ -182,7 +186,8 @@ class SpaceSaving (CountMinSketch):
                 flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr                
-                self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
+                self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2
+                # print (flowRealVal[flowId]) #$$$                
                 self.printLogLine (
                     flowId          = flowId, 
                     estimatedVal    = flowEstimatedVal,
@@ -252,7 +257,7 @@ def runSS (mode,
             numFlows        = 9,
             cntrSize        = cntrSize, 
             cacheSize       = 3,
-            verbose         = [VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+            verbose         = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             traceFileName   = traceFileName,
             mode            = mode,
             numOfExps       = 1, 
