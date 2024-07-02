@@ -263,7 +263,7 @@ def runSS (mode,
             traceFileName   = traceFileName,
             mode            = mode,
             numOfExps       = 1, 
-            maxNumIncs      = 99999,
+            maxNumIncs      = 333333,
             maxValBy        = 'F2P_li_h2',
         )
         ss.sim ()
@@ -272,7 +272,7 @@ def runSS (mode,
             cntrSize        = cntrSize,
             numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
             cacheSize       = cacheSize,
-            verbose         = [VERBOSE_RES, VERBOSE_PCL], #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+            verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM], #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
             mode            = mode,
             traceFileName   = traceFileName,
             numOfExps       = 10, 
@@ -282,14 +282,14 @@ def runSS (mode,
     
 if __name__ == '__main__':
     try:
-        for cacheSize in [2]: #[2**i for i in range(10, 19)]:
+        for cacheSize in [2**i for i in range(10, 19)]:
             # for mode in ['F2P_li_h2', 'F3P_li_h3']:    
             for mode in ['CEDAR_ds']:    
                 runSS (
-                    cntrSize        = 6,
+                    cntrSize        = 8,
                     mode            = mode,
                     cacheSize       = cacheSize,
-                    traceFileName   = 'Rand',
+                    traceFileName   = 'Caida2',
                 )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
