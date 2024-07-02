@@ -139,6 +139,7 @@ class SpaceSaving (CountMinSketch):
             random.seed (self.seed)
             self.genCntrMaster () # Generate a fresh, empty CntrMaster, for each experiment
             self.cntrMaster.setLogFile(self.logFile)
+            printf (self.logFile, f'// cntrMaxVal = {self.cntrMaxVal}\n')
             flowRealVal = [0] * self.numFlows
             self.incNum = 0
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
@@ -179,6 +180,7 @@ class SpaceSaving (CountMinSketch):
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
             self.genCntrMaster ()
             self.cntrMaster.setLogFile (self.logFile)
+            printf (self.logFile, f'// cntrMaxVal = {self.cntrMaxVal}\n')
 
             for self.incNum in range(self.maxNumIncs):
                 flowId = random.randint (0, self.numFlows-1)
@@ -261,7 +263,8 @@ def runSS (mode,
             traceFileName   = traceFileName,
             mode            = mode,
             numOfExps       = 1, 
-            maxNumIncs      = 99999
+            maxNumIncs      = 99999,
+            maxValBy        = 'F2P_li_h2',
         )
         ss.sim ()
     else:
@@ -273,6 +276,7 @@ def runSS (mode,
             mode            = mode,
             traceFileName   = traceFileName,
             numOfExps       = 10, 
+            maxValBy        = 'F2P_li_h2',
         )
         ss.sim ()
     
