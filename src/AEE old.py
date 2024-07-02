@@ -16,34 +16,55 @@ class CntrMaster (Cntr.CntrMaster):
     # Generates a strings that details the counter's settings (param vals).    
     genSettingsStr = lambda self : 'AEE_n{}' .format (self.cntrSize)
        
-    cntr2num    = lambda self, cntr : cntr / self.p # Given the counter (as a binary vector string) return the value it represents
+    cntr2num    = lambda self, cntr : (int(cntr, base=2) / self.p) # Given the counter (as a binary vector string) return the value it represents
     
-    setP        = lambda self : self.cntrMaxVec / self.cntrMaxVal # Set the value of the increment prob', p. 
+    setP        = lambda self : self.cntrMaxVecInt / self.cntrMaxVal # Set the value of the increment prob', p. 
 
     def __init__ (
             self, 
             cntrMaxVal    = 30, # Denoted N in [AEE] 
             cntrSize      = 4, # num of bits in each counter. 
             numCntrs      = 1, # number of counters in the array.
+            epsilon       = 1,
+            delta         = 0.01, 
             verbose       = [], # determines which outputs would be written to .log/.res/.pcl/debug files, as detailed in settings.py. 
         ):
 
-        super(CntrMaster, self).__init__ (
-            cntrSize    = cntrSize, 
-            numCntrs    = numCntrs,
-            verbose     = verbose
-        )
-        self.cntrMaxVal  = cntrMaxVal # The maximal value that can be coded by the estimators
-        if self.cntrSize<=8:
-            self.cntrs       = np.zeros (self.numCntrs, dtype=np.int8)
-        elif self.cntrSize<=16:
-            self.cntrs       = np.zeros (self.numCntrs, dtype=np.int16)
-        else:
-            self.cntrs       = np.zeros (self.numCntrs, dtype=np.int32)
-        self.cntrMaxVec  = 2**self.cntrSize - 1 # The maximal value of a self.cntrSize-bits integer estimator.
-        self.cntrZeroVec = 0 
-        self.p           = self.setP ()
+        if (cntrSize<2):
+            print ('error: cntrSize requested is {}. However, cntrSize should be at least 2.' .format (cntrSize))
+            exit ()
             
+        self.cntrMaxVal     = cntrMaxVal   # Denoted N in [AEE]
+        self.cntrSize       = int(cntrSize)
+        self.numCntrs       = int(numCntrs)
+        self.verbose        = verbose
+        self.cntrZeroVec    = '0' * self.cntrSize
+        self.cntrs          = [self.cntrZeroVec for i in range (self.numCntrs)]
+        self.cntrMaxVec     = '1' * self.cntrSize
+        self.cntrMaxVecInt  = (1 << self.cntrSize) - 1
+        self.cntrZero       = 0
+        self.epsilon        = epsilon
+        self.delta          = delta
+        self.p              = self.setP ()
+        print (self.p)
+            
+    def rstCntr (self, cntrIdx=0):
+        """
+        """
+        self.cntrs[cntrIdx] = self.cntrZeroVec
+
+    def queryCntr (self, cntrIdx=0) -> dict:
+        """
+        Query a cntr.
+        Input: 
+        cntrIdx - the counter's index. 
+        Output:
+        cntrDic: a dictionary, where: 
+            - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.        
+        """
+        settings.checkCntrIdx (cntrIdx=cntrIdx, numCntrs=self.numCntrs, cntrType='AEE')
+        return {'cntrVec' : self.cntrs[cntrIdx], 'val' : self.cntr2num(self.cntrs[cntrIdx])}           
+
     def incCntrBy1 (
             self, 
             cntrIdx  = 0, # idx of the concrete counter to increment in the array 
@@ -57,7 +78,7 @@ class CntrMaster (Cntr.CntrMaster):
         """
         settings.checkCntrIdx (cntrIdx=cntrIdx, numCntrs=self.numCntrs, cntrType='AEE')
         if self.cntrs[cntrIdx]!=self.cntrMaxVec and (forceInc or random.random() < self.p):
-            self.cntrs[cntrIdx] += 1
+            self.cntrs[cntrIdx] = np.binary_repr (int (self.cntrs[cntrIdx], 2) + 1, self.cntrSize)
         return {'cntrVec' : self.cntrs[cntrIdx], 'val' : self.cntr2num(self.cntrs[cntrIdx])}
 
     def incCntrBy1GetVal (
@@ -71,9 +92,33 @@ class CntrMaster (Cntr.CntrMaster):
         The value after the operation. 
         """
         if self.cntrs[cntrIdx]!=self.cntrMaxVec and (forceInc or random.random() < self.p):
-            self.cntrs[cntrIdx] += 1
+            self.cntrs[cntrIdx] = np.binary_repr (int (self.cntrs[cntrIdx], 2) + 1, self.cntrSize)
         return self.cntr2num(self.cntrs[cntrIdx])
 
+
+    def incCntr (self, cntrIdx=0, factor=1, verbose=[], mult=False):
+        """
+        Increase a counter by a given factor.
+        Input:
+        cntrIdx - index of the cntr to increment, in the array of cntrs.
+        mult - if true, multiply the counter by factor. Else, increase the counter by factor.
+        factor - the additive/multiplicative coefficient.
+        verbose - determines which data will be written to the screen.
+        Output:
+        cntrDict: a dictionary representing the modified counter where: 
+            - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.
+        Operation:
+        Define cntrVal as the current counter's value. 
+        Then, targetValue = cntrVal*factor (if mult==True), and targetValue = cntrVal + factor (otherwise).  
+        If targetValue > maximum cntr's value, return the a cntr representing the max possible value. 
+        If targetValue < 0, return a cntr representing 0.
+        If targetValue can be represented correctly by the counter, return the exact representation.
+        Else, use probabilistic cntr's modification.
+        """
+        settings.checkCntrIdx (cntrIdx=cntrIdx, numCntrs=self.numCntrs, cntrType='AEE')
+        if mult or (factor!=1):
+            settings.error ('Sorry, AEE.incCntr() is currently implemented only when mult==True and factor=1.')
+        return self.incCntrBy1 (cntrIdx=cntrIdx) 
 
 def printAllVals (cntrSize=4, cntrMaxVal=100, verbose=[]):
     """
@@ -102,3 +147,9 @@ def printAllVals (cntrSize=4, cntrMaxVal=100, verbose=[]):
         with open('../res/pcl_files/{}.pcl' .format (myCntrMaster.genSettingsStr()), 'wb') as pclOutputFile:
             pickle.dump(listOfVals, pclOutputFile) 
       
+
+aee_cntrMaster = CntrMaster (
+    cntrMaxVal = 30, # Denoted N in [AEE] 
+    cntrSize   = 4, # num of bits in each counter. 
+)
+# printAllVals(cntrSize=8, cntrMaxVal=1488888, verbose=[settings.VERBOSE_RES])
