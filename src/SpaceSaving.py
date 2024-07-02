@@ -192,14 +192,11 @@ class SpaceSaving (CountMinSketch):
             
     def sim (
         self, 
-        maxNumIncs     = 5000, # maximum # of increments (pkts in the trace), after which the simulation will be stopped. 
-        numOfExps      = 1,  # number of repeated experiments. Relevant only for randomly-generated traces.
         ):
         """
         Simulate the Space Saving cache.
         """
         
-        self.maxNumIncs, self.numOfExps = maxNumIncs, numOfExps
         self.sumSqAbsEr  = [0] * self.numOfExps # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
         self.sumSqRelEr  = [0] * self.numOfExps # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
         self.printSimMsg ('Started')
