@@ -7,6 +7,8 @@ import math, time, random
 from printf import printf
 import settings, Cntr
 import numpy as np
+from settings import VERBOSE_DEBUG, VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL
+from settings import warning, error
 
 class CntrMaster (Cntr.CntrMaster):
     """

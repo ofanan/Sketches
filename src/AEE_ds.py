@@ -7,6 +7,8 @@ import math, time, random
 from printf import printf
 import settings, AEE
 import numpy as np
+from settings import VERBOSE_DEBUG, VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL
+from settings import warning, error
 
 class CntrMaster (AEE.CntrMaster):
     """
@@ -24,7 +26,13 @@ class CntrMaster (AEE.CntrMaster):
         The value after the operation. 
         """        
         if self.cntrs[cntrIdx]==self.cntrMaxVec: # Cntr is saturated --> need to down-sample
+            if VERBOSE_LOG_DWN_SMPL in self.verbose:
+                printf (self.logFile, f'\nb4 upScaling:\n')
+                self.printAllCntrs (self.logFile)
             self.upScale ()
+            if VERBOSE_LOG_DWN_SMPL in self.verbose:
+                printf (self.logFile, f'\nafter upScaling:\n')
+                self.printAllCntrs (self.logFile)
         if random.random() < self.p: # Perform prob' increment
             self.cntrs[cntrIdx] += 1 
         return self.cntr2num(self.cntrs[cntrIdx])
@@ -36,7 +44,7 @@ class CntrMaster (AEE.CntrMaster):
         - Half self.p.
         """
         for i in range(self.numCntrs):
-            if self.cntrs[i][-1]%2==1: # The counter is odd - maybe we'll have to ceil the value after halving.
+            if self.cntrs[i]%2==1: # The counter is odd - maybe we'll have to ceil the value after halving.
                 self.cntrs[i] //= 2  
                 if random.random() < 0.5:
                     self.cntrs[i] += 1
@@ -74,9 +82,14 @@ def printAllVals (cntrSize=4, cntrMaxVal=100, verbose=[]):
         with open('../res/pcl_files/{}.pcl' .format (myCntrMaster.genSettingsStr()), 'wb') as pclOutputFile:
             pickle.dump(listOfVals, pclOutputFile)
 
-# aee_cntrMaster = CntrMaster (
-#     cntrMaxVal = 30, # Denoted N in [AEE] 
-#     cntrSize   = 4, # num of bits in each counter. 
-# )
-printAllVals(cntrSize=4, cntrMaxVal=10000, verbose=[settings.VERBOSE_RES])
-
+# printAllVals(cntrSize=4, cntrMaxVal=10000, verbose=[settings.VERBOSE_RES])
+cntrMaster = CntrMaster (
+    cntrMaxVal  = 30, # Denoted N in [AEE] 
+    cntrSize    = 4, # num of bits in each counter.
+    verbose     = [VERBOSE_LOG_DWN_SMPL]  
+)
+logFile = open ('../res/log_files/AEE_ds.log', 'w')
+cntrMaster.setLogFile (logFile)
+for i in range (100):
+    cntrMaster.incCntrBy1GetVal(i)
+    
