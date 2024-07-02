@@ -26,6 +26,7 @@ class SpaceSaving (CountMinSketch):
         numFlows        = 10, # the total number of flows to be estimated.
         seed            = settings.SEED,
         traceFileName   = None,
+        maxValBy        = None, # How to calculate the maximum value (for SEAD/CEDAR).   
     ):
         
         """
@@ -35,10 +36,17 @@ class SpaceSaving (CountMinSketch):
         self.verbose = verbose
         self.cntrsAr = defaultdict(int)
         self.genOutputDirectories ()
-        self.genCntrMaster ()
         self.openOutputFiles ()
         self.flowIds    = [None]*self.numCntrs
         self.flowSizes  = np.zeros(self.numCntrs)
+        if self.maxValBy==None: # By default, the maximal counter's value is the trace length 
+            if self.traceFileName=='Rand':
+                self.cntrMaxVal = self.maxNumIncs
+            else:
+                self.cntrMaxVal = settings.getTraceLen(self.traceFileName)
+        else:
+            self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
+        random.seed (self.seed)
 
     def incNQueryFlow(
             self, 
@@ -242,7 +250,6 @@ def runSS (mode,
             numFlows        = 9,
             cntrSize        = 8, 
             cacheSize       = 3,
-            maxNumIncs      = 10, #4000 #(width * depth * cntrSize**3)/2
             verbose         = [VERBOSE_LOG, VERBOSE_RES], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             traceFileName   = traceFileName,
             mode            = mode,
