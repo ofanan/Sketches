@@ -427,6 +427,9 @@ class SingleCntrSimulator (object):
             self.cntrRecord = {'mode' : self.mode, 'cntr' : CEDAR.CntrMaster(cntrSize=self.cntrSize, cntrMaxVal=self.cntrMaxVal)}
         elif (self.mode=='Morris'):
             self.cntrRecord = {'mode' : self.mode, 'cntr' : Morris.CntrMaster(cntrSize=self.cntrSize, cntrMaxVal=self.cntrMaxVal)}
+        elif (self.mode=='AEE'):
+            error ('In AEE')
+            self.cntrRecord = {'mode' : self.mode, 'cntr' : Morris.CntrMaster(cntrSize=self.cntrSize, cntrMaxVal=self.cntrMaxVal)}
         else:
             settings.error ('mode {} that you chose is not supported' .format (self.mode))
 
