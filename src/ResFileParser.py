@@ -9,6 +9,7 @@ from nltk.corpus.reader import lin
 
 import settings, SingleCntrSimulator
 from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, getFxpSettings
+from settings import KB
 
 # Color-blind friendly pallette
 BLACK       = '#000000' 
@@ -53,11 +54,13 @@ colorOfMode = {
     'CEDAR'     : BLUE,
     'Morris'    : ORANGE,
     'AEE'       : YELLOW,
+    'AEE_ds'    : YELLOW,
     'int'       : 'black',
     'F2P lr'    : GREEN,
     'F2P lr h1' : GREEN,
     'F2P_lr_h2' : GREEN,
     'F2P_li_h2' : GREEN,
+    'F2P_li_h2_ds' : GREEN,
     'F2P_li'    : GREEN,
     'F2P sr'    : PURPLE,
     'F2P sr h1' : PURPLE,
@@ -158,6 +161,7 @@ def genFxpLabel (mode : str): # a mode describing the mode flavors
     'F2P_lr_h2' : r'F2P$_{LR}^2$',
     'F2P_sr_h2' : r'F2P$_{SR}^2$',
     'F2P_li_h2' : r'F2P$_{LI}^2$',
+    'F2P_li_h2_ds' : r'F2P$_{LI}^2$',
     'F2P_si_h2' : r'F2P$_{SI}^2$',
     'F3P_lr_h2' : r'F3P$_{LR}^2$',
     'F3P_sr_h2' : r'F3P$_{SR}^2$',
@@ -432,6 +436,7 @@ class ResFileParser (object):
             traceName   : str  = 'Caida1',
             numOfExps   : int  = 10,
             cntrSize    : int  = 8,
+            depth       : int  = 4,
             statType    : str  = 'normRmse',
             rel_abs_n   : bool = False, # When True, consider relative errors, Else, consider absolute errors.
             ignoreModes : list = [],# List of modes to NOT include in the plot
@@ -460,7 +465,7 @@ class ResFileParser (object):
             pointsOfMode = [point for point in points if point['mode'] == mode]
             widths = [point['width'] for point in pointsOfMode]
             minMemSizeInKB  = 10**0
-            minMemSize      = minMemSizeInKB * 2**10  
+            minMemSize      = minMemSizeInKB * KB  
             widths = [w for w in widths if w>=(minMemSize/4)]
             y = []
             for width in widths:
@@ -472,15 +477,27 @@ class ResFileParser (object):
                         printfDict (dupsFile, point)
                 point = pointsToPlot[0]
                 y.append(point['Avg'])
+                x = depth*width/KB
+                ax.plot (
+                    (x, x), 
+                    (point['Lo'], point['Hi']),
+                    color       = colorOfMode[mode],
+                    # marker      = '+', 
+                    # markersize  = MARKER_SIZE, 
+                    # linewidth   = LINE_WIDTH, 
+                    # label       = labelOfMode(point['mode']), 
+                    # mfc         ='none',
+                    # linestyle   ='None'
+                ) 
                 minY = min (minY, point['Avg'])
                 maxY = max (maxY, point['Avg'])
-            memSizes = [4*w/(2**10) for w in widths] # Memory size in KB = width * depth (which is fixed 4) / 1024. 
+            memSizesInKb = [depth*w/KB for w in widths] # Memory size in KB = width * depth / 1024. 
             ax.plot (
-                [m for m in memSizes], 
+                [m for m in memSizesInKb], 
                 y, 
                 color       = colorOfMode[mode],
-                marker      = '+', 
-                markersize  = MARKER_SIZE, 
+                # marker      = '+', 
+                # markersize  = MARKER_SIZE, 
                 linewidth   = LINE_WIDTH, 
                 label       = labelOfMode(point['mode']), 
                 mfc         ='none',
@@ -492,7 +509,7 @@ class ResFileParser (object):
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
-        plt.xlim ([0.95*min(memSizes), 10**3]) #$$$      
+        plt.xlim ([0.95*min(memSizesInKb), 10**3]) #$$$      
         # plt.ylim ([0.98*minY, 1.02*maxY]) #$$
         # plt.yscale ('log') #$$$          
         plt.xscale ('log')          
@@ -1036,8 +1053,9 @@ def genErVsMemSizePlot (
     ):
     
     myResFileParser = ResFileParser ()
-    traceName = 'Caida1'
+    traceName = 'Caida2'
     myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC.pcl')
+    myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC.pcl')
     # for mode in ['F3P_li_h2', 'F3P_si_h2', 'F3P_si_h3' 
     #     myResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
     myResFileParser.genErVsMemSizePlot (
@@ -1049,14 +1067,14 @@ def genErVsMemSizePlot (
 
 if __name__ == '__main__':
     try:
-        # genErVsMemSizePlot (
-        #     ignoreModes = ['PerfectCounter', 'SEAD_dyn']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
-        # )
+        genErVsMemSizePlot (
+            ignoreModes = ['PerfectCounter', 'SEAD_dyn']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
+        )
         # genUniqPcl (pclFileName=f'cms_Caida2_HPC.pcl')
         # genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
-        rmvFromPcl ()
+        # rmvFromPcl ()
         # genQuantErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

@@ -38,6 +38,8 @@ VERBOSE_PROGRESS        = 13 # Print periodical output notifying the progress. U
 VERBOSE_LOG_CNTRLINE    = 14  
 VERBOSE_PLOT            = 15
 
+KB = 2**10 # Kilo-Byte
+
 F2Pmodes  = ['F2P_sr_h1', 'F2P_sr_h2', 'F2P_lr_h1', 'F2P_lr_h2', 'F2P_si_h1', 'F2P_si_h2', 'F2P_li_h1', 'F2P_li_h2'] 
 F3Pmodes  = ['F3P_sr_h1', 'F3P_sr_h2', 'F3P_sr_h3', 'F3P_lr_h1', 'F3P_lr_h2', 'F3P_lr_h3'] 
 FP8modes  = ['FP_e2', 'FP_e3', 'FP_e4', 'FP_e5']
