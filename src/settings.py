@@ -397,7 +397,7 @@ def writeVecStatToFile (
     Calculate and write the statistics (mean, min, max, std, binning) of a given vector to the given output file.
     """
     printf (statFile, f'// vec={str}\n')
-    lenVec = len(vec)
+    lenVec = int(len(vec))
     maxVec = max(vec)
     printf (statFile, '// len(vec)={:.1f}, minVec={:.1f},  maxVec={:.1f}, avgVec={:.1f}, stdevVec={:.1f}\n' .format
            (lenVec, min(vec), maxVec, np.mean(vec), np.std(vec))) 
