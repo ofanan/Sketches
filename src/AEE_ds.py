@@ -31,8 +31,8 @@ class CntrMaster (AEE.CntrMaster):
                     printf (self.logFile, f'\nb4 upScaling:\n')
                     self.printAllCntrs (self.logFile)
                 else:
-                    printf (self.logFile, '\ncntr={}, cntrVal={:.0f}, curCntrMaxVal={:.0f}. upScaling.\n' .format
-                            (self.cntrs[cntrIdx], self.cntr2num(self.cntrs[cntrIdx]), self.cntrMaxVal/self.globalIncProb))
+                    printf (self.logFile, '\ncntrVal={:.0f}, curCntrMaxVal={:.0f}. upScaling.\n' .format
+                            (self.cntr2num(self.cntrs[cntrIdx]), self.cntrMaxVal/self.P))
             self.upScale ()
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
                 if self.numCntrs<10:

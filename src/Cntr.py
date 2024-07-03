@@ -78,7 +78,7 @@ class CntrMaster (object):
             vec         = self.cntrs,
             str         = 'cntrs'        
         )
-        if self.numCntrs<50:
+        if self.numCntrs<10:
             self.printAllCntrs(
                 outputFile      = outputFile, 
                 printAlsoVec    = False

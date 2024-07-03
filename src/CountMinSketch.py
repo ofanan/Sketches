@@ -295,7 +295,7 @@ class CountMinSketch:
         about the counters' values at the end of the sim. 
         """
         if VERBOSE_LOG_END_SIM in self.verbose:
-            printf (self.logFile, '// At the end of sim:\n')
+            printf (self.logFile, '\n// At the end of sim:\n')
             self.cntrMaster.printCntrsStat (
                 self.logFile, 
                 outputFileName  = self.genSettingsStr()
@@ -448,7 +448,7 @@ def runCMS (mode,
     if traceFileName=='Rand':
         cms = CountMinSketch (
             width           = 2, 
-            depth           = 2,
+            depth           = 8,
             numFlows        = 10,
             numCntrsPerBkt  = 2,
             mode            = mode, 
