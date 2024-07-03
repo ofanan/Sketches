@@ -85,11 +85,11 @@ def modesOfCntrSize (cntrSize):
     Return a list of modes to consider given the counter's size.
     """
     if cntrSize==19: 
-        return F3Pmodes #$$ + F2Pmodes + ['int', 'SEAD_dyn'] + FP19modes
+        return F3Pmodes + F2Pmodes + ['int', 'SEAD_dyn'] + FP19modes
     elif cntrSize==16: 
-        return F3Pmodes #$$ + F2Pmodes + ['int', 'SEAD_dyn'] + FP16modes
+        return F3Pmodes + F2Pmodes + ['int', 'SEAD_dyn'] + FP16modes
     elif cntrSize==8: 
-        return F3Pmodes #$$ + F2Pmodes + ['int', 'SEAD_dyn'] + FP8modes
+        return F3Pmodes + F2Pmodes + ['int', 'SEAD_dyn'] + FP8modes
     else:
         error (f'In settings.modesOfCntrSize(). No hard-coded list of modes for cntrSize={cntrSize}.')
  
@@ -112,13 +112,7 @@ def getTraceLen (
     """
     given the trace's name, return its len (# of incs).
     """
-    # if traceName.startswith(''):
-    #     error ('if')
-    # else:
-    #     error ('else')
-    # error (f'traceName=*{traceName}*Caida1*') #$$$
     listOfTraces = [item for item in traceInfo if item['traceName']==traceName]
-    # error (listOfTraces) #$$$
     if (len(listOfTraces)<1): 
         error (f'In settings.getTraceLen(). Sorry. No known traceInfo for traceName={traceName}')
     elif (len(listOfTraces)>1):

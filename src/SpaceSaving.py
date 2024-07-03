@@ -190,7 +190,6 @@ class SpaceSaving (CountMinSketch):
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr                
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2
-                # print (flowRealVal[flowId]) #$$$                
                 self.printLogLine (
                     flowId          = flowId, 
                     estimatedVal    = flowEstimatedVal,
@@ -273,7 +272,7 @@ def runSS (mode,
             cntrSize        = cntrSize,
             numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
             cacheSize       = cacheSize,
-            verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+            verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
             mode            = mode,
             traceFileName   = traceFileName,
             numOfExps       = 10, 

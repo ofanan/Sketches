@@ -496,7 +496,7 @@ class ResFileParser (object):
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
-        plt.xlim ([0.95*min(memSizesInKb), 10**3]) #$$$      
+        plt.xlim ([0.95*min(memSizesInKb), 10**3])       
         # plt.ylim ([0.98*minY, 1.02*maxY]) #$$
         # plt.yscale ('log') #$$$          
         plt.xscale ('log')          

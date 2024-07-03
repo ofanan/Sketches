@@ -476,7 +476,7 @@ def runCMS (mode,
             numEpsilonStepsIceBkts  = 6, 
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
-            numOfExps               = 1, #0, 
+            numOfExps               = 10, 
             verbose                 = [VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL] #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
         )
         cms.sim ()
@@ -484,7 +484,7 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         cntrSize = 8
-        for width in [2**i for i in range (10, 11)]: ####$$$
+        for width in [2**i for i in range (10, 19)]: 
             # for mode  in ['PerfectCounter']:
             #     width = int(width/4)
             # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
