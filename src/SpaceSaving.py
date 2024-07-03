@@ -273,7 +273,7 @@ def runSS (mode,
             cntrSize        = cntrSize,
             numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
             cacheSize       = cacheSize,
-            verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM], #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+            verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], #$$$ [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
             mode            = mode,
             traceFileName   = traceFileName,
             numOfExps       = 10, 
@@ -284,8 +284,8 @@ def runSS (mode,
 if __name__ == '__main__':
     try:
         for cacheSize in [2**i for i in range(10, 19)]:
-            # for mode in ['F2P_li_h2', 'F3P_li_h3']:    
-            for mode in ['CEDAR_ds']:    
+            for mode in ['F2P_li_h2_ds']:    
+            # for mode in ['CEDAR_ds']:    
                 runSS (
                     cntrSize        = 8,
                     mode            = mode,
