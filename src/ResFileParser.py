@@ -78,17 +78,18 @@ colors = ['green', 'purple', 'brown', 'black', 'blue', 'yellow', 'magenta', 'red
 
 # The markers used for each alg', in the dist' case
 markerOfMode = {'F2P_li'    : 'o',
-                     'F2P_lr'    : 'o',
-                     'F2P_sr'    : 'o',
-                     'F3P'       : 'v',
-                     'SEAD stat' : '^',
-                     'SEAD dyn'  : 's',
-                     'FP'        : 'p',
-                     'Tetra stat': 'p',
-                     'Tetra dyn' : 'X',
-                     'CEDAR'     : '<',
-                     'Morris'    : '>',
-                     'AEE'       : 'o'}
+     'F2P_lr'    : 'o',
+     'F2P_sr'    : 'o',
+     'F3P'       : 'v',
+     'SEAD stat' : '^',
+     'SEAD dyn'  : 's',
+     'FP'        : 'p',
+     'Tetra stat': 'p',
+     'Tetra dyn' : 'X',
+     'CEDAR'     : '<',
+     'Morris'    : '>',
+     'AEE'       : 'o'
+}
 
 def labelOfDist (dist : str) -> str:
     """
@@ -138,30 +139,21 @@ def genFpLabel (mantSize : int, expSize : int) -> str:
     """
     return f'FP {mantSize}M{expSize}E'
 
-# def genFxpLabel (
-#         nSystem     : str, #either 'F2P', or 'F3P' 
-#         flavor      : str, # flavor, e.g., 'lr', 'sr', 'li'
-#         hyperSize   : int = 2 
-#     ) -> str:
-#     """
-#     Given the parameters of F2P or F3P, generates a label string that details the counter's settings (param vals), to be used in plots.
-#     """
-#     return f'{nSystem} {flavor} h{hyperSize}'
 
 def genFxpLabel (mode : str): # a mode describing the mode flavors
     """
     Given a string that details the parameters of F2P or F3P, generate a label string to be used in plots.
     """
     labelOfMode = {
-    'F2P_lr_h2' : r'F2P$_{LR}^2$',
-    'F2P_sr_h2' : r'F2P$_{SR}^2$',
-    'F2P_li_h2' : r'F2P$_{LI}^2$',
-    'F2P_li_h2_ds' : r'F2P$_{LI}^2$',
-    'F2P_si_h2' : r'F2P$_{SI}^2$',
-    'F3P_lr_h2' : r'F3P$_{LR}^2$',
-    'F3P_sr_h2' : r'F3P$_{SR}^2$',
-    'F3P_li_h3' : r'F3P$_{LI}^3$',
-    'F3P_si_h2' : r'F3P$_{SI}^2$',
+    'F2P_lr_h2'     : r'F2P$_{LR}^2$',
+    'F2P_sr_h2'     : r'F2P$_{SR}^2$',
+    'F2P_li_h2'     : r'F2P$_{LI}^2$',
+    'F2P_si_h2'     : r'F2P$_{SI}^2$',
+    'F3P_lr_h2'     : r'F3P$_{LR}^2$',
+    'F3P_sr_h2'     : r'F3P$_{SR}^2$',
+    'F3P_li_h3'     : r'F3P$_{LI}^3$',
+    'F3P_si_h2'     : r'F3P$_{SI}^2$',
+    'F2P_li_h2_ds'  : r'F2P$_{LI}^2$',
     }
     return labelOfMode[mode]
     # Trying to automate the code above:
