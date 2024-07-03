@@ -75,7 +75,7 @@ class CntrMaster (object):
         """
         settings.writeVecStatToFile (
             statFile    = outputFile,
-            vec         = self.cntrs,
+            vec         = [self.cntr2num(cntr) for cntr in self.cntrs],
             str         = 'cntrs'        
         )
         if self.numCntrs<10:

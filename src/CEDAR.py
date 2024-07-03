@@ -176,12 +176,16 @@ class CntrMaster (Cntr.CntrMaster):
         if (self.cntrs[cntrIdx] == self.numEstimators-1): # reached the largest estimator --> cannot further inc
             if self.allowDwnSmpl:
                 if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                    printf (self.logFile, f'\nb4 upScaling:\n')
-                    self.printAllCntrs (self.logFile)
+                    if self.numCntrs<10:
+                        printf (self.logFile, f'\nb4 upScaling:\n')
+                        self.printAllCntrs (self.logFile)
+                    else:
+                        printf (self.logFile, '\ncntrVal={:.1f}. upScaling:\n' .format (self.cntr2num(self.cntrs[cntrIdx])))
                 self.upScale ()
                 if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                    printf (self.logFile, f'\nafter upScaling:\n')
-                    self.printAllCntrs (self.logFile)
+                    if self.numCntrs<10:
+                        printf (self.logFile, f'\nafter upScaling:\n')
+                        self.printAllCntrs (self.logFile)
             return self.estimators[self.cntrs[cntrIdx]]
         if random.random() < 1/self.diffs[self.cntrs[cntrIdx]]:
             self.cntrs[cntrIdx] += 1

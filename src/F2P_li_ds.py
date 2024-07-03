@@ -133,15 +133,17 @@ class CntrMaster (F2P_li.CntrMaster):
         # now we know that we should consider incrementing the counter
         if self.cntrs[cntrIdx]==self.cntrMaxVec: # Asked to increment a saturated counter
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                printf (self.logFile, '\ncntr={}, cntrVal={:.0f}, curCntrMaxVal={:.0f}. upScaling.\n' .format
-                        (self.cntrs[cntrIdx], self.cntr2num(self.cntrs[cntrIdx]), self.cntrMaxVal/self.globalIncProb))
-                # printf (self.logFile, f'\nb4 upScaling:\n')
-                # self.printAllCntrs (self.logFile)
+                if self.numCntrs<10:
+                    printf (self.logFile, f'\nb4 upScaling:\n')
+                    self.printAllCntrs (self.logFile)
+                else:
+                    printf (self.logFile, '\ncntr={}, cntrVal={:.0f}, curCntrMaxVal={:.0f}. upScaling.\n' .format
+                            (self.cntrs[cntrIdx], self.cntr2num(self.cntrs[cntrIdx]), self.cntrMaxVal/self.globalIncProb))
             self.upScale ()
             self.globalIncProb /= 2
-            # if VERBOSE_LOG_DWN_SMPL in self.verbose:
-            #     printf (self.logFile, f'\nafter upScaling:\n')
-            #     self.printAllCntrs (self.logFile)
+            if self.numCntrs<10:
+                printf (self.logFile, f'\nafter upScaling:\n')
+                self.printAllCntrs (self.logFile)
 
         if self.cntrs[cntrIdx]==self.cntrMaxVec: # Asked to increment a saturated counter
             error (f'cntr={self.cntrs[cntrIdx]} after upScaling')

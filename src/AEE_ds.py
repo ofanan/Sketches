@@ -32,7 +32,7 @@ class CntrMaster (AEE.CntrMaster):
                     self.printAllCntrs (self.logFile)
                 else:
                     printf (self.logFile, '\ncntrVal={:.0f}, curCntrMaxVal={:.0f}. upScaling.\n' .format
-                            (self.cntr2num(self.cntrs[cntrIdx]), self.cntrMaxVal/self.P))
+                            (self.cntr2num(self.cntrs[cntrIdx]), self.cntrMaxVal/self.p))
             self.upScale ()
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
                 if self.numCntrs<10:
