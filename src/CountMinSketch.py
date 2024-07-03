@@ -286,7 +286,7 @@ class CountMinSketch:
         """
         Print-screen an info msg about the parameters and hours of the simulation starting to run. 
         """             
-        print ('{} running sim at t={}. trace={}, numOfExps={}, mode={}, cntrSize={}, depth={}, width={}, numFlows={}, verbose={}' .format (
+        print ('{} running cms at t={}. trace={}, numOfExps={}, mode={}, cntrSize={}, depth={}, width={}, numFlows={}, verbose={}' .format (
                         str, datetime.now().strftime('%H:%M:%S'), self.traceFileName, self.numOfExps, self.mode, self.cntrSize, self.depth, self.width, self.numFlows, self.verbose))
 
     def logEndSim (self):

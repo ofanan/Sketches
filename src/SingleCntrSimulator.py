@@ -641,7 +641,7 @@ def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit)
         listOfVals.append ({'cntrVec' : cntr, 'val' : val})
     listOfVals = sorted (listOfVals, key=lambda item : item['val'])
     if VERBOSE_RES in verbose:
-        outputFile = open('../res/{}.res'.format(myCntrMaster.genSettingsStr()), 'w')
+        outputFile = open('../res/single_cntr_log_files/{}.res'.format(myCntrMaster.genSettingsStr()), 'w')
         printf (outputFile, f'// bias={myCntrMaster.bias}\n')
         for item in listOfVals:
             printf(outputFile, '{}={}\n'.format(item['cntrVec'], item['val']))

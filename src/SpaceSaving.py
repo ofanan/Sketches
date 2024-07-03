@@ -94,14 +94,15 @@ class SpaceSaving (CountMinSketch):
         self.logFile =  None # default
         if VERBOSE_LOG in self.verbose or \
            VERBOSE_DETAILED_LOG in self.verbose or\
-           VERBOSE_LOG_DWN_SMPL in self.verbose:
+           VERBOSE_LOG_DWN_SMPL in self.verbose or\
+           VERBOSE_LOG_END_SIM in self.verbose:
             self.logFile = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
     
     def printSimMsg (self, str):
         """
         Print-screen an info msg about the parameters and hours of the simulation starting to run. 
         """             
-        print ('{} running sim at t={}. trace={}, numOfExps={}, mode={}, cntrSize={}, cacheSize={}' .format (
+        print ('{} running ss at t={}. trace={}, numOfExps={}, mode={}, cntrSize={}, cacheSize={}' .format (
                         str, datetime.now().strftime('%H:%M:%S'), self.traceFileName, self.numOfExps, self.mode, self.cntrSize, self.numCntrs))
 
 

@@ -67,7 +67,7 @@ def printAllVals (cntrSize=4, cntrMaxVal=100, verbose=[]):
     )
 
     if (settings.VERBOSE_RES in verbose):
-        outputFile    = open ('../res/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
+        outputFile    = open ('../res/single_cntr_log_files/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
     
     print ('running printAllVals')
     listOfVals = []

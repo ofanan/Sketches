@@ -245,7 +245,7 @@ def printAllVals (cntrSize=4, a=None, cntrMaxVal=None, verbose=[]):
     listOfVals = sorted (listOfVals, key=lambda item : item['val'])
 
     if (settings.VERBOSE_RES in verbose):
-        outputFile    = open ('../res/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
+        outputFile    = open ('../res/single_cntr_log_files/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
         for item in listOfVals:
             printf (outputFile, '{}={:.0f}\n' .format (item['cntrVec'], item['val']))
 
