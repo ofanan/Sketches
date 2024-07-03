@@ -23,8 +23,6 @@ class CntrMaster (CEDAR.CntrMaster):
                 else:
                     printf (self.logFile, 'cntrVal={:.0f}. upScaling.\n' .format (
                                            self.cntr2num(self.cntrs[cntrIdx])))
-                printf (self.logFile, '\ncntrVal={:.0f}, cntrMaxVal={:.0f}. upScaling.\n' .format(
-                    self.cntr2num(self.cntrs[cntrIdx]), self.cntrMaxVal))
             self.upScale ()
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
                 if self.numCntrs<10:

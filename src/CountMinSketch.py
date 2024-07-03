@@ -62,7 +62,10 @@ class CountMinSketch:
             else:
                 self.cntrMaxVal = settings.getTraceLen(self.traceFileName)
         else:
-            self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
+            if self.cntrSize==4: # tiny counters, used for development and debugging
+                self.cntrMaxVal = 30
+            else:
+                self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
         random.seed (self.seed)
         self.numEpsilonStepsInRegBkt    = numEpsilonStepsInRegBkt
         self.numEpsilonStepsInXlBkt     = numEpsilonStepsInXlBkt
@@ -353,7 +356,7 @@ class CountMinSketch:
             self.genCntrMaster ()
 
             self.cntrMaster.setLogFile(self.logFile)
-            printf (self.logFile, f'// cntrMaxVal = {self.cntrMaxVal}\n')
+            printf (self.logFile, f'// cntrMaxVal wo downsampling = {self.cntrMaxVal}\n')
                         
             for self.incNum in range(self.maxNumIncs):
                 flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
@@ -448,7 +451,7 @@ def runCMS (mode,
     if traceFileName=='Rand':
         cms = CountMinSketch (
             width           = 2, 
-            depth           = 8,
+            depth           = 2,
             numFlows        = 10,
             numCntrsPerBkt  = 2,
             mode            = mode, 
@@ -456,9 +459,9 @@ def runCMS (mode,
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
             numEpsilonStepsInXlBkt  = 5,
-            verbose                 = [VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+            verbose                 = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
-            maxNumIncs              = 333333,
+            maxNumIncs              = 111111,
             maxValBy                = 'F2P_li_h2',
             cntrSize                = cntrSize, 
         )
@@ -484,19 +487,19 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         cntrSize = 8
-        for width in [2**i for i in range (10, 19)]: 
+        for width in [2]: #[2**i for i in range (10, 11)]: 
             # for mode  in ['PerfectCounter']:
             #     width = int(width/4)
             # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
             # for mode in ['F2P_li_h2_ds']:    
-            for mode in ['CEDAR_ds']:    
-            # for mode in ['AEE_ds']:    
+            # for mode in ['CEDAR_ds']:    
+            for mode in ['AEE_ds']:    
                         # for mode in ['CEDAR', 'Morris']:     
                 runCMS (
                     mode        = mode, 
                     cntrSize    = cntrSize, 
                     width       = width,
-                    traceFileName = 'Caida2',
+                    traceFileName = 'Rand',
                 )
     except KeyboardInterrupt:
         print ('Keyboard interrupt.')

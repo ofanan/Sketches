@@ -34,7 +34,7 @@ class CntrMaster (object):
     def printAllCntrs (
             self, 
             outputFile   = None,
-            printAlsoVec = False, # when True, print also the counters' vectors.
+            printAlsoVec = True, # when True, print also the counters' vectors.
         ) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
@@ -53,9 +53,13 @@ class CntrMaster (object):
         else:
             cntrVals = np.empty (self.numCntrs)
             printf (outputFile, 'cntrs=[')
-            for cntr in self.cntrs:
-                printf (outputFile, '{:.1f} ' .format(self.cntr2num(cntr)))
-            printf (outputFile, '] ')
+            if printAlsoVec:
+                for cntr in self.cntrs:
+                    printf (outputFile, 'cntrVec={}, cntrVal={} ' .format (cntr, self.cntr2num(cntr)))
+            else:
+                for cntr in self.cntrs:
+                    printf (outputFile, '{:.1f} ' .format(self.cntr2num(cntr)))
+                printf (outputFile, '] ')
 
 
     def printCntrsStat (

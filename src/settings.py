@@ -393,8 +393,9 @@ def writeVecStatToFile (
     printf (statFile, f'// vec={str}\n')
     lenVec = int(len(vec))
     maxVec = max(vec)
+    minVec = min(vec)
     printf (statFile, '// len(vec)={:.0f}, minVec={:.1f},  maxVec={:.1f}, avgVec={:.1f}, stdevVec={:.1f}\n' .format
-           (lenVec, min(vec), maxVec, np.mean(vec), np.std(vec))) 
+           (lenVec, minVec, maxVec, np.mean(vec), np.std(vec))) 
     
     if lenVec<11: # No need to print binning datafor up to 10 bins: one can merely print the data itself.
         return
@@ -408,5 +409,7 @@ def writeVecStatToFile (
     printf (statFile, f'// bins:\n')
     for bin in range(numBins):
         printf (statFile, f'binVecs={binVecs[bin]}, binVal={binVal[bin]}\n')
-    
+    if minVec<0:
+        warning ('in settings.writeVecStatToFile(). The minimal value in vector {} is {:.2f}' .format
+                 (str, minVec))
     
