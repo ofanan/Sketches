@@ -41,44 +41,39 @@ BLUE        = '#0072B2'
 VERMILION   = '#D55E00'
 PURPLE      = '#CC79A7'
 
-# The colors used for each alg's plot, in the dist' case
-colorOfMode = {
-    'F3P'       : PURPLE,
-    'SEAD_stat_e3' : VERMILION,
-    'SEAD_stat_e4' : 'black',
-    'SEAD dyn'  : VERMILION,
-    'SEAD_dyn'  : VERMILION,
-    'FP'        : BLUE,
-    'Tetra stat': BLUE,
-    'Tetra dyn' : BLUE,
-    'CEDAR'     : BLUE,
-    'Morris'    : ORANGE,
-    'AEE'       : YELLOW,
-    'AEE_ds'    : YELLOW,
-    'int'       : 'black',
-    'F2P lr'    : GREEN,
-    'F2P lr h1' : GREEN,
-    'F2P_lr_h2' : GREEN,
-    'F2P_li_h2' : GREEN,
-    'F2P_li_h2_ds' : GREEN,
-    'F2P_li'    : GREEN,
-    'F2P sr'    : PURPLE,
-    'F2P sr h1' : PURPLE,
-    'F2P sr h2' : PURPLE,
-    'F2P_sr_h2' : PURPLE,
-    'F2P_si_h2' : PURPLE,
-    'F2P sr'    : PURPLE,
-    'F2P li'    : YELLOW,
-    'F3P_li_h2' : BLACK,
-    'F3P_li_h3' : YELLOW,
-    'F3P_si_h2' : BLUE,
-    'F3P_si_h3' : PURPLE,
-    'FP 5M2E'   : VERMILION,
-    'FP_e2'     : VERMILION,
-    'FP_e5'     : BLUE,
-    'FP 1M6E'   : BLUE,
-    }
-
+def colorOfMode (
+        modeStr : str
+    ) -> str:
+    """
+    Given a string defining a mode, return the color used when plotting the results of this mode.
+    """
+    if modeStr.startswith('F3P'):
+        return PURPLE
+    elif modeStr=='SEAD_stat_e4':
+        return 'black'
+    elif modeStr.startswith('SEAD'):
+        return VERMILION
+    elif modeStr.startswith('FP'):
+        return BLUE
+    elif modeStr.startswith('Tetra'):
+        return BLUE
+    elif modeStr.startswith('CEDAR'):
+        return BLUE
+    elif modeStr.startswith('Morris'):
+        return ORANGE
+    elif modeStr.startswith('AEE'):
+        return YELLOW
+    elif modeStr.startswith('int'):
+        return black
+    elif modeStr.startswith('F2P_l'):
+        return GREEN
+    elif modeStr.startswith('F2P_s'):
+        return PURPLE
+    elif modeStr.startswith('F3P_l'):
+        return BLACK
+    elif modeStr.startswith('F3P_s'):
+        return BLUE
+    
 colors = ['green', 'purple', 'brown', 'black', 'blue', 'yellow', 'magenta', 'red', 'green', 'purple', 'brown', 'black']
 
 # The markers used for each alg', in the dist' case
@@ -334,9 +329,9 @@ class ResFileParser (object):
                     print (pointOfThisModeNCntrSize[1]) 
                 point = pointOfThisModeNCntrSize[0]
                 y_lo, y_avg, y_hi = point['Lo'], point['Avg'], point['Hi']                     
-                ax.plot ((cntrSize, cntrSize), (y_lo, y_hi), color=colorOfMode[mode])  # Plot the conf' interval line
+                ax.plot ((cntrSize, cntrSize), (y_lo, y_hi), color=colorOfMode(mode))  # Plot the conf' interval line
                 y.append (y_avg)
-            ax.plot (cntrSizes, y, color=colorOfMode[mode], marker=markerOfMode[mode],
+            ax.plot (cntrSizes, y, color=colorOfMode(mode), marker=markerOfMode[mode],
                      markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH, label=point['mode'], mfc='none') 
 
         plt.xlabel('Counter Size [bits]')
@@ -481,7 +476,7 @@ class ResFileParser (object):
                 ax.plot (
                     (x, x), 
                     (point['Lo'], point['Hi']),
-                    color       = colorOfMode[mode],
+                    color       = colorOfMode(mode),
                     # marker      = '+', 
                     # markersize  = MARKER_SIZE, 
                     # linewidth   = LINE_WIDTH, 
@@ -495,7 +490,7 @@ class ResFileParser (object):
             ax.plot (
                 [m for m in memSizesInKb], 
                 y, 
-                color       = colorOfMode[mode],
+                color       = colorOfMode(mode),
                 # marker      = '+', 
                 # markersize  = MARKER_SIZE, 
                 linewidth   = LINE_WIDTH, 
@@ -558,7 +553,7 @@ class ResFileParser (object):
                                        (point['settingStr'], mode, cntrMaxVal, y_lo, y_hi, y_avg))                    
                 y.append (y_avg)
 
-            ax.plot (cntrMaxVals, y, color=colorOfMode[mode], marker=markerOfMode[mode],
+            ax.plot (cntrMaxVals, y, color=colorOfMode(mode), marker=markerOfMode[mode],
                      markersize=MARKER_SIZE, linewidth=LINE_WIDTH, label=point['settingStr'], mfc='none') 
 
         plt.xlabel('Counter Maximum Value')
@@ -592,7 +587,7 @@ class ResFileParser (object):
                 settings.error (f'More than a single list of points for mode {mode}')
             points = pointsOfThisMode[0]['points']
             
-            ax.plot (points['X'], points['Y'], color=colorOfMode[mode], marker=markerOfMode[mode],
+            ax.plot (points['X'], points['Y'], color=colorOfMode(mode), marker=markerOfMode[mode],
                      markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=mode, mfc='none') 
 
         plt.xlabel('Counted Value')
