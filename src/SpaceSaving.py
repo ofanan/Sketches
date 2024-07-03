@@ -65,12 +65,12 @@ class SpaceSaving (CountMinSketch):
         for cntrIdx in range(self.numCntrs): # loop over the cache's elements
             if self.flowIds[cntrIdx]==flowId: # found the flowId in the $
                 self.flowSizes[cntrIdx] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob-inc. the counter, and get its val
-                hit = True # $ hit
+                hit = True 
                 break
             elif self.flowIds[cntrIdx]==None: # the flowId isn't cached yet, and the $ is not full yet
                 self.flowIds  [cntrIdx] = flowId # insert flowId into the $
                 self.flowSizes[cntrIdx] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob-inc. the counter, and get its val
-                hit = True # $ hit
+                hit = True 
                 break
         if not(hit): # didn't found flowId in the $ --> insert it
             cntrIdx = min(range(self.numCntrs), key=self.flowSizes.__getitem__) # find the index of the minimal cached item # to allow randomizing between all minimal items, np.where(a==a.min())
@@ -140,7 +140,8 @@ class SpaceSaving (CountMinSketch):
             random.seed (self.seed)
             self.genCntrMaster () # Generate a fresh, empty CntrMaster, for each experiment
             self.cntrMaster.setLogFile(self.logFile)
-            printf (self.logFile, f'// cntrMaxVal = {self.cntrMaxVal}\n')
+            if self.expNum==0 and self.logFile!=None:
+                printf (self.logFile, f'// cntrMaxVal = {self.cntrMaxVal}\n')
             flowRealVal = [0] * self.numFlows
             self.incNum = 0
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
@@ -232,7 +233,7 @@ class SpaceSaving (CountMinSketch):
                     self.dumpDictToPcl    (dict)
                 if VERBOSE_RES in self.verbose:
                     printf (self.resFile, f'{dict}\n\n') 
-        self.printSimMsg (f'Finished {self.incNum+1} increments')
+        self.printSimMsg (f'Finished {self.incNum} increments')
 
                 
     def fillStatDictsFields (self, dict) -> dict:
@@ -272,17 +273,18 @@ def runSS (mode,
             cntrSize        = cntrSize,
             numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
             cacheSize       = cacheSize,
-            verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+            verbose         = [], #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
             mode            = mode,
             traceFileName   = traceFileName,
             numOfExps       = 10, 
             maxValBy        = 'F2P_li_h2',
+            maxNumIncs      = 10000,
         )
         ss.sim ()
     
 if __name__ == '__main__':
     try:
-        for cacheSize in [2**i for i in range(10, 19)]:
+        for cacheSize in [10]: #[2**i for i in range(10, 19)]:
             for mode in ['F2P_li_h2_ds']:    
             # for mode in ['CEDAR_ds']:    
                 runSS (

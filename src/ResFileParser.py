@@ -1007,9 +1007,9 @@ def genErVsCntrSizeTableTrace ():
 def rmvFromPcl ():
     myResFileParser = ResFileParser()
     myResFileParser.rmvFromPcl(
-        pclFileName = 'cms_Caida2_PC.pcl',
+        pclFileName = 'cms_Caida2_HPC.pcl',
         listOfDicts = [
-            {'mode' : 'F2P_li_h2'}
+            {'mode' : 'AEE_ds'}
         ]
     )
         
@@ -1040,17 +1040,15 @@ def genErVsMemSizePlot (
     ):
     
     myResFileParser = ResFileParser ()
-    traceName = 'Caida2'
-    myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC.pcl')
-    myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC.pcl')
-    # for mode in ['F3P_li_h2', 'F3P_si_h2', 'F3P_si_h3' 
-    #     myResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
-    myResFileParser.genErVsMemSizePlot (
-        traceName   = traceName,
-        ignoreModes = ignoreModes,
-        rel_abs_n   = False,
-        cntrSize    = 8,
-    )
+    for traceName in ['Caida2']:
+        # myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC.pcl')
+        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC.pcl')
+        myResFileParser.genErVsMemSizePlot (
+            traceName   = traceName,
+            ignoreModes = ignoreModes,
+            rel_abs_n   = False,
+            cntrSize    = 8,
+        )
 
 if __name__ == '__main__':
     try:
