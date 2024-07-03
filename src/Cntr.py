@@ -73,7 +73,16 @@ class CntrMaster (object):
         """
         An empty function. Implemented only for compatibility with buckets, that do have such a func.
         """
-        None
+        settings.writeVecStatToFile (
+            statFile    = outputFile,
+            vec         = self.cntrs,
+            str         = 'cntrs'        
+        )
+        if self.numCntrs<50:
+            self.printAllCntrs(
+                outputFile      = outputFile, 
+                printAlsoVec    = False
+            )
 
     def setLogFile (self, logFile):
         """

@@ -400,7 +400,7 @@ def writeVecStatToFile (
     lenVec = len(vec)
     maxVec = max(vec)
     printf (statFile, f'// len(vec)={lenVec}')     
-    printf (statFile, '// minVec={:.1f},  maxVec={:.1f}, avgVec={:.1f}\n, stdevVec={:.1f}' .format
+    printf (statFile, '// minVec={:.1f},  maxVec={:.1f}, avgVec={:.1f}, stdevVec={:.1f}\n' .format
            (min(vec), maxVec, np.mean(vec), np.std(vec))) 
     
     numBins = min (100, maxVec+1)
@@ -412,6 +412,5 @@ def writeVecStatToFile (
     printf (statFile, f'// bins:\n')
     for bin in range(numBins):
         printf (statFile, f'binVecs={binVecs[bin]}, binVal={binVal[bin]}\n')
-    statFile.close()
     
     

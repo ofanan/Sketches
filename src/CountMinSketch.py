@@ -296,8 +296,10 @@ class CountMinSketch:
         """
         if VERBOSE_LOG_END_SIM in self.verbose:
             printf (self.logFile, '\nAt the end of sim:\n')
-            self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr())
-            self.cntrMaster.printAllCntrs  (self.logFile)
+            self.cntrMaster.printCntrsStat (
+                self.logFile, 
+                outputFileName  = self.genSettingsStr()
+            )
     
     def runSimFromTrace (self):
         """
@@ -377,7 +379,6 @@ class CountMinSketch:
         Simulate the count min sketch
         """
         
-        # self.smplProb   = 1
         self.sumSqAbsEr  = [0] * self.numOfExps # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
         self.sumSqRelEr  = [0] * self.numOfExps # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
         self.printSimMsg ('Started')
@@ -455,9 +456,9 @@ def runCMS (mode,
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
             numEpsilonStepsInXlBkt  = 5,
-            verbose                 = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+            verbose                 = [VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
-            maxNumIncs              = 333333,
+            maxNumIncs              = 333,
             maxValBy                = 'F2P_li_h2',
             cntrSize                = cntrSize, 
         )
@@ -482,8 +483,8 @@ def runCMS (mode,
     
 if __name__ == '__main__':
     try:
-        cntrSize = 8
-        for width in [2**i for i in range (10, 19)]:
+        cntrSize = 6
+        for width in [2]: #[2**i for i in range (10, 19)]:
             # for mode  in ['PerfectCounter']:
             #     width = int(width/4)
             # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
@@ -495,7 +496,7 @@ if __name__ == '__main__':
                     mode        = mode, 
                     cntrSize    = cntrSize, 
                     width       = width,
-                    traceFileName = 'Caida2',
+                    traceFileName = 'Rand',
                 )
     except KeyboardInterrupt:
         print ('Keyboard interrupt.')

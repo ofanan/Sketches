@@ -101,8 +101,8 @@ def printTraceStatToFile (
     relativePathToStatFile = settings.getRelativePathToTraceFile (f'{traceName}_stat.txt')
     settings.checkIfInputFileExists (relativePathToStatFile)
     statFile    = open (relativePathToStatFile, 'w')
-    printf (statFile, '// mean inter arrival = {:.2e}\n'  .format(np.mean(interAppearanceVec)))
-    printf (statFile, '// stdev inter arrival = {:.2e}\n' .format(np.std(interAppearanceVec)))
+    printf (statFile, '// mean inter arrival = {:.2f}\n'  .format(np.mean(interAppearanceVec)))
+    printf (statFile, '// stdev inter arrival = {:.2f}\n' .format(np.std(interAppearanceVec)))
     settings.writeVecStatToFile (
         statFile    = statFile,
         vec         = np.array([f for f in flowSizes if f>0]),
