@@ -888,7 +888,7 @@ def genErrByDistBar ():
                     verbose     =[VERBOSE_RES, settings.VERBOSE_PLOT]
                 )
     
-def genRndErrTable ():
+def genQuantErrTable ():
     """
     Print a formatted table detailing the quantization's rounding  errors.
     """
@@ -1057,7 +1057,7 @@ if __name__ == '__main__':
         # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
         rmvFromPcl ()
-        # genRndErrTable ()
+        # genQuantErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 
