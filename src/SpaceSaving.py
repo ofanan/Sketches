@@ -41,9 +41,9 @@ class SpaceSaving (CountMinSketch):
         self.genOutputDirectories ()
         self.openOutputFiles ()
         self.flowIds    = [None]*self.numCntrs
-        self.flowSizes  = np.zeros(self.numCntrs)
-        self.dwnSmpl         = self.mode.endswith('_ds')
-        self.maxValBy        = maxValBy
+        self.flowSizes  = np.zeros(self.numCntrs, dtype='uint32')
+        self.dwnSmpl    = self.mode.endswith('_ds')
+        self.maxValBy   = maxValBy
         if self.maxValBy==None: # By default, the maximal counter's value is the trace length 
             if self.traceFileName=='Rand':
                 self.cntrMaxVal = self.maxNumIncs
@@ -64,18 +64,18 @@ class SpaceSaving (CountMinSketch):
         hit = False
         for cntrIdx in range(self.numCntrs): # loop over the cache's elements
             if self.flowIds[cntrIdx]==flowId: # found the flowId in the $
-                self.flowSizes[cntrIdx] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob-inc. the counter, and get its val
+                self.flowSizes[cntrIdx] = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob-inc. the counter, and get its val
                 hit = True 
                 break
             elif self.flowIds[cntrIdx]==None: # the flowId isn't cached yet, and the $ is not full yet
                 self.flowIds  [cntrIdx] = flowId # insert flowId into the $
-                self.flowSizes[cntrIdx] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob-inc. the counter, and get its val
+                self.flowSizes[cntrIdx] = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob-inc. the counter, and get its val
                 hit = True 
                 break
         if not(hit): # didn't found flowId in the $ --> insert it
             cntrIdx = min(range(self.numCntrs), key=self.flowSizes.__getitem__) # find the index of the minimal cached item # to allow randomizing between all minimal items, np.where(a==a.min())
             self.flowIds  [cntrIdx] = flowId # replace the item by the newly-inserted flowId
-            self.flowSizes[cntrIdx] = self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx) # prob'-inc. the value
+            self.flowSizes[cntrIdx] = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob'-inc. the value
         return self.flowSizes[cntrIdx]
         
     def openOutputFiles (self) -> None:
@@ -117,13 +117,13 @@ class SpaceSaving (CountMinSketch):
         """
         if not(VERBOSE_LOG in self.verbose):
             return
-        if realVal%1>0: #$$$
-            error ('BANG')                
-        self.cntrMaster.printAllCntrs (self.logFile)
-        flowSizes = [int(f) for f in self.flowSizes]
+        if realVal%1>0: 
+            error (f'In SpaceSaving.printLogLine(). Got realVal={realVal}. The real val of flow size should be an int.')                
+        if self.cacheSize < 10:
+            self.cntrMaster.printAllCntrs (self.logFile)
         printf (self.logFile, 
                 ' incNum={}, flowId={}, flowSizes={}, estimatedVal={:.0f} realVal={}\n' .format(
-                self.incNum, flowId, flowSizes, estimatedVal, realVal)) 
+                self.incNum, flowId, self.flowSizes, estimatedVal, realVal)) 
 
     def runSimFromTrace (self):
         """
@@ -284,7 +284,7 @@ def runSS (mode,
     
 if __name__ == '__main__':
     try:
-        for cacheSize in [10]: #[2**i for i in range(10, 19)]:
+        for cacheSize in [100, 1000]: #[2**i for i in range(10, 19)]:
             for mode in ['F2P_li_h2_ds']:    
             # for mode in ['CEDAR_ds']:    
                 runSS (
