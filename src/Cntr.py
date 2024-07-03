@@ -46,7 +46,7 @@ class CntrMaster (object):
             if printAlsoVec:
                 for idx in range(self.numCntrs):
                     cntrDict = self.queryCntr (idx, getVal=False)
-                    print ('cntrVec={}, cntrVal={} ' .format (cntrDict['cntrVec'], cntrDict['val']))
+                    print ('cntrVec={}, cntrVal={:.1f} ' .format (cntrDict['cntrVec'], cntrDict['val']))
             else:
                 for idx in range(self.numCntrs):
                     print ('{} ' .format(self.queryCntr(cntrIdx=idx, getVal=True)))
@@ -55,7 +55,7 @@ class CntrMaster (object):
             printf (outputFile, 'cntrs=[')
             if printAlsoVec:
                 for cntr in self.cntrs:
-                    printf (outputFile, 'cntrVec={}, cntrVal={} ' .format (cntr, self.cntr2num(cntr)))
+                    printf (outputFile, 'cntrVec={}, cntrVal={:.1f} ' .format (cntr, self.cntr2num(cntr)))
             else:
                 for cntr in self.cntrs:
                     printf (outputFile, '{:.1f} ' .format(self.cntr2num(cntr)))

@@ -37,11 +37,11 @@ class CntrMaster (Cntr.CntrMaster):
         )
         self.cntrMaxVal  = cntrMaxVal # The maximal value that can be coded by the estimators
         if self.cntrSize<=8:
-            self.cntrs       = np.zeros (self.numCntrs, dtype=np.int8)
+            self.cntrs       = np.zeros (self.numCntrs, dtype=np.uint8)
         elif self.cntrSize<=16:
-            self.cntrs       = np.zeros (self.numCntrs, dtype=np.int16)
+            self.cntrs       = np.zeros (self.numCntrs, dtype=np.uint16)
         else:
-            self.cntrs       = np.zeros (self.numCntrs, dtype=np.int32)
+            self.cntrs       = np.zeros (self.numCntrs, dtype=np.uint32)
         self.cntrMaxVec  = 2**self.cntrSize - 1 # The maximal value of a self.cntrSize-bits integer estimator.
         self.cntrZeroVec = 0 
         self.p           = self.setP ()
