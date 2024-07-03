@@ -26,13 +26,14 @@ class CntrMaster (AEE.CntrMaster):
         The value after the operation. 
         """        
         if self.cntrs[cntrIdx]==self.cntrMaxVec: # Cntr is saturated --> need to down-sample
+            if self.cntr2num(self.cntrs[cntrIdx])!=self.cntrMaxVec/self.p:
+                error ('In AEE_ds.incCntrBy1GetVal(). Wrong CntrMaxVal. cntrVal={self.cntr2num(self.cntrs[cntrIdx])}self.cntr2num(self.cntrs[cntrIdx]), curCntrMaxVal={self.cntrMaxVec/self.p}')
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
                 if self.numCntrs<10:
                     printf (self.logFile, f'\nb4 upScaling:\n')
                     self.printAllCntrs (self.logFile)
                 else:
-                    printf (self.logFile, '\ncntrVal={:.0f}, curCntrMaxVal={:.0f}. upScaling.\n' .format
-                            (self.cntr2num(self.cntrs[cntrIdx]), self.cntrMaxVal/self.p))
+                    printf (self.logFile, 'cntrVal={:.0f}. upScaling.\n' .format (self.cntrMaxVec/self.p))
             self.upScale ()
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
                 if self.numCntrs<10:

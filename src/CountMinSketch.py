@@ -488,9 +488,9 @@ if __name__ == '__main__':
             # for mode  in ['PerfectCounter']:
             #     width = int(width/4)
             # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
-            # for mode in ['F2P_li_h2_ds']:    
+            for mode in ['F2P_li_h2_ds']:    
             # for mode in ['CEDAR_ds']:    
-            for mode in ['AEE_ds']:    
+            # for mode in ['AEE_ds']:    
                         # for mode in ['CEDAR', 'Morris']:     
                 runCMS (
                     mode        = mode, 

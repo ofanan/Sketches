@@ -132,13 +132,14 @@ class CntrMaster (F2P_li.CntrMaster):
 
         # now we know that we should consider incrementing the counter
         if self.cntrs[cntrIdx]==self.cntrMaxVec: # Asked to increment a saturated counter
+            if self.cntr2num(self.cntrs[cntrIdx])!=self.cntrMaxVal/self.globalIncProb:
+                error ('In F2P_li_ds.incCntrBy1GetVal(). Wrong CntrMaxVal. cntrVal={self.cntr2num(self.cntrs[cntrIdx])}self.cntr2num(self.cntrs[cntrIdx]), curCntrMaxVal={self.cntrMaxVal/self.globalIncProb}')                
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
                 if self.numCntrs<10:
-                    printf (self.logFile, f'\nb4 upScaling:\n')
+                    printf (self.logFile, f'b4 upScaling:\n')
                     self.printAllCntrs (self.logFile)
                 else:
-                    printf (self.logFile, '\ncntr={}, cntrVal={:.0f}, curCntrMaxVal={:.0f}. upScaling.\n' .format
-                            (self.cntrs[cntrIdx], self.cntr2num(self.cntrs[cntrIdx]), self.cntrMaxVal/self.globalIncProb))
+                    printf (self.logFile, 'cntrVal={:.0f}. upScaling.\n' .format (self.cntr2num(self.cntrs[cntrIdx])))
             self.upScale ()
             self.globalIncProb /= 2
             if self.numCntrs<10:
