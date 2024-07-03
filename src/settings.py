@@ -388,3 +388,30 @@ def getSeadStatExpSize (
         error (f'settings.getSeadStatExpSize() was called with wrong mode {mode}')
     return int(mode.split('_e')[1])
     
+def writeVecStatToFile (
+        statFile,
+        vec,
+        str,
+    ):
+    """
+    Calculate and write the statistics (mean, min, max, std, binning) of a given vector to the given output file.
+    """
+    printf (statFile, f'// vec={str}\n')
+    lenVec = len(vec)
+    maxVec = max(vec)
+    printf (statFile, f'// len(vec)={lenVec}')     
+    printf (statFile, '// minVec={:.1f},  maxVec={:.1f}, avgVec={:.1f}\n, stdevVec={:.1f}' .format
+           (min(vec), maxVec, np.mean(vec), np.std(vec))) 
+    
+    numBins = min (100, maxVec+1)
+    binSize = maxVec // (numBins-1)
+    binVal  = [None] * numBins 
+    for bin in range(numBins):
+        binVal[bin] = len ([flowId for flowId in range(lenVec) if (vec[flowId]//binSize)==bin])
+    binVecs = [binSize*bin for bin in range(numBins)]
+    printf (statFile, f'// bins:\n')
+    for bin in range(numBins):
+        printf (statFile, f'binVecs={binVecs[bin]}, binVal={binVal[bin]}\n')
+    statFile.close()
+    
+    

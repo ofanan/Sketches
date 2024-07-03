@@ -62,7 +62,7 @@ def calcTraceStat (
     The trace is merely a list of integers (keys), representing the flow to which each pkt belongs, in a .txt file.
     """
     relativePathToTraceFile = settings.getRelativePathToTraceFile (f'{traceName}.txt')
-    settings.checkIfInputFileExists (exitError=True)
+    settings.checkIfInputFileExists (relativePathToTraceFile)
     if numFlows==None:
         error ('In TraceParser.calcTraceStat(). Sorry, currently you must specify the num of flows for parsing the trace.')
     traceFile = open (relativePathToTraceFile, 'r')
@@ -99,35 +99,28 @@ def printTraceStatToFile (
     Given a vector with the flowId accessed at each cycle, calculate the trace's stat.
     """    
     relativePathToStatFile = settings.getRelativePathToTraceFile (f'{traceName}_stat.txt')
+    settings.checkIfInputFileExists (relativePathToStatFile)
     statFile    = open (relativePathToStatFile, 'w')
-    flowSizes   = np.array([f for f in flowSizes if f>0])
-    numFlows    = len(flowSizes)
-    maxFlowSize = max(flowSizes)
-    printf (statFile, f'// numFlows = {numFlows}\n')
     printf (statFile, '// mean inter arrival = {:.2e}\n'  .format(np.mean(interAppearanceVec)))
     printf (statFile, '// stdev inter arrival = {:.2e}\n' .format(np.std(interAppearanceVec)))
-    printf (statFile, f'// maxFlowSize={maxFlowSize}\n')
-    printf (statFile, f'// avgFlowSize={np.mean(flowSizes)}\n') 
-    printf (statFile, f'// stdevFlowSize={np.std(flowSizes)}\n')
-    
-    numBins = min (100, maxFlowSize+1)
-    binSize = maxFlowSize // (numBins-1)
-    binVal  = [None] * numBins 
-    for bin in range(numBins):
-        binVal[bin] = len ([flowId for flowId in range(numFlows) if (flowSizes[flowId]//binSize)==bin])
-    binFlowSizes = [binSize*bin for bin in range(numBins)]
-    printf (statFile, f'// bins:\n')
-    for bin in range(numBins):
-        printf (statFile, f'binFlowSizes={binFlowSizes[bin]}, binVal={binVal[bin]}\n')
-    statFile.close()
+    settings.writeVecStatToFile (
+        statFile    = statFile,
+        vec         = np.array([f for f in flowSizes if f>0]),
+        str         = 'flow sizes'        
+    )
     
 # parseCsvTrace (
 #     traceFileName = 'Caida1.csv',
 #     verbose         = [settings.VERBOSE_RES] # verbose level, determined in settings.py.
 # )
 
-traceName = '‏‏Caida1'
+traceName = 'Caida1'
 calcTraceStat (
     traceName     = traceName, 
-    maxNumOfRows  = 25000000,
+    maxNumOfRows  = 250, #$$$$ 00000,
 )
+
+# relativePathToInputFile = '../../traces/Caida/‏‏Caida1.txt'
+# if os.path.isfile (relativePathToInputFile):
+#     error ('yesh')
+# error ('ein')
