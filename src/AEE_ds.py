@@ -27,12 +27,17 @@ class CntrMaster (AEE.CntrMaster):
         """        
         if self.cntrs[cntrIdx]==self.cntrMaxVec: # Cntr is saturated --> need to down-sample
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                printf (self.logFile, f'\nb4 upScaling:\n')
-                self.printAllCntrs (self.logFile)
+                if self.numCntrs<10:
+                    printf (self.logFile, f'\nb4 upScaling:\n')
+                    self.printAllCntrs (self.logFile)
+                else:
+                    printf (self.logFile, '\ncntr={}, cntrVal={:.0f}, curCntrMaxVal={:.0f}. upScaling.\n' .format
+                            (self.cntrs[cntrIdx], self.cntr2num(self.cntrs[cntrIdx]), self.cntrMaxVal/self.globalIncProb))
             self.upScale ()
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                printf (self.logFile, f'\nafter upScaling:\n')
-                self.printAllCntrs (self.logFile)
+                if self.numCntrs<10:
+                    printf (self.logFile, f'\nafter upScaling:\n')
+                    self.printAllCntrs (self.logFile)
         if random.random() < self.p: # Perform prob' increment
             self.cntrs[cntrIdx] += 1 
         return self.cntr2num(self.cntrs[cntrIdx])
