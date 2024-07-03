@@ -295,7 +295,7 @@ class CountMinSketch:
         about the counters' values at the end of the sim. 
         """
         if VERBOSE_LOG_END_SIM in self.verbose:
-            printf (self.logFile, '\nAt the end of sim:\n')
+            printf (self.logFile, '// At the end of sim:\n')
             self.cntrMaster.printCntrsStat (
                 self.logFile, 
                 outputFileName  = self.genSettingsStr()
@@ -458,7 +458,7 @@ def runCMS (mode,
             numEpsilonStepsInXlBkt  = 5,
             verbose                 = [VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
-            maxNumIncs              = 333,
+            maxNumIncs              = 33333,
             maxValBy                = 'F2P_li_h2',
             cntrSize                = cntrSize, 
         )
