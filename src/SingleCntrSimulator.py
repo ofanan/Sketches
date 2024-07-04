@@ -763,8 +763,8 @@ def getAllCntrsMaxValsFxP ():
 def printAllValsFxp ():
     getAllValsFxp (
        nSystem      = 'F3P', # either 'F2P' or 'F3P'
-       cntrSize     = 8, # size of the counter, WITHOUT the sign bit (if exists).  
-       hyperSize    = 3, # Max size of the hyper-exp field. Relevant only for F3P. 
+       cntrSize     = 4, # size of the counter, WITHOUT the sign bit (if exists).  
+       hyperSize    = 1, # Max size of the hyper-exp field. Relevant only for F3P. 
        flavor       = 'li', 
        verbose      = [VERBOSE_RES, VERBOSE_COUT_CONF], #verbose level. See settings.py for details.
        signed       = False # When True, assume an additional bit for the  

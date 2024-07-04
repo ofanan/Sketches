@@ -75,9 +75,7 @@ class CntrMaster (F3P_li.CntrMaster):
             mantVec = cntr[expVecBegin+expSize:]
             expVal  = self.expVec2expVal(expVec, expSize) 
             absExpVal = abs(expVal)
-            mantVec   = cntr[self.hyperSize+expSize:] 
             mantSize  = len(mantVec) 
-
 
             # Need to code the special case of (sub) normal values.
             if VERBOSE_DEBUG in self.verbose:
@@ -105,7 +103,7 @@ class CntrMaster (F3P_li.CntrMaster):
                 
             if truncated and random.random()<0.5: # need to ceil the #                             
                 if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa? 
-                    cntr = hyperVec + expVec + '0'*(self.cntrSize - self.hyperSize - expSize)
+                    cntr = '1'*hyperSize + expVec + '0'*(self.cntrSize - self.hyperSize - expSize)
                 else:
                     mantVal = int (mantVec, base=2)
                     cntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
@@ -141,7 +139,7 @@ class CntrMaster (F3P_li.CntrMaster):
                 error ('In F3P_li_ds.incCntrBy1GetVal(). Wrong CntrMaxVal. cntrVal={self.cntr2num(self.cntrs[cntrIdx])}self.cntr2num(self.cntrs[cntrIdx]), curCntrMaxVal={self.cntrMaxVal/self.globalIncProb}')                
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
                 if self.numCntrs<10:
-                    printf (self.logFile, f'b4 upScaling:\n')
+                    printf (self.logFile, f'\nb4 upScaling:\n')
                     self.printAllCntrs (self.logFile)
                 else:
                     printf (self.logFile, 'cntrVal={:.0f}. upScaling.\n' .format (self.cntr2num(self.cntrs[cntrIdx])))
