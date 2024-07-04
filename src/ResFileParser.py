@@ -984,7 +984,6 @@ def genErVsCntrSizeTableTrace ():
         """
         my_ResFileParser    = ResFileParser ()
         datOutputFile       = open (f'../res/cms_Caida1.dat', 'a+')
-        my_ResFileParser.rdPcl (pclFileName=f'cms_Caida1_HPC_u.pcl')
         for mode in ['F2P_li_h2', 'F3P_li_h2', 'F3P_li_h3', 'F3P_si_h2', 'F3P_si_h3']:
             # my_ResFileParser.rdPcl (pclFileName=f'cms_{mode}_PC.pcl')
             my_ResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
@@ -1039,9 +1038,9 @@ def genErVsMemSizePlot (
         ignoreModes : list = [],# List of modes to NOT include in the plot
     ):
     
-    myResFileParser = ResFileParser ()
-    for traceName in ['Caida2']:
-        # myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC.pcl')
+    for traceName in ['Caida1', 'Caida2']:
+        myResFileParser = ResFileParser ()
+        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC.pcl')
         myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC.pcl')
         myResFileParser.genErVsMemSizePlot (
             traceName   = traceName,
@@ -1055,7 +1054,7 @@ if __name__ == '__main__':
         genErVsMemSizePlot (
             ignoreModes = ['PerfectCounter', 'SEAD_dyn']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
         )
-        # genUniqPcl (pclFileName=f'cms_Caida2_HPC.pcl')
+        # genUniqPcl (pclFileName='cms_Caida2_PC.pcl')
         # genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()

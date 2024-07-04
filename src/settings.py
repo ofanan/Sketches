@@ -71,7 +71,7 @@ Confs = [{'cntrSize' : 3,  'cntrMaxVal' : 10,       'hyperSize' : 2, 'hyperMaxSi
 
 # Calculate the confidence interval of an array of values ar, given its avg. Based on 
 # https://stackoverflow.com/questions/15033511/compute-a-confidence-interval-from-sample-data
-confInterval = lambda ar, avg, conf_lvl=0.99 : st.t.interval (conf_lvl, len(ar)-1, loc=avg, scale=st.sem(ar)) if np.std(ar)>0 else [avg, avg]
+confInterval = lambda ar, avg, conf_lvl=0.95 : st.t.interval (conf_lvl, len(ar)-1, loc=avg, scale=st.sem(ar)) if np.std(ar)>0 else [avg, avg]
    
 
 def getDf (distStr : str) -> float:
