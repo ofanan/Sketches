@@ -109,9 +109,9 @@ class CntrMaster (F3P_lr.CntrMaster):
         settings.error ('In F3P_li.incCntr(). Sorry, incCntr is currently supported only for factor=1 and mult=False')
     
     def incCntrBy1GetVal (self, 
-                    cntrIdx  = 0, # idx of the concrete counter to increment in the array
-                    forceInc = False # If forceInc==True, increment the counter. Else, inc the counter w.p. corresponding to the next counted value.
-                    ): 
+            cntrIdx  = 0, # idx of the concrete counter to increment in the array
+            forceInc = False # If forceInc==True, increment the counter. Else, inc the counter w.p. corresponding to the next counted value.
+        ): 
         """
         Increment the counter to the closest higher value.
         If the cntr reached its max val, or the randomization decides not to inc, merely return the cur cntr.

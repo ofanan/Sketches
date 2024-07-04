@@ -121,7 +121,6 @@ class CntrMaster (F3P_li.CntrMaster):
                 
     def incCntrBy1GetVal (self, 
             cntrIdx  = 0, # idx of the concrete counter to increment in the array
-            forceInc = False # If forceInc==True, increment the counter. Else, inc the counter w.p. corresponding to the next counted value.
         ): 
         """
         Increment the counter to the closest higher value, when down-sampling is enabled.
@@ -172,14 +171,8 @@ class CntrMaster (F3P_li.CntrMaster):
         else:
             cntrCurVal = (1 + mantVal) * (2**(expVal+self.bias))
         
-        if not(forceInc): # check first the case where we don't have to inc the counter 
-            if (self.cntrs[cntrIdx]==self.cntrMaxVec or random.random() > self.probOfInc1[abs(expVal)]): 
-                return int(cntrCurVal)    
-
         # now we know that we have to inc. the cntr
         cntrppVal  = cntrCurVal + (1/self.probOfInc1[abs(expVal)])
-        if settings.VERBOSE_COUT_CNTRLINE in self.verbose:
-            print (f'b4 inc: cntrVec={cntr}, cntrVal={int(cntrCurVal)}')
         if mantVec == '1'*mantSize: # the mantissa overflowed
             self.cntrs[cntrIdx] = self.cntrppOfAbsExpVal[abs(expVal)]
         else:
@@ -187,8 +180,6 @@ class CntrMaster (F3P_li.CntrMaster):
                 self.cntrs[cntrIdx] = '1'*hyperSize + '0' + expVec + np.binary_repr(num=mantIntVal+1, width=mantSize) 
             else:
                 self.cntrs[cntrIdx] = '1'*hyperSize       + expVec + np.binary_repr(num=mantIntVal+1, width=mantSize) 
-        if settings.VERBOSE_COUT_CNTRLINE in self.verbose:
-            print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={int(cntrppVal)}')
         return int(cntrppVal) 
 
 myCntr = CntrMaster (
