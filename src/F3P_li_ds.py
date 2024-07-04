@@ -109,6 +109,8 @@ class CntrMaster (F3P_li.CntrMaster):
                     cntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
             else: # No need to ceil the #
                 cntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
+            if len(cntr)>8:
+                error (f'In F3P_li_ds. curCntr={self.cntrs[cntrIdx]}. upScaledCntr={cntr}')
             self.cntrs[cntrIdx] = cntr   
             if VERBOSE_DEBUG in self.verbose:
                 val = self.cntr2num (cntr)
