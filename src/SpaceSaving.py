@@ -38,6 +38,7 @@ class SpaceSaving (CountMinSketch):
         self.cntrSize, self.traceFileName = cntrSize, traceFileName
         self.maxNumIncs, self.numOfExps, = maxNumIncs, numOfExps
         self.numCntrs, self.numFlows, self.mode, self.seed = cacheSize, numFlows, mode, seed
+        self.cacheSize = self.numCntrs # In the particular case of the SS data structure, these are the same.
         self.verbose = verbose
         self.cntrsAr = defaultdict(int)
         self.genOutputDirectories ()
@@ -249,49 +250,50 @@ class SpaceSaving (CountMinSketch):
         dict['numFlows']    = self.numFlows
         return dict
  
-def runRandSS (args):
-    """
-    """ 
-    cntrSize    = 8,
-    maxNumIncs  = float ('inf'),
-    cacheSize   = 1,
-    traceFileName = 'Rand' 
-    ss = SpaceSaving (
-        numFlows        = 9,
-        cntrSize        = cntrSize, 
-        cacheSize       = 3,
-        verbose         = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
-        traceFileName   = traceFileName,
-        mode            = mode,
-        numOfExps       = 1, 
-        maxNumIncs      = 333333,
-        maxValBy        = 'F2P_li_h2',
-    )
-    
-def runTraceSS (arg):
-    """
-    """
-    cntrSize    = 8,
-    maxNumIncs  = float ('inf'),
-    cacheSize   = 1,
-    traceFileName = 'Rand' 
-    ss = SpaceSaving (
-        cntrSize        = cntrSize,
-        numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
-        cacheSize       = cacheSize,
-        verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
-        mode            = mode,
-        traceFileName   = traceFileName,
-        numOfExps       = 10, 
-        maxValBy        = 'F2P_li_h2',
-    )
-    ss.sim ()
+# def runRandSS (args):
+#     """
+#     """ 
+#     cntrSize    = 8,
+#     maxNumIncs  = float ('inf'),
+#     cacheSize   = 1,
+#     traceFileName = 'Rand' 
+#     ss = SpaceSaving (
+#         numFlows        = 9,
+#         cntrSize        = cntrSize, 
+#         cacheSize       = 3,
+#         verbose         = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+#         traceFileName   = traceFileName,
+#         mode            = mode,
+#         numOfExps       = 1, 
+#         maxNumIncs      = 333333,
+#         maxValBy        = 'F2P_li_h2',
+#     )
+#
+# def runTraceSS (arg):
+#     """
+#     """
+#     cntrSize    = 8,
+#     maxNumIncs  = float ('inf'),
+#     cacheSize   = 1,
+#     traceFileName = 'Rand' 
+#     ss = SpaceSaving (
+#         cntrSize        = cntrSize,
+#         numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
+#         cacheSize       = cacheSize,
+#         verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+#         mode            = mode,
+#         traceFileName   = traceFileName,
+#         numOfExps       = 10, 
+#         maxValBy        = 'F2P_li_h2',
+#     )
+#     ss.sim ()
     
 def threadLuncher (
         traceFileName, 
         cntrSize, 
+        mode,
         maxNumIncs, 
-        cacheSize
+        cacheSize,
     ):
     if traceFileName=='Rand':
         ss = SpaceSaving (
@@ -302,7 +304,7 @@ def threadLuncher (
             traceFileName   = traceFileName,
             mode            = mode,
             numOfExps       = 1, 
-            maxNumIncs      = 333333,
+            maxNumIncs      = 33,
             maxValBy        = 'F2P_li_h2',
         )
     else:
@@ -317,19 +319,20 @@ def threadLuncher (
             maxValBy        = 'F2P_li_h2',
         )
     ss.sim ()
-
     
 if __name__ == '__main__':
     try:
         # thread = Thread (target = threaded_function, args = (10, ))
-        for cacheSize in [2**i for i in range(10, 19)]:
+        for cacheSize in [1, 2, 3]: #[2**i for i in range(10, 19)]:
             threading.Thread (
                 target = threadLuncher, 
-                args   = (0,), 
+                args   = ('Rand',), 
                 kwargs = {
                     'cntrSize'      : 8,
+                    'mode'          : 'CEDAR_ds',
                     'maxNumIncs'    : float ('inf'),
-                    'cacheSize'     : cacheSize}
+                    'cacheSize'     : cacheSize,
+                }
                 ).start()
             print (f'Launched ss thread for cahceSize={cacheSize}')    
         # thread = Thread (target = runSS, args = (10, 3, 2, 1))# cntrSize  = 8, mode = mode, cacheSize = cacheSize, traceFileName   = 'Caida2'))
