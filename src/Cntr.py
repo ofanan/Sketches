@@ -56,6 +56,7 @@ class CntrMaster (object):
             if printAlsoVec:
                 for cntr in self.cntrs:
                     printf (outputFile, 'cntrVec={}, cntrVal={:.1f} ' .format (cntr, self.cntr2num(cntr)))
+                printf (outputFile, '] ')
             else:
                 for cntr in self.cntrs:
                     printf (outputFile, '{:.1f} ' .format(self.cntr2num(cntr)))

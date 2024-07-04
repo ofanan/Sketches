@@ -5,7 +5,7 @@ import math, random, pickle, numpy as np
 
 from printf import printf
 import settings, F3P_li
-from settings import error, VERBOSE_DEBUG, VERBOSE_LOG_DWN_SMPL
+from settings import error, VERBOSE_DEBUG, VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL
 
 class CntrMaster (F3P_li.CntrMaster):
     """
@@ -49,7 +49,6 @@ class CntrMaster (F3P_li.CntrMaster):
                     self.LsbVecOfAbsExpVal[abs(expVal)-1] = '1'*hyperSize + '0' + expVec
         self.LsbVecOfAbsExpVal[self.Vmax-1] = '1'*2*self.hyperMaxSize 
         self.mantSizeOfAbsExpVal = [self.cntrSize - len(item) for item in self.LsbVecOfAbsExpVal] # self.mantSizeOfAbsExpVal[e] is the size of the mantissa field of the vector when decreasing the vector's exponent whose current absolute value is e.
-        error (self.LsbVecOfAbsExpVal)
         
     def cntr2num (self, cntr):
         """
@@ -57,26 +56,105 @@ class CntrMaster (F3P_li.CntrMaster):
         """
         return super(CntrMaster, self).cntr2num (cntr=cntr)/self.globalIncProb 
 
-    def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
+    def upScale (self):
         """
-        Increment the counter to the closest higher value.
-        If the cntr reached its max val, or the randomization decides not to inc, merely return the cur cntr.
-        Return the counter's value after the increment        
+        Allow down-sampling:
+        - Half the values of all the counters.
+        - Increase the bias value added to the exponent, to return the counters to roughly their original values.
         """
-        if factor==1 and mult==False:
-            return self.incCntrBy1GetVal (cntrIdx=cntrIdx)
-        settings.error ('In F3P_li.incCntr(). Sorry, incCntr is currently supported only for factor=1 and mult=False')
-    
+        for cntrIdx in range(self.numCntrs):
+            cntr      = self.cntrs[cntrIdx]         # Extract the hyper-exponent field, and value
+            
+            hyperSize = settings.idxOfLeftmostZero (ar=cntr, maxIdx=self.hyperMaxSize)         
+            expSize   = self.hyperSize
+            if hyperSize < self.hyperMaxSize: # if the # of trailing max < hyperMaxSize, the cntr must have a delimiter '0'
+                expVecBegin  = hyperSize+1
+            else:
+                expVecBegin  = self.hyperMaxSize
+            expVec  = cntr[expVecBegin : expVecBegin+expSize]
+            mantVec = cntr[expVecBegin+expSize:]
+            expVal  = self.expVec2expVal(expVec, expSize) 
+            absExpVal = abs(expVal)
+            mantVec   = cntr[self.hyperSize+expSize:] 
+            mantSize  = len(mantVec) 
+
+
+            # Need to code the special case of (sub) normal values.
+            if VERBOSE_DEBUG in self.verbose:
+                orgVal = self.cntr2num (cntr)
+            truncated = False # By default, we didn't truncate the # when dividing by 2 --> no need to round. 
+            
+            if absExpVal==self.Vmax-1: # The edge case of sub-normal values: need to only divide the mantissa; no need (and cannot) further decrease the exponent
+                if mantVec[-1]=='1':
+                    truncated = True
+                mantVec = '0' + mantVec[0:-1] # mantVec >> 1 # divide the mantissa by 2 (by right-shift) 
+            elif absExpVal==self.Vmax-1: # The edge case of 1-above sub-normal values: need to only right-shift the value, and insert '1' in the new leftmost mantissa bit. 
+                if mantVec[-1]=='1':
+                    truncated = True
+                mantVec = '1' + mantVec[0:-1]                
+            elif self.mantSizeOfAbsExpVal[absExpVal]<mantSize: #the mantissa field of the halved cntr should be 1-bit shorter
+                if mantVec[-1]=='1':
+                    truncated = True
+                mantVec   = mantVec[0:-1]
+                mantSize -= 1
+            
+            if VERBOSE_DEBUG in self.verbose:
+                self.cntrs[0] = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
+                floorVal      = self.cntr2num(self.cntrs[0])
+                ceilVal       = self.incCntrBy1GetVal(forceInc=True) 
+                
+            if truncated and random.random()<0.5: # need to ceil the #                             
+                if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa? 
+                    cntr = hyperVec + expVec + '0'*(self.cntrSize - self.hyperSize - expSize)
+                else:
+                    mantVal = int (mantVec, base=2)
+                    cntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
+            else: # No need to ceil the #
+                cntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
+            self.cntrs[cntrIdx] = cntr   
+            if VERBOSE_DEBUG in self.verbose:
+                val = self.cntr2num (cntr)
+                if val==float(orgVal)/2:
+                    None
+                else:
+                    if not (val in [floorVal, ceilVal]):
+                        error ('orgVal/2={:.0f}, val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}' 
+                               .format (float(orgVal)/2, val, floorVal, ceilVal))
+                
     def incCntrBy1GetVal (self, 
-                    cntrIdx  = 0, # idx of the concrete counter to increment in the array
-                    forceInc = False # If forceInc==True, increment the counter. Else, inc the counter w.p. corresponding to the next counted value.
-                    ): 
+            cntrIdx  = 0, # idx of the concrete counter to increment in the array
+            forceInc = False # If forceInc==True, increment the counter. Else, inc the counter w.p. corresponding to the next counted value.
+        ): 
         """
-        Increment the counter to the closest higher value.
-        If the cntr reached its max val, or the randomization decides not to inc, merely return the cur cntr.
-        Return the counter's value after the increment        
+        Increment the counter to the closest higher value, when down-sampling is enabled.
+        If the cntr reached its max val, up-scale and perform down-sampling.  
+        If the randomization decides not to inc, merely return the cur cntr.
+        Return the counter's value after the increment.        
         """
         
+        if self.globalIncProb<1 and random.random()>self.globalIncProb: # consider first the case where we do not need to increment the counter - only sample its value 
+            return self.cntr2num (self.cntrs[cntrIdx])
+
+        # now we know that we should consider incrementing the counter
+        if self.cntrs[cntrIdx]==self.cntrMaxVec: # Asked to increment a saturated counter
+            if self.cntr2num(self.cntrs[cntrIdx])!=self.cntrMaxVal/self.globalIncProb:
+                error ('In F3P_li_ds.incCntrBy1GetVal(). Wrong CntrMaxVal. cntrVal={self.cntr2num(self.cntrs[cntrIdx])}self.cntr2num(self.cntrs[cntrIdx]), curCntrMaxVal={self.cntrMaxVal/self.globalIncProb}')                
+            if VERBOSE_LOG_DWN_SMPL in self.verbose:
+                if self.numCntrs<10:
+                    printf (self.logFile, f'b4 upScaling:\n')
+                    self.printAllCntrs (self.logFile)
+                else:
+                    printf (self.logFile, 'cntrVal={:.0f}. upScaling.\n' .format (self.cntr2num(self.cntrs[cntrIdx])))
+            self.upScale ()
+            self.globalIncProb /= 2
+            if self.numCntrs<10:
+                printf (self.logFile, f'\nafter upScaling:\n')
+                self.printAllCntrs (self.logFile)
+
+        if self.cntrs[cntrIdx]==self.cntrMaxVec: # Asked to increment a saturated counter
+            error (f'cntr={self.cntrs[cntrIdx]} after upScaling')
+            
+        # Consider incrementing the counter, as usual
         cntr        = self.cntrs[cntrIdx]
         hyperSize   = settings.idxOfLeftmostZero (ar=cntr, maxIdx=self.hyperMaxSize)
         if hyperSize==self.hyperMaxSize: # need no delimiter
@@ -115,4 +193,12 @@ class CntrMaster (F3P_li.CntrMaster):
             print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={int(cntrppVal)}')
         return int(cntrppVal) 
 
-myCntr = CntrMaster (cntrSize=8, hyperMaxSize=3)
+myCntr = CntrMaster (
+    cntrSize     = 4, 
+    hyperMaxSize = 1,
+    verbose=[VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG]
+)
+logFile = open ('../res/log_files/F3P_li_ds.log', 'w')
+myCntr.setLogFile (logFile)
+for _ in range (100):
+    myCntr.incCntrBy1GetVal ()

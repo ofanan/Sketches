@@ -79,9 +79,6 @@ class CntrMaster (F2P_sr.CntrMaster):
         expVec  = cntr[expVecBegin : expVecBegin+expSize]
         mantVec = cntr[expVecBegin+expSize:]
         expVal  = self.expVec2expVal(expVec, expSize) 
-        if (settings.VERBOSE_DEBUG in self.verbose):
-            if (expVec != self.expVal2expVec(expVal, expSize=expSize)):   
-                error ('In F3P_sr.cntr2num(). expVec={}, expVal={}, expSize={}, Back to expVec={}' .format (expVec, expVal, expSize, self.expVal2expVec(expVal, expSize)))
         mantVal = float (int (mantVec, base=2)) / 2**(self.cntrSize - expVecBegin - expSize)  
         if expVec == self.expMinVec:
             cntrVal  = mantVal * (2**self.powerMin)
