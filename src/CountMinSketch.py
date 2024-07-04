@@ -462,13 +462,13 @@ def runCMS (mode,
             verbose                 = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
             maxNumIncs              = 333333,
-            maxValBy                = 'F2P_li_h2',
+            maxValBy                = 'F3P_li_h3',
             cntrSize                = cntrSize, 
         )
         cms.sim ()
     else:
         cms = CountMinSketch (
-            maxValBy        = 'F2P_li_h2',
+            maxValBy        = 'F3P_li_h3',
             width           = width,
             depth           = depth,
             numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
@@ -487,13 +487,13 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         cntrSize = 8
-        for width in [2**i for i in range (10, 19)]: 
+        for width in [2]: #[2**i for i in range (10, 19)]: 
             # for mode  in ['PerfectCounter']:
             #     width = int(width/4)
             # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
             # for mode in ['F2P_li_h2_ds']:    
             # for mode in ['CEDAR_ds']:    
-            for mode in ['AEE_ds']:    
+            for mode in ['F3P_li_h3_ds']:    
                         # for mode in ['CEDAR', 'Morris']:     
                 runCMS (
                     mode        = mode, 
