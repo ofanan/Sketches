@@ -324,16 +324,17 @@ if __name__ == '__main__':
     try:
         # thread = Thread (target = threaded_function, args = (10, ))
         for cacheSize in [2**i for i in range(10, 19)]:
-            threading.Thread (
-                target = threadLuncher, 
-                args   = ('Rand',), 
-                kwargs = {
-                    'cntrSize'      : 8,
-                    'mode'          : 'CEDAR_ds',
-                    'maxNumIncs'    : float ('inf'),
-                    'cacheSize'     : cacheSize,
-                }
-                ).start()
+            for trace in ['Caida1', 'Caida2']:
+                threading.Thread (
+                    target = threadLuncher, 
+                    args   = (trace,), 
+                    kwargs = {
+                        'cntrSize'      : 8,
+                        'mode'          : 'F2P_li_h2_ds',
+                        'maxNumIncs'    : float ('inf'),
+                        'cacheSize'     : cacheSize,
+                    }
+                    ).start()
             print (f'Launched ss thread for cahceSize={cacheSize}')    
         # thread = Thread (target = runSS, args = (10, 3, 2, 1))# cntrSize  = 8, mode = mode, cacheSize = cacheSize, traceFileName   = 'Caida2'))
         # thread.start()
