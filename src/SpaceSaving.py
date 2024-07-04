@@ -287,15 +287,22 @@ def runTraceSS (arg):
     )
     ss.sim ()
     
-def gamad (arg1, arg2):
-    print (arg1)
-    print (arg2)
+def threadLuncher (traceFileName, cntrSize, maxNumIncs, cacheSize):
+    print (traceFileName)
+    print (cntrSize)
 
     
 if __name__ == '__main__':
     try:
         # thread = Thread (target = threaded_function, args = (10, ))
-        threading.Thread(target=gamad, args=(1,), kwargs={'arg2':2}).start()
+        threading.Thread (
+            target = threadLuncher, 
+            args   = (0,), 
+            kwargs = {
+                'cntrSize'      : 8,
+                'maxNumIncs'    : float ('inf'),
+                'cacheSize'     : 1}
+            ).start()
         # thread = Thread (target = runSS, args = (10, 3, 2, 1))# cntrSize  = 8, mode = mode, cacheSize = cacheSize, traceFileName   = 'Caida2'))
         # thread.start()
 
