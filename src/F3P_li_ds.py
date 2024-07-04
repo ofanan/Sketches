@@ -47,7 +47,7 @@ class CntrMaster (F3P_li.CntrMaster):
                     self.LsbVecOfAbsExpVal[abs(expVal)-1] = '1'*hyperSize + expVec
                 else: 
                     self.LsbVecOfAbsExpVal[abs(expVal)-1] = '1'*hyperSize + '0' + expVec
-        self.LsbVecOfAbsExpVal[self.Vmax-1] = '1'*(self.hyperMaxSize + 2**self.hyperMaxSize - 1) 
+        self.LsbVecOfAbsExpVal[self.Vmax-1] = '1'*2*self.hyperMaxSize 
         self.mantSizeOfAbsExpVal = [self.cntrSize - len(item) for item in self.LsbVecOfAbsExpVal] # self.mantSizeOfAbsExpVal[e] is the size of the mantissa field of the vector when decreasing the vector's exponent whose current absolute value is e.
         error (self.LsbVecOfAbsExpVal)
         
@@ -115,4 +115,4 @@ class CntrMaster (F3P_li.CntrMaster):
             print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={int(cntrppVal)}')
         return int(cntrppVal) 
 
-myCntr = CntrMaster (cntrSize=4, hyperMaxSize=1)
+myCntr = CntrMaster (cntrSize=8, hyperMaxSize=3)
