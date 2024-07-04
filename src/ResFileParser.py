@@ -1146,7 +1146,7 @@ def genErVsMemSizePlotSs (
 
 if __name__ == '__main__':
     try:
-        genErVsMemSizePlotSs (
+        genErVsMemSizePlot (
             ignoreModes = ['PerfectCounter', 'SEAD_dyn']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
         )
         # genUniqPcl (pclFileName='cms_Caida2_PC.pcl')

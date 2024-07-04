@@ -683,7 +683,7 @@ def getAllValsFxp (flavor='',
     listOfVals = sorted (listOfVals, key=lambda item : item['val'])
     
     if (VERBOSE_RES in verbose):
-        outputFile    = open ('../res/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
+        outputFile    = open ('../res/single_cntr_log_files/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
         for item in listOfVals:
             printf (outputFile, '{}={}\n' .format (item['cntrVec'], item['val']))
     
@@ -763,7 +763,7 @@ def getAllCntrsMaxValsFxP ():
 def printAllValsFxp ():
     getAllValsFxp (
        nSystem      = 'F3P', # either 'F2P' or 'F3P'
-       cntrSize     = 7, # size of the counter, WITHOUT the sign bit (if exists).  
+       cntrSize     = 8, # size of the counter, WITHOUT the sign bit (if exists).  
        hyperSize    = 3, # Max size of the hyper-exp field. Relevant only for F3P. 
        flavor       = 'li', 
        verbose      = [VERBOSE_RES, VERBOSE_COUT_CONF], #verbose level. See settings.py for details.
@@ -771,7 +771,8 @@ def printAllValsFxp ():
     )
 
 def main ():
-    # getAllCntrsMaxValsFxP ()
+    printAllValsFxp ()
+    exit ()
     maxValBy = 'F2P_li_h2'
     modes = ['AEE'] #[maxValBy, 'CEDAR', 'Morris', 'SEAD_dyn']
     for cntrSize in [16]:
