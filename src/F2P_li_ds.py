@@ -40,17 +40,10 @@ class CntrMaster (F2P_li.CntrMaster):
         """
         super(CntrMaster, self).setFlavorParams ()
         self.LsbVecOfAbsExpVal   = ['']*(self.Vmax) # self.LsbVecOfAbsExpVal[e] will hold the LSB fields (hyperVec and expVec) of the vector when decreasing the vector's exponent whose current absolute value is e.
-
-        for hyperSize in range(0, self.hyperMaxSize+1):
-            for i in range (2**hyperSize):
-                expVec = np.binary_repr(num=i, width=hyperSize) if hyperSize>0 else ''
-                expVal = self.expVec2expVal (expVec=expVec, expSize=hyperSize)
-                resolution = 2**(expVal + self.bias - mantSizeOfHyperSize[hyperSize])
-                self.probOfInc1[abs(expVal)] = 1/resolution
-        
-        
-        for hyperSize in range(0, self.hyperMaxSize+1):
-            for i in range (2**hyperSize):
+        for expSize in range(self.expMaxSize, 0, -1):
+            hyperVec = np.binary_repr (expSize, self.hyperSize) 
+            mantSize = self.cntrSize - self.hyperSize - expSize
+            for i in range (2**expSize-1, 0, -1): 
                 expVec = np.binary_repr(num=i, width=expSize)
                 expVal = self.expVec2expVal (expVec=expVec, expSize=expSize)
                 self.LsbVecOfAbsExpVal[abs(expVal)-1] = hyperVec + expVec 

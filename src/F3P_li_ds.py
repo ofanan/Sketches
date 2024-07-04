@@ -15,10 +15,10 @@ class CntrMaster (F3P_li.CntrMaster):
     """
 
     def __init__ (self, 
-            cntrSize  : int = 8, # of bits in the cntr 
-            hyperSize : int = 1, # of bits in the hyper-exp field 
-            numCntrs  : int = 1, # of cntrs in the cntrs' array
-            verbose   = []    # the optional verbose values are detailed in settings.py
+            cntrSize        : int  = 8, # of bits in the cntr 
+            hyperMaxSize    : int  = 1, # of bits in the hyper-exp field 
+            numCntrs        : int  = 1, # of cntrs in the cntrs' array
+            verbose         : list = []    # the optional verbose values are detailed in settings.py
         ):
         
         """
@@ -27,10 +27,10 @@ class CntrMaster (F3P_li.CntrMaster):
         """       
         self.globalIncProb = 1.0 # Probability to consider an increment for any counter. After up-scaling, this probability decreases.
         super(CntrMaster, self).__init__ (
-            cntrSize    = cntrSize, 
-            numCntrs    = numCntrs,
-            hyperSize   = hyperSize, 
-            verbose     = verbose
+            cntrSize        = cntrSize, 
+            hyperMaxSize    = hyperMaxSize, # of bits in the hyper-exp field 
+            numCntrs        = numCntrs,
+            verbose         = verbose
         )
 
     def setFlavorParams (self):
@@ -39,56 +39,23 @@ class CntrMaster (F3P_li.CntrMaster):
         """
         super(CntrMaster, self).setFlavorParams ()
         self.LsbVecOfAbsExpVal   = ['']*(self.Vmax) # self.LsbVecOfAbsExpVal[e] will hold the LSB fields (hyperVec and expVec) of the vector when decreasing the vector's exponent whose current absolute value is e.
-        for expSize in range(self.expMaxSize, 0, -1):
-            hyperVec = np.binary_repr (expSize, self.hyperSize) 
-            mantSize = self.cntrSize - self.hyperSize - expSize
-            for i in range (2**expSize-1, 0, -1): 
-                expVec = np.binary_repr(num=i, width=expSize)
-                expVal = self.expVec2expVal (expVec=expVec, expSize=expSize)
-                self.LsbVecOfAbsExpVal[abs(expVal)-1] = hyperVec + expVec 
-            expVal = self.expVec2expVal (expVec='0'*expSize, expSize=expSize)
-            self.LsbVecOfAbsExpVal[abs(expVal)-1] = hyperVec + '0'*expSize
-        self.LsbVecOfAbsExpVal[self.Vmax-1] = '1'*(self.hyperSize + 2**self.hyperSize - 1) 
+        for hyperSize in range(0, self.hyperMaxSize+1):
+            for i in range (2**hyperSize):
+                expVec = np.binary_repr(num=i, width=hyperSize) if hyperSize>0 else ''
+                expVal = self.expVec2expVal (expVec=expVec, expSize=hyperSize)
+                if hyperSize==self.hyperMaxSize:
+                    self.LsbVecOfAbsExpVal[abs(expVal)-1] = '1'*hyperSize + expVec
+                else: 
+                    self.LsbVecOfAbsExpVal[abs(expVal)-1] = '1'*hyperSize + '0' + expVec
+        self.LsbVecOfAbsExpVal[self.Vmax-1] = '1'*(self.hyperMaxSize + 2**self.hyperMaxSize - 1) 
         self.mantSizeOfAbsExpVal = [self.cntrSize - len(item) for item in self.LsbVecOfAbsExpVal] # self.mantSizeOfAbsExpVal[e] is the size of the mantissa field of the vector when decreasing the vector's exponent whose current absolute value is e.
+        error (self.LsbVecOfAbsExpVal)
         
-    def printAllCntrs (
-            self, 
-            outputFile   = None,
-            printAlsoVec = False, # when True, print also the counters' vectors.
-        ) -> None:
+    def cntr2num (self, cntr):
         """
-        Format-print all the counters as a single the array, to the given file.
-        Format print the values corresponding to all the counters in self.cntrs.
-        Used for debugging/logging.
-        """        
-        if outputFile==None:
-            print (f'Printing all cntrs.')
-            if printAlsoVec:
-                for idx in range(self.numCntrs):
-                    cntrDict = self.queryCntr (idx, getVal=False)
-                    print ('cntrVec={}, cntrVal={} ' .format (cntrDict['cntrVec'], cntrDict['val']))
-            else:
-                for idx in range(self.numCntrs):
-                    print ('{:.0f} ' .format(self.queryCntr(cntrIdx=idx, getVal=True)))
-        else:
-            cntrVals = np.empty (self.numCntrs)
-            for idx in range(self.numCntrs):
-                cntrVals[idx] = self.queryCntr(cntrIdx=idx, getVal=True)
-            printf (outputFile, 
-                    '// minCntrVal={:.0f}, maxCntrVal={:.0f}, avgCntrVal={:.0f} \n// cntrsVals:\n'
-                    .format (np.min(cntrVals), np.max(cntrVals), np.average(cntrVals)))
-            for cntrVal in cntrVals:
-                printf (outputFile, '{:.0f} ' .format(cntrVal))
-
-    def setDwnSmpl (
-            self, 
-            dwnSmpl   : bool = False, # When True, use down-sampling 
-        ):
-        
+        Given a counter, as a binary vector (e.g., "11110"), return the number it represents.
         """
-        """
-        self.dwnSmpl = dwnSmpl
-        error ('In F3P_li.setDwnSmpl(). dwnSmpl is not implemented yet for F3P_li.')
+        return super(CntrMaster, self).cntr2num (cntr=cntr)/self.globalIncProb 
 
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
         """
@@ -147,4 +114,5 @@ class CntrMaster (F3P_li.CntrMaster):
         if settings.VERBOSE_COUT_CNTRLINE in self.verbose:
             print (f'after inc: cntrVec={self.cntrs[cntrIdx]}, cntrVal={int(cntrppVal)}')
         return int(cntrppVal) 
-        
+
+myCntr = CntrMaster (cntrSize=4, hyperMaxSize=1)

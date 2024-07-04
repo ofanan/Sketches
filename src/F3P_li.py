@@ -69,44 +69,34 @@ class CntrMaster (F3P_lr.CntrMaster):
                 self.cntrppOfAbsExpVal[absExpVal] = '1'*(hyperSize-1) + '0' + '1'*(hyperSize-1) + '0'*mantSizeOfHyperSize[hyperSize-1]
                 absExpVal -= 1
         
-    def printAllCntrs (
-            self, 
-            outputFile   = None,
-            printAlsoVec = False, # when True, print also the counters' vectors.
-        ) -> None:
-        """
-        Format-print all the counters as a single the array, to the given file.
-        Format print the values corresponding to all the counters in self.cntrs.
-        Used for debugging/logging.
-        """        
-        if outputFile==None:
-            print (f'Printing all cntrs.')
-            if printAlsoVec:
-                for idx in range(self.numCntrs):
-                    cntrDict = self.queryCntr (idx, getVal=False)
-                    print ('cntrVec={}, cntrVal={} ' .format (cntrDict['cntrVec'], cntrDict['val']))
-            else:
-                for idx in range(self.numCntrs):
-                    print ('{:.0f} ' .format(self.queryCntr(cntrIdx=idx, getVal=True)))
-        else:
-            cntrVals = np.empty (self.numCntrs)
-            for idx in range(self.numCntrs):
-                cntrVals[idx] = self.queryCntr(cntrIdx=idx, getVal=True)
-            printf (outputFile, 
-                    '// minCntrVal={:.0f}, maxCntrVal={:.0f}, avgCntrVal={:.0f} \n// cntrsVals:\n'
-                    .format (np.min(cntrVals), np.max(cntrVals), np.average(cntrVals)))
-            for cntrVal in cntrVals:
-                printf (outputFile, '{:.0f} ' .format(cntrVal))
-
-    def setDwnSmpl (
-            self, 
-            dwnSmpl   : bool = False, # When True, use down-sampling 
-        ):
-        
-        """
-        """
-        self.dwnSmpl = dwnSmpl
-        error ('In F3P_li.setDwnSmpl(). dwnSmpl is not implemented yet for F3P_li.')
+    # def printAllCntrs (
+    #         self, 
+    #         outputFile   = None,
+    #         printAlsoVec = False, # when True, print also the counters' vectors.
+    #     ) -> None:
+    #     """
+    #     Format-print all the counters as a single the array, to the given file.
+    #     Format print the values corresponding to all the counters in self.cntrs.
+    #     Used for debugging/logging.
+    #     """        
+    #     if outputFile==None:
+    #         print (f'Printing all cntrs.')
+    #         if printAlsoVec:
+    #             for idx in range(self.numCntrs):
+    #                 cntrDict = self.queryCntr (idx, getVal=False)
+    #                 print ('cntrVec={}, cntrVal={} ' .format (cntrDict['cntrVec'], cntrDict['val']))
+    #         else:
+    #             for idx in range(self.numCntrs):
+    #                 print ('{:.0f} ' .format(self.queryCntr(cntrIdx=idx, getVal=True)))
+    #     else:
+    #         cntrVals = np.empty (self.numCntrs)
+    #         for idx in range(self.numCntrs):
+    #             cntrVals[idx] = self.queryCntr(cntrIdx=idx, getVal=True)
+    #         printf (outputFile, 
+    #                 '// minCntrVal={:.0f}, maxCntrVal={:.0f}, avgCntrVal={:.0f} \n// cntrsVals:\n'
+    #                 .format (np.min(cntrVals), np.max(cntrVals), np.average(cntrVals)))
+    #         for cntrVal in cntrVals:
+    #             printf (outputFile, '{:.0f} ' .format(cntrVal))
 
     def incCntr (self, cntrIdx=0, factor=int(1), mult=False, verbose=[]):
         """

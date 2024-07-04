@@ -39,7 +39,7 @@ class CntrMaster (F2P_sr.CntrMaster):
    
     def __init__ (self, 
       cntrSize      : int = 8, # of bits in the cntr 
-      hyperMaxSize  : int = None, # of bits in the hyper-exp field 
+      hyperMaxSize  : int = 1, # of bits in the hyper-exp field 
       numCntrs      : int = 1, # of cntrs in the cntrs' array
       verbose             = []    # the optional verbose values are detailed in settings.py
     ):
