@@ -287,22 +287,51 @@ def runTraceSS (arg):
     )
     ss.sim ()
     
-def threadLuncher (traceFileName, cntrSize, maxNumIncs, cacheSize):
-    print (traceFileName)
-    print (cntrSize)
+def threadLuncher (
+        traceFileName, 
+        cntrSize, 
+        maxNumIncs, 
+        cacheSize
+    ):
+    if traceFileName=='Rand':
+        ss = SpaceSaving (
+            numFlows        = 9,
+            cntrSize        = cntrSize, 
+            cacheSize       = 3,
+            verbose         = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+            traceFileName   = traceFileName,
+            mode            = mode,
+            numOfExps       = 1, 
+            maxNumIncs      = 333333,
+            maxValBy        = 'F2P_li_h2',
+        )
+    else:
+        ss = SpaceSaving (
+            cntrSize        = cntrSize,
+            numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
+            cacheSize       = cacheSize,
+            verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+            mode            = mode,
+            traceFileName   = traceFileName,
+            numOfExps       = 10, 
+            maxValBy        = 'F2P_li_h2',
+        )
+    ss.sim ()
 
     
 if __name__ == '__main__':
     try:
         # thread = Thread (target = threaded_function, args = (10, ))
-        threading.Thread (
-            target = threadLuncher, 
-            args   = (0,), 
-            kwargs = {
-                'cntrSize'      : 8,
-                'maxNumIncs'    : float ('inf'),
-                'cacheSize'     : 1}
-            ).start()
+        for cacheSize in [2**i for i in range(10, 19)]:
+            threading.Thread (
+                target = threadLuncher, 
+                args   = (0,), 
+                kwargs = {
+                    'cntrSize'      : 8,
+                    'maxNumIncs'    : float ('inf'),
+                    'cacheSize'     : cacheSize}
+                ).start()
+            print (f'Launched ss thread for cahceSize={cacheSize}')    
         # thread = Thread (target = runSS, args = (10, 3, 2, 1))# cntrSize  = 8, mode = mode, cacheSize = cacheSize, traceFileName   = 'Caida2'))
         # thread.start()
 
