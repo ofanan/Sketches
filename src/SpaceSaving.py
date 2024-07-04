@@ -323,7 +323,7 @@ def threadLuncher (
 if __name__ == '__main__':
     try:
         # thread = Thread (target = threaded_function, args = (10, ))
-        for cacheSize in [1, 2, 3]: #[2**i for i in range(10, 19)]:
+        for cacheSize in [2**i for i in range(10, 19)]:
             threading.Thread (
                 target = threadLuncher, 
                 args   = ('Rand',), 
