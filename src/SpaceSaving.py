@@ -1,7 +1,9 @@
+import threading
 import matplotlib 
 import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time, heapq
 import numpy as np
+from threading import Thread
 from datetime import datetime
 from collections import defaultdict
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
@@ -246,52 +248,69 @@ class SpaceSaving (CountMinSketch):
         dict['cacheSize']   = self.numCntrs
         dict['numFlows']    = self.numFlows
         return dict
-    
-def runSS (mode, 
+ 
+def runRandSS (args):
+    """
+    """ 
     cntrSize    = 8,
     maxNumIncs  = float ('inf'),
     cacheSize   = 1,
     traceFileName = 'Rand' 
-):
+    ss = SpaceSaving (
+        numFlows        = 9,
+        cntrSize        = cntrSize, 
+        cacheSize       = 3,
+        verbose         = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+        traceFileName   = traceFileName,
+        mode            = mode,
+        numOfExps       = 1, 
+        maxNumIncs      = 333333,
+        maxValBy        = 'F2P_li_h2',
+    )
+    
+def runTraceSS (arg):
     """
-    """   
-    if traceFileName=='Rand':
-        ss = SpaceSaving (
-            numFlows        = 9,
-            cntrSize        = cntrSize, 
-            cacheSize       = 3,
-            verbose         = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
-            traceFileName   = traceFileName,
-            mode            = mode,
-            numOfExps       = 1, 
-            maxNumIncs      = 333333,
-            maxValBy        = 'F2P_li_h2',
-        )
-        ss.sim ()
-    else:
-        ss = SpaceSaving (
-            cntrSize        = cntrSize,
-            numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
-            cacheSize       = cacheSize,
-            verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
-            mode            = mode,
-            traceFileName   = traceFileName,
-            numOfExps       = 10, 
-            maxValBy        = 'F2P_li_h2',
-        )
-        ss.sim ()
+    """
+    cntrSize    = 8,
+    maxNumIncs  = float ('inf'),
+    cacheSize   = 1,
+    traceFileName = 'Rand' 
+    ss = SpaceSaving (
+        cntrSize        = cntrSize,
+        numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
+        cacheSize       = cacheSize,
+        verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+        mode            = mode,
+        traceFileName   = traceFileName,
+        numOfExps       = 10, 
+        maxValBy        = 'F2P_li_h2',
+    )
+    ss.sim ()
+    
+def gamad (arg1, arg2):
+    print (arg1)
+    print (arg2)
+
     
 if __name__ == '__main__':
     try:
-        for cacheSize in [2**i for i in range(10, 19)]:
-            # for mode in ['F2P_li_h2_ds']:    
-            # for mode in ['CEDAR_ds']:    
-            for mode in ['AEE_ds']:    
-                runSS (
-                    cntrSize        = 8,
-                    mode            = mode,
-                    cacheSize       = cacheSize,
-                    traceFileName   = 'Caida2',
-                )
+        # thread = Thread (target = threaded_function, args = (10, ))
+        threading.Thread(target=gamad, args=(1,), kwargs={'arg2':2}).start()
+        # thread = Thread (target = runSS, args = (10, 3, 2, 1))# cntrSize  = 8, mode = mode, cacheSize = cacheSize, traceFileName   = 'Caida2'))
+        # thread.start()
+
+        # thread = Thread (target = threaded_function, args = (cntrSize  = 8, mode = mode, cacheSize = cacheSize, traceFileName   = 'Caida2'))
+                # )
+            # )
+            # for cacheSize in [2**i for i in range(10, 19)]:
+            # # for mode in ['F2P_li_h2_ds']:    
+            # # for mode in ['CEDAR_ds']:    
+            # for mode in ['AEE_ds']:    
+            #     runSS (
+            #         cntrSize        = 8,
+            #         mode            = mode,
+            #         cacheSize       = cacheSize,
+            #         traceFileName   = 'Caida2',
+            #     )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
