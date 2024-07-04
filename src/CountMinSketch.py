@@ -459,7 +459,7 @@ def runCMS (mode,
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
             numEpsilonStepsInXlBkt  = 5,
-            verbose                 = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+            verbose                 = [VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
             maxNumIncs              = 333333,
             maxValBy                = 'F3P_li_h3',
@@ -499,7 +499,7 @@ if __name__ == '__main__':
                     mode        = mode, 
                     cntrSize    = cntrSize, 
                     width       = width,
-                    traceFileName = 'Caida2',
+                    traceFileName = 'Rand',
                 )
     except KeyboardInterrupt:
         print ('Keyboard interrupt.')
