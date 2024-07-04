@@ -15,12 +15,14 @@ class SingleCntrSimulator (object):
     Controller that runs single-counter simulations, using various types of counters and configurations. 
     """
 
-    def __init__ (self, 
-                 seed           = settings.SEED,
-                 verbose=[]): # defines which outputs would be written to .res / .pcl output files. See the VERBOSE macros as settings.py. 
+    def __init__ (
+            self, 
+            seed    = settings.SEED,
+            verbose = [] # defines which outputs would be written to .res / .pcl output files. See the VERBOSE macros as settings.py.
+        ):  
         
         self.seed    = seed
-        random.seed (settings.SEED)
+        random.seed (self.seed)
         
         self.verbose = verbose
         if settings.VERBOSE_DETAILED_RES in self.verbose:
@@ -480,7 +482,7 @@ class SingleCntrSimulator (object):
         outputFileStr = '1cntr_{}{}' .format (self.machineStr, '_w_dwnSmpl' if self.dwnSmple else '')
         if (VERBOSE_RES in self.verbose):
             self.resFile = open (f'../res/{outputFileStr}.res', 'a+')
-            
+
         print ('Started running runSingleCntr at t={}. erTypes={} mode={}, cntrSize={}, maxRealVal={}, cntrMaxVal={}' .format (
                 datetime.now().strftime("%H:%M:%S"), self.erTypes, self.mode, self.cntrSize, self.maxRealVal, self.cntrRecord['cntr'].cntrMaxVal))
         
@@ -771,19 +773,19 @@ def printAllValsFxp ():
     )
 
 def main ():
-    printAllValsFxp ()
-    exit ()
-    maxValBy = 'F2P_li_h2'
-    modes = ['AEE'] #[maxValBy, 'CEDAR', 'Morris', 'SEAD_dyn']
-    for cntrSize in [16]:
-        simController = SingleCntrSimulator (verbose = []) #VERBOSE_RES, VERBOSE_PCL])
+    maxValBy = 'F3P_li_h2'
+    modes = ['F3P_li_h2_ds'] #['AEE', 'CEDAR', 'Morris', 'SEAD_dyn']
+    for cntrSize in [6]:
+        simController = SingleCntrSimulator (
+            verbose = [VERBOSE_RES]
+        ) 
         numSettings = getFxpSettings (maxValBy)
         cntrMaxVal = getCntrsMaxValsFxp (
             nSystem         = numSettings['nSystem'], # either 'F2p' or 'F3P.
             flavor          = numSettings['flavor'], 
             hyperSizeRange  = [numSettings['hyperSize']], # list of hyper-sizes to consider  
             cntrSizeRange   = [cntrSize], # list of cntrSizes to consider
-            verbose         = [VERBOSE_RES, VERBOSE_PCL],
+            verbose         = [VERBOSE_RES],
         )
         for mode in modes:
             simController.runSingleCntrSingleMode \
@@ -791,7 +793,7 @@ def main ():
                 mode            = mode, 
                 cntrSize        = cntrSize, 
                 cntrMaxVal      = cntrMaxVal,
-                numOfExps       = 100,
+                numOfExps       = 1, #100,
                 erTypes         = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
             )
         
