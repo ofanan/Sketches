@@ -508,6 +508,86 @@ class ResFileParser (object):
         if not(foundDups) and os.path.isfile (f'../res/{dupsFileName}'):
             os.remove(f'../res/{dupsFileName}')            
                 
+    def genErVsMemSizePlotSs (
+            self,
+            traceName   : str  = 'Caida1',
+            numOfExps   : int  = 10,
+            cntrSize    : int  = 8,
+            depth       : int  = 4,
+            statType    : str  = 'normRmse',
+            rel_abs_n   : bool = False, # When True, consider relative errors, Else, consider absolute errors.
+            ignoreModes : list = [],# List of modes to NOT include in the plot
+        ):
+        """
+        Generate a plot showing the error as a function of the counter's size.
+        """
+    
+        dupsFileName = 'listOfDuplicateEntries.txt'
+        dupsFile = open (f'../res/{dupsFileName}', 'w')
+        foundDups = False
+        self.setPltParams ()  # set the plot's parameters (formats of lines, markers, legends etc.).
+        _, ax = plt.subplots()
+
+        points = [point for point in self.points if 
+                  point['numOfExps'] == numOfExps and 
+                  point['statType']  == statType  and 
+                  point['rel_abs_n'] == rel_abs_n]
+        if points == []:
+            warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}')
+        modes = [point['mode'] for point in points]
+        modes = [mode for mode in modes if mode not in ignoreModes]
+        minY, maxY = float('inf'), 0 
+        for mode in modes:
+            pointsOfMode = [point for point in points if point['mode'] == mode]
+            # error (f'pointsOfMode={pointsOfMode}')
+            memSizes = [point['cacheSize'] for point in pointsOfMode]
+            minMemSizeInKB  = 10**0
+            minMemSize      = minMemSizeInKB * KB  
+            memSizes        = [m for m in memSizes if m>=minMemSize]
+            if len(memSizes)==0:
+                warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}')
+            y = []
+            for memSize in memSizes:
+                pointsToPlot = [point for point in pointsOfMode if point['cacheSize']==memSize]
+                if len(pointsToPlot)>1:
+                    warning (f'found {len(pointsToPlot)} points for numOfExps={numOfExps}, mode={mode}, memSize={memSize}, statType={statType}, rel_abs_n={rel_abs_n}. Printing the duplicated points to ../res/debug.txt')
+                    foundDups = True
+                    for point in pointsToPlot: 
+                        printfDict (dupsFile, point)
+                point = pointsToPlot[0]
+                y.append(point['Avg'])
+                ax.plot (
+                    (memSize, memSize), 
+                    (point['Lo'], point['Hi']),
+                    color       = colorOfMode(mode),
+                ) 
+                minY = min (minY, point['Avg'])
+                maxY = max (maxY, point['Avg'])
+            memSizesInKb = [memSize/KB for memSize in memSizes] # Memory size in KB = width * depth / 1024. 
+            ax.plot (
+                [m for m in memSizesInKb], 
+                y, 
+                color       = colorOfMode(mode),
+                linewidth   = LINE_WIDTH, 
+                label       = labelOfMode(point['mode']), 
+                mfc         ='none',
+            ) 
+        
+        plt.xlabel('Memory [KB]')
+        plt.ylabel('Normalized RMSE')
+        handles, labels = plt.gca().get_legend_handles_labels()
+        by_label = dict(zip(labels, handles))
+        plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
+        plt.xlim ([0.95*min(memSizesInKb), 10**3])       
+        plt.xscale ('log')          
+        outputFileName = 'ss_{}_n{}_{}' .format (traceName, cntrSize, 'rel' if rel_abs_n else 'abs') 
+        if not(USE_FRAME):
+            seaborn.despine(left=True, bottom=True, right=True)
+        plt.savefig (f'../res/{outputFileName}.pdf', bbox_inches='tight')        
+        dupsFile.close()
+        if not(foundDups) and os.path.isfile (f'../res/{dupsFileName}'):
+            os.remove(f'../res/{dupsFileName}')            
+                
     def genErVsCntrMaxValPlot (self, cntrSize=8, plotAbsEr=True):
         """
         Generate a plot showing the relative / abs err as a function of the maximum counted value
@@ -1049,9 +1129,24 @@ def genErVsMemSizePlot (
             cntrSize    = 8,
         )
 
+def genErVsMemSizePlotSs (
+        ignoreModes : list = [],# List of modes to NOT include in the plot
+    ):
+    
+    for traceName in ['Caida1', 'Caida2']:
+        myResFileParser = ResFileParser ()
+        myResFileParser.rdPcl (pclFileName=f'ss_{traceName}_PC.pcl')
+        # myResFileParser.rdPcl (pclFileName=f'ss_{traceName}_HPC.pcl')
+        myResFileParser.genErVsMemSizePlotSs (
+            traceName   = traceName,
+            ignoreModes = ignoreModes,
+            rel_abs_n   = False,
+            cntrSize    = 8,
+        )
+
 if __name__ == '__main__':
     try:
-        genErVsMemSizePlot (
+        genErVsMemSizePlotSs (
             ignoreModes = ['PerfectCounter', 'SEAD_dyn']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
         )
         # genUniqPcl (pclFileName='cms_Caida2_PC.pcl')

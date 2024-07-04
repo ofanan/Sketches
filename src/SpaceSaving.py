@@ -248,6 +248,9 @@ class SpaceSaving (CountMinSketch):
         dict['mode']        = self.mode
         dict['cacheSize']   = self.numCntrs
         dict['numFlows']    = self.numFlows
+        dict['cntrSize']    = self.cntrSize
+        dict['seed']        = self.seed
+        dict['maxValBy']    = self.maxValBy
         return dict
  
 # def runRandSS (args):
