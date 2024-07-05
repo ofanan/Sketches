@@ -6,7 +6,8 @@ from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
 import settings, Cntr, CEDAR, Morris, AEE, FP, SEAD_stat, SEAD_dyn   
 import F2P_sr, F2P_lr, F2P_li, F2P_li_ds, F2P_si, F3P_sr, F3P_lr, F3P_li, F3P_li_ds, F3P_si    
-from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS, VERBOSE_COUT_CONF, VERBOSE_COUT_CNTRLINE
+from settings import warning, error
+from settings import VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS, VERBOSE_COUT_CONF, VERBOSE_COUT_CNTRLINE, VERBOSE_LOG_DWN_SMPL
 from settings import getFxpSettings
 from datetime import datetime
 
@@ -775,6 +776,24 @@ def printAllValsFxp ():
        signed       = False # When True, assume an additional bit for the  
     )
 
+def testDwnSmpling ():
+    """
+    Test the down-sampling.
+    """
+    cntrSize        = 4
+    fxpSettingStr   = 'F3P_li_h1_ds'
+    cntrMaster = genCntrMasterFxp(
+        cntrSize    = cntrSize, 
+        fxpSettingStr = fxpSettingStr, 
+        verbose         = [VERBOSE_LOG_DWN_SMPL]
+    ) 
+    logFile = open (f'../res/log_files/{fxpSettingStr}.log', 'w')
+    cntrMaster.setLogFile (logFile)
+    for i in range (2**cntrSize):
+        cntrMaster.cntrs[0] = np.binary_repr(i, cntrSize)
+        cntrMaster.upScale  ()
+
+
 def main ():
     maxValBy = 'F3P_li_h2'
     modes = ['F3P_li_h2_ds'] #['AEE', 'CEDAR', 'Morris', 'SEAD_dyn']
@@ -818,7 +837,8 @@ def main ():
 
 if __name__ == '__main__':
     try:
-        main ()
+        testDwnSmpling ()
+        # main ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
         exit ()

@@ -82,11 +82,14 @@ class CntrMaster (F3P_li.CntrMaster):
                 orgVal = self.cntr2num (cntr)
             truncated = False # By default, we didn't truncate the # when dividing by 2 --> no need to round. 
             
+            if cntr=='01101010':
+                print (cntr)
+            
             if absExpVal==self.Vmax-1: # The edge case of sub-normal values: need to only divide the mantissa; no need (and cannot) further decrease the exponent
                 if mantVec[-1]=='1':
                     truncated = True
                 mantVec = '0' + mantVec[0:-1] # mantVec >> 1 # divide the mantissa by 2 (by right-shift) 
-            elif absExpVal==self.Vmax-1: # The edge case of 1-above sub-normal values: need to only right-shift the value, and insert '1' in the new leftmost mantissa bit. 
+            elif absExpVal==self.Vmax-2: # The edge case of 1-above sub-normal values: need to only right-shift the value, and insert '1' in the new leftmost mantissa bit. 
                 if mantVec[-1]=='1':
                     truncated = True
                 mantVec = '1' + mantVec[0:-1]                
@@ -184,12 +187,12 @@ class CntrMaster (F3P_li.CntrMaster):
                 self.cntrs[cntrIdx] = '1'*hyperSize       + expVec + np.binary_repr(num=mantIntVal+1, width=mantSize) 
         return int(cntrppVal) 
 
-myCntr = CntrMaster (
-    cntrSize     = 4, 
-    hyperMaxSize = 1,
-    verbose=[VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG]
-)
-logFile = open ('../res/log_files/F3P_li_ds.log', 'w')
-myCntr.setLogFile (logFile)
-for _ in range (100):
-    myCntr.incCntrBy1GetVal ()
+# myCntr = CntrMaster (
+#     cntrSize     = 4, 
+#     hyperMaxSize = 1,
+#     verbose=[VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG]
+# )
+# logFile = open ('../res/log_files/F3P_li_ds.log', 'w')
+# myCntr.setLogFile (logFile)
+# for _ in range (100):
+#     myCntr.incCntrBy1GetVal ()

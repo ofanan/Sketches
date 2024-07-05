@@ -83,7 +83,7 @@ class CntrMaster (F2P_li.CntrMaster):
                 if mantVec[-1]=='1':
                     truncated = True
                 mantVec = '0' + mantVec[0:-1] # mantVec >> 1 # divide the mantissa by 2 (by right-shift) 
-            elif absExpVal==self.Vmax-1: # The edge case of 1-above sub-normal values: need to only right-shift the value, and insert '1' in the new leftmost mantissa bit. 
+            elif absExpVal==self.Vmax-2: # The edge case of 1-above sub-normal values: need to only right-shift the value, and insert '1' in the new leftmost mantissa bit. 
                 if mantVec[-1]=='1':
                     truncated = True
                 mantVec = '1' + mantVec[0:-1]                
@@ -93,10 +93,21 @@ class CntrMaster (F2P_li.CntrMaster):
                 mantVec   = mantVec[0:-1]
                 mantSize -= 1
             
-            if VERBOSE_DEBUG in self.verbose:
-                self.cntrs[0] = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
-                floorVal      = self.cntr2num(self.cntrs[0])
-                ceilVal       = self.incCntrBy1GetVal(forceInc=True) 
+            if VERBOSE_LOG_DWN_SMPL in self.verbose:
+                floorCntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
+                if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa? 
+                    ceilCntr = hyperVec + expVec + '0'*(self.cntrSize - self.hyperSize - expSize)
+                else:
+                    mantVal = int (mantVec, base=2)
+                    ceilCntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
+                printf (self.logFile, 
+                    f'cntr={cntr}, \
+                    Val={self.cntr2num(cntr)}, \
+                    floorCntr={floorCntr}, \
+                    Val={self.cntr2num(floorCntr)}, \
+                    ceilCntr={ceilCntr}, \
+                    Val={self.cntr2num(ceilCntr)}\n, \
+                ')
                 
             if truncated and random.random()<0.5: # need to ceil the #                             
                 if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa? 
@@ -107,14 +118,14 @@ class CntrMaster (F2P_li.CntrMaster):
             else: # No need to ceil the #
                 cntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
             self.cntrs[cntrIdx] = cntr   
-            if VERBOSE_DEBUG in self.verbose:
-                val = self.cntr2num (cntr)
-                if val==float(orgVal)/2:
-                    None
-                else:
-                    if not (val in [floorVal, ceilVal]):
-                        error ('orgVal/2={:.0f}, val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}' 
-                               .format (float(orgVal)/2, val, floorVal, ceilVal))
+            # if VERBOSE_DEBUG in self.verbose:
+            #     val = self.cntr2num (cntr)
+            #     if val==float(orgVal)/2:
+            #         None
+            #     else:
+            #         if not (val in [floorVal, ceilVal]):
+            #             error ('orgVal/2={:.0f}, val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}' 
+            #                    .format (float(orgVal)/2, val, floorVal, ceilVal))
                 
     def incCntrBy1GetVal (
         self, 
