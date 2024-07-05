@@ -78,44 +78,41 @@ class CntrMaster (F3P_li.CntrMaster):
             mantSize  = len(mantVec) 
 
             # Need to code the special case of (sub) normal values.
-            truncated = False # By default, we didn't truncate the # when dividing by 2 --> no need to round. 
+            probOfCeil = 0 # By default, we didn't truncate the # when dividing by 2 --> no need to round. 
             
             if absExpVal==self.Vmax-1: # The edge case of sub-normal values: need to only divide the mantissa; no need (and cannot) further decrease the exponent
                 if mantVec[-1]=='1':
-                    truncated = True
+                    probOfCeil = 0.5
                 mantVec = '0' + mantVec[0:-1] # mantVec >> 1 # divide the mantissa by 2 (by right-shift) 
             elif absExpVal==self.Vmax-2: # The edge case of 1-above sub-normal values: need to only right-shift the value, and insert '1' in the new leftmost mantissa bit. 
                 if mantVec[-1]=='1':
-                    truncated = True
+                    probOfCeil = 0.5
                 mantVec = '1' + mantVec[0:-1]                
             elif self.mantSizeOfAbsExpVal[absExpVal]<mantSize: #the mantissa field of the halved cntr should be 1-bit shorter
-                if mantVec[-1]=='1':
-                    truncated = True
-                mantVec   = mantVec[0:-1]
-                mantSize -= 1
+                mantSizeDiff = mantSize - self.mantSizeOfAbsExpVal[absExpVal] # The # of bits to deduce from the older mant field to get the new mant field.
+                if mantSizeDiff>0: 
+                    probOfCeil   = float (int (mantVec[-mantSizeDiff:], base=2)) / 2**mantSizeDiff 
+                    mantVec      = mantVec[0:-mantSizeDiff]
+                    mantSize    -= mantSizeDiff # size of the new mantissa
                 
-            if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                floorCntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
-                if truncated: 
-                    if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa? 
-                        ceilCntr = '1'*hyperSize + expVec + '0'*(self.cntrSize - hyperSize - expSize)
-                    else:
-                        mantVal = int (mantVec, base=2)
-                        ceilCntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
-                else:
-                    ceilCntr = floorCntr
-                printf (self.logFile, f'cntr={cntr}, floorCntr={floorCntr}, ceil={ceilCntr}, expVec={expVec}, absExpVal={absExpVal}, ')
-                printf (self.logFile,  'Val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}\n'
-                        .format (self.cntr2num(cntr), self.cntr2num(floorCntr), self.cntr2num(ceilCntr)))
-            if truncated and random.random()<0.5: # need to ceil the #                             
+            floorCntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
+            if probOfCeil>0: 
                 if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa? 
-                    cntr = '1'*hyperSize + expVec + '0'*(self.cntrSize - hyperSize - expSize)
+                    ceilCntr = '1'*hyperSize + expVec + '0'*(self.cntrSize - hyperSize - expSize)
                 else:
                     mantVal = int (mantVec, base=2)
-                    cntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
-            else: # No need to ceil the #
-                cntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
-            if len(cntr)>8:
+                    ceilCntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
+            else:
+                ceilCntr = floorCntr
+            if VERBOSE_LOG_DWN_SMPL in self.verbose:
+                printf (self.logFile, f'cntr={cntr}, floorCntr={floorCntr}, ceil={ceilCntr}, probOfCeil={probOfCeil}, expVec={expVec}, absExpVal={absExpVal}, ')
+                printf (self.logFile,  'Val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}\n'
+                        .format (self.cntr2num(cntr), self.cntr2num(floorCntr), self.cntr2num(ceilCntr)))
+            if probOfCeil>0 and random.random()<probOfCeil>0: # need to ceil the #                             
+                self.cntrs[cntrIdx] = ceilCntr
+            else: 
+                self.cntrs[cntrIdx] = floorCntr
+            if len(cntr)>self.cntrSize:
                 error (f'In F3P_li_ds. curCntr={self.cntrs[cntrIdx]}. upScaledCntr={cntr}')
             self.cntrs[cntrIdx] = cntr   
                 
@@ -181,6 +178,12 @@ class CntrMaster (F3P_li.CntrMaster):
             else:
                 self.cntrs[cntrIdx] = '1'*hyperSize       + expVec + np.binary_repr(num=mantIntVal+1, width=mantSize) 
         return int(cntrppVal) 
+
+# mantVec     = '543201'
+# newMantVec  = mantVec[0:-2]
+# remainder   = mantVec[-2:]
+# prob        = float(int(mantVec[-2:], base=2))/2**(2)
+# print (f'newMantVec={newMantVec}, remainder={remainder}, prob={prob}') 
 
 # myCntr = CntrMaster (
 #     cntrSize     = 4, 
