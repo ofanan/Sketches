@@ -103,11 +103,14 @@ class CntrMaster (F3P_li.CntrMaster):
                 
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
                 floorCntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
-                if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa? 
-                    ceilCntr = '1'*hyperSize + expVec + '0'*(self.cntrSize - hyperSize - expSize)
+                if truncated: 
+                    if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa? 
+                        ceilCntr = '1'*hyperSize + expVec + '0'*(self.cntrSize - hyperSize - expSize)
+                    else:
+                        mantVal = int (mantVec, base=2)
+                        ceilCntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
                 else:
-                    mantVal = int (mantVec, base=2)
-                    ceilCntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
+                    ceilCntr = floorCntr
                 printf (self.logFile, f'cntr={cntr}, floorCntr={floorCntr}, ceil={ceilCntr}, expVec={expVec}, absExpVal={absExpVal}, ')
                 printf (self.logFile,  'Val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}\n'
                         .format (self.cntr2num(cntr), self.cntr2num(floorCntr), self.cntr2num(ceilCntr)))
