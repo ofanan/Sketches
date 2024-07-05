@@ -78,8 +78,6 @@ class CntrMaster (F3P_li.CntrMaster):
             mantSize  = len(mantVec) 
 
             # Need to code the special case of (sub) normal values.
-            if VERBOSE_DEBUG in self.verbose:
-                orgVal = self.cntr2num (cntr)
             truncated = False # By default, we didn't truncate the # when dividing by 2 --> no need to round. 
             
             if absExpVal==self.Vmax-1: # The edge case of sub-normal values: need to only divide the mantissa; no need (and cannot) further decrease the exponent
@@ -95,11 +93,6 @@ class CntrMaster (F3P_li.CntrMaster):
                     truncated = True
                 mantVec   = mantVec[0:-1]
                 mantSize -= 1
-            
-            # if VERBOSE_DEBUG in self.verbose:
-            #     self.cntrs[0] = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
-            #     floorVal      = self.cntr2num(self.cntrs[0])
-            #     ceilVal       = self.incCntrBy1GetVal(forceInc=True) 
                 
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
                 floorCntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
@@ -125,14 +118,6 @@ class CntrMaster (F3P_li.CntrMaster):
             if len(cntr)>8:
                 error (f'In F3P_li_ds. curCntr={self.cntrs[cntrIdx]}. upScaledCntr={cntr}')
             self.cntrs[cntrIdx] = cntr   
-            # if VERBOSE_DEBUG in self.verbose:
-            #     val = self.cntr2num (cntr)
-            #     if val==float(orgVal)/2:
-            #         None
-            #     else:
-            #         if not (val in [floorVal, ceilVal]):
-            #             error ('orgVal/2={:.0f}, val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}' 
-            #                    .format (float(orgVal)/2, val, floorVal, ceilVal))
                 
     def incCntrBy1GetVal (self, 
             cntrIdx  = 0, # idx of the concrete counter to increment in the array
