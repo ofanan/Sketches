@@ -66,7 +66,7 @@ class CntrMaster (F3P_li.CntrMaster):
             cntr      = self.cntrs[cntrIdx]         # Extract the hyper-exponent field, and value
             
             hyperSize = settings.idxOfLeftmostZero (ar=cntr, maxIdx=self.hyperMaxSize)         
-            expSize   = self.hyperSize
+            expSize   = hyperSize
             if hyperSize < self.hyperMaxSize: # if the # of trailing max < hyperMaxSize, the cntr must have a delimiter '0'
                 expVecBegin  = hyperSize+1
             else:
@@ -82,9 +82,6 @@ class CntrMaster (F3P_li.CntrMaster):
                 orgVal = self.cntr2num (cntr)
             truncated = False # By default, we didn't truncate the # when dividing by 2 --> no need to round. 
             
-            if cntr=='01101010':
-                print (cntr)
-            
             if absExpVal==self.Vmax-1: # The edge case of sub-normal values: need to only divide the mantissa; no need (and cannot) further decrease the exponent
                 if mantVec[-1]=='1':
                     truncated = True
@@ -99,14 +96,24 @@ class CntrMaster (F3P_li.CntrMaster):
                 mantVec   = mantVec[0:-1]
                 mantSize -= 1
             
-            if VERBOSE_DEBUG in self.verbose:
-                self.cntrs[0] = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
-                floorVal      = self.cntr2num(self.cntrs[0])
-                ceilVal       = self.incCntrBy1GetVal(forceInc=True) 
+            # if VERBOSE_DEBUG in self.verbose:
+            #     self.cntrs[0] = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
+            #     floorVal      = self.cntr2num(self.cntrs[0])
+            #     ceilVal       = self.incCntrBy1GetVal(forceInc=True) 
                 
+            if VERBOSE_LOG_DWN_SMPL in self.verbose:
+                floorCntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
+                if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa? 
+                    ceilCntr = '1'*hyperSize + expVec + '0'*(self.cntrSize - hyperSize - expSize)
+                else:
+                    mantVal = int (mantVec, base=2)
+                    ceilCntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
+                printf (self.logFile, f'cntr={cntr}, floorCntr={floorCntr}, ceil={ceilCntr}, expVec={expVec}, absExpVal={absExpVal}, ')
+                printf (self.logFile,  'Val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}\n'
+                        .format (self.cntr2num(cntr), self.cntr2num(floorCntr), self.cntr2num(ceilCntr)))
             if truncated and random.random()<0.5: # need to ceil the #                             
                 if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa? 
-                    cntr = '1'*hyperSize + expVec + '0'*(self.cntrSize - self.hyperSize - expSize)
+                    cntr = '1'*hyperSize + expVec + '0'*(self.cntrSize - hyperSize - expSize)
                 else:
                     mantVal = int (mantVec, base=2)
                     cntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
@@ -115,14 +122,14 @@ class CntrMaster (F3P_li.CntrMaster):
             if len(cntr)>8:
                 error (f'In F3P_li_ds. curCntr={self.cntrs[cntrIdx]}. upScaledCntr={cntr}')
             self.cntrs[cntrIdx] = cntr   
-            if VERBOSE_DEBUG in self.verbose:
-                val = self.cntr2num (cntr)
-                if val==float(orgVal)/2:
-                    None
-                else:
-                    if not (val in [floorVal, ceilVal]):
-                        error ('orgVal/2={:.0f}, val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}' 
-                               .format (float(orgVal)/2, val, floorVal, ceilVal))
+            # if VERBOSE_DEBUG in self.verbose:
+            #     val = self.cntr2num (cntr)
+            #     if val==float(orgVal)/2:
+            #         None
+            #     else:
+            #         if not (val in [floorVal, ceilVal]):
+            #             error ('orgVal/2={:.0f}, val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}' 
+            #                    .format (float(orgVal)/2, val, floorVal, ceilVal))
                 
     def incCntrBy1GetVal (self, 
             cntrIdx  = 0, # idx of the concrete counter to increment in the array
