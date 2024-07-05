@@ -76,6 +76,7 @@ class CntrMaster (F3P_li.CntrMaster):
             expVal  = self.expVec2expVal(expVec, expSize) 
             absExpVal = abs(expVal)
             mantSize  = len(mantVec) 
+            orgMantSize = mantSize 
 
             # Need to code the special case of (sub) normal values.
             probOfCeil = 0 # By default, we didn't truncate the # when dividing by 2 --> no need to round. 
@@ -97,8 +98,8 @@ class CntrMaster (F3P_li.CntrMaster):
                 
             floorCntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
             if probOfCeil>0: 
-                if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa? 
-                    ceilCntr = '1'*hyperSize + expVec + '0'*(self.cntrSize - hyperSize - expSize)
+                if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa 
+                    ceilCntr = cntr[0:-orgMantSize] + '0'*orgMantSize
                 else:
                     mantVal = int (mantVec, base=2)
                     ceilCntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
@@ -106,8 +107,13 @@ class CntrMaster (F3P_li.CntrMaster):
                 ceilCntr = floorCntr
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
                 printf (self.logFile, f'cntr={cntr}, floorCntr={floorCntr}, ceil={ceilCntr}, probOfCeil={probOfCeil}, expVec={expVec}, absExpVal={absExpVal}, ')
-                printf (self.logFile,  'Val={:.0f}, floorVal={:.0f}, ceilVal={:.0f}\n'
-                        .format (self.cntr2num(cntr), self.cntr2num(floorCntr), self.cntr2num(ceilCntr)))
+                orgVal   = self.cntr2num(cntr)
+                floorVal = self.cntr2num(floorCntr)
+                ceilVal  = self.cntr2num(ceilCntr)
+                printf (self.logFile,  'orgVal={:.0f}, floorVal={:.0f}, ceilVal={:.0f}\n'
+                        .format (orgVal, floorVal, ceilVal))
+                if probOfCeil>0 and probOfCeil!=float(orgVal/2-floorVal)/float(ceilVal-floorVal):
+                    error ('In F3P_li_ds.upScale(). suspected wrong probability calculation. Please check the log file under ../res/log_files.')
             if probOfCeil>0 and random.random()<probOfCeil>0: # need to ceil the #                             
                 self.cntrs[cntrIdx] = ceilCntr
             else: 
