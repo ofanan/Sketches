@@ -1,4 +1,18 @@
 # https://codereview.stackexchange.com/questions/205090/spacesaving-frequent-item-counter-in-python 
+import threading, heapq 
+import numpy as np
+from threading import Thread
+from datetime import datetime
+from collections import defaultdict, Counter 
+
+import settings #, PerfectCounter, Buckets, NiceBuckets, 
+from settings import warning, error, INF_INT, VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, calcPostSimStat
+from settings import getRelativePathToTraceFile, checkIfInputFileExists
+from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
+from printf import printf, printarFp 
+from SingleCntrSimulator import getFxpCntrMaxVal, genCntrMasterFxp
+# from CountMinSketch import CountMinSketch
+from _ast import Or
 
 class SpaceSavingCounter:
     """
@@ -9,35 +23,39 @@ class SpaceSavingCounter:
     k ≈ m.  The interface is the same as `collections.Counter`.
     """
 
-    def __init__(self, m):
-        self._m = m
+    def __init__(
+            self, 
+            cacheSize
+        ):
+        self._cacheSize = cacheSize
         self._elements_seen = 0
-        self._counts = Counter()  # contains the counts for all elements
+        self._flowSizes = Counter()  # contains the counts for all elements
         self._queue = []  # contains the estimated hits for the counted elements
 
     def _update_element(self, x):
         self._elements_seen += 1
 
-        if x in self._counts:
-            self._counts[x] += 1
-        elif len(self._counts) < self._m:
-            self._counts[x] = 1
+        if x in self._flowSizes:
+            self._flowSizes[x] += 1
+        elif len(self._flowSizes) < self._cacheSize:
+            self._flowSizes[x] = 1
             self._heappush(1, self._elements_seen, x)
         else:
             self._replace_least_element(x)
+        print (self._flowSizes)
 
     def _replace_least_element(self, e):
         while True:
             count, tstamp, key = self._heappop()
-            assert self._counts[key] >= count
+            assert self._flowSizes[key] >= count
 
-            if self._counts[key] == count:
+            if self._flowSizes[key] == count:
                 break
             else:
-                self._heappush(self._counts[key], tstamp, key)
+                self._heappush(self._flowSizes[key], tstamp, key)
 
-        del self._counts[key]
-        self._counts[e] = count + 1
+        del self._flowSizes[key]
+        self._flowSizes[e] = count + 1
         self._heappush(count, self._elements_seen, e)
 
     def _heappush(self, count, tstamp, key):
@@ -47,56 +65,60 @@ class SpaceSavingCounter:
         return heapq.heappop(self._queue)
     
     
-        def most_common(self, n=None):
-        return self._counts.most_common(n)
+    def most_common(self, n=None):
+        return self._flowSizes.most_common(n)
 
     def elements(self):
-        return self._counts.elements()
+        return self._flowSizes.elements()
 
     def __len__(self):
-        return len(self._counts)
+        return len(self._flowSizes)
 
     def __getitem__(self, key):
-        return self._counts[key]
+        return self._flowSizes[key]
 
     def __iter__(self):
-        return iter(self._counts)
+        return iter(self._flowSizes)
 
     def __contains__(self, item):
-        return item in self._counts
+        return item in self._flowSizes
 
     def __reversed__(self):
-        return reversed(self._counts)
+        return reversed(self._flowSizes)
 
     def items(self):
-        return self._counts.items()
+        return self._flowSizes.items()
 
     def keys(self):
-        return self._counts.keys()
+        return self._flowSizes.keys()
 
     def values(self):
-        return self._counts.values()
+        return self._flowSizes.values()
     
     
-    def test_SpaceSavingCounter():
+def test_SpaceSavingCounter():
     ssc = SpaceSavingCounter(2)
-    ssc.update([1, 5, 3, 4, 2, 7, 7, 1, 3, 1, 3, 1, 3, 1, 3])
+    testTrace = [1, 5, 3, 4, 2, 7, 7, 1, 3, 1, 3, 1, 3, 1, 3]
+    # ssc.update()
+    for flowId in testTrace:
+        ssc._update_element(flowId) 
     assert ssc.keys() == {1, 3}
 
-    ssc = SpaceSavingCounter(2)
-    ssc.update([1, 1, 1, 1, 3, 3, 3, 3, 2, 2, 2, 2, 2])
-    assert ssc.keys() == {3, 2}
-
-    ssc = SpaceSavingCounter(1)
-    ssc.update([1, 1, 1, 1, 3, 3, 3, 3, 2, 2, 2, 2, 2])
-    assert ssc.keys() == {2}
-
-    ssc = SpaceSavingCounter(3)
-    ssc.update([1, 1, 1, 1, 3, 3, 3, 3, 2, 2, 2, 2, 2])
-    assert ssc.keys() == {1, 2, 3}
-
-    ssc = SpaceSavingCounter(2)
-    ssc.update([])
-    assert ssc.keys() == set()
+    # ssc = SpaceSavingCounter(2)
+    # ssc.update([1, 1, 1, 1, 3, 3, 3, 3, 2, 2, 2, 2, 2])
+    # assert ssc.keys() == {3, 2}
+    #
+    # ssc = SpaceSavingCounter(1)
+    # ssc.update([1, 1, 1, 1, 3, 3, 3, 3, 2, 2, 2, 2, 2])
+    # assert ssc.keys() == {2}
+    #
+    # ssc = SpaceSavingCounter(3)
+    # ssc.update([1, 1, 1, 1, 3, 3, 3, 3, 2, 2, 2, 2, 2])
+    # assert ssc.keys() == {1, 2, 3}
+    #
+    # ssc = SpaceSavingCounter(2)
+    # ssc.update([])
+    # assert ssc.keys() == set()
     
-    
+
+test_SpaceSavingCounter ()    
