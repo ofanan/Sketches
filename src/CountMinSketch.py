@@ -1,8 +1,11 @@
+import threading
 import matplotlib 
 import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
+from threading import Thread
+
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_si, Morris, CEDAR, CEDAR_ds, AEE_ds
 from settings import warning, error, INF_INT, calcPostSimStat, getSeadStatExpSize
 from settings import checkIfInputFileExists, getRelativePathToTraceFile
@@ -438,15 +441,15 @@ class CountMinSketch:
         dict['maxValBy']    = self.maxValBy
         return dict
     
-def runCMS (mode, 
-    cntrSize        = 8,
-    maxNumIncs      = float ('inf'),
-    width           = 2**10,
-    depth           = 4,
-    traceFileName   = 'Rand', 
-):
+def LaunchCmsSim (
+        traceFileName, 
+        cntrSize, 
+        mode,
+        width,
+    ):    
     """
     """   
+    depth = 4
     if traceFileName=='Rand':
         cms = CountMinSketch (
             width           = 2, 
@@ -467,7 +470,7 @@ def runCMS (mode,
         cms.sim ()
     else:
         cms = CountMinSketch (
-            maxValBy        = 'F3P_li_h3',
+            maxValBy        = 'F2P_li_h2',
             width           = width,
             depth           = depth,
             numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
@@ -486,19 +489,24 @@ def runCMS (mode,
 if __name__ == '__main__':
     try:
         cntrSize = 8
-        for width in [2]: #[2**i for i in range (10, 19)]: 
-            # for mode  in ['PerfectCounter']:
-            #     width = int(width/4)
-            # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
-            # for mode in ['F2P_li_h2_ds']:    
-            # for mode in ['CEDAR_ds']:    
-            for mode in ['F3P_li_h3_ds']:    
-                        # for mode in ['CEDAR', 'Morris']:     
-                runCMS (
-                    mode        = mode, 
-                    cntrSize    = cntrSize, 
-                    width       = width,
-                    traceFileName = 'Rand',
-                )
+        # for mode in ['F2P_li_h2_ds']:    
+        # for mode  in ['PerfectCounter']:
+        # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
+        # for mode in ['F2P_li_h2_ds']:    
+        # for mode in ['CEDAR_ds']:    
+        # for mode in ['CEDAR', 'Morris']:     
+        for trace in ['Caida1', 'Caida2']:
+            for width in [2**i for i in range (10, 19)]: 
+                threading.Thread (
+                    target = LaunchCmsSim, 
+                    args   = (trace,), 
+                    kwargs = {
+                        'cntrSize' : 8,
+                        'mode'     : 'F2P_li_h2_ds',
+                        'width'    : width,
+                    }
+                ).start()
+            print (f'Launched ss thread for trace={trace}, width={width}')
+                
     except KeyboardInterrupt:
         print ('Keyboard interrupt.')
