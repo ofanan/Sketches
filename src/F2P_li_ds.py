@@ -75,8 +75,6 @@ class CntrMaster (F2P_li.CntrMaster):
             mantVec   = cntr[self.hyperSize+expSize:] 
 
             # Need to code the special case of (sub) normal values.
-            if VERBOSE_DEBUG in self.verbose:
-                orgVal = self.cntr2num (cntr)
             truncated = False # By default, we didn't truncate the # when dividing by 2 --> no need to round. 
             
             if absExpVal==self.Vmax-1: # The edge case of sub-normal values: need to only divide the mantissa; no need (and cannot) further decrease the exponent
@@ -100,14 +98,16 @@ class CntrMaster (F2P_li.CntrMaster):
                 else:
                     mantVal = int (mantVec, base=2)
                     ceilCntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
-                printf (self.logFile, 
-                    f'cntr={cntr}, \
-                    Val={self.cntr2num(cntr)}, \
-                    floorCntr={floorCntr}, \
-                    Val={self.cntr2num(floorCntr)}, \
-                    ceilCntr={ceilCntr}, \
-                    Val={self.cntr2num(ceilCntr)}\n, \
-                ')
+                probOfCeil = 0.5 if truncated else 0
+                printf (self.logFile, f'cntr={cntr}, floorCntr={floorCntr}, ceil={ceilCntr}, probOfCeil={probOfCeil}, expVec={expVec}, absExpVal={absExpVal}, ')
+                orgVal   = self.cntr2num(cntr)
+                floorVal = self.cntr2num(floorCntr)
+                ceilVal  = self.cntr2num(ceilCntr)
+                printf (self.logFile,  'orgVal={:.0f}, floorVal={:.0f}, ceilVal={:.0f}\n'
+                        .format (orgVal, floorVal, ceilVal))
+                if probOfCeil>0 and probOfCeil!=float(orgVal/2-floorVal)/float(ceilVal-floorVal):
+                    error ('In F2P_li_ds.upScale(). suspected wrong probability calculation. Please check the log file under ../res/log_files.')
+
                 
             if truncated and random.random()<0.5: # need to ceil the #                             
                 if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa? 

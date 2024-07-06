@@ -780,14 +780,14 @@ def testDwnSmpling ():
     """
     Test the down-sampling.
     """
-    cntrSize        = 6
-    fxpSettingStr   = 'F3P_li_h2_ds'
+    cntrSize        = 4
+    fxpSettingStr   = 'F3P_li_h1_ds'
     cntrMaster = genCntrMasterFxp(
         cntrSize    = cntrSize, 
         fxpSettingStr = fxpSettingStr, 
         verbose         = [VERBOSE_LOG_DWN_SMPL]
     ) 
-    logFile = open (f'../res/log_files/{fxpSettingStr}.log', 'w')
+    logFile = open (f'../res/log_files/{fxpSettingStr}_n{cntrSize}.log', 'w')
     cntrMaster.setLogFile (logFile)
     for i in range (2**cntrSize):
         cntrMaster.cntrs[0] = np.binary_repr(i, cntrSize)

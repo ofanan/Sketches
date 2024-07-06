@@ -83,26 +83,25 @@ class CntrMaster (F3P_li.CntrMaster):
             
             if absExpVal==self.Vmax-1: # The edge case of sub-normal values: need to only divide the mantissa; no need (and cannot) further decrease the exponent
                 if mantVec[-1]=='1':
-                    probOfCeil = 0.5
+                    probOfCeil = 0.5 # LSB was '1' --> will later round-up the halved value w.p. 0.5
                 mantVec = '0' + mantVec[0:-1] # mantVec >> 1 # divide the mantissa by 2 (by right-shift) 
-            elif absExpVal==self.Vmax-2: # The edge case of 1-above sub-normal values: need to only right-shift the value, and insert '1' in the new leftmost mantissa bit. 
+            elif absExpVal==self.Vmax-2: # The edge case of 1-above sub-normal values: need to right-shift the mantissa, inserting '1' into the new leftmost mantissa bit. 
                 if mantVec[-1]=='1':
-                    probOfCeil = 0.5
+                    probOfCeil = 0.5 # LSB was '1' --> will later round-up the halved value w.p. 0.5
                 mantVec = '1' + mantVec[0:-1]                
-            elif self.mantSizeOfAbsExpVal[absExpVal]<mantSize: #the mantissa field of the halved cntr should be 1-bit shorter
-                mantSizeDiff = mantSize - self.mantSizeOfAbsExpVal[absExpVal] # The # of bits to deduce from the older mant field to get the new mant field.
+            elif self.mantSizeOfAbsExpVal[absExpVal]<mantSize: #the mantissa field of the halved cntr is shorter than the current mantissa field 
+                mantSizeDiff = mantSize - self.mantSizeOfAbsExpVal[absExpVal] # The # of bits to deduce from the older mantissa field to get the new mantissa field.
                 if mantSizeDiff>0: 
-                    probOfCeil   = float (int (mantVec[-mantSizeDiff:], base=2)) / 2**mantSizeDiff 
-                    mantVec      = mantVec[0:-mantSizeDiff]
+                    probOfCeil   = float (int (mantVec[-mantSizeDiff:], base=2)) / 2**mantSizeDiff # the mantSizeDiff LSBs of the mantissa reflect the prob' to round-up (ceil) the value after the shift-right we're about to perform 
+                    mantVec      = mantVec[0:-mantSizeDiff] # shift-right the mantissa mantSizeDiff places  
                     mantSize    -= mantSizeDiff # size of the new mantissa
                 
-            floorCntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
-            if probOfCeil>0: 
-                if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa 
+            floorCntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec # Re-build the (floor) half counter from the (pre-computed) hyper-exp [optional: delimiter] and exp field, followed by the new mantissa.
+            if probOfCeil>0: # have to round-up (ceil) with some non-zero probability --> calculate the ceil value.
+                if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> keep the current hyperExp and exp fields, and reset the mantissa 
                     ceilCntr = cntr[0:-orgMantSize] + '0'*orgMantSize
-                else:
-                    mantVal = int (mantVec, base=2)
-                    ceilCntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
+                else: # inc. the mantissa
+                    ceilCntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(int (mantVec, base=2)+1, mantSize) #[0:-1]
             else:
                 ceilCntr = floorCntr
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
@@ -120,7 +119,6 @@ class CntrMaster (F3P_li.CntrMaster):
                 self.cntrs[cntrIdx] = floorCntr
             if len(cntr)>self.cntrSize:
                 error (f'In F3P_li_ds. curCntr={self.cntrs[cntrIdx]}. upScaledCntr={cntr}')
-            self.cntrs[cntrIdx] = cntr   
                 
     def incCntrBy1GetVal (self, 
             cntrIdx  = 0, # idx of the concrete counter to increment in the array
