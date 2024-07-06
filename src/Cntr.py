@@ -67,7 +67,6 @@ class CntrMaster (object):
             self, 
             outputFile, # file to which the stat will be written
             genPlot         = False, # when True, plot the stat 
-            outputFileName  = None, # filename to which the .pdf plot will be saved
         ) -> None:
         """
         An empty function. Implemented only for compatibility with buckets, that do have such a func.

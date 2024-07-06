@@ -171,7 +171,8 @@ class SpaceSaving (CountMinSketch):
         traceFile.close ()
     
         if VERBOSE_LOG_END_SIM in self.verbose:
-            self.cntrMaster.printCntrsStat (self.logFile, genPlot=True, outputFileName=self.genSettingsStr()) 
+            printf (self.logFile, '// cacheSize={self.cacheSize}')
+            self.cntrMaster.printCntrsStat (self.logFile, genPlot=True) 
             self.cntrMaster.printAllCntrs  (self.logFile)
     
     def runSimRandInput (self):

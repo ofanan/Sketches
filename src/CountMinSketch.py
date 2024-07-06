@@ -301,7 +301,6 @@ class CountMinSketch:
             printf (self.logFile, '\n// At the end of sim:\n')
             self.cntrMaster.printCntrsStat (
                 self.logFile, 
-                outputFileName  = self.genSettingsStr()
             )
     
     def runSimFromTrace (self):
