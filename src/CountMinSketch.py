@@ -506,7 +506,7 @@ if __name__ == '__main__':
                         'width'    : width,
                     }
                 ).start()
-            print (f'Launched ss thread for trace={trace}, width={width}')
+            print (f'Launched cms thread for trace={trace}, width={width}')
                 
     except KeyboardInterrupt:
         print ('Keyboard interrupt.')
