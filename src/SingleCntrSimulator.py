@@ -781,7 +781,7 @@ def testDwnSmpling ():
     Test the down-sampling.
     """
     cntrSize        = 4
-    fxpSettingStr   = 'F3P_li_h1_ds'
+    fxpSettingStr   = 'F2P_li_h1_ds'
     cntrMaster = genCntrMasterFxp(
         cntrSize    = cntrSize, 
         fxpSettingStr = fxpSettingStr, 

@@ -116,7 +116,7 @@ class CntrMaster (F3P_li.CntrMaster):
                 self.cntrs[cntrIdx] = ceilCntr
             else: 
                 self.cntrs[cntrIdx] = floorCntr
-            if len(cntr)>self.cntrSize:
+            if len(self.cntrs[cntrIdx])>self.cntrSize:
                 error (f'In F3P_li_ds. curCntr={self.cntrs[cntrIdx]}. upScaledCntr={cntr}')
                 
     def incCntrBy1GetVal (self, 
