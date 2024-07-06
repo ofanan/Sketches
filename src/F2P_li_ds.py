@@ -69,11 +69,12 @@ class CntrMaster (F2P_li.CntrMaster):
             cntr      = self.cntrs[cntrIdx]   
             hyperVec  = cntr [0:self.hyperSize]
             expSize   = int(hyperVec, base=2)  
-            mantSize  = mantSizeBase - expSize  
+            mantSize  = mantSizeBase - expSize              
             expVec    = cntr[self.hyperSize:self.hyperSize+expSize]
             absExpVal = abs(self.expVec2expVal(expVec=expVec, expSize=expSize))
             mantVec   = cntr[self.hyperSize+expSize:] 
-
+            orgMantSize = mantSize 
+            
             # Need to code the special case of (sub) normal values.
             truncated = False # By default, we didn't truncate the # when dividing by 2 --> no need to round. 
             
@@ -81,7 +82,7 @@ class CntrMaster (F2P_li.CntrMaster):
                 if mantVec[-1]=='1':
                     truncated = True
                 mantVec = '0' + mantVec[0:-1] # mantVec >> 1 # divide the mantissa by 2 (by right-shift) 
-            elif absExpVal==self.Vmax-2: # The edge case of 1-above sub-normal values: need to only right-shift the value, and insert '1' in the new leftmost mantissa bit. 
+            elif absExpVal==self.Vmax-2: # The edge case of 1-above sub-normal values: need to right-shift the value, and insert '1' in the new leftmost mantissa bit. 
                 if mantVec[-1]=='1':
                     truncated = True
                 mantVec = '1' + mantVec[0:-1]                
@@ -91,8 +92,14 @@ class CntrMaster (F2P_li.CntrMaster):
                 mantVec   = mantVec[0:-1]
                 mantSize -= 1
             
+            floorCntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
+            ceilCntr  = floorCntr # defauilt   
+            if probOfCeil>0: # have to round-up (ceil) with some non-zero probability --> calculate the ceil value.
+                if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa? 
+                    ceilCntr = cntr[0:-orgMantSize] + '0'*orgMantSize
+                else:
+                    ceilCntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(int (mantVec, base=2)+1, mantSize) 
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                floorCntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
                 if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa? 
                     ceilCntr = hyperVec + expVec + '0'*(self.cntrSize - self.hyperSize - expSize)
                 else:
@@ -113,8 +120,7 @@ class CntrMaster (F2P_li.CntrMaster):
                 if mantVec=='1'*mantSize: # The mantissa vector is "11...1" --> should keep the current hyperExp and exp fields, and reset the mantissa? 
                     cntr = hyperVec + expVec + '0'*(self.cntrSize - self.hyperSize - expSize)
                 else:
-                    mantVal = int (mantVec, base=2)
-                    cntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(mantVal+1, mantSize) #[0:-1]
+                    cntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(int (mantVec, base=2)+1, mantSize) 
             else: # No need to ceil the #
                 cntr = self.LsbVecOfAbsExpVal[absExpVal] + mantVec
             self.cntrs[cntrIdx] = cntr   

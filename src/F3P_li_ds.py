@@ -73,8 +73,7 @@ class CntrMaster (F3P_li.CntrMaster):
                 expVecBegin  = self.hyperMaxSize
             expVec  = cntr[expVecBegin : expVecBegin+expSize]
             mantVec = cntr[expVecBegin+expSize:]
-            expVal  = self.expVec2expVal(expVec, expSize) 
-            absExpVal = abs(expVal)
+            absExpVal = abs(self.expVec2expVal(expVec, expSize))
             mantSize  = len(mantVec) 
             orgMantSize = mantSize 
 
