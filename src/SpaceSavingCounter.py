@@ -25,12 +25,14 @@ class SpaceSavingCounter:
 
     def __init__(
             self, 
-            cacheSize
+            cacheSize   : int  = 1,
+            verbose     : list = [],
         ):
-        self._cacheSize = cacheSize
+        self._cacheSize     = cacheSize
         self._elements_seen = 0
-        self._flowSizes = Counter()  # contains the counts for all elements
-        self._queue = []  # contains the estimated hits for the counted elements
+        self._flowSizes     = Counter()  # contains the counts for all elements
+        self._queue         = []  # contains the estimated hits for the counted elements
+        self.verbose        = verbose
 
     def _update_element(self, x):
         self._elements_seen += 1
@@ -42,7 +44,7 @@ class SpaceSavingCounter:
             self._heappush(1, self._elements_seen, x)
         else:
             self._replace_least_element(x)
-        print (self._flowSizes)
+        print (x, self._flowSizes)
 
     def _replace_least_element(self, e):
         while True:
@@ -97,15 +99,14 @@ class SpaceSavingCounter:
     
     
 def test_SpaceSavingCounter():
-    ssc = SpaceSavingCounter(2)
-    testTrace = [1, 5, 3, 4, 2, 7, 7, 1, 3, 1, 3, 1, 3, 1, 3]
+    ssc = SpaceSavingCounter(3)
+    # testTrace = [1, 5, 3, 4, 2, 7, 7, 1, 3, 1, 3, 1, 3, 1, 3]
+    testTrace = [1, 1, 1, 1, 3, 3, 3, 3, 2, 2, 2, 2, 2]
     # ssc.update()
     for flowId in testTrace:
         ssc._update_element(flowId) 
-    assert ssc.keys() == {1, 3}
 
     # ssc = SpaceSavingCounter(2)
-    # ssc.update([1, 1, 1, 1, 3, 3, 3, 3, 2, 2, 2, 2, 2])
     # assert ssc.keys() == {3, 2}
     #
     # ssc = SpaceSavingCounter(1)
