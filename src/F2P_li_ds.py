@@ -109,7 +109,12 @@ class CntrMaster (F2P_li.CntrMaster):
                         .format (orgVal, floorVal, ceilVal))
                 if probOfCeil>0 and probOfCeil!=float(orgVal/2-floorVal)/float(ceilVal-floorVal):
                     error ('In F2P_li_ds.upScale(). suspected wrong probability calculation. Please check the log file under ../res/log_files.')
-                
+                if floorVal==ceilVal: 
+                    if probOfCeil>0:
+                        error ('In F2P_li_ds.upScale(). Got probOfCeil<0 although floorVal==ceilVal. Plz check the log file at ../res/log_files.') 
+                else:
+                    if probOfCeil==0.5 and ((floorVal+ceilVal)!=orgVal):
+                        error ('In F2P_li_ds.upScale(). Got probOfCeil=0.5 although floorVal+ceilVal != orgVal. Plz check the log file at ../res/log_files.')
             if truncated and random.random()<0.5: # need to ceil the #                             
                 self.cntrs[cntrIdx] = ceilCntr
             else:

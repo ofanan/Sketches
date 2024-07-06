@@ -25,6 +25,7 @@ class SingleCntrSimulator (object):
         self.seed    = seed
         random.seed (self.seed)
         
+        self.confLvl = 0.95 # Required confidence level at the conf' interval calculation.
         self.verbose = verbose
         if settings.VERBOSE_DETAILED_RES in self.verbose:
             self.verbose.append (VERBOSE_RES)
@@ -104,7 +105,7 @@ class SingleCntrSimulator (object):
             printf (self.log_file, 'wrEr=\n{:.3f}\n, ' .format (self.cntrRecord['wrEr']))
         
         wrErAvg             = np.average    (self.cntrRecord['wrEr'])
-        wrErConfInterval = settings.confInterval (ar=self.cntrRecord['wrEr'], avg=wrErAvg)
+        wrErConfInterval = settings.confInterval (ar=self.cntrRecord['wrEr'], avg=wrErAvg, confLvl=self.confLvl)
         dict = {'erType'            : self.erType,
                 'numOfExps'         : self.numOfExps,
                 'mode'              : self.cntrRecord['mode'],
@@ -113,7 +114,9 @@ class SingleCntrSimulator (object):
                 'settingStr'        : self.cntrRecord['cntr'].genSettingsStr(),
                 'Avg'               : wrErAvg,
                 'Lo'                : wrErConfInterval[0],
-                'Hi'                : wrErConfInterval[1]}
+                'Hi'                : wrErConfInterval[1],
+                'confLvl'           : self.confLvl
+                }
         self.dumpDictToPcl      (dict, pclOutputFile)
         self.writeDictToResFile (dict)
     
@@ -281,8 +284,8 @@ class SingleCntrSimulator (object):
         if (settings.VERBOSE_LOG in self.verbose):
             printf (self.log_file, 'RdEr=\n{:.3f}\n, ' .format (self.cntrRecord['RdEr']))
         
-        rdErAvg                 = np.average    (self.cntrRecord['RdEr'])
-        rdErConfInterval        = settings.confInterval (ar=self.cntrRecord['RdEr'], avg=rdErAvg)
+        rdErAvg          = np.average    (self.cntrRecord['RdEr'])
+        rdErConfInterval = settings.confInterval (ar=self.cntrRecord['RdEr'], avg=rdErAvg, confLvl=confLvl)
         dict = {'erType'            : self.erType,
                 'numOfExps'         : self.numOfExps,
                 'mode'              : self.cntrRecord['mode'],
@@ -291,7 +294,8 @@ class SingleCntrSimulator (object):
                 'settingStr'        : self.cntrRecord['cntr'].genSettingsStr(),
                 'Avg'               : rdErAvg,
                 'Lo'                : rdErConfInterval[0],
-                'Hi'                : rdErConfInterval[1]}
+                'Hi'                : rdErConfInterval[1],
+                'confLvl'           : self.confLvl}
         self.dumpDictToPcl       (dict, pclOutputFile)
         self.writeDictToResFile  (dict)
         
@@ -780,8 +784,8 @@ def testDwnSmpling ():
     """
     Test the down-sampling.
     """
-    cntrSize        = 4
-    fxpSettingStr   = 'F2P_li_h1_ds'
+    cntrSize        = 8
+    fxpSettingStr   = 'F2P_li_h2_ds'
     cntrMaster = genCntrMasterFxp(
         cntrSize    = cntrSize, 
         fxpSettingStr = fxpSettingStr, 

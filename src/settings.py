@@ -71,7 +71,7 @@ Confs = [{'cntrSize' : 3,  'cntrMaxVal' : 10,       'hyperSize' : 2, 'hyperMaxSi
 
 # Calculate the confidence interval of an array of values ar, given its avg. Based on 
 # https://stackoverflow.com/questions/15033511/compute-a-confidence-interval-from-sample-data
-confInterval = lambda ar, avg, conf_lvl=0.95 : st.t.interval (conf_lvl, len(ar)-1, loc=avg, scale=st.sem(ar)) if np.std(ar)>0 else [avg, avg]
+confInterval = lambda ar, avg, confLvl=0.95 : st.t.interval (confLvl, len(ar)-1, loc=avg, scale=st.sem(ar)) if np.std(ar)>0 else [avg, avg]
    
 def getDf (distStr : str) -> float:
     """
@@ -315,6 +315,7 @@ def calcPostSimStat (
         sumSqEr         : list, # sum of the square errors, collected during the sim
         numMeausures    : int, # num of error measurements  
         statType        : str = 'normRmse', # Type of the statistic to write. May be either 'normRmse', or 'Mse'
+        confLvl         : float = 0.95, # required conf' level
         verbose         : list = [], # verbose level, defining the type and format of output
         logFile         = None,
     ) -> dict: 
@@ -336,7 +337,7 @@ def calcPostSimStat (
         printf (logFile, f'statType={statType}. Vec=')
         printarFp (logFile, vec)
     avg           = np.average(vec)
-    confIntervalVar  = confInterval (ar=vec, avg=avg)
+    confIntervalVar  = confInterval (ar=vec, avg=avg, confLvl=confLvl)
     # maxMinRelDiff will hold the relative difference between the largest and the smallest value.
     warningField    = False # Will be set True if the difference between the largest and the smallest value is too high.
     if avg== 0:
@@ -351,7 +352,8 @@ def calcPostSimStat (
         'Hi'            : confIntervalVar[1],
         'statType'      : statType,
         'maxMinRelDiff' : maxMinRelDiff,
-        'warning'       : warningField  
+        'warning'       : warningField,
+        'confLvl'       : confLvl  
     }
 
 def getFxpSettings (mode : str) -> dict:
