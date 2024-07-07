@@ -488,12 +488,12 @@ def LaunchCmsSim (
     
 if __name__ == '__main__':
     try:
-        cntrSize = 8
-        threading.Thread (
-            target = LaunchCmsSim, 
-            kwargs = {'cntrSize' : 4, 'mode' : 'AEE_ds'}
-        ).start()
-        exit ()
+        # cntrSize = 8
+        # threading.Thread (
+        #     target = LaunchCmsSim, 
+        #     kwargs = {'cntrSize' : 4, 'mode' : 'AEE_ds'}
+        # ).start()
+        # exit ()
         mode = 'AEE_ds'     
         for trace in ['Caida1', 'Caida2']:
             for width in [2**i for i in range (10, 19)]: 
