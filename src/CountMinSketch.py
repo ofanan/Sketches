@@ -442,10 +442,10 @@ class CountMinSketch:
         return dict
     
 def LaunchCmsSim (
-        traceFileName, 
-        cntrSize, 
-        mode,
-        width,
+        mode            : str,
+        traceFileName   : str = 'Rand', 
+        cntrSize        : int = 4, 
+        width           : int = 2,
     ):    
     """
     """   
@@ -454,7 +454,7 @@ def LaunchCmsSim (
         cms = CountMinSketch (
             width           = 2, 
             depth           = 2,
-            numFlows        = 10,
+            numFlows        = 4,
             numCntrsPerBkt  = 2,
             mode            = mode, 
             traceFileName   = traceFileName,
@@ -463,7 +463,7 @@ def LaunchCmsSim (
             numEpsilonStepsInXlBkt  = 5,
             verbose                 = [VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
-            maxNumIncs              = 333333,
+            maxNumIncs              = 11111,
             maxValBy                = 'F3P_li_h3',
             cntrSize                = cntrSize, 
         )
@@ -489,12 +489,13 @@ def LaunchCmsSim (
 if __name__ == '__main__':
     try:
         cntrSize = 8
-        # for mode in ['F2P_li_h2_ds']:    
-        # for mode  in ['PerfectCounter']:
-        # for mode in ['SEAD_dyn', 'SEAD_stat_e3', 'SEAD_stat_e4']:    
-        # for mode in ['F2P_li_h2_ds']:    
-        # for mode in ['CEDAR_ds']:    
-        # for mode in ['CEDAR', 'Morris']:     
+        threading.Thread (
+            target = LaunchCmsSim, 
+            args   = ('Rand',), 
+            kwargs = {'cntrSize' : 4, 'mode' : 'AEE_ds'}
+        ).start()
+        exit ()
+        mode = 'AEE_ds'     
         for trace in ['Caida1', 'Caida2']:
             for width in [2**i for i in range (10, 19)]: 
                 threading.Thread (
@@ -502,7 +503,7 @@ if __name__ == '__main__':
                     args   = (trace,), 
                     kwargs = {
                         'cntrSize' : 8,
-                        'mode'     : 'F2P_li_h2_ds',
+                        'mode'     : mode,
                         'width'    : width,
                     }
                 ).start()

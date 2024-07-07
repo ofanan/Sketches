@@ -1121,8 +1121,9 @@ def genErVsMemSizePlot (
     
     for traceName in ['Caida1', 'Caida2']:
         myResFileParser = ResFileParser ()
-        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC.pcl')
+        # myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC.pcl')
         myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC.pcl')
+        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC_confLvl0.99.pcl')
         myResFileParser.genErVsMemSizePlot (
             traceName   = traceName,
             ignoreModes = ignoreModes,
@@ -1147,14 +1148,14 @@ def genErVsMemSizePlotSs (
 
 if __name__ == '__main__':
     try:
-        # genErVsMemSizePlot (
-        #     ignoreModes = ['PerfectCounter', 'SEAD_dyn']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
-        # )
+        genErVsMemSizePlot (
+            ignoreModes = ['PerfectCounter', 'SEAD_dyn']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
+        )
         # genUniqPcl (pclFileName='cms_Caida2_PC.pcl')
         # genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
-        rmvFromPcl ()
+        # rmvFromPcl ()
         # genQuantErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
