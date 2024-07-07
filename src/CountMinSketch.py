@@ -442,8 +442,8 @@ class CountMinSketch:
         return dict
     
 def LaunchCmsSim (
-        mode            : str,
         traceFileName   : str = 'Rand', 
+        mode            : str = 'AEE_ds',
         cntrSize        : int = 4, 
         width           : int = 2,
     ):    
@@ -491,7 +491,6 @@ if __name__ == '__main__':
         cntrSize = 8
         threading.Thread (
             target = LaunchCmsSim, 
-            args   = ('Rand',), 
             kwargs = {'cntrSize' : 4, 'mode' : 'AEE_ds'}
         ).start()
         exit ()
