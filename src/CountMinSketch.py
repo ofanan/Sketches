@@ -461,14 +461,14 @@ def LaunchCmsSim (
             numEpsilonStepsInXlBkt  = 5,
             verbose                 = [VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
-            maxNumIncs              = 11111,
+            maxNumIncs              = 222222,
             maxValBy                = 'F3P_li_h3',
             cntrSize                = cntrSize, 
         )
         cms.sim ()
     else:
         cms = CountMinSketch (
-            maxValBy        = 'F2P_li_h2',
+            maxValBy        = 'F3P_li_h3',
             width           = width,
             depth           = depth,
             numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
@@ -507,13 +507,14 @@ def runMultiProcessSim ():
     
 if __name__ == '__main__':
     try:
-        mode = 'AEE_ds'     
-        for trace in ['Rand']: #['Caida1', 'Caida2']:
-            for width in [10, 12]: #[2**i for i in range (10, 19)]: 
+        mode = 'CEDAR_ds'     
+        for trace in ['Caida1', 'Caida2']:
+            for width in [2**i for i in range (10, 19)]: 
                 LaunchCmsSim (
-                    cntrSize = 8,
-                    mode     = mode,
-                    width    = width,
+                    traceFileName   = trace,
+                    cntrSize        = 8,
+                    mode            = mode,
+                    width           = width,
                 )
                 
     except KeyboardInterrupt:
