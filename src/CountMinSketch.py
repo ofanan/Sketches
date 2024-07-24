@@ -483,18 +483,33 @@ def LaunchCmsSim (
             verbose                 = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL] #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
         )
         cms.sim ()
+
+def runMultiProcessSim ():
+    """
+    Generate a multi-process simulation. 
+    This func uses fork(), and therefore can run only in UNIX environment.
+    """
+    mode = 'AEE_ds'     
+    for trace in ['Rand']: #['Caida1', 'Caida2']:
+        for width in [10, 12]: #[2**i for i in range (10, 19)]: 
+            pid = os.fork ()
+            if pid: # parent
+                print (f'Launched cms process for trace={trace}, width={width}')
+                continue
+            
+            # now we know that this is a child process
+            LaunchCmsSim (
+                cntrSize = 8,
+                mode     = mode,
+                width    = width,
+            )
+
     
 if __name__ == '__main__':
     try:
         mode = 'AEE_ds'     
         for trace in ['Rand']: #['Caida1', 'Caida2']:
             for width in [10, 12]: #[2**i for i in range (10, 19)]: 
-                pid = os.fork ()
-                if pid: # parent
-                    print (f'Launched cms process for trace={trace}, width={width}')
-                    continue
-                
-                # now we know that this is a child process
                 LaunchCmsSim (
                     cntrSize = 8,
                     mode     = mode,
