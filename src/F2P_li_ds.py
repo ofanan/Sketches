@@ -5,7 +5,7 @@ import math, random, pickle, numpy as np
 
 from printf import printf
 import settings, F2P_li
-from settings import VERBOSE_DEBUG, VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_DWN_SMPL_DETAILED
+from settings import VERBOSE_DEBUG, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_DWN_SMPL
 from settings import warning, error
 
 class CntrMaster (F2P_li.CntrMaster):

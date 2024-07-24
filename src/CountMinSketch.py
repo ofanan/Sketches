@@ -487,12 +487,13 @@ def LaunchCmsSim (
 if __name__ == '__main__':
     try:
         mode = 'AEE_ds'     
-        for trace in ['Caida1', 'Caida2']:
-            for width in [2**i for i in range (10, 19)]: 
+        for trace in ['Rand']: #['Caida1', 'Caida2']:
+            for width in [10, 12]: #[2**i for i in range (10, 19)]: 
                 pid = os.fork ()
                 if pid: # parent
                     print (f'Launched cms process for trace={trace}, width={width}')
                     continue
+                
                 # now we know that this is a child process
                 LaunchCmsSim (
                     cntrSize = 8,
