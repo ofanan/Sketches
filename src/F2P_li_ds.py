@@ -5,7 +5,7 @@ import math, random, pickle, numpy as np
 
 from printf import printf
 import settings, F2P_li
-from settings import VERBOSE_DEBUG, VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL
+from settings import VERBOSE_DEBUG, VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_DWN_SMPL_DETAILED
 from settings import warning, error
 
 class CntrMaster (F2P_li.CntrMaster):
@@ -99,7 +99,7 @@ class CntrMaster (F2P_li.CntrMaster):
                     ceilCntr = cntr[0:-orgMantSize] + '0'*orgMantSize
                 else:
                     ceilCntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(int (mantVec, base=2)+1, mantSize) 
-            if VERBOSE_LOG_DWN_SMPL in self.verbose:
+            if VERBOSE_LOG_DWN_SMPL_DETAILED in self.verbose:
                 probOfCeil = 0.5 if truncated else 0
                 printf (self.logFile, f'cntr={cntr}, floorCntr={floorCntr}, ceil={ceilCntr}, probOfCeil={probOfCeil}, expVec={expVec}, absExpVal={absExpVal}, ')
                 orgVal   = self.cntr2num(cntr)

@@ -7,7 +7,7 @@ import math, time, random
 from printf import printf
 import settings, AEE
 import numpy as np
-from settings import VERBOSE_DEBUG, VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL
+from settings import VERBOSE_DEBUG, VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_DWN_SMPL_DETAILED
 from settings import warning, error
 
 class CntrMaster (AEE.CntrMaster):

@@ -1,10 +1,8 @@
-import threading
 import matplotlib 
 import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time
 import numpy as np
 from datetime import datetime
-from threading import Thread
 
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_si, Morris, CEDAR, CEDAR_ds, AEE_ds
 from settings import warning, error, INF_INT, calcPostSimStat, getSeadStatExpSize
@@ -488,25 +486,19 @@ def LaunchCmsSim (
     
 if __name__ == '__main__':
     try:
-        # cntrSize = 8
-        # threading.Thread (
-        #     target = LaunchCmsSim, 
-        #     kwargs = {'cntrSize' : 4, 'mode' : 'AEE_ds'}
-        # ).start()
-        # exit ()
         mode = 'AEE_ds'     
         for trace in ['Caida1', 'Caida2']:
             for width in [2**i for i in range (10, 19)]: 
-                threading.Thread (
-                    target = LaunchCmsSim, 
-                    args   = (trace,), 
-                    kwargs = {
-                        'cntrSize' : 8,
-                        'mode'     : mode,
-                        'width'    : width,
-                    }
-                ).start()
-            print (f'Launched cms thread for trace={trace}, width={width}')
+                pid = os.fork ()
+                if pid: # parent
+                    print (f'Launched cms process for trace={trace}, width={width}')
+                    continue
+                # now we know that this is a child process
+                LaunchCmsSim (
+                    cntrSize = 8,
+                    mode     = mode,
+                    width    = width,
+                )
                 
     except KeyboardInterrupt:
         print ('Keyboard interrupt.')

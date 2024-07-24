@@ -182,18 +182,12 @@ class CntrMaster (F3P_li.CntrMaster):
                 self.cntrs[cntrIdx] = '1'*hyperSize       + expVec + np.binary_repr(num=mantIntVal+1, width=mantSize) 
         return int(cntrppVal) 
 
-# mantVec     = '543201'
-# newMantVec  = mantVec[0:-2]
-# remainder   = mantVec[-2:]
-# prob        = float(int(mantVec[-2:], base=2))/2**(2)
-# print (f'newMantVec={newMantVec}, remainder={remainder}, prob={prob}') 
-
-# myCntr = CntrMaster (
-#     cntrSize     = 4, 
-#     hyperMaxSize = 1,
-#     verbose=[VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG]
-# )
-# logFile = open ('../res/log_files/F3P_li_ds.log', 'w')
-# myCntr.setLogFile (logFile)
-# for _ in range (100):
-#     myCntr.incCntrBy1GetVal ()
+myCntr = CntrMaster (
+    cntrSize     = 4, 
+    hyperMaxSize = 1,
+    verbose=[VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG]
+)
+logFile = open ('../res/log_files/F3P_li_ds.log', 'w')
+myCntr.setLogFile (logFile)
+for _ in range (100):
+    myCntr.incCntrBy1GetVal ()
