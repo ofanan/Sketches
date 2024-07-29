@@ -1,8 +1,11 @@
 # Sketches
 
 This project studies the usage of sketches and estimators for network telemetry and neural networks.
-The project includes Python implementation of various sketch and esimation schemes, such as Morris Counters, CEDAR, SEAD, and Count Min Sketch.
-As the research is still in preliminary stage, the code is not fully debugged yet.
+The project includes efficient Python implementations of the following counters:
+
+Morris Counters, CEDAR, SEAD, AEE.
+
+The project provides also Python impelemntation of Count Min Sketch and Space Saving Cache.
 A recommended reading For further details about sketches is
 
 Li, Shangsen, et al., [A Survey of Sketches in Traffic Measurement:
