@@ -3,7 +3,7 @@
 import os, math, itertools, numpy as np, scipy.stats as st 
 from printf import printf, printarFp
 
-SEED    = 42
+SEED    = 123456789012345678901234567890123456789
 INF_INT = 999999999
 MAX_NUM_OF_FLOWS = 2**32
 

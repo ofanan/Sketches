@@ -13,6 +13,13 @@ from settings import error, warning, VERBOSE_RES, VERBOSE_PCL
 
 MAX_DF = 20
 
+# Dequantize the given vector, namely, multiply each element in it by the given scale.
+# Inputs: vec : np.array; vector to dequantize 
+#         scale : float; scale factor5
+#         z     : float; the zero-point
+# Output: np.array; the dequantized vector
+dequantize = lambda vec, scale, z : (vec-z)*scale 
+
 def myFitter (
         vec : np.array,
         ) -> str:
@@ -77,15 +84,6 @@ def clamp (vec: np.array, lowerBnd: float, upperBnd: float) -> np.array:
     vec[vec > upperBnd] = upperBnd
     return vec 
 
-def dequantize (vec     : np.array, # vector to dequantize 
-                scale   : float,    # scale factor5
-                z       : float,    # the zero-point
-                ) -> np.array:
-    """
-    Dequantize the given vector, namely, multiply each element in it by the given scale.
-    """
-    return [(item-z)*scale for item in vec] 
-
 def calcErr (orgVec         : np.array, # vector before quantization 
              changedVec     : np.array, # vector after quantization+dequantization
              weightDist     : str = None, # distribution by which the MSE is weighted; when None, do not calculate the weighted MSE
@@ -103,13 +101,15 @@ def calcErr (orgVec         : np.array, # vector before quantization
     - The Mse, weighted by the given distribution and stdev (standard variation). 
     """
     absErrVec = [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))]
+    relErrVec = [absErrVec[i]/orgVec[i] for i in range(len(orgVec)) if orgVec[i]!=0]
     resRecord = {
             'scale'  : scale, 
             'abs'    : np.mean (absErrVec),
             'absMse' : np.mean ([item**2 for item in absErrVec]),
             'relMse' : np.mean ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]),
         } 
-
+    
+    return resRecord #$$$
     if recordErrVecs:
         resRecord['absErrVec'] = absErrVec
     if weightDist==None: # no need to calculate weighted Mse
@@ -117,7 +117,66 @@ def calcErr (orgVec         : np.array, # vector before quantization
 
     if weightDist!='norm':
         settings.error (f'In FPQuantization.calcErr(). Sorry, the distribution {dist} you chose is not supported.')
+    pdfVec = [scipy.stats.norm(0, stdev).pdf(orgVec[i]) for i in range(len(orgVec))]
     weightedAbsMseVec      = [scipy.stats.norm(0, stdev).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
+    weightedRelMseVec      = np.empty(len([item for item in orgVec if item!=0]))
+    idxInweightedRelMseVec = 0
+    for i in range(len(orgVec)):
+        if orgVec[i]==0:
+            continue
+        weightedRelMseVec[idxInweightedRelMseVec] = scipy.stats.norm(0, stdev).pdf(orgVec[i])*((orgVec[i]-changedVec[i])/orgVec[i])**2 
+        idxInweightedRelMseVec += 1
+
+    if settings.VERBOSE_LOG in verbose:
+        printf (logFile, f'// mode={mode}\n')
+        for i in range (10):
+             printf (logFile, f'i={i}, org={orgVec[i]}, changed={changedVec[i]}, PDF={scipy.stats.norm(0, stdev).pdf(orgVec[i])}, weightedAbsMse={weightedAbsMseVec[i]}\n')
+    
+    resRecord['avgWeightedAbsMse'] = np.mean (weightedAbsMseVec)
+    resRecord['avgWeightedRelMse'] = np.mean (weightedRelMseVec)
+    if recordErrVecs:
+        resRecord['weightedAbsMseVec'] = weightedAbsMseVec
+        resRecord['weightedRelMseVec'] = weightedRelMseVec
+    return resRecord
+
+def calcErrNp (orgVec       : np.array, # vector before quantization 
+             changedVec     : np.array, # vector after quantization+dequantization
+             weightDist     : str = None, # distribution by which the MSE is weighted; when None, do not calculate the weighted MSE
+             stdev          : float = 0.01,       # standard variation of the distribution; the expected value is 0.
+             scale          : float = None,       # the scale by which orgVec was quantized
+             logFile        = None, # object for the logFile; to be used if the verbose requests for logFile
+             recordErrVecs  = False, # When True, add the error vector (and not only their means) to the returned resRecord.
+             verbose        : list = []    # level of verbose, as defined in settings.py 
+             ):
+    """
+    Calculate the errors between the original vector and the changed vector.
+    The errors consider are:
+    - absolute/relative.
+    - Regular - MSE (Mean Square Error).
+    - The Mse, weighted by the given distribution and stdev (standard variation). 
+    """
+    absErrVec = np.abs(orgVec-changedVec) 
+    absSqErrVec = np.square(absErrVec)
+    relErrVec = [absErrVec[i]/orgVec[i] for i in range(len(orgVec)) if orgVec[i]!=0]
+    relSqErrVec = np.square(relErrVec)
+    resRecord = {
+            'scale'  : scale, 
+            'abs'    : np.mean (absErrVec),
+            'absMse' : np.mean (absSqErrVec), 
+            'relMse' : np.mean (relSqErrVec) 
+        } 
+    return resRecord #$$$
+    error ('Please check the new, np version, of this function.')
+    if recordErrVecs:
+        resRecord['absErrVec'] = absErrVec
+    if weightDist==None: # no need to calculate weighted Mse
+        return resRecord
+
+    if weightDist!='norm':
+        settings.error (f'In FPQuantization.calcErr(). Sorry, the distribution {dist} you chose is not supported.')
+    pdfVec = [scipy.stats.norm(0, stdev).pdf(orgVec[i]) for i in range(len(orgVec))]
+    weightedAbsMseVec      = np.dot (pdfVec, absSqErrVec) 
+    # weightedAbsMseVec      = [scipy.stats.norm(0, stdev).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
     weightedRelMseVec      = np.empty(len([item for item in orgVec if item!=0]))
     idxInweightedRelMseVec = 0
     for i in range(len(orgVec)):
@@ -142,9 +201,10 @@ def scaleGrid (grid : np.array, lowerBnd=0, upperBnd=100) -> np.array:
     """
     Scale the given sorted grid into the given range [lowerBnd, upperBnd]
     """
+    error ('Please check the new, np version, of this function')
     scale = (upperBnd-lowerBnd) / (grid[-1]-grid[0])
-    return [item*scale for item in grid] 
-    
+    return scale * grid  
+    # return [item*scale for item in grid] 
     
 def quantize (vec  : np.array, # The vector to quantize 
               grid : np.array  # The quantization grid (all the values that can be represented by the destination number representation
@@ -197,7 +257,7 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
     Generate a vector to be quantized, using the requested distribution.
     """
     if dist=='uniform':
-        vec = [(lowerBnd + i*(upperBnd-lowerBnd)/(numPts-1)) for i in range(numPts)]
+        vec = [(lowerBnd + i*(upperBnd-lowerBnd)/(numPts-1)) for i in range(numPts)] #$$$ change to np-style to boost perf'
     elif dist=='norm':
         rng = np.random.default_rng(settings.SEED)
         vec = np.sort (rng.standard_normal(numPts) * stdev)
@@ -477,8 +537,27 @@ def plotGrids (
     sns.despine(left=True, bottom=False, right=True)
     plt.savefig (f'../res/Grids_n{cntrSize}_I.pdf', bbox_inches='tight')
 
+def npExperiments ():
+    """
+    Some experiments, to test np ops and speed.
+    """
+    rng = np.random.default_rng(settings.SEED)
+    vec = rng.random (1000000)
+    scale = 0.23434
+    # def calcErrNp (orgVec       : np.array, # vector before quantization 
+    #              changedVec     : np.array, # vector after quantization+dequantization
+    #              weightDist     : str = None, # distribution by which the MSE is weighted; when None, do not calculate the weighted MSE
+    #              stdev          : float = 0.01,       # standard variation of the distribution; the expected value is 0.
+    #              scale          : float = None,       # the scale by which orgVec was quantized
+    #              logFile        = None, # object for the logFile; to be used if the verbose requests for logFile
+    #              recordErrVecs  = False, # When True, add the error vector (and not only their means) to the returned resRecord.
+    #              verbose        : list = []    # level of verbose, as defined in settings.py 
+    #              ):
+    
 if __name__ == '__main__':
     try:
+        npExperiments ()
+        exit ()
         # plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_li_h2', 'F2P_si_h2', 'FP_e5', 'FP_e2', 'int'], scale=False)
         # None 
         verbose = [VERBOSE_PCL, VERBOSE_RES]
@@ -504,5 +583,3 @@ if __name__ == '__main__':
         print('Keyboard interrupt.')
 
 # scaled 'F2P_lr_h1' is identical to int.
-
- 
