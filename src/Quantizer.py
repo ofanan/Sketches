@@ -487,13 +487,14 @@ def npExperiments ():
     rng = np.random.default_rng(settings.SEED)
     vecLen = 300
     orgVec = rng.random (vecLen)
-    vec = np.arange (-10, 11)
-    print (vec)
+    vec = np.arange (10.)
+    mat = vec.reshape (10, 1)
+    # print (f'mat={mat}')
+    # print (f'shape={mat.shape}, type={mat.dtype}')
+    print (vec[5:-5])
     
 if __name__ == '__main__':
     try:
-        npExperiments ()
-        exit ()
         # plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_li_h2', 'F2P_si_h2', 'FP_e5', 'FP_e2', 'int'], scale=False)
         # None 
         verbose = [VERBOSE_PCL, VERBOSE_RES]
