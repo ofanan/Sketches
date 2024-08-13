@@ -1,62 +1,72 @@
-import numpy as np
+import numpy as np, torch, tensorflow as tf
 import matplotlib.pyplot as plt
-def compute_model_output(x, w, b):
+np.set_printoptions(precision=2)
+
+import settings
+from settings import error, warning
+def compute_cost_lab (X, y, w, b): 
     """
-    Computes the prediction of a linear model
+    compute cost
     Args:
-      x (ndarray (m,)): Data, m examples 
-      w,b (scalar)    : model parameters  
-    Returns
-      f_wb (ndarray (m,)): model prediction
+      X (ndarray (m,n)): Data, m examples with n features
+      y (ndarray (m,)) : target values
+      w (ndarray (n,)) : model parameters  
+      b (scalar)       : model parameter
+      
+    Returns:
+      cost (scalar): cost
     """
-    # m = x.shape[0]
-    # f_wb = np.zeros(m)
-    # for i in range(m):
-    #     f_wb[i] = w * x[i] + b
-        
-    return np.array([(w*item+b) for item in x])
+    m = X.shape[0]
+    cost = 0.0
+    for i in range(m):                                
+        f_wb_i = np.dot(X[i], w) + b           #(n,)(n,) = scalar (see np.dot)
+        cost = cost + (f_wb_i - y[i])**2       #scalar
+    cost = cost / (2 * m)                      #scalar    
+    return cost
 
-def compute_cost(x, y, w, b): 
+def predict (X, w, b):
+    return tf.reduce_sum(input_tensor=X*w+b, axis=1)
+
+def compute_cost_my (X, y, w, b): 
     """
-    Computes the cost function for linear regression.
-    
+    compute cost
     Args:
-      x (ndarray (m,)): Data, m examples 
-      y (ndarray (m,)): target values
-      w,b (scalar)    : model parameters  
-    
-    Returns
-        total_cost (float): The cost of using w,b as the parameters for linear regression
-               to fit the data points in x and y
+      X (ndarray (m,n)): Data, m examples with n features
+      y (ndarray (m,)) : target values
+      w (ndarray (n,)) : model parameters  
+      b (scalar)       : model parameter
+      
+    Returns:
+      cost (scalar): cost
     """
-    m = x.shape[0]
-    Y_hat = compute_model_output (x, w, b)
-    return (1/(2*m)) * np.sum(np.array([((y[i]-Y_hat[i])**2) for i in range(m)]))
-    
-    # x is the input variable (size in 1000 square feet)
-# y is the target (price in 1000s of dollars)
-x = np.array([1.0, 2.0])
-y = np.array([300.0, 500.0])
-m = x.shape[0]
+    myDtype = 'float'
+    X = tf.convert_to_tensor (X, dtype=myDtype)
+    y = tf.convert_to_tensor (y, dtype=myDtype)
+    w = tf.convert_to_tensor (w, dtype=myDtype)
+    m = X.shape[0]
+    cost = 0.0
+    prediction = predict (X, w, b)
+    error (prediction)
+    print (f'costs shape={costs.shape}')
+    yy = tf.tile ([y], [1, m])
+    print (f'y={y}, yy={yy}')
+    # print (f'yy shape={yy.shape}')
+    # print (f'costsb after y={costs}')
+    exit ()
+    for i in range(m):                                
+        cost = cost + (np.dot(X[i], w) + b - y[i])**2       #scalar
+    cost = cost / (2 * m)                      #scalar    
+    return cost
 
-w = 100
-b = 300
-print(f"w: {w}")
-print(f"b: {b}")
-
-# Plot our model prediction
-plt.plot(x, compute_model_output(x, w, b,), c='b',label='Our Prediction')
-
-# Plot the data points
-plt.scatter(x, y, marker='x', c='r',label='Actual Values')
-
-# Set the title
-plt.title("Housing Prices")
-# Set the y-axis label
-plt.ylabel('Price (in 1000s of dollars)')
-# Set the x-axis label
-plt.xlabel('Size (1000 sqft)')
-plt.legend()
-# plt.show()
-
-compute_cost(x, y, w, b)
+# gamad = tf.constant ([1, 2, 3])
+# nanas = tf.tile ([gamad], [2, 1])
+# nanasSum = tf.reduce_sum(input_tensor=nanas, axis=1)
+# print(f'nanas={nanas}\nsum={nanasSum}')
+X = np.array([[2104, 5, 1, 45], [1416, 3, 2, 40], [852, 2, 1, 35]])
+y = np.array([460, 232, 178])
+b_init = 785.1811367994083
+w_init = np.array([ 0.39133535, 18.75376741, -53.36032453, -26.42131618])
+  
+costLab = compute_cost_lab(X=X, y=y, b=b_init, w=w_init)  
+costMy  = compute_cost_my (X=X, y=y, b=b_init, w=w_init)  
+print (f'costLab={costLab}, costMy={costMy}')
