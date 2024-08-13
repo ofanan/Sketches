@@ -1,4 +1,4 @@
-import os, scipy, matplotlib, pickle, numpy as np, seaborn as sns
+import os, time, scipy, matplotlib, pickle, numpy as np, seaborn as sns
 # from datetime import datetime
 import matplotlib.pyplot as plt
 import pandas as pd
@@ -84,70 +84,16 @@ def clamp (vec: np.array, lowerBnd: float, upperBnd: float) -> np.array:
     vec[vec > upperBnd] = upperBnd
     return vec 
 
-def calcErr (orgVec         : np.array, # vector before quantization 
-             changedVec     : np.array, # vector after quantization+dequantization
-             weightDist     : str = None, # distribution by which the MSE is weighted; when None, do not calculate the weighted MSE
-             stdev          : float = 0.01,       # standard variation of the distribution; the expected value is 0.
-             scale          : float = None,       # the scale by which orgVec was quantized
-             logFile        = None, # object for the logFile; to be used if the verbose requests for logFile
-             recordErrVecs  = False, # When True, add the error vector (and not only their means) to the returned resRecord.
-             verbose        : list = []    # level of verbose, as defined in settings.py 
-             ):
-    """
-    Calculate the errors between the original vector and the changed vector.
-    The errors consider are:
-    - absolute/relative.
-    - Regular - MSE (Mean Square Error).
-    - The Mse, weighted by the given distribution and stdev (standard variation). 
-    """
-    absErrVec = [abs(orgVec[i]-changedVec[i]) for i in range(len(orgVec))]
-    relErrVec = [absErrVec[i]/orgVec[i] for i in range(len(orgVec)) if orgVec[i]!=0]
-    resRecord = {
-            'scale'  : scale, 
-            'abs'    : np.mean (absErrVec),
-            'absMse' : np.mean ([item**2 for item in absErrVec]),
-            'relMse' : np.mean ([((orgVec[i]-changedVec[i])/orgVec[i])**2 for i in range(len(orgVec)) if orgVec[i]!=0]),
-        } 
-    
-    return resRecord #$$$
-    if recordErrVecs:
-        resRecord['absErrVec'] = absErrVec
-    if weightDist==None: # no need to calculate weighted Mse
-        return resRecord
-
-    if weightDist!='norm':
-        settings.error (f'In FPQuantization.calcErr(). Sorry, the distribution {dist} you chose is not supported.')
-    pdfVec = [scipy.stats.norm(0, stdev).pdf(orgVec[i]) for i in range(len(orgVec))]
-    weightedAbsMseVec      = [scipy.stats.norm(0, stdev).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
-    weightedRelMseVec      = np.empty(len([item for item in orgVec if item!=0]))
-    idxInweightedRelMseVec = 0
-    for i in range(len(orgVec)):
-        if orgVec[i]==0:
-            continue
-        weightedRelMseVec[idxInweightedRelMseVec] = scipy.stats.norm(0, stdev).pdf(orgVec[i])*((orgVec[i]-changedVec[i])/orgVec[i])**2 
-        idxInweightedRelMseVec += 1
-
-    if settings.VERBOSE_LOG in verbose:
-        printf (logFile, f'// mode={mode}\n')
-        for i in range (10):
-             printf (logFile, f'i={i}, org={orgVec[i]}, changed={changedVec[i]}, PDF={scipy.stats.norm(0, stdev).pdf(orgVec[i])}, weightedAbsMse={weightedAbsMseVec[i]}\n')
-    
-    resRecord['avgWeightedAbsMse'] = np.mean (weightedAbsMseVec)
-    resRecord['avgWeightedRelMse'] = np.mean (weightedRelMseVec)
-    if recordErrVecs:
-        resRecord['weightedAbsMseVec'] = weightedAbsMseVec
-        resRecord['weightedRelMseVec'] = weightedRelMseVec
-    return resRecord
-
-def calcErrNp (orgVec       : np.array, # vector before quantization 
-             changedVec     : np.array, # vector after quantization+dequantization
-             weightDist     : str = None, # distribution by which the MSE is weighted; when None, do not calculate the weighted MSE
-             stdev          : float = 0.01,       # standard variation of the distribution; the expected value is 0.
-             scale          : float = None,       # the scale by which orgVec was quantized
-             logFile        = None, # object for the logFile; to be used if the verbose requests for logFile
-             recordErrVecs  = False, # When True, add the error vector (and not only their means) to the returned resRecord.
-             verbose        : list = []    # level of verbose, as defined in settings.py 
-             ):
+def calcErr (
+        orgVec         : np.array, # vector before quantization 
+        changedVec     : np.array, # vector after quantization+dequantization
+        weightDist     : str = None, # distribution by which the MSE is weighted; when None, do not calculate the weighted MSE
+        stdev          : float = 0.01,       # standard variation of the distribution; the expected value is 0.
+        scale          : float = None,       # the scale by which orgVec was quantized
+        logFile        = None, # object for the logFile; to be used if the verbose requests for logFile
+        recordErrVecs  = False, # When True, add the error vector (and not only their means) to the returned resRecord.
+        verbose        : list = []    # level of verbose, as defined in settings.py 
+    ):
     """
     Calculate the errors between the original vector and the changed vector.
     The errors consider are:
@@ -165,8 +111,6 @@ def calcErrNp (orgVec       : np.array, # vector before quantization
             'absMse' : np.mean (absSqErrVec), 
             'relMse' : np.mean (relSqErrVec) 
         } 
-    return resRecord #$$$
-    error ('Please check the new, np version, of this function.')
     if recordErrVecs:
         resRecord['absErrVec'] = absErrVec
     if weightDist==None: # no need to calculate weighted Mse
@@ -176,7 +120,6 @@ def calcErrNp (orgVec       : np.array, # vector before quantization
         settings.error (f'In FPQuantization.calcErr(). Sorry, the distribution {dist} you chose is not supported.')
     pdfVec = [scipy.stats.norm(0, stdev).pdf(orgVec[i]) for i in range(len(orgVec))]
     weightedAbsMseVec      = np.dot (pdfVec, absSqErrVec) 
-    # weightedAbsMseVec      = [scipy.stats.norm(0, stdev).pdf(orgVec[i])*(orgVec[i]-changedVec[i])**2 for i in range(len(orgVec))]
     weightedRelMseVec      = np.empty(len([item for item in orgVec if item!=0]))
     idxInweightedRelMseVec = 0
     for i in range(len(orgVec)):
@@ -542,22 +485,14 @@ def npExperiments ():
     Some experiments, to test np ops and speed.
     """
     rng = np.random.default_rng(settings.SEED)
-    vec = rng.random (1000000)
+    vecLen = 300
+    orgVec = rng.random (vecLen)
+    changedVec = rng.random (vecLen)
     scale = 0.23434
-    # def calcErrNp (orgVec       : np.array, # vector before quantization 
-    #              changedVec     : np.array, # vector after quantization+dequantization
-    #              weightDist     : str = None, # distribution by which the MSE is weighted; when None, do not calculate the weighted MSE
-    #              stdev          : float = 0.01,       # standard variation of the distribution; the expected value is 0.
-    #              scale          : float = None,       # the scale by which orgVec was quantized
-    #              logFile        = None, # object for the logFile; to be used if the verbose requests for logFile
-    #              recordErrVecs  = False, # When True, add the error vector (and not only their means) to the returned resRecord.
-    #              verbose        : list = []    # level of verbose, as defined in settings.py 
-    #              ):
+    tic = time.time ()
     
 if __name__ == '__main__':
     try:
-        npExperiments ()
-        exit ()
         # plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_li_h2', 'F2P_si_h2', 'FP_e5', 'FP_e2', 'int'], scale=False)
         # None 
         verbose = [VERBOSE_PCL, VERBOSE_RES]
