@@ -21,7 +21,6 @@ def compute_cost_lab (X, y, w, b):
     cost = 0.0
     for i in range(m):                                
         f_wb_i = np.dot(X[i], w) + b           #(n,)(n,) = scalar (see np.dot)
-        print (f'predict[{i}]={f_wb_i}')
         cost = cost + (f_wb_i - y[i])**2       #scalar
     cost = cost / (2 * m)                      #scalar    
     return cost
@@ -51,8 +50,8 @@ def compute_cost_my (X, y, w, b):
     m = X.shape[0]
     prediction = predict (X, w, b)
     costVec = tf.math.square(prediction-y)
-    print (f'prediction={prediction}\ny={y}\ncostVec={costVec}')
-    exit ()
+    # print (f'prediction={prediction}\ny={y}\ncostVec={costVec}')
+    # exit ()
     # cost = tf.reduce_sum(input_tensor=costVec)
     # print (f'cost={cost}')
     # exit ()
