@@ -207,7 +207,7 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
     elif dist.startswith('t_'):
         vec = np.sort (np.random.standard_t(df=settings.getDf(dist), size=numPts) * stdev)
     elif dist=='int': # vector of integers in the range
-        vec = [i for i in range (lowerBnd, upperBnd+1)]
+        vec = np.arange (lowerBnd, upperBnd+1) 
     else:
         settings.error (f'In Quantization.genVec2Quantize(). Sorry. The distribution {dist} you chose is not supported.')
     if outLier==None:
@@ -350,7 +350,7 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
                     )
 
         elif mode=='shortTest':
-            grid = np.array([i for i in range(-10, 11)])
+            grid = np.arange (-10, 11)
             vec2quantize = np.array([-100, -95, -7, 99, 100])
             [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
@@ -443,7 +443,7 @@ def plotGrids (
             mode = 'FP'
             resRecord = {
                 'mode'  : 'int',
-                'grid'  : [i for i in range (0, 2**cntrSize)] 
+                'grid'  : np.arange (0, 2**cntrSize) 
                 }
             if not scale:
                 upperBnd = max (upperBnd, grid[-1])
@@ -487,12 +487,13 @@ def npExperiments ():
     rng = np.random.default_rng(settings.SEED)
     vecLen = 300
     orgVec = rng.random (vecLen)
-    changedVec = rng.random (vecLen)
-    scale = 0.23434
-    tic = time.time ()
+    vec = np.arange (-10, 11)
+    print (vec)
     
 if __name__ == '__main__':
     try:
+        npExperiments ()
+        exit ()
         # plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_li_h2', 'F2P_si_h2', 'FP_e5', 'FP_e2', 'int'], scale=False)
         # None 
         verbose = [VERBOSE_PCL, VERBOSE_RES]
