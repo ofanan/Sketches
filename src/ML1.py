@@ -86,20 +86,45 @@ def predict(X, w, b):
     p = np.where (f>0.5, 1, 0)
     print (f'f.shape={f.shape}\nf={f}\np={p}')
     
+# UNQ_C1
+# GRADED CELL: my_softmax
+
+def my_softmax(z):  
+    """ Softmax converts a vector of values to a probability distribution.
+    Args:
+      z (ndarray (N,))  : input data, N features
+    Returns:
+      a (ndarray (N,))  : softmax of z
+    """    
+    ### START CODE HERE ###
+    expVec = np.exp(z) 
+    a = expVec / np.sum(expVec) 
+    # denominator = np.sum (expVec)
+    # print (denominator)
+    
+    
+        
+    
+        
+    
+    
+    ### END CODE HERE ### 
+    return a
+# m = 5
+# n = 2
+#
+# rng = np.random.default_rng()
+# # X = rng.random ([m, n])
+# X = np.array ([(i+1)*(np.arange(n)+1) for i in range(m)])
+# y = np.ones (m) #np.ones (m)
+# w = np.array ([1,2])
+# b = 1
+#
+# predict (X, w, b)
+
+
 m = 5
-n = 2
-
-rng = np.random.default_rng()
-# X = rng.random ([m, n])
-X = np.array ([(i+1)*(np.arange(n)+1) for i in range(m)])
-y = np.ones (m) #np.ones (m)
-w = np.array ([1,2])
-b = 1
-
-predict (X, w, b)
-# EPSILON = 10**(-15)
-# print (np.log(EPSILON))
-# total_cost = compute_cost (X,y,w,b)
-# print (f'total_cost={total_cost}')
-    # if m==4:
-    #     print (f'X={X}\nw={w}\nb={b}z={z}\nf={f}oneMinusF={oneMinusF}\nloss={loss}\ntotal_cost={total_cost}')
+n = 1
+z = np.array ([(i+1)*(np.arange(n)+1) for i in range(m)])
+print (z)
+print (my_softmax(z))
