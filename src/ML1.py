@@ -13,7 +13,7 @@ import matplotlib.pyplot as plt
 from utils import *
 import settings
 from settings import error, warning
-np.set_printoptions(precision=6)
+np.set_printoptions(precision=4)
 
 def sigmoid(z):
     return np.power(1 + np.exp (-z), -1)

@@ -45,21 +45,29 @@ class CntrMaster (object):
             print (f'Printing all cntrs.')
             if printAlsoVec:
                 for idx in range(self.numCntrs):
-                    cntrDict = self.queryCntr (idx, getVal=False)
-                    print ('cntrVec={}, cntrVal={:.1f} ' .format (cntrDict['cntrVec'], cntrDict['val']))
+                    cntrDict = self.queryCntr (idx, getVal=True)
+                    cntrVal  = cntrDict['val']
+                    if cntrVal==int(cntrVal):
+                        print ('cntrVec={}, cntrVal={} ' .format (cntrDict['cntrVec'], cntrVal))
+                    else:
+                        print ('cntrVec={}, cntrVal={:.1f} ' .format (cntrDict['cntrVec'], cntrVal))
             else:
                 for idx in range(self.numCntrs):
-                    print ('{} ' .format(self.queryCntr(cntrIdx=idx, getVal=True)))
+                    print ('{} ' .format(self.cntr2num(cntr=self.cntrs[idx])))
         else:
-            cntrVals = np.empty (self.numCntrs)
             printf (outputFile, 'cntrs=[')
             if printAlsoVec:
-                for cntr in self.cntrs:
-                    printf (outputFile, 'cntrVec={}, cntrVal={:.1f} ' .format (cntr, self.cntr2num(cntr)))
+                for idx in range(self.numCntrs):
+                    cntrDict = self.queryCntr (idx, getVal=False)
+                    cntrVal  = cntrDict['val']
+                    if cntrVal==int(cntrVal):
+                        printf (outputFile, 'cntrVec={}, cntrVal={} ' .format (cntrDict['cntrVec'], cntrVal))
+                    else:
+                        printf (outputFile, 'cntrVec={}, cntrVal={:.1f} ' .format (cntrDict['cntrVec'], cntrVal))
                 printf (outputFile, '] ')
             else:
-                for cntr in self.cntrs:
-                    printf (outputFile, '{:.1f} ' .format(self.cntr2num(cntr)))
+                for idx in range(self.numCntrs):
+                    printf (outputFile, '{} ' .format(self.cntr2num(cntr=self.cntrs[idx])))
                 printf (outputFile, '] ')
 
 

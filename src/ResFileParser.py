@@ -8,8 +8,7 @@ from printf import printf, printfDict
 from nltk.corpus.reader import lin
 
 import settings, SingleCntrSimulator
-from settings import warning, error, VERBOSE_RES, VERBOSE_PCL, getFxpSettings
-from settings import KB
+from settings import * 
 
 # Color-blind friendly pallette
 BLACK       = '#000000' 
@@ -144,6 +143,8 @@ def genFxpLabel (mode : str): # a mode describing the mode flavors
     """
     Given a string that details the parameters of F2P or F3P, generate a label string to be used in plots.
     """
+    if mode.endswith('_ds'):
+        mode = mode.split('_ds')[0]
     labelOfMode = {
     'F2P_lr_h2'     : r'F2P$_{LR}^2$',
     'F2P_sr_h2'     : r'F2P$_{SR}^2$',
@@ -1122,8 +1123,7 @@ def genErVsMemSizePlot (
     for traceName in ['Caida1', 'Caida2']:
         myResFileParser = ResFileParser ()
         # myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC.pcl')
-        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC.pcl')
-        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC_confLvl0.99.pcl')
+        myResFileParser.rdPcl (pclFileName=f'ss_{traceName}_PC.pcl')
         myResFileParser.genErVsMemSizePlot (
             traceName   = traceName,
             ignoreModes = ignoreModes,

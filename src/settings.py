@@ -2,6 +2,7 @@
 # import math, random, os, pandas as pd
 import os, math, itertools, numpy as np, scipy.stats as st 
 from printf import printf, printarFp
+np.set_printoptions(precision=4)
 
 SEED    = 123456789012345678901234567890123456789
 INF_INT = 999999999
@@ -30,13 +31,15 @@ VERBOSE_FULL_RES        = 5
 VERBOSE_PCL             = 6 # print output to a .pcl file in the directory ../res/pcl_files
 VERBOSE_DETAILS         = 7 # print to stdout details about the counter
 VERBOSE_NOTE            = 8 # print to stdout notes, e.g. when the target cntr value is above its max or below its min.
-VERBOSE_LOG             = 9
-VERBOSE_LOG_END_SIM     = 10
-VERBOSE_DETAILED_LOG    = 11
-VERBOSE_LOG_DWN_SMPL    = 12
-VERBOSE_PROGRESS        = 13 # Print periodical output notifying the progress. Used to control long runs.
-VERBOSE_LOG_CNTRLINE    = 14  
-VERBOSE_PLOT            = 15
+VERBOSE_LOG             = 10
+VERBOSE_LOG_SHORT       = 11
+VERBOSE_LOG_END_SIM     = 12
+VERBOSE_DETAILED_LOG    = 13
+VERBOSE_LOG_CNTRLINE    = 15  
+VERBOSE_LOG_DWN_SMPL    = 20
+VERBOSE_LOG_DWN_SMPL_D  = 21 # Detailed dwn-smpl logging
+VERBOSE_PROGRESS        = 30 # Print periodical output notifying the progress. Used to control long runs.
+VERBOSE_PLOT            = 40
 
 KB = 2**10 # Kilo-Byte
 

@@ -5,12 +5,11 @@ import numpy as np
 from datetime import datetime
 
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_si, Morris, CEDAR, CEDAR_ds, AEE_ds
-from settings import warning, error, INF_INT, calcPostSimStat, getSeadStatExpSize
-from settings import checkIfInputFileExists, getRelativePathToTraceFile
-from settings import VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, VERBOSE_PROGRESS, VERBOSE_LOG_DWN_SMPL
+from settings import * 
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp
 from SingleCntrSimulator import getFxpCntrMaxVal, genCntrMasterFxp
+np.set_printoptions(precision=4)
 
 class CountMinSketch:
 
@@ -281,10 +280,11 @@ class CountMinSketch:
         self.logFile =  None # default
 
         if VERBOSE_LOG in self.verbose or \
-            VERBOSE_PROGRESS in self.verbose or \
-            VERBOSE_LOG_END_SIM in self.verbose or \
-            VERBOSE_LOG_DWN_SMPL in self.verbose:
-            self.logFile = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
+           VERBOSE_LOG_SHORT in self.verbose or \
+           VERBOSE_PROGRESS in self.verbose or \
+           VERBOSE_LOG_END_SIM in self.verbose or \
+           VERBOSE_LOG_DWN_SMPL in self.verbose:
+           self.logFile = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
             
     def printSimMsg (self, str):
         """
@@ -335,8 +335,11 @@ class CountMinSketch:
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr    
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
-                if VERBOSE_LOG in self.verbose: 
-                    self.cntrMaster.printAllCntrs (self.logFile)
+                if VERBOSE_LOG_SHORT in self.verbose: 
+                    self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=False)
+                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId]))
+                elif VERBOSE_LOG in self.verbose: 
+                    self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=True)
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId]))
                 if VERBOSE_DETAILED_LOG in self.verbose and self.incNum>10000: #$$$
                     printf (self.logFile, 'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumAbsSqEr={:.1e}, sumRelSqEr={:.1e}\n' .format (self.incNum, flowRealVal[flowId], flowEstimatedVal, sqEr, sqEr/(flowRealVal[flowId])**2, self.sumSqAbsEr[self.expNum], self.sumSqRelEr[self.expNum]))
@@ -366,8 +369,11 @@ class CountMinSketch:
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr                
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
-                if VERBOSE_LOG in self.verbose:
-                    self.cntrMaster.printAllCntrs (self.logFile)
+                if VERBOSE_LOG_SHORT in self.verbose:
+                    self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=False)
+                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId]))
+                elif VERBOSE_LOG in self.verbose:
+                    self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=True)
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId]))
             if settings.VERBOSE_FULL_RES in self.verbose:
                 dict = settings
@@ -459,9 +465,9 @@ def LaunchCmsSim (
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
             numEpsilonStepsInXlBkt  = 5,
-            verbose                 = [VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+            verbose                 = [VERBOSE_LOG_SHORT, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
-            maxNumIncs              = 222222,
+            maxNumIncs              = 4444,
             maxValBy                = 'F3P_li_h3',
             cntrSize                = cntrSize, 
         )
@@ -507,9 +513,9 @@ def runMultiProcessSim ():
     
 if __name__ == '__main__':
     try:
-        mode = 'CEDAR_ds'     
-        for trace in ['Caida1', 'Caida2']:
-            for width in [2**i for i in range (10, 19)]: 
+        mode = 'F3P_li_h3_ds'     
+        for trace in ['Rand']: #['Caida1', 'Caida2']:
+            for width in [2]: #[2**i for i in range (10, 19)]: 
                 LaunchCmsSim (
                     traceFileName   = trace,
                     cntrSize        = 8,

@@ -5,7 +5,8 @@ import math, random, pickle, numpy as np
 
 from printf import printf
 import settings, F3P_li
-from settings import error, VERBOSE_DEBUG, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_DWN_SMPL
+from settings import * 
+np.set_printoptions(precision=4)
 
 class CntrMaster (F3P_li.CntrMaster):
     """
@@ -103,7 +104,7 @@ class CntrMaster (F3P_li.CntrMaster):
                     ceilCntr = self.LsbVecOfAbsExpVal[absExpVal] + np.binary_repr(int (mantVec, base=2)+1, mantSize) #[0:-1]
             else:
                 ceilCntr = floorCntr
-            if VERBOSE_LOG_DWN_SMPL in self.verbose:
+            if VERBOSE_LOG_DWN_SMPL_D in self.verbose:
                 printf (self.logFile, f'cntr={cntr}, floorCntr={floorCntr}, ceil={ceilCntr}, probOfCeil={probOfCeil}, expVec={expVec}, absExpVal={absExpVal}, ')
                 orgVal   = self.cntr2num(cntr)
                 floorVal = self.cntr2num(floorCntr)
@@ -159,6 +160,7 @@ class CntrMaster (F3P_li.CntrMaster):
         else:
             expVec = cntr[(hyperSize+1):(2*hyperSize+1)]
         expVal     = int (self.expVec2expVal(expVec=expVec, expSize=hyperSize))
+                       
         mantSize   = self.cntrSize - 2*hyperSize
         if hyperSize<self.hyperMaxSize:
             mantSize -=1 # recall 1 more bit for the delimiter. 
@@ -171,8 +173,13 @@ class CntrMaster (F3P_li.CntrMaster):
         else:
             cntrCurVal = (1 + mantVal) * (2**(expVal+self.bias))
         
+        probOfInc1 = self.probOfInc1[abs(expVal)]
+
+        if (random.random() > probOfInc1):  # check first the case where we don't have to inc the counter 
+            return int(cntrCurVal)    
+
         # now we know that we have to inc. the cntr
-        cntrppVal  = cntrCurVal + (1/self.probOfInc1[abs(expVal)])
+        cntrppVal  = cntrCurVal + (1/probOfInc1)
         if mantVec == '1'*mantSize: # the mantissa overflowed
             self.cntrs[cntrIdx] = self.cntrppOfAbsExpVal[abs(expVal)]
         else:
