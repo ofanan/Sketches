@@ -24,7 +24,6 @@ STDOUT_ENDC     = '\033[0m'
    
 VERBOSE_COUT_CONF       = 0 # print to stdout details about the configuration, e.g., cntrSize, hyperSize, Vmax, bias.
 VERBOSE_COUT_CNTRLINE   = 1 # print to stdout details about the concrete counter and its fields.
-VERBOSE_DEBUG           = 2 # perform checks and debug operations during the run.
 VERBOSE_RES             = 3 # print output to a .res file in the directory ../res
 VERBOSE_DETAILED_RES    = 4
 VERBOSE_FULL_RES        = 5
@@ -40,6 +39,7 @@ VERBOSE_LOG_DWN_SMPL    = 20
 VERBOSE_LOG_DWN_SMPL_D  = 21 # Detailed dwn-smpl logging
 VERBOSE_PROGRESS        = 30 # Print periodical output notifying the progress. Used to control long runs.
 VERBOSE_PLOT            = 40
+VERBOSE_DEBUG           = 60 # perform checks and debug operations during the run.
 
 KB = 2**10 # Kilo-Byte
 

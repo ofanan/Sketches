@@ -14,7 +14,9 @@ class CntrMaster (F3P_li.CntrMaster):
     The counters are generated as an array with the same format (counterSize and hyperExpSize).
     Then, it's possible to perform arithmetic ops on the counters in chosen indices of the array. 
     """
-
+    
+    cntrMaxValWDwnSmpl = lambda self : self.cntrMaxVal/self.globalIncProb
+    
     def __init__ (self, 
             cntrSize        : int  = 8, # of bits in the cntr 
             hyperMaxSize    : int  = 1, # of bits in the hyper-exp field 
@@ -27,6 +29,8 @@ class CntrMaster (F3P_li.CntrMaster):
         If the parameters are invalid (e.g., infeasible cntrSize), return None. 
         """       
         self.globalIncProb = 1.0 # Probability to consider an increment for any counter. After up-scaling, this probability decreases.
+        if VERBOSE_DEBUG in verbose:
+            self.maxValAtLastUpSclae = 0
         super(CntrMaster, self).__init__ (
             cntrSize        = cntrSize, 
             hyperMaxSize    = hyperMaxSize, # of bits in the hyper-exp field 
@@ -135,7 +139,13 @@ class CntrMaster (F3P_li.CntrMaster):
 
         # now we know that we should consider incrementing the counter
         if self.cntrs[cntrIdx]==self.cntrMaxVec: # Asked to increment a saturated counter
-            if self.cntr2num(self.cntrs[cntrIdx])!=self.cntrMaxVal/self.globalIncProb:
+            if VERBOSE_DEBUG in self.verbose:
+                if self.maxValAtLastUpSclae>self.cntrMaxValWDwnSmpl():
+                    self.printAllCntrs ()
+                    error (f'at last upscaling maxVal={self.maxValAtLastUpSclae}. Now maxVal={self.cntrMaxValWDwnSmpl()}. globalIncProb={self.globalIncProb}')
+                self.maxValAtLastUpSclae = self.cntrMaxValWDwnSmpl()
+                print (f'when upscaling, maxVal={self.maxValAtLastUpSclae}')                
+            if self.cntr2num(self.cntrs[cntrIdx])!=self.cntrMaxValWDwnSmpl():
                 error ('In F3P_li_ds.incCntrBy1GetVal(). Wrong CntrMaxVal. cntrVal={self.cntr2num(self.cntrs[cntrIdx])}self.cntr2num(self.cntrs[cntrIdx]), curCntrMaxVal={self.cntrMaxVal/self.globalIncProb}')                
             if VERBOSE_LOG_DWN_SMPL in self.verbose:
                 if self.numCntrs<10:
