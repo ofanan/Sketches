@@ -31,9 +31,9 @@ def parse_pcap_file (traceFileName     = 'equinix-nyc.dirB.20181220-140100.UTC.a
         if IP not in pkt:
             continue
         if TCP in pkt:
-            writer.writerow ([mmh3.hash (pkt[IP].src + pkt[IP].dst + str(pkt[TCP].sport) + str(pkt[TCP].sport) + '0') % settings.MAX_NUM_OF_FLOWS]) #([mmh3.hash (pkt[IP].src + pkt[IP].dst + str(pkt[TCP].sport) + str(pkt[TCP].sport) + '0') % settings.MAX_NUM_OF_FLOWS])
+            writer.writerow ([mmh3.hash (pkt[IP].src + pkt[IP].dst + str(pkt[TCP].sport) + str(pkt[TCP].dport) + '0') % settings.MAX_NUM_OF_FLOWS]) #([mmh3.hash (pkt[IP].src + pkt[IP].dst + str(pkt[TCP].sport) + str(pkt[TCP].sport) + '0') % settings.MAX_NUM_OF_FLOWS])
         elif UDP in pkt:
-            writer.writerow ([mmh3.hash (pkt[IP].src + pkt[IP].dst + str(pkt[UDP].sport) + str(pkt[UDP].sport) + '1') % settings.MAX_NUM_OF_FLOWS])
+            writer.writerow ([mmh3.hash (pkt[IP].src + pkt[IP].dst + str(pkt[UDP].sport) + str(pkt[UDP].dport) + '1') % settings.MAX_NUM_OF_FLOWS])
         else:
             continue
         pktNum += 1    
