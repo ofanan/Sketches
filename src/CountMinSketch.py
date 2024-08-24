@@ -304,6 +304,15 @@ class CountMinSketch:
                 self.logFile, 
             )
     
+    def rmvVerboseLogs (self):
+        """
+        Rmv all the "log" verboses from self.verbose. To be used after the first experiment, as no need to log more than a single exp.
+        """
+        
+        for verbose in [VERBOSE_LOG_SHORT, VERBOSE_LOG, VERBOSE_DETAILED_LOG]:
+            if verbose in self.verbose:
+                self.verbose.remove(verbose)
+    
     def runSimFromTrace (self):
         """
         Run a simulation where the input is taken from self.traceFileName.
@@ -332,9 +341,13 @@ class CountMinSketch:
                 flowEstimatedVal = self.incNQueryFlow (flowId=flowId)
                 # else: # By downsample, no need to inc this packet; only estimate the flow's size
                 #     flowEstimatedVal   = self.queryFlow (flowId=flowId)
+                # absEr = abs(flowRealVal[flowId] - flowEstimatedVal)
+                # relEr = absEr / flowRealVal[flowId]
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr    
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
+                # self.sumAbsEr[self.expNum] += absEr    
+                # self.sumRelEr[self.expNum] += relEr              
                 if VERBOSE_LOG_SHORT in self.verbose: 
                     self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=False)
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId]))
@@ -342,19 +355,22 @@ class CountMinSketch:
                     self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=True)
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId]))
                 if VERBOSE_DETAILED_LOG in self.verbose and self.incNum>10000: #$$$
-                    printf (self.logFile, 'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumAbsSqEr={:.1e}, sumRelSqEr={:.1e}\n' .format (self.incNum, flowRealVal[flowId], flowEstimatedVal, sqEr, sqEr/(flowRealVal[flowId])**2, self.sumSqAbsEr[self.expNum], self.sumSqRelEr[self.expNum]))
+                    printf (self.logFile, 'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumSqAbsEr={:.1e}, sumSqRelEr={:.1e}\n' .format (
+                        self.incNum, flowRealVal[flowId], flowEstimatedVal, sqAbsEr, sqRelEr, self.sumSqAbsEr[self.expNum], self.sumSqRelEr[self.expNum]))
                     # printf (self.logFile, f'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumAbsSqEr={:.1e}\n' .format (self.incNum, flowRealVal[flowId], flowEstimatedVal, sqEr, sqEr/(flowRealVal[flowId])**2, self.sumSqAbsEr[self.expNum]))
                 if self.incNum==self.maxNumIncs:
                     break
+            if self.expNum==0: # Log (if at all) only in the first experiment. No need to log again in further exps.
+                self.logEndSim ()
+                self.rmvVerboseLogs ()
         traceFile.close ()
-        self.logEndSim ()
 
     def runSimRandInput (self):
         """
         Run a simulation with synthetic, randomly-generated, input.
         """
         for self.expNum in range (self.numOfExps):
-            flowRealVal = [0] * self.numFlows
+            flowRealVal = np.zeros(self.numFlows, dtype='uint16') 
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
             self.genCntrMaster ()
 
@@ -366,7 +382,11 @@ class CountMinSketch:
                 # flowId = mmh3.hash(str(flowId)) % self.numFlows
                 flowRealVal[flowId]     += 1
                 flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
-                sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
+                sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2                
+                # absEr = abs(flowRealVal[flowId] - flowEstimatedVal)
+                # relEr = absEr / flowRealVal[flowId]
+                # self.sumAbsEr[self.expNum] += absEr    
+                # self.sumRelEr[self.expNum] += relEr              
                 self.sumSqAbsEr[self.expNum] += sqEr                
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
                 if VERBOSE_LOG_SHORT in self.verbose:
@@ -379,7 +399,9 @@ class CountMinSketch:
                 dict = settings
             if self.expNum==0: # log only the first experiment
                 self.logEndSim ()
-            
+                self.rmvVerboseLogs ()
+        traceFile.close ()
+        
     def sim (
         self, 
         traceFileName   = None,
@@ -388,8 +410,10 @@ class CountMinSketch:
         Simulate the count min sketch
         """
         
-        self.sumSqAbsEr  = [0] * self.numOfExps # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
-        self.sumSqRelEr  = [0] * self.numOfExps # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
+        # self.sumAbsEr  = np.zeros (self.numOfExps) # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
+        # self.sumRelEr  = np.zeros (self.numOfExps) # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
+        self.sumSqAbsEr  = np.zeros (self.numOfExps) # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
+        self.sumSqRelEr  = np.zeros (self.numOfExps) # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
         self.printSimMsg ('Started')
         self.openOutputFiles ()
         tic ()

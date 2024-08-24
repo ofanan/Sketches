@@ -315,23 +315,21 @@ def indexOrNone(l : list,
         return None
     
 def calcPostSimStat (
-        sumSqEr         : list, # sum of the square errors, collected during the sim
-        numMeausures    : int, # num of error measurements  
-        statType        : str = 'normRmse', # Type of the statistic to write. May be either 'normRmse', or 'Mse'
-        confLvl         : float = 0.95, # required conf' level
-        verbose         : list = [], # verbose level, defining the type and format of output
-        logFile         = None,
+        sumSqEr       : np.array, # sum of the square errors, collected at each experiment during the sim
+        numMeausures  : int, # num of error measurements  
+        statType      : str = 'normRmse', # Type of the statistic to write. May be either 'normRmse', or 'Mse'
+        confLvl       : float = 0.95, # required conf' level
+        verbose       : list = [], # verbose level, defining the type and format of output
+        logFile       = None,
     ) -> dict: 
     """
     Calculate the post-sim stat - e.g., MSE/RMSE, with confidence intervals. 
     The stat is based on the sum of square errors given as input.
     Return a dict of the calculated stat.  
     """
-    if statType=='Mse':
-        vec  = [item/numMeausures for item in sumSqEr]
-    elif statType=='normRmse': # Normalized RMSE
-        Rmse = [math.sqrt (item/numMeausures) for item in sumSqEr]
-        vec  = [item/numMeausures for item in Rmse]
+    vec /=  numMeausures 
+    if statType=='normRmse': # Normalized RMSE
+        vec  = np.sqrt (vec) / numMeausures 
     else:
         error (f'In settings.calcPostSimStat(). Sorry, the requested statType {statType} is not supported.')
     if (VERBOSE_LOG in verbose):
