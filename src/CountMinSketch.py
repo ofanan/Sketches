@@ -424,7 +424,6 @@ class CountMinSketch:
             self.runSimRandInput ()
         else: # read trace from a file
             self.runSimFromTrace ()
-        print (f'finished sim. {genElapsedTimeStr (toc())}')
         for rel_abs_n in [True, False]:
             for statType in ['Mse', 'normRmse']:
                 sumSqEr = self.sumSqRelEr if rel_abs_n else self.sumSqAbsEr
@@ -443,7 +442,7 @@ class CountMinSketch:
                     self.dumpDictToPcl    (dict)
                 if VERBOSE_RES in self.verbose:
                     printf (self.resFile, f'{dict}\n\n') 
-        self.printSimMsg (f'Finished {self.incNum} increments')
+        print (f'Finished {self.incNum} increments. {genElapsedTimeStr (toc())}')
 
                 
     def writeProgress (self, infoStr=None):

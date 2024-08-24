@@ -328,7 +328,9 @@ def calcPostSimStat (
     Return a dict of the calculated stat.  
     """
     sumSqEr /=  numMeausures 
-    if statType=='normRmse': # Normalized RMSE
+    if statType=='Mse': # Normalized RMSE
+        pass 
+    elif statType=='normRmse': # Normalized RMSE
         sumSqEr  = np.sqrt (sumSqEr) / numMeausures 
     else:
         error (f'In settings.calcPostSimStat(). Sorry, the requested statType {statType} is not supported.')
