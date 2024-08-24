@@ -6,9 +6,7 @@ from printf import printf, printar, printarFp
 import numpy as np #, scipy.stats as st, pandas as pd
 import settings, Cntr, CEDAR, Morris, AEE, FP, SEAD_stat, SEAD_dyn   
 import F2P_sr, F2P_lr, F2P_li, F2P_li_ds, F2P_si, F3P_sr, F3P_lr, F3P_li, F3P_li_ds, F3P_si    
-from settings import warning, error
-from settings import VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS, VERBOSE_COUT_CONF, VERBOSE_COUT_CNTRLINE, VERBOSE_LOG_DWN_SMPL
-from settings import getFxpSettings
+from settings import * 
 from datetime import datetime
 
 class SingleCntrSimulator (object):

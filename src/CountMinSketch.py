@@ -1,3 +1,4 @@
+from ttictoc import tic,toc
 import matplotlib 
 import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time
@@ -6,18 +7,21 @@ from datetime import datetime
 
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_si, Morris, CEDAR, CEDAR_ds, AEE_ds
 from settings import * 
-from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp
 from SingleCntrSimulator import getFxpCntrMaxVal, genCntrMasterFxp
 np.set_printoptions(precision=4)
 
 class CountMinSketch:
 
-    # given the flowId and the row, return the hash, namely, the corresponding counter in that row  
-    hashOfFlow = lambda self, flowId, row : mmh3.hash(str(flowId), seed=self.seed + row) % self.width
+    # # given the flowId and the row, return the hash, namely, the corresponding counter in that row  
+    # hashOfFlow = lambda self, flowId, row : mmh3.hash(str(flowId), seed=self.seed + row) % self.width
+
+    # given the flowId and the row, return the hash, namely, the corresponding counter in that row. 
+    # As the flowId are already the result of a hash function, no need to re-hash; using modulo suffices.  
+    hashOfFlow = lambda self, flowId, row : (flowId+row) % self.width
 
     # given the flowId, return the list of cntrs hashed to this flow Id.   
-    hashedCntrsOfFlow = lambda self, flowId : [self.mat2aridx(row, mmh3.hash(str(flowId), seed=self.seed + row) % self.width) for row in range(self.depth)] 
+    hashedCntrsOfFlow = lambda self, flowId : [self.mat2aridx(row, self.hashOfFlow(flowId, row)) for row in range(self.depth)] 
 
     # given the row and col. in a matrix, return the corresponding index if the mat is flattened into a 1D array.
     mat2aridx  = lambda self, row, col       : self.width*row + col 
@@ -400,7 +404,6 @@ class CountMinSketch:
             if self.expNum==0: # log only the first experiment
                 self.logEndSim ()
                 self.rmvVerboseLogs ()
-        traceFile.close ()
         
     def sim (
         self, 
@@ -421,7 +424,7 @@ class CountMinSketch:
             self.runSimRandInput ()
         else: # read trace from a file
             self.runSimFromTrace ()
-        toc ()
+        print (f'finished sim. {genElapsedTimeStr (toc())}')
         for rel_abs_n in [True, False]:
             for statType in ['Mse', 'normRmse']:
                 sumSqEr = self.sumSqRelEr if rel_abs_n else self.sumSqAbsEr
@@ -489,9 +492,9 @@ def LaunchCmsSim (
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
             numEpsilonStepsInXlBkt  = 5,
-            verbose                 = [VERBOSE_LOG_SHORT, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+            verbose                 = [], #[VERBOSE_LOG_SHORT, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
             numOfExps               = 1, 
-            maxNumIncs              = 4444,
+            maxNumIncs              = 1111,
             maxValBy                = 'F3P_li_h3',
             cntrSize                = cntrSize, 
         )
@@ -538,8 +541,8 @@ def runMultiProcessSim ():
 if __name__ == '__main__':
     try:
         mode = 'CEDAR' #'F3P_li_h3_ds'     
-        for trace in ['Caida2']: #, 'Caida2']: #$$$
-            for width in [2**i for i in range (10, 11)]: #19)]: #$$$ 
+        for trace in ['Rand']: #['Caida2']: #, 'Caida2']: #$$$
+            for width in [2]: #[2**i for i in range (10, 11)]: #19)]: #$$$ 
                 LaunchCmsSim (
                     traceFileName   = trace,
                     cntrSize        = 8,

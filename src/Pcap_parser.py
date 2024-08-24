@@ -43,5 +43,5 @@ def parse_pcap_file (traceFileName     = 'equinix-nyc.dirB.20181220-140100.UTC.a
     print (f'finished parsing {pktNum} pkts by multirow after {time.time() - startTime} sec')
 
 
-# parse_pcap_file (traceFileName='equinix-nyc.dirA.20181220-130000.UTC.anon.pcap', maxNumOfPkts=50000000)
-parse_pcap_file (traceFileName='equinix-chicago.dirA.20160406-130000.UTC.anon.pcap', maxNumOfPkts=50000000)
+parse_pcap_file (traceFileName='equinix-nyc.dirA.20181220-130000.UTC.anon.pcap', maxNumOfPkts=50000000)
+# parse_pcap_file (traceFileName='equinix-chicago.dirA.20160406-130000.UTC.anon.pcap', maxNumOfPkts=50000000)

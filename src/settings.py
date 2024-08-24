@@ -327,24 +327,24 @@ def calcPostSimStat (
     The stat is based on the sum of square errors given as input.
     Return a dict of the calculated stat.  
     """
-    vec /=  numMeausures 
+    sumSqEr /=  numMeausures 
     if statType=='normRmse': # Normalized RMSE
-        vec  = np.sqrt (vec) / numMeausures 
+        sumSqEr  = np.sqrt (sumSqEr) / numMeausures 
     else:
         error (f'In settings.calcPostSimStat(). Sorry, the requested statType {statType} is not supported.')
     if (VERBOSE_LOG in verbose):
         if logFile==None:
             error ('settings.calcPostSimStat() was called with VERBOSE_LOG, but logFile==None')
         printf (logFile, f'statType={statType}. Vec=')
-        printarFp (logFile, vec)
-    avg           = np.average(vec)
-    confIntervalVar  = confInterval (ar=vec, avg=avg, confLvl=confLvl)
+        printarFp (logFile, sumSqEr)
+    avg           = np.average(sumSqEr)
+    confIntervalVar  = confInterval (ar=sumSqEr, avg=avg, confLvl=confLvl)
     # maxMinRelDiff will hold the relative difference between the largest and the smallest value.
     warningField    = False # Will be set True if the difference between the largest and the smallest value is too high.
     if avg== 0:
         maxMinRelDiff   = None
     else:
-        maxMinRelDiff   = (max(vec) - min(vec))/avg
+        maxMinRelDiff   = (np.max(sumSqEr) - np.min(sumSqEr))/avg
         if maxMinRelDiff>0.1:
             warningField    = True
     return {
@@ -384,6 +384,23 @@ def getSeadStatExpSize (
         error (f'settings.getSeadStatExpSize() was called with wrong mode {mode}')
     return int(mode.split('_e')[1])
     
+def genElapsedTimeStr (elapsedTime : float,
+                       printInitStr = True, # when true, print the words 'elapsed time: '
+                       ) -> str:
+    """
+    Returns a string that describes the elapsed time in hours, minutes, and seconds
+    """
+    initStr = 'elapsed time: ' if printInitStr else ''  
+    if elapsedTime >= 3600:
+        hours, rem = divmod(elapsedTime, 3600)
+        minutes, seconds = divmod(rem, 60)
+        return f'{initStr}{int(hours)}h {int(minutes)}m {seconds:.2f}s'
+    elif elapsedTime >= 60:
+        minutes, seconds = divmod(elapsedTime, 60)
+        return f'{initStr}{int(minutes)}m {seconds:.0f}s'
+    else:
+        return f'{initStr}{elapsedTime:.4f} seconds'
+    
 def writeVecStatToFile (
         statFile,
         vec,
@@ -394,20 +411,20 @@ def writeVecStatToFile (
     """
     printf (statFile, f'// vec={str}\n')
     lenVec = int(len(vec))
-    maxVec = max(vec)
-    minVec = min(vec)
+    maxVec = np.max(vec)
+    minVec = np.min(vec)
     printf (statFile, '// len(vec)={:.0f}, minVec={:.1f},  maxVec={:.1f}, avgVec={:.1f}, stdevVec={:.1f}\n' .format
            (lenVec, minVec, maxVec, np.mean(vec), np.std(vec))) 
     
     if lenVec<11: # No need to print binning datafor up to 10 bins: one can merely print the data itself.
         return
     
-    numBins = min (100, maxVec+1, lenVec)
+    numBins = np.min (100, maxVec+1, lenVec)
     binSize = maxVec // (numBins-1)
     binVal  = [None] * numBins 
     for bin in range(numBins):
         binVal[bin] = len ([flowId for flowId in range(lenVec) if (vec[flowId]//binSize)==bin])
-    binVecs = [binSize*bin for bin in range(numBins)]
+    binVecs = binSize*np.arange(numBins) 
     printf (statFile, f'// bins:\n')
     for bin in range(numBins):
         printf (statFile, f'binVecs={binVecs[bin]}, binVal={binVal[bin]}\n')

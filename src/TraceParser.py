@@ -7,8 +7,7 @@ from datetime import datetime
 import settings
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp
-from settings import warning, error, indexOrNone, getTracesPath
-from settings import getRelativePathToTraceFile, checkIfInputFileExists 
+from settings import *  
 
 def parseCsvTrace (
         maxNumRows      = float('inf'), # overall number of increments (# of pkts in the trace) 
@@ -31,7 +30,7 @@ def parseCsvTrace (
     listOfFlowKeys  = []
     flowSizes       = []
     
-    if settings.VERBOSE_RES in verbose:
+    if VERBOSE_RES in verbose:
         relativePathToTraceOutputFile = relativePathToInputFile.split('.csv')[0] + '.txt'
         traceOutputFile = open (relativePathToTraceOutputFile, 'w')
         
@@ -44,7 +43,7 @@ def parseCsvTrace (
             flowSizes.append (1) # the size of this flow is 1
         else:
             flowSizes[flowId] += 1
-        if settings.VERBOSE_RES in verbose:
+        if VERBOSE_RES in verbose:
             printf (traceOutputFile, f'{flowId}\n')
         rowNum += 1
         if rowNum > maxNumRows:
@@ -61,8 +60,8 @@ def calcTraceStat (
     Collect stat about the trace, and print it to a file.
     The trace is merely a list of integers (keys), representing the flow to which each pkt belongs, in a .txt file.
     """
-    relativePathToTraceFile = settings.getRelativePathToTraceFile (f'{traceName}.txt')
-    settings.checkIfInputFileExists (relativePathToTraceFile)
+    relativePathToTraceFile = getRelativePathToTraceFile (f'{traceName}.txt')
+    checkIfInputFileExists (relativePathToTraceFile)
     if numFlows==None:
         error ('In TraceParser.calcTraceStat(). Sorry, currently you must specify the num of flows for parsing the trace.')
     traceFile = open (relativePathToTraceFile, 'r')
@@ -98,27 +97,28 @@ def printTraceStatToFile (
     """
     Given a vector with the flowId accessed at each cycle, calculate the trace's stat.
     """    
-    relativePathToStatFile = settings.getRelativePathToTraceFile (f'{traceName}_stat.txt')
-    settings.checkIfInputFileExists (relativePathToStatFile)
+    relativePathToStatFile = getRelativePathToTraceFile (f'{traceName}_stat.txt')
+    checkIfInputFileExists (relativePathToStatFile)
     statFile    = open (relativePathToStatFile, 'w')
     printf (statFile, '// mean inter arrival = {:.2f}\n'  .format(np.mean(interAppearanceVec)))
     printf (statFile, '// stdev inter arrival = {:.2f}\n' .format(np.std(interAppearanceVec)))
-    settings.writeVecStatToFile (
+    writeVecStatToFile (
         statFile    = statFile,
         vec         = np.array([f for f in flowSizes if f>0]),
         str         = 'flow sizes'        
     )
     
-# parseCsvTrace (
-#     traceFileName = 'Caida1.csv',
-#     verbose         = [settings.VERBOSE_RES] # verbose level, determined in settings.py.
-# )
-
-traceName = 'Caida1'
-calcTraceStat (
-    traceName     = traceName, 
-    maxNumOfRows  = 250, #$$$$ 00000,
+parseCsvTrace (
+    traceFileName   = 'Caida1.csv',
+    maxNumRows      = 25000000,
+    verbose         = [VERBOSE_RES] # verbose level, determined in py.
 )
+
+# traceName = 'Caida1'
+# calcTraceStat (
+#     traceName     = traceName, 
+#     maxNumOfRows  = 250, #$$$$ 00000,
+# )
 
 # relativePathToInputFile = '../../traces/Caida/‏‏Caida1.txt'
 # if os.path.isfile (relativePathToInputFile):
