@@ -16,8 +16,8 @@ class SingleCntrSimulator (object):
 
     def __init__ (
             self, 
-            seed    = settings.SEED,
-            verbose = [] # defines which outputs would be written to .res / .pcl output files. See the VERBOSE macros as settings.py.
+            seed    = SEED,
+            verbose = [] # defines which outputs would be written to .res / .pcl output files. See the VERBOSE macros as py.
         ):  
         
         self.seed    = seed
@@ -25,7 +25,7 @@ class SingleCntrSimulator (object):
         
         self.confLvl = 0.95 # Required confidence level at the conf' interval calculation.
         self.verbose = verbose
-        if settings.VERBOSE_DETAILED_RES in self.verbose:
+        if VERBOSE_DETAILED_RES in self.verbose:
             self.verbose.append (VERBOSE_RES)
         if not (VERBOSE_PCL in self.verbose):
             print ('Note: verbose does not include .pcl')  
@@ -47,7 +47,7 @@ class SingleCntrSimulator (object):
         """
         If the verbose requires that, report the progress to self.log_file
         """ 
-        if not (settings.VERBOSE_PROGRESS in self.verbose):
+        if not (VERBOSE_PROGRESS in self.verbose):
             return
         if infoStr==None:
             printf (self.log_file, f'starting experiment{expNum}\n')
@@ -95,15 +95,15 @@ class SingleCntrSimulator (object):
                         if cntrAfterInc['val']==self.cntrRecord['cntr'].cntrMaxVal: # the cntr reached its maximum values and no dwon-sample is used --> finish this experiment
                             break  
  
-        if (settings.VERBOSE_LOG in self.verbose):
+        if (VERBOSE_LOG in self.verbose):
             printf (self.log_file, f'diff vector={self.cntrRecorwrErimeVar}\n\n')
 
-        self.cntrRecord['wrEr'] = [self.cntrRecord['wrEr'][expNum]/self.numOfPoints[expNum] for expNum in range(self.numOfExps)] 
-        if (settings.VERBOSE_LOG in self.verbose):
+        self.cntrRecord['wrEr'] = np.divide (self.cntrRecord['wrEr'], self.numOfPoints) 
+        if (VERBOSE_LOG in self.verbose):
             printf (self.log_file, 'wrEr=\n{:.3f}\n, ' .format (self.cntrRecord['wrEr']))
         
         wrErAvg             = np.average    (self.cntrRecord['wrEr'])
-        wrErConfInterval = settings.confInterval (ar=self.cntrRecord['wrEr'], avg=wrErAvg, confLvl=self.confLvl)
+        wrErConfInterval = confInterval (ar=self.cntrRecord['wrEr'], avg=wrErAvg, confLvl=self.confLvl)
         dict = {'erType'            : self.erType,
                 'numOfExps'         : self.numOfExps,
                 'mode'              : self.cntrRecord['mode'],
@@ -140,11 +140,11 @@ class SingleCntrSimulator (object):
         the # of increments ("hit time") needed to make the cntr reach that value.
         The type of statistic collected is the Round Square Mean Error of such write errors.
         """
-        self.cntrRecord['sumSqAbsEr'] = [0] * self.numOfExps # self.cntrRecord['sumSqAbsEr'][j] will hold the sum of the square absolute errors collected at experiment j. 
-        self.cntrRecord['sumSqRelEr'] = [0] * self.numOfExps # self.cntrRecord['sumSqRelEr'][j] will hold the sum of the square relative errors collected at experiment j. 
-        self.numOfPoints              = [0] * self.numOfExps # self.numOfPoints[j] will hold the number of points collected for statistic at experiment j. The number of points varies, as it depends upon the random process of increasing the approximated cntr. 
+        self.cntrRecord['sumSqAbsEr'] = np.zeros (self.numOfExps) # self.cntrRecord['sumSqAbsEr'][j] will hold the sum of the square absolute errors collected at experiment j. 
+        self.cntrRecord['sumSqRelEr'] = np.zeros (self.numOfExps) # self.cntrRecord['sumSqRelEr'][j] will hold the sum of the square relative errors collected at experiment j. 
+        self.numOfPoints              = np.zeros (self.numOfExps) # self.numOfPoints[j] will hold the number of points collected for statistic at experiment j. The number of points varies, as it depends upon the random process of increasing the approximated cntr. 
         for expNum in range(self.numOfExps):
-            if settings.VERBOSE_LOG in self.verbose:
+            if VERBOSE_LOG in self.verbose:
                 printf (self.log_file, f'***exp #{expNum}***\n')
             realValCntr = 0 # will cnt the real values (the accurate value)
             cntrVal     = 0 # will cnt the counter's value
@@ -165,7 +165,7 @@ class SingleCntrSimulator (object):
                         self.cntrRecord['sumSqAbsEr'][expNum] += sqEr
                         self.cntrRecord['sumSqRelEr'][expNum] += sqEr/realValCntr**2
                         self.numOfPoints             [expNum] += 1
-                        if settings.VERBOSE_LOG in self.verbose:
+                        if VERBOSE_LOG in self.verbose:
                             printf (self.log_file, 'realValCntr={}, cntrVal={}, added sumSqEr={:.4f}\n' .format (realValCntr, cntrVal, ((realValCntr - cntrVal)/realValCntr)**2))
 
                     if self.dwnSmple:
@@ -199,8 +199,8 @@ class SingleCntrSimulator (object):
         The type of statistic collected is the Round Mean Square Error of such write errors.
         """
     
-        self.cntrRecord['sumSqAbsEr'] = [0] * self.numOfExps # self.cntrRecord['sumSqAbsEr'][j] will hold the sum of the square absolute errors collected at experiment j. 
-        self.cntrRecord['sumSqRelEr'] = [0] * self.numOfExps # self.cntrRecord['sumSqRelEr'][j] will hold the sum of the square relative errors collected at experiment j. 
+        self.cntrRecord['sumSqAbsEr'] = np.zeros (self.numOfExps) # self.cntrRecord['sumSqAbsEr'][j] will hold the sum of the square absolute errors collected at experiment j. 
+        self.cntrRecord['sumSqRelEr'] = np.zeros (self.numOfExps) # self.cntrRecord['sumSqRelEr'][j] will hold the sum of the square relative errors collected at experiment j. 
         self.numOfPoints           = [self.maxRealVal] * self.numOfExps # self.numOfPoints[j] will hold the number of points collected for statistic at experiment j. The number of points varies, as it depends upon the random process of increasing the approximated cntr. 
         for expNum in range(self.numOfExps):
             realValCntr = 0 # will cnt the real values (the accurate value)
@@ -275,15 +275,15 @@ class SingleCntrSimulator (object):
                             print ('smplProb={}' .format (self.cntrRecord['sampleProb'])) 
                 self.cntrRecord['RdEr'][expNum] += abs(realValCntr - cntrVal)/realValCntr
  
-        if (settings.VERBOSE_LOG in self.verbose):
+        if (VERBOSE_LOG in self.verbose):
             printf (self.log_file, f'diff vector={self.cntrRecorRdErimeVar}\n\n')
 
         self.cntrRecord['RdEr'] = [self.cntrRecord['RdEr'][expNum]/self.numOfPoints[expNum] for expNum in range(self.numOfExps)] 
-        if (settings.VERBOSE_LOG in self.verbose):
+        if (VERBOSE_LOG in self.verbose):
             printf (self.log_file, 'RdEr=\n{:.3f}\n, ' .format (self.cntrRecord['RdEr']))
         
         rdErAvg          = np.average    (self.cntrRecord['RdEr'])
-        rdErConfInterval = settings.confInterval (ar=self.cntrRecord['RdEr'], avg=rdErAvg, confLvl=confLvl)
+        rdErConfInterval = confInterval (ar=self.cntrRecord['RdEr'], avg=rdErAvg, confLvl=confLvl)
         dict = {'erType'            : self.erType,
                 'numOfExps'         : self.numOfExps,
                 'mode'              : self.cntrRecord['mode'],
@@ -313,12 +313,12 @@ class SingleCntrSimulator (object):
             expResults  = [              Rmse[expNum]/self.numOfPoints[expNum]  for expNum in range(self.numOfExps)]
         else:
             error (f'In SingleCntrSimulator.calcPostSimStat(). Sorry, the requested statType {statType} is not supported.')
-        if (settings.VERBOSE_LOG in self.verbose):
+        if (VERBOSE_LOG in self.verbose):
             printf (self.log_file, 'expResults=')
             printarFp (self.log_file, expResults)
         
         expResultsAvg          = np.average (expResults)
-        expResultsConfInterval = settings.confInterval (ar=expResults, avg=expResultsAvg)
+        expResultsConfInterval = confInterval (ar=expResults, avg=expResultsAvg)
         # maxMinRelDiff will hold the relative difference between the largest and the smallest value.
         warningField    = False # Will be set True if the difference between the largest and the smallest value is too high.
         if expResultsAvg==0:
@@ -358,7 +358,7 @@ class SingleCntrSimulator (object):
                 os.remove(f'../res/pcl_files/{pclOutputFileName}.pcl')
             pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}.pcl', 'ab+')
         for self.cntrSize in cntrSizes:
-            self.conf = settings.getConfByCntrSize (cntrSize=self.cntrSize)
+            self.conf = getConfByCntrSize (cntrSize=self.cntrSize)
             self.cntrMaxVal   = self.conf['cntrMaxVal'] 
             self.hyperSize    = self.conf['hyperSize'] 
             for self.mode in modes:
@@ -388,7 +388,7 @@ class SingleCntrSimulator (object):
             pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}.pcl', 'ab+')
         for settingStr in settingStrs:
             listOfVals = []
-            params = settings.extractParamsFromSettingStr (settingStr)
+            params = extractParamsFromSettingStr (settingStr)
             self.mode       = params['mode']
             self.cntrSize   = params['cntrSize']
             if self.mode=='FP': 
@@ -405,7 +405,7 @@ class SingleCntrSimulator (object):
                 self.dumpDictToPcl ({'settingStr' : settingStr, 'points' : points}, pclOutputFile)
 
     def genCntrRecord (self,
-                       expSize=None, # When expSize==None, read the expSize from the hard-coded configurations in settings.py 
+                       expSize=None, # When expSize==None, read the expSize from the hard-coded configurations in py 
                        ):
         """
         Set self.cntrRecord, which holds the counters to run
@@ -421,7 +421,7 @@ class SingleCntrSimulator (object):
             self.cntrRecord = {'mode' : self.mode, 'cntr' : cntrMaster}
         elif (self.mode=='FP'):
             if expSize==None:
-                settings.error ('In SingleCntrSimulator.genCntrRecord(). For generating an FP.CntrMaster you must specify an expSize')
+                error ('In SingleCntrSimulator.genCntrRecord(). For generating an FP.CntrMaster you must specify an expSize')
             self.cntrRecord = {'mode' : 'FP', 'cntr' : FP.CntrMaster(cntrSize=self.cntrSize, expSize=expSize, verbose=self.verbose)}
         elif (self.mode.startswith('SEAD_stat')):
             self.expSize      = self.conf['seadExpSize'] if expSize==None else expSize
@@ -435,7 +435,7 @@ class SingleCntrSimulator (object):
         elif (self.mode=='AEE'):
             self.cntrRecord = {'mode' : self.mode, 'cntr' : AEE.CntrMaster(cntrSize=self.cntrSize, cntrMaxVal=self.cntrMaxVal)}
         else:
-            settings.error ('mode {} that you chose is not supported' .format (self.mode))
+            error ('mode {} that you chose is not supported' .format (self.mode))
 
 
     def runSingleCntrSingleMode (
@@ -443,8 +443,8 @@ class SingleCntrSimulator (object):
         cntrSize, 
         mode         = [], # modes (type of counter) to run. E.g., 'F2P_li_h2', 'Morris'  
         maxRealVal   = None, # The maximal value to be counted at each experiment, possibly using down-sampling. When None (default), will be equal to cntrMaxval.
-        cntrMaxVal   = None, # cntrMaxVal - The maximal value that the cntr can represent w/o down-sampling. When None (default), take cntrMaxVal from settings.Confs.  global parameter (found in this file). 
-        expSize      = None, # Size of the exponent. Relevant only for Static SEAD counter. If cntrMaxVal==None (default), take expSize from settings.Confs global parameter (found in this file). 
+        cntrMaxVal   = None, # cntrMaxVal - The maximal value that the cntr can represent w/o down-sampling. When None (default), take cntrMaxVal from Confs.  global parameter (found in this file). 
+        expSize      = None, # Size of the exponent. Relevant only for Static SEAD counter. If cntrMaxVal==None (default), take expSize from Confs global parameter (found in this file). 
         numOfExps    = 1,    # number of experiments to run. 
         dwnSmple     = False,# When True, down-sample each time the counter's maximum value is reached.
         erTypes      = [],   # either 'RdEr', 'WrEr', 'RdRmse' or 'WrRmse'.
@@ -461,10 +461,10 @@ class SingleCntrSimulator (object):
         self.dwnSmple       = dwnSmple
         self.erTypes        = erTypes # the error modes to calculate. See possible erTypes in the documentation above.
         self.mode           = mode
-        if (settings.VERBOSE_DETAILED_LOG in self.verbose): # a detailed log include also all the prints of a simple log
-            verbose.append(settings.VERBOSE_LOG)
+        if (VERBOSE_DETAILED_LOG in self.verbose): # a detailed log include also all the prints of a simple log
+            verbose.append(VERBOSE_LOG)
         if cntrMaxVal==None:
-            self.conf = settings.getConfByCntrSize (cntrSize=self.cntrSize)
+            self.conf = getConfByCntrSize (cntrSize=self.cntrSize)
             self.cntrMaxVal   = self.conf['cntrMaxVal']
             self.hyperSize    = self.conf['hyperSize'] 
             self.hyperMaxSize = self.conf['hyperMaxSize'] 
@@ -499,13 +499,13 @@ class SingleCntrSimulator (object):
                 self.calc_MSE = True
                 self.erType = 'RdRmse'
             if not (self.erType in ['WrEr', 'WrRmse', 'RdEr', 'RdRmse', 'WrMse', 'RdMse']):
-                settings.error ('Sorry, the requested error mode {self.erType} is not supported')
+                error ('Sorry, the requested error mode {self.erType} is not supported')
             pclOutputFile = None # default value
             if VERBOSE_PCL in self.verbose:
                 pclOutputFile = self.openPclOuputFile (pclOutputFileName=f'{outputFileStr}.pcl')
             simT = time.time()
             infoStr = '{}_{}' .format (self.cntrRecord['cntr'].genSettingsStr(), self.erType)
-            if (settings.VERBOSE_LOG in self.verbose or settings.VERBOSE_PROGRESS in self.verbose):
+            if (VERBOSE_LOG in self.verbose or VERBOSE_PROGRESS in self.verbose):
                 self.log_file = open (f'../res/log_files/{infoStr}.log', 'w')
             self.writeProgress (infoStr=infoStr)
             getattr (self, f'runSingleCntrSingleMode{self.erType}') (pclOutputFile) # Call the corresponding function, according to erType (read/write error, regular/RMSE).
@@ -534,10 +534,10 @@ class SingleCntrSimulator (object):
                        cntrSize, 
                        modes        = [], # modes (type of counter) to run  
                        maxRealVal   = None, # The maximal value to be counted at each experiment, possibly using down-sampling. When None (default), will be equal to cntrMaxval. 
-                       cntrMaxVal   = None, # cntrMaxVal - The maximal value that the cntr can represent w/o down-sampling. When None (default), take cntrMaxVal from settings.Confs.  global parameter (found in this file). 
-                       hyperSize    = None, # Relevant only for F2P counter. When cntrMaxVal==None (default), take hyperSize from settings.Confs global parameter (found in this file). 
-                       hyperMaxSize = None, # Relevant only for F3P counter. When cntrMaxVal==None (default), take hyperMaxSize from settings.Confs global parameter (found in this file). 
-                       expSize      = None, # Size of the exponent. Relevant only for Static SEAD counter. If cntrMaxVal==None (default), take expSize from settings.Confs global parameter (found in this file). 
+                       cntrMaxVal   = None, # cntrMaxVal - The maximal value that the cntr can represent w/o down-sampling. When None (default), take cntrMaxVal from Confs.  global parameter (found in this file). 
+                       hyperSize    = None, # Relevant only for F2P counter. When cntrMaxVal==None (default), take hyperSize from Confs global parameter (found in this file). 
+                       hyperMaxSize = None, # Relevant only for F3P counter. When cntrMaxVal==None (default), take hyperMaxSize from Confs global parameter (found in this file). 
+                       expSize      = None, # Size of the exponent. Relevant only for Static SEAD counter. If cntrMaxVal==None (default), take expSize from Confs global parameter (found in this file). 
                        numOfExps    = 1,    # number of experiments to run. 
                        dwnSmple     = False,# When True, down-sample each time the counter's maximum value is reached.
                        erTypes      = [],   # either 'RdEr', 'WrEr', 'RdRmse' or 'WrRmse'.
@@ -565,8 +565,8 @@ class SingleCntrSimulator (object):
         self.numOfExps      = numOfExps
         self.dwnSmple       = dwnSmple
         self.erTypes        = erTypes # the error modes to calculate. See possible erTypes in the documentation above.
-        if (settings.VERBOSE_DETAILED_LOG in self.verbose): # a detailed log include also all the prints of a simple log
-            verbose.append(settings.VERBOSE_LOG)
+        if (VERBOSE_DETAILED_LOG in self.verbose): # a detailed log include also all the prints of a simple log
+            verbose.append(VERBOSE_LOG)
         for self.mode in modes:
             self.runSingleCntrSingleMode ()
         return
@@ -578,7 +578,7 @@ def genCntrMasterFxp (
         hyperSize       : int  = None, 
         nSystem         : str  = None, # 'F2P' or 'F3P
         flavor          : str  = None, # 'sr' / 'lr' / 'si' / 'li' 
-        verbose         : list = []    # list of verboses taken from the veroses, defined in settings.py 
+        verbose         : list = []    # list of verboses taken from the veroses, defined in py 
     ):
     """
     return a CntrMaster belonging to the selected flavor ('sr', 'lr', etc.) and number system ('F2P' or 'F3P').
@@ -604,7 +604,7 @@ def genCntrMasterFxp (
         elif flavor=='si':
             return F2P_si.CntrMaster(cntrSize=cntrSize, numCntrs=numCntrs, hyperSize=hyperSize, verbose=verbose)
         else:
-            settings.error (f'In SingleCntrSimulator.genCntrMasterFxp(). the requested F2P flavor {flavor} is not supported.')
+            error (f'In SingleCntrSimulator.genCntrMasterFxp(). the requested F2P flavor {flavor} is not supported.')
 
     elif nSystem=='F3P':
 
@@ -629,13 +629,13 @@ def genCntrMasterFxp (
 def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit) 
                   expSize   = 1, # number of bits in the exp.
                   signed    = False, 
-                  verbose   = [] # verbose level. See settings.py
+                  verbose   = [] # verbose level. See py
                   ):
     """
     Loop over all the binary combinations of the given counter size.
     For each combination, get the respective counter.
     Sort by an increasing value.
-    Output is according to the verbose, as defined in settings.py. In particular: 
+    Output is according to the verbose, as defined in py. In particular: 
     If the verbose include VERBOSE_RES, print to an output file the list of cntrVecs and respective values. 
     Return the (sorted) list of values.
     """
@@ -656,7 +656,7 @@ def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit)
 
     listOfVals = [item['val'] for item in listOfVals]    
     if signed:
-        listOfVals = settings.makeSymmetricVec (listOfVals)
+        listOfVals = makeSymmetricVec (listOfVals)
         
     return listOfVals
 
@@ -665,14 +665,14 @@ def getAllValsFxp (flavor='',
    cntrSize     = 8, # size of the counter, WITHOUT the sign bit (if exists).  
    hyperSize    = 2, # size of the hyper-exp field (in F2P); Max size of the hyper-exp field (in F2P).
    nSystem      = 'F2P', # either 'F2P' or 'F3P'
-   verbose      = [], #verbose level. See settings.py for details.
+   verbose      = [], #verbose level. See py for details.
    signed       = False # When True, assume an additional bit for the  
 ):
     """
     Loop over all the binary combinations of the given counter size. 
     For each combination, get the respective counter.
     Sort by an increasing value.
-    Output is according to the verbose, as defined in settings.py. In particular: 
+    Output is according to the verbose, as defined in py. In particular: 
     If the verbose include VERBOSE_RES, print to an output file the list of cntrVecs and respective values. 
     Return the (sorted) list of values.
     """
@@ -680,7 +680,7 @@ def getAllValsFxp (flavor='',
         cntrSize -= 1 
     myCntrMaster = genCntrMasterFxp (nSystem=nSystem, flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
     if myCntrMaster.isFeasible==False:
-        settings.error (f'The requested configuration is not feasible.')
+        error (f'The requested configuration is not feasible.')
     listOfVals = []
     for i in range (2**cntrSize):
         cntr = np.binary_repr(i, cntrSize) 
@@ -701,7 +701,7 @@ def getAllValsFxp (flavor='',
 
     listOfVals = [item['val'] for item in listOfVals]    
     if signed:
-        listOfVals = settings.makeSymmetricVec (listOfVals)
+        listOfVals = makeSymmetricVec (listOfVals)
         
     return listOfVals
 
@@ -774,7 +774,7 @@ def printAllValsFxp ():
        cntrSize     = 4, # size of the counter, WITHOUT the sign bit (if exists).  
        hyperSize    = 1, # Max size of the hyper-exp field. Relevant only for F3P. 
        flavor       = 'li', 
-       verbose      = [VERBOSE_RES, VERBOSE_COUT_CONF], #verbose level. See settings.py for details.
+       verbose      = [VERBOSE_RES, VERBOSE_COUT_CONF], #verbose level. See py for details.
        signed       = False # When True, assume an additional bit for the  
     )
 

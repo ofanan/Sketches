@@ -5,14 +5,14 @@ import itertools
 from datetime import datetime
 
 import settings
-from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
+from ttictoc import tic,toc
 from printf import printf, printarFp
 from settings import *  
 
 def parseCsvTrace (
         maxNumRows      = float('inf'), # overall number of increments (# of pkts in the trace) 
         traceFileName   = None,
-        verbose         = [] # verbose level, determined in settings.py.
+        verbose         = [VERBOSE_RES] # verbose level, determined in settings.py.
         ):
     """
     Parse a trace. Collect stat about the trace.
@@ -33,7 +33,11 @@ def parseCsvTrace (
     if VERBOSE_RES in verbose:
         relativePathToTraceOutputFile = relativePathToInputFile.split('.csv')[0] + '.txt'
         traceOutputFile = open (relativePathToTraceOutputFile, 'w')
-        
+    else:
+        warning ('TraceParser.parseCsvTrace() was called without VERBOSE_RES')
+
+    tic ()
+    print (f'Started parsing trace {traceFileName}')        
     for row in csvReader:
         flowKey = int(row[0])
         flowId = indexOrNone(l=listOfFlowKeys, elem=flowKey)
@@ -50,6 +54,7 @@ def parseCsvTrace (
             break
 
     printTraceStatToFile (traceFileName=traceFileName, flowSizes=flowSizes)
+    print (f'Finished parsing after {genElapsedTimeStr(toc())}')
 
 def calcTraceStat (
         traceName     = None,
@@ -111,7 +116,6 @@ def printTraceStatToFile (
 parseCsvTrace (
     traceFileName   = 'Caida1.csv',
     maxNumRows      = 25000000,
-    verbose         = [VERBOSE_RES] # verbose level, determined in py.
 )
 
 # traceName = 'Caida1'
