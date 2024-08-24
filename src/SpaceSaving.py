@@ -7,9 +7,8 @@ from threading import Thread
 from datetime import datetime
 from collections import defaultdict
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
-from settings import warning, error, INF_INT, VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, calcPostSimStat
-from settings import getRelativePathToTraceFile, checkIfInputFileExists
-from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
+from settings import * 
+from ttictoc import tic,toc
 from printf import printf, printarFp 
 from SingleCntrSimulator import getFxpCntrMaxVal, genCntrMasterFxp
 from CountMinSketch import CountMinSketch
@@ -51,7 +50,7 @@ class SpaceSaving (CountMinSketch):
             if self.traceFileName=='Rand':
                 self.cntrMaxVal = self.maxNumIncs
             else:
-                self.cntrMaxVal = settings.getTraceLen(self.traceFileName)
+                self.cntrMaxVal = getTraceLen(self.traceFileName)
         else:
             self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
         random.seed (self.seed)
@@ -86,13 +85,13 @@ class SpaceSaving (CountMinSketch):
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
         """      
         if VERBOSE_PCL in self.verbose:
-            self.pclOutputFile = open(f'../res/pcl_files/ss_{self.traceFileName}_{settings.getMachineStr()}.pcl', 'ab+')
+            self.pclOutputFile = open(f'../res/pcl_files/ss_{self.traceFileName}_{getMachineStr()}.pcl', 'ab+')
 
         if (VERBOSE_RES in self.verbose):
-            self.resFile = open (f'../res/ss_{self.traceFileName}_{settings.getMachineStr()}.res', 'a+')
+            self.resFile = open (f'../res/ss_{self.traceFileName}_{getMachineStr()}.res', 'a+')
             
-        if (settings.VERBOSE_FULL_RES in self.verbose):
-            self.fullResFile = open (f'../res/ss_M{self.numCntrs}_{settings.getMachineStr()}_full.res', 'a+')
+        if (VERBOSE_FULL_RES in self.verbose):
+            self.fullResFile = open (f'../res/ss_M{self.numCntrs}_{getMachineStr()}_full.res', 'a+')
 
         self.logFile =  None # default
         if VERBOSE_LOG in self.verbose or \
@@ -136,7 +135,7 @@ class SpaceSaving (CountMinSketch):
         if self.numFlows==None:
             error ('In SpaceSaving.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
 
-        relativePathToInputFile = settings.getRelativePathToTraceFile (f'{self.traceFileName}.txt')
+        relativePathToInputFile = getRelativePathToTraceFile (f'{self.traceFileName}.txt')
         checkIfInputFileExists (relativePathToInputFile)
         for self.expNum in range (self.numOfExps):
             self.seed = self.expNum+1 
@@ -200,7 +199,7 @@ class SpaceSaving (CountMinSketch):
                     estimatedVal    = flowEstimatedVal,
                     realVal         = flowRealVal[flowId]
                 )     
-            if settings.VERBOSE_FULL_RES in self.verbose:
+            if VERBOSE_FULL_RES in self.verbose:
                 dict = settings
             
     def sim (
@@ -210,8 +209,8 @@ class SpaceSaving (CountMinSketch):
         Simulate the Space Saving cache.
         """
         
-        self.sumSqAbsEr  = [0] * self.numOfExps # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
-        self.sumSqRelEr  = [0] * self.numOfExps # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
+        self.sumSqAbsEr  = np.zeros (self.numOfExps) # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
+        self.sumSqRelEr  = np.zeros (self.numOfExps) # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
         self.printSimMsg ('Started')
         self.openOutputFiles ()
         tic ()
@@ -219,7 +218,6 @@ class SpaceSaving (CountMinSketch):
             self.runSimRandInput ()
         else: # read trace from a file
             self.runSimFromTrace ()
-        toc ()
         for rel_abs_n in [True, False]:
             for statType in ['Mse', 'normRmse']:
                 sumSqEr = self.sumSqRelEr if rel_abs_n else self.sumSqAbsEr
@@ -237,7 +235,7 @@ class SpaceSaving (CountMinSketch):
                     self.dumpDictToPcl    (dict)
                 if VERBOSE_RES in self.verbose:
                     printf (self.resFile, f'{dict}\n\n') 
-        self.printSimMsg (f'Finished {self.incNum} increments')
+        print (f'Finished {self.incNum} increments. {genElapsedTimeStr (toc())}')
 
                 
     def fillStatDictsFields (self, dict) -> dict:
@@ -265,7 +263,7 @@ class SpaceSaving (CountMinSketch):
 #         numFlows        = 9,
 #         cntrSize        = cntrSize, 
 #         cacheSize       = 3,
-#         verbose         = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+#         verbose         = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, VERBOSE_DETAILS
 #         traceFileName   = traceFileName,
 #         mode            = mode,
 #         numOfExps       = 1, 
@@ -282,9 +280,9 @@ class SpaceSaving (CountMinSketch):
 #     traceFileName = 'Rand' 
 #     ss = SpaceSaving (
 #         cntrSize        = cntrSize,
-#         numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
+#         numFlows        = getNumFlowsByTraceName (traceFileName), 
 #         cacheSize       = cacheSize,
-#         verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+#         verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
 #         mode            = mode,
 #         traceFileName   = traceFileName,
 #         numOfExps       = 10, 
@@ -304,7 +302,7 @@ def threadLuncher (
             numFlows        = 9,
             cntrSize        = cntrSize, 
             cacheSize       = 3,
-            verbose         = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+            verbose         = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, VERBOSE_DETAILS
             traceFileName   = traceFileName,
             mode            = mode,
             numOfExps       = 1, 
@@ -314,9 +312,9 @@ def threadLuncher (
     else:
         ss = SpaceSaving (
             cntrSize        = cntrSize,
-            numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
+            numFlows        = getNumFlowsByTraceName (traceFileName), 
             cacheSize       = cacheSize,
-            verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+            verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
             mode            = mode,
             traceFileName   = traceFileName,
             numOfExps       = 10, 
