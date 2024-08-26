@@ -23,9 +23,9 @@ def parseCsvTrace (
     """
     relativePathToInputFile = getRelativePathToTraceFile (f'{traceFileName}.csv')
     checkIfInputFileExists (relativePathToInputFile)
-    trace           = np.fromfile(relativePathToInputFile, count = self.maxNumIncs, sep='\n', dtype='uint32')
-    listOfFlowKeys  = np.empty(dtype=FLOW_TYPE)
-    flowSizes       = np.empty(dtype=FLOW_TYPE)
+    trace           = np.fromfile(relativePathToInputFile, count = maxNumRows, sep='\n', dtype=FLOW_TYPE)
+    listOfFlowKeys  = np.empty([0], dtype=FLOW_TYPE)
+    flowSizes       = np.empty([0], dtype=FLOW_TYPE)
     
     if VERBOSE_RES in verbose:
         relativePathToTraceOutputFile = relativePathToInputFile.split('.csv')[0] + '.txt'
@@ -41,15 +41,15 @@ def parseCsvTrace (
             flowId = len(flowSizes)
             listOfFlowKeys = np.append (listOfFlowKeys, flowKey)
             flowSizes = np.append (flowSizes, 1) # the size of this flow is 1
-        if (len(flowId)==2):
-            error (f'In TraceParser.parseCsvTrace(). FlowId {} is duplicated in listOfFlowKeys')
+        elif (len(flowId)==2):
+            error (f'In TraceParser.parseCsvTrace(). FlowId {flowId} is duplicated in listOfFlowKeys')
         else:
             flowId = flowId[0]
             flowSizes[flowId] += 1
         if VERBOSE_RES in verbose:
             printf (traceOutputFile, f'{flowId}\n')
 
-    print (f'Finished parsing after {genElapsedTimeStr(toc())}')
+    print (f'Finished parsing {traceFileName}.csv after {genElapsedTimeStr(toc())}. num of flows={flowSizes.shape[0]}')
 
 def calcTraceStat (
         traceFileName = None,
@@ -111,6 +111,6 @@ def printTraceStatToFile (
 # )
 
 parseCsvTrace (
-    traceFileName   = 'Caida2_equinix-nyc.dirA.20181220-130000.UTC.anon.pcap',
-    maxNumRows      = 25 #$$$$ 000000,
+    traceFileName   = 'Caida2_equinix-nyc.dirA.20181220-130000.UTC.anon',
+    maxNumRows      = 25000000 
 )
