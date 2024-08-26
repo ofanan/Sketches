@@ -10,10 +10,11 @@ import numpy as np, mmh3, csv, time
 import pandas as pd
 import settings
 
-def parse_pcap_file (traceFileName     = 'equinix-nyc.dirB.20181220-140100.UTC.anon.pcap',      
-                      maxNumOfPkts     = settings.INF_INT, # maximum number of pkts to be parsed, starting from the beginning of the trace
-                      maxTraceLenInSec = settings.INF_INT, # maximum time length to be parsed, starting from the beginning of the trace 
-                      ):
+def parse_pcap_file (
+        traceFileName     = 'equinix-nyc.dirB.20181220-140100.UTC.anon.pcap',      
+        maxNumOfPkts     = settings.INF_INT, # maximum number of pkts to be parsed, starting from the beginning of the trace
+        maxTraceLenInSec = settings.INF_INT, # maximum time length to be parsed, starting from the beginning of the trace 
+    ):
     """
     Parse a .pcap file. Write the parsed file to a .csv file. bearing the same fileName as the .pcap file, but with extension .csv instead of .pcap. 
     """
@@ -26,6 +27,7 @@ def parse_pcap_file (traceFileName     = 'equinix-nyc.dirB.20181220-140100.UTC.a
     writer          = csv.writer (csvOutputFile)
     pktNum          = 0
 
+    print (f'Started parsing {traceFileName}')
     startTime = time.time()            
     for pkt in PcapReader(relativePathToInputFile):
         if IP not in pkt:
@@ -43,5 +45,5 @@ def parse_pcap_file (traceFileName     = 'equinix-nyc.dirB.20181220-140100.UTC.a
     print (f'finished parsing {pktNum} pkts by multirow after {time.time() - startTime} sec')
 
 
-parse_pcap_file (traceFileName='equinix-nyc.dirA.20181220-130000.UTC.anon.pcap', maxNumOfPkts=50000000)
+parse_pcap_file (traceFileName='Caida2_equinix-nyc.dirA.20181220-130000.UTC.anon.pcap', maxNumOfPkts=50000000)
 # parse_pcap_file (traceFileName='equinix-chicago.dirA.20160406-130000.UTC.anon.pcap', maxNumOfPkts=50000000)

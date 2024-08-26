@@ -114,7 +114,7 @@ def printTraceStatToFile (
     )
     
 parseCsvTrace (
-    traceFileName   = 'Caida1.csv',
+    traceFileName   = 'Caida2_equinix-nyc.dirA.20181220-130000.UTC.anon.pcap.csv',
     maxNumRows      = 25000000,
 )
 

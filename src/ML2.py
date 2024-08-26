@@ -32,18 +32,20 @@ def my_dense(a_in, W, b):
         a_out[j] = sigmoid(z)               
     return(a_out)
 
-m = 5
-n = 2
+x = np.array([])
+print (f'x.shape={x.shape[0]}')
+# m = 5
+# n = 2
 
 # X = np.array ([(i+1)*(np.arange(n)+1) for i in range(m)])
 # y = np.ones (m) 
 # w = np.array ([1,2])
 # b = 1
-X = np.array([
-    [1,2],  # postive example
-    [3,4]])   # negative example
-W = np.array( [[-8.93,  0.29, 12.9 ], [-0.1,  -7.32, 10.81]] )
-b = np.array( [-9.82, -9.28,  0.96] )
+# X = np.array([
+#     [1,2],  # postive example
+#     [3,4]])   # negative example
+# W = np.array( [[-8.93,  0.29, 12.9 ], [-0.1,  -7.32, 10.81]] )
+# b = np.array( [-9.82, -9.28,  0.96] )
 # print (f'X={X}\nw={W}\b={b}')
 # print (f'X.shape={X.shape}, W.shape={W.shape}, b.shape={b.shape}')
 # print (f'my_dense={my_dense(a_in=X[0], W=W, b=b)}')

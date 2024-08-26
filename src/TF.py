@@ -12,16 +12,21 @@ tf.autograph.set_verbosity(0)
 
 model = Sequential(
     [               
-        tf.keras.Input(shape=(400,)),    #specify input size
         ### START CODE HERE ### 
-        Dense (25, activation='sigmoid'),
-        Dense (15, activation='sigmoid'),
-        Dense (1,  activation='sigmoid')
-        
-        
+        Dense (120, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.1)),
+        Dense (40, activation='relu', kernel_regularizer=tf.keras.regularizers.l2(0.1)),
+        Dense (6, activation='linear')        
         ### END CODE HERE ### 
     ], name = "my_model" 
-)                         
+)
+
+model_s.compile(
+    ### START CODE HERE ### 
+    loss=SparseCategoricalCrossentropy(from_logits=True),
+    optimizer=tf.keras.optimizers.Adam(learning_rate=0.01),
+    ### START CODE HERE ### 
+)
+                         
 # UNQ_C2
 # GRADED CELL: Sequential model
 tf.random.set_seed(1234) # for consistent results

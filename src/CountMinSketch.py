@@ -3,6 +3,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time
 import numpy as np
+
 from datetime import datetime
 
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_si, Morris, CEDAR, CEDAR_ds, AEE_ds
@@ -64,7 +65,7 @@ class CountMinSketch:
             if self.traceFileName=='Rand':
                 self.cntrMaxVal = self.maxNumIncs
             else:
-                self.cntrMaxVal = settings.getTraceLen(self.traceFileName)
+                self.cntrMaxVal = getTraceLen(self.traceFileName)
         else:
             if self.cntrSize==4: # tiny counters, used for development and debugging
                 self.cntrMaxVal = 30
@@ -82,7 +83,7 @@ class CountMinSketch:
             error (f'CountMinSketch__init() was called with numCntrs={self.numCntrs}, numCntrsPerBkt={self.numCntrsPerBkt}. However, numCntrs should be divisible by numCntrsPerBkt')           
         if self.numBuckets < 1:
             error (f'CountMinSketch.__init() was called with numOfBkts={self.numOfBkts}')
-        self.conf       = settings.getConfByCntrSize (cntrSize=self.cntrSize)
+        self.conf       = getConfByCntrSize (cntrSize=self.cntrSize)
         self.verbose = verbose
         self.genOutputDirectories ()
 
@@ -189,7 +190,7 @@ class CountMinSketch:
         - Generate directories for the output files if not exist
         - Verify the verbose level requested.
         """      
-        if settings.VERBOSE_DETAILED_RES in self.verbose or settings.VERBOSE_FULL_RES in self.verbose:
+        if VERBOSE_DETAILED_RES in self.verbose or VERBOSE_FULL_RES in self.verbose:
             self.verbose.append (VERBOSE_RES)
         if not (VERBOSE_PCL in self.verbose):
             print ('Note: verbose does not include .pcl')  
@@ -225,21 +226,23 @@ class CountMinSketch:
 
     def incNQueryFlow (
             self, 
-            flowId, 
-            mult    = False, 
-            factor  = 1
-        ):
+            hashes : np.array, # hashes[i] is the index to access in the i-th row  
+            mult   : bool = False,   # When True, perform multiplicative increment 
+            factor : int = 1        # the weight to increment
+        ) -> float:
         """
         Update the value for a single flow. 
         Return the updated estimated value for this flow.
         - Update the corresponding counters.
         - Return the minimum of the corresponding counters.
         """
+        if mult or factor!=1:
+            error ('In CountMinSketh.py(). Sorry, multiplicative increment or factor!=1 are currently not supported.')
         flowValAfterInc = math.inf
         for row in range(self.depth):
             flowValAfterInc = min (
                 flowValAfterInc, 
-                self.cntrMaster.incCntrBy1GetVal(cntrIdx=self.mat2aridx (row=row, col=self.hashOfFlow (flowId=flowId, row=row))) 
+                self.cntrMaster.incCntrBy1GetVal(cntrIdx=self.mat2aridx (row=row, col=hashes[row])) 
             )
         return flowValAfterInc
 
@@ -264,7 +267,7 @@ class CountMinSketch:
         """
         if (VERBOSE_RES in self.verbose):
             printf (self.resFile, f'{dict}\n\n') 
-        if (settings.VERBOSE_FULL_RES in self.verbose):
+        if (VERBOSE_FULL_RES in self.verbose):
             printf (self.fullResFile, f'{dict}\n\n') 
     
 
@@ -273,12 +276,12 @@ class CountMinSketch:
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
         """      
         if VERBOSE_PCL in self.verbose:
-            self.pclOutputFile = open(f'../res/pcl_files/cms_{self.traceFileName}_{settings.getMachineStr()}.pcl', 'ab+')
+            self.pclOutputFile = open(f'../res/pcl_files/cms_{self.traceFileName}_{getMachineStr()}.pcl', 'ab+')
 
         if (VERBOSE_RES in self.verbose):
-            self.resFile = open (f'../res/cms_{self.traceFileName}_{settings.getMachineStr()}.res', 'a+')
+            self.resFile = open (f'../res/cms_{self.traceFileName}_{getMachineStr()}.res', 'a+')
             
-        if (settings.VERBOSE_FULL_RES in self.verbose):
+        if (VERBOSE_FULL_RES in self.verbose):
             self.fullResFile = open (f'../res/cms_full.res', 'a+')
 
         self.logFile =  None # default
@@ -317,93 +320,15 @@ class CountMinSketch:
             if verbose in self.verbose:
                 self.verbose.remove(verbose)
     
-    def runSimFromTrace (self):
+    def calcTraceHashes (self) ->np.array:
         """
-        Run a simulation where the input is taken from self.traceFileName.
+        returns a 2D array that contains, at each row, all the (depth) hashes of the flowId at that row. 
         """
-
-        if self.numFlows==None:
-            error ('In CountMinSketch.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
-
-        relativePathToInputFile = getRelativePathToTraceFile (f'{self.traceFileName}.txt')
-        settings.checkIfInputFileExists (relativePathToInputFile, exitError=True)
-        for self.expNum in range (self.numOfExps):
-            self.seed = self.expNum+1
-            random.seed (self.seed) 
-            self.genCntrMaster () # Generate a fresh, empty CntrMaster, for each experiment
-            self.cntrMaster.setLogFile(self.logFile)
-            flowRealVal = [0] * self.numFlows
-            self.incNum = 0
-            self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
-
-            traceFile = open (relativePathToInputFile, 'r')
-            for row in traceFile:            
-                flowId = int(row) 
-                self.incNum  += 1                
-                flowRealVal[flowId]     += 1
-                # if self.smplProb==1 or random.random() < self.smplProb:
-                flowEstimatedVal = self.incNQueryFlow (flowId=flowId)
-                # else: # By downsample, no need to inc this packet; only estimate the flow's size
-                #     flowEstimatedVal   = self.queryFlow (flowId=flowId)
-                # absEr = abs(flowRealVal[flowId] - flowEstimatedVal)
-                # relEr = absEr / flowRealVal[flowId]
-                sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
-                self.sumSqAbsEr[self.expNum] += sqEr    
-                self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
-                # self.sumAbsEr[self.expNum] += absEr    
-                # self.sumRelEr[self.expNum] += relEr              
-                if VERBOSE_LOG_SHORT in self.verbose: 
-                    self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=False)
-                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId]))
-                elif VERBOSE_LOG in self.verbose: 
-                    self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=True)
-                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId]))
-                if VERBOSE_DETAILED_LOG in self.verbose and self.incNum>10000: #$$$
-                    printf (self.logFile, 'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumSqAbsEr={:.1e}, sumSqRelEr={:.1e}\n' .format (
-                        self.incNum, flowRealVal[flowId], flowEstimatedVal, sqAbsEr, sqRelEr, self.sumSqAbsEr[self.expNum], self.sumSqRelEr[self.expNum]))
-                    # printf (self.logFile, f'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumAbsSqEr={:.1e}\n' .format (self.incNum, flowRealVal[flowId], flowEstimatedVal, sqEr, sqEr/(flowRealVal[flowId])**2, self.sumSqAbsEr[self.expNum]))
-                if self.incNum==self.maxNumIncs:
-                    break
-            if self.expNum==0: # Log (if at all) only in the first experiment. No need to log again in further exps.
-                self.logEndSim ()
-                self.rmvVerboseLogs ()
-        traceFile.close ()
-
-    def runSimRandInput (self):
-        """
-        Run a simulation with synthetic, randomly-generated, input.
-        """
-        for self.expNum in range (self.numOfExps):
-            flowRealVal = np.zeros(self.numFlows, dtype='uint16') 
-            self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
-            self.genCntrMaster ()
-
-            self.cntrMaster.setLogFile(self.logFile)
-            printf (self.logFile, f'// cntrMaxVal wo downsampling = {self.cntrMaxVal}\n')
-                        
-            for self.incNum in range(self.maxNumIncs):
-                flowId = math.floor(np.random.exponential(scale = 2*math.sqrt(self.numFlows))) % self.numFlows
-                # flowId = mmh3.hash(str(flowId)) % self.numFlows
-                flowRealVal[flowId]     += 1
-                flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
-                sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2                
-                # absEr = abs(flowRealVal[flowId] - flowEstimatedVal)
-                # relEr = absEr / flowRealVal[flowId]
-                # self.sumAbsEr[self.expNum] += absEr    
-                # self.sumRelEr[self.expNum] += relEr              
-                self.sumSqAbsEr[self.expNum] += sqEr                
-                self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
-                if VERBOSE_LOG_SHORT in self.verbose:
-                    self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=False)
-                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId]))
-                elif VERBOSE_LOG in self.verbose:
-                    self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=True)
-                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(self.incNum, self.hashedCntrsOfFlow(flowId), flowEstimatedVal, flowRealVal[flowId]))
-            if settings.VERBOSE_FULL_RES in self.verbose:
-                dict = settings
-            if self.expNum==0: # log only the first experiment
-                self.logEndSim ()
-                self.rmvVerboseLogs ()
+        traceHashes = np.zeros (self.maxNumIncs, self.depth)
+        for depth in range(self.depth):
+            traceHashes[:,depth] = (self.trace + depth) % self.width
+        error (traceHashes) #$$$
+   
         
     def sim (
         self, 
@@ -413,17 +338,52 @@ class CountMinSketch:
         Simulate the count min sketch
         """
         
-        # self.sumAbsEr  = np.zeros (self.numOfExps) # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
-        # self.sumRelEr  = np.zeros (self.numOfExps) # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
         self.sumSqAbsEr  = np.zeros (self.numOfExps) # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
         self.sumSqRelEr  = np.zeros (self.numOfExps) # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
         self.printSimMsg ('Started')
         self.openOutputFiles ()
         tic ()
-        if self.traceFileName=='Rand': # random input
-            self.runSimRandInput ()
-        else: # read trace from a file
-            self.runSimFromTrace ()
+        if self.numFlows==None:
+            error ('In CountMinSketch.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
+
+        if self.traceFileName==Rand:
+            self.trace = ...
+        else:
+            relativePathToInputFile = getRelativePathToTraceFile (f'{self.traceFileName}.txt')
+            checkIfInputFileExists (relativePathToInputFile, exitError=True)
+            self.trace = np.fromfile(relativePathToInputFile, count = 10, sep='\n', dtype='uint32')
+            traceFile.close ()
+        traceHashes = self.calcTraceHashes () 
+
+        for self.expNum in range (self.numOfExps):
+            self.seed = self.expNum+1
+            random.seed (self.seed) 
+            self.genCntrMaster () # Generate a fresh, empty CntrMaster, for each experiment
+            self.cntrMaster.setLogFile(self.logFile)
+            flowRealVal = np.zeros(self.numFlows)
+            self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
+
+            for self.incNum in range(self.maxNumIncs):#in traceFile:
+                flowId = trace[self.incNum]            
+                flowRealVal[flowId]     += 1
+                flowEstimatedVal = self.incNQueryFlow (hashes=traceHashes[incNum])
+                sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
+                self.sumSqAbsEr[self.expNum] += sqEr    
+                self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
+                if VERBOSE_LOG_SHORT in self.verbose: 
+                    self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=False)
+                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
+                        self.incNum, traceHashes[incNum], flowEstimatedVal, flowRealVal[flowId]))
+                elif VERBOSE_LOG in self.verbose: 
+                    self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=True)
+                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
+                        self.incNum, traceHashes[incNum], flowEstimatedVal, flowRealVal[flowId]))
+                if VERBOSE_DETAILED_LOG in self.verbose and self.incNum>10000: #$$$
+                    printf (self.logFile, 'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumSqAbsEr={:.1e}, sumSqRelEr={:.1e}\n' .format (
+                        self.incNum, flowRealVal[flowId], flowEstimatedVal, sqAbsEr, sqRelEr, self.sumSqAbsEr[self.expNum], self.sumSqRelEr[self.expNum]))
+            if self.expNum==0: # Log (if at all) only in the first experiment. No need to log again in further exps.
+                self.logEndSim ()
+                self.rmvVerboseLogs ()
         for rel_abs_n in [True, False]:
             for statType in ['Mse', 'normRmse']:
                 sumSqEr = self.sumSqRelEr if rel_abs_n else self.sumSqAbsEr
@@ -449,7 +409,7 @@ class CountMinSketch:
         """
         If the verbose requires that, report the progress to self.logFile
         """ 
-        if not (settings.VERBOSE_PROGRESS in self.verbose):
+        if not (VERBOSE_PROGRESS in self.verbose):
             return
         if infoStr==None:
             printf (self.logFile, f'starting experiment{self.expNum}\n')
@@ -491,7 +451,7 @@ def LaunchCmsSim (
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
             numEpsilonStepsInXlBkt  = 5,
-            verbose                 = [], #[VERBOSE_LOG_SHORT, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, settings.VERBOSE_DETAILS
+            verbose                 = [], #[VERBOSE_LOG_SHORT, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, VERBOSE_DETAILS
             numOfExps               = 1, 
             maxNumIncs              = 1111,
             maxValBy                = 'F3P_li_h3',
@@ -503,7 +463,7 @@ def LaunchCmsSim (
             maxValBy        = 'F3P_li_h3',
             width           = width,
             depth           = depth,
-            numFlows        = settings.getNumFlowsByTraceName (traceFileName), 
+            numFlows        = getNumFlowsByTraceName (traceFileName), 
             mode            = mode,
             numCntrsPerBkt  = 1, #16
             cntrSize        = cntrSize, 
@@ -512,7 +472,7 @@ def LaunchCmsSim (
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
             numOfExps               = 10, 
-            verbose                 = [VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES] #, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL] #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, settings.VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, settings.VERBOSE_DETAILS
+            verbose                 = [VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES] #, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL] #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
         )
         cms.sim ()
 
@@ -539,6 +499,9 @@ def runMultiProcessSim ():
     
 if __name__ == '__main__':
     try:
+        relativePathToInputFile = getRelativePathToTraceFile ('Caida1.txt')
+        checkIfInputFileExists (relativePathToInputFile, exitError=True)
+
         mode = 'CEDAR' #'F3P_li_h3_ds'     
         for trace in ['Rand']: #['Caida2']: #, 'Caida2']: #$$$
             for width in [2]: #[2**i for i in range (10, 11)]: #19)]: #$$$ 
