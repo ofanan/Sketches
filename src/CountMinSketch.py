@@ -492,6 +492,10 @@ def runMultiProcessSim ():
     
 if __name__ == '__main__':
     try:
+        # gamad = np.array([1.1, 2.2, 3.7])
+        # nanas = np.array (3, dtype='uint64')
+        # nanas = gamad // 1.5
+        # error (nanas)
         mode = 'CEDAR' #'F3P_li_h3_ds'     
         for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: #$$$
             for width in [10]: #[2**i for i in range (10, 11)]: #19)]: #$$$ 

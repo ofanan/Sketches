@@ -436,10 +436,12 @@ def writeVecStatToFile (
     
     numBins = np.min ([100, int(maxVec)+1, lenVec])
     binSize = maxVec // (numBins-1)
-    binVal  = [None] * numBins 
+    binVal  = np.zeros (numBins, dtype='uint64') 
+    flowsizeOverBinsize = (vec // binSize).astype ('uint64')
     for bin in range(numBins):
-        binVal[bin] = len ([flowId for flowId in range(lenVec) if (vec[flowId]//binSize)==bin])
-    binVecs = binSize*np.arange(numBins) 
+        binVal[bin] = len(np.where(flowsizeOverBinsize==bin))
+        # binVal[bin] = len ([flowId for flowId in range(lenVec) if (vec[flowId]//binSize)==bin])
+    binVecs = (binSize*np.arange(numBins)).astype ('uint64') 
     printf (statFile, f'// bins:\n')
     for bin in range(numBins):
         printf (statFile, f'binVecs={binVecs[bin]}, binVal={binVal[bin]}\n')
