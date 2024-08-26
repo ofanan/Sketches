@@ -65,7 +65,7 @@ def calcTraceStat (
     if numFlows==None:
         error ('In TraceParser.calcTraceStat(). Sorry, currently you must specify the num of flows for parsing the trace.')
     traceFile = open (relativePathToTraceFile, 'r')
-    trace = np.fromfile(relativePathToInputFile, count = self.maxNumIncs, sep='\n', dtype='uint32')
+    trace = np.fromfile(relativePathToTraceFile, count = maxNumOfRows, sep='\n', dtype='uint32')
 
     flowSizes                 = np.zeros (numFlows,     dtype=FLOW_TYPE)
     interAppearanceVec        = np.zeros (maxNumOfRows, dtype=FLOW_TYPE)
@@ -79,7 +79,8 @@ def calcTraceStat (
             idx_in_interAppearanceVec += 1 
         last_appearance_of[flowId] = rowNum
         
-    interAppearanceVec = interAppearanceVec[:idx_in_interAppearanceVec]        
+    interAppearanceVec = interAppearanceVec[:idx_in_interAppearanceVec]
+    printTraceStatToFile = printTraceStatToFile.astype(FLOW_TYPE)        
     printTraceStatToFile (
         traceFileName       = traceFileName, 
         flowSizes           = flowSizes,
@@ -106,11 +107,11 @@ def printTraceStatToFile (
         str         = 'flow sizes'        
     )
     
-# calcTraceStat (
-#     traceFileName = 'Caida1_equinix-chicago.dirA.20160406-130000.UTC.anon'
-# )
-
-parseCsvTrace (
-    traceFileName   = 'Caida2_equinix-nyc.dirA.20181220-130000.UTC.anon',
-    maxNumRows      = 25000000 
+calcTraceStat (
+    traceFileName = 'Caida1_equinix-chicago.dirA.20160406-130000.UTC.anon'
 )
+
+# parseCsvTrace (
+#     traceFileName   = 'Caida2_equinix-nyc.dirA.20181220-130000.UTC.anon',
+#     maxNumRows      = 25000000 
+# )
