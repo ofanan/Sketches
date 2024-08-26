@@ -10,7 +10,7 @@ import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_
 from settings import * 
 from printf import printf, printarFp
 from SingleCntrSimulator import getFxpCntrMaxVal, genCntrMasterFxp
-np.set_printoptions(precision=4)
+np.set_printoptions(precision=1)
 
 class CountMinSketch:
 
@@ -365,11 +365,11 @@ class CountMinSketch:
                 if VERBOSE_LOG_SHORT in self.verbose: 
                     self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=False)
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
-                        self.incNum, traceHashes[incNum], flowEstimatedVal, flowRealVal[flowId]))
+                        self.incNum, traceHashes[self.incNum], flowEstimatedVal, flowRealVal[flowId]))
                 elif VERBOSE_LOG in self.verbose: 
                     self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=True)
                     printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
-                        self.incNum, traceHashes[incNum], flowEstimatedVal, flowRealVal[flowId]))
+                        self.incNum, traceHashes[self.incNum], flowEstimatedVal, flowRealVal[flowId]))
                 if VERBOSE_DETAILED_LOG in self.verbose and self.incNum>10000: #$$$
                     printf (self.logFile, 'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumSqAbsEr={:.1e}, sumSqRelEr={:.1e}\n' .format (
                         self.incNum, flowRealVal[flowId], flowEstimatedVal, sqAbsEr, sqRelEr, self.sumSqAbsEr[self.expNum], self.sumSqRelEr[self.expNum]))
@@ -464,8 +464,7 @@ def LaunchCmsSim (
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
             numOfExps               = 10, 
-            maxNumIncs              = 10, #$$$
-            verbose                 = [VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES] #, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL] #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
+            verbose                 = [VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES, VERBOSE_PCL], #VERBOSE_LOG_DWN_SMPL] #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
         )
         cms.sim ()
 
@@ -492,13 +491,13 @@ def runMultiProcessSim ():
     
 if __name__ == '__main__':
     try:
-        # gamad = np.array([1.1, 2.2, 3.7])
-        # nanas = np.array (3, dtype='uint64')
-        # nanas = gamad // 1.5
-        # error (nanas)
+        flowKey=3
+        listOfFlowKeys = np.array ([1,2,3])
+        gamad = np.append (listOfFlowKeys, 4)
+        error (gamad)
         mode = 'CEDAR' #'F3P_li_h3_ds'     
         for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: #$$$
-            for width in [10]: #[2**i for i in range (10, 11)]: #19)]: #$$$ 
+            for width in [2**i for i in range (10, 19)]:  
                 LaunchCmsSim (
                     traceName   = traceName,
                     cntrSize    = 8,

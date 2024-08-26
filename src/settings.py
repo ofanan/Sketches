@@ -2,7 +2,7 @@
 # import math, random, os, pandas as pd
 import os, math, itertools, numpy as np, scipy.stats as st 
 from printf import printf, printarFp
-np.set_printoptions(precision=4)
+np.set_printoptions(precision=1)
 
 SEED    = 123456789012345678901234567890123456789
 INF_INT = 999999999
@@ -54,6 +54,7 @@ traceInfo = [{'traceName' : 'Caida1', 'traceFullName' : 'Caida1_equinix-chicago.
             ]
 
 VECTOR_SIZE = 1000
+FLOW_TYPE = 'uint32'
 # Configurations to be run. 
 # For cntrSize<8, the conf' the values are unrealistically small, and used only for checks and debugging.
 # For cntrSize>=8, cntrMaxVal is calculated by that reached by F2P stat, and hyperSize is the corresponding hyper-exponent field size in F2P stat.
@@ -420,13 +421,15 @@ def writeVecStatToFile (
         statFile,
         vec,
         str,
+        numBins = 100,
     ):
     """
     Calculate and write the statistics (mean, min, max, std, binning) of a given vector to the given output file.
     """
+    vec = np.array(vec)
     printf (statFile, f'// vec={str}\n')
     lenVec = int(len(vec))
-    maxVec = np.max(vec)
+    maxVec = int(np.max(vec))
     minVec = np.min(vec)
     printf (statFile, '// len(vec)={:.0f}, minVec={:.1f},  maxVec={:.1f}, avgVec={:.1f}, stdevVec={:.1f}\n' .format
            (lenVec, minVec, maxVec, np.mean(vec), np.std(vec))) 
@@ -434,17 +437,16 @@ def writeVecStatToFile (
     if lenVec<11: # No need to print binning data for up to 10 bins: one can merely print the data itself.
         return
     
-    numBins = np.min ([100, int(maxVec)+1, lenVec])
+    numBins = np.min ([numBins, int(maxVec)+1, lenVec])
     binSize = maxVec // (numBins-1)
-    binVal  = np.zeros (numBins, dtype='uint64') 
-    flowsizeOverBinsize = (vec // binSize).astype ('uint64')
+    binVal  = np.zeros (numBins, dtype=FLOW_TYPE) 
+    flowsizeOverBinsize = np.divide (vec, binSize).astype (FLOW_TYPE)
+    bins = (binSize*np.arange(numBins)).astype (FLOW_TYPE) 
     for bin in range(numBins):
-        binVal[bin] = len(np.where(flowsizeOverBinsize==bin))
-        # binVal[bin] = len ([flowId for flowId in range(lenVec) if (vec[flowId]//binSize)==bin])
-    binVecs = (binSize*np.arange(numBins)).astype ('uint64') 
+        binVal[bin] = np.sum(np.where(flowsizeOverBinsize==bin, 1, 0))
     printf (statFile, f'// bins:\n')
     for bin in range(numBins):
-        printf (statFile, f'binVecs={binVecs[bin]}, binVal={binVal[bin]}\n')
+        printf (statFile, f'bin={bins[bin]}, binVal={binVal[bin]}\n')
     if minVec<0:
         warning ('in settings.writeVecStatToFile(). The minimal value in vector {} is {:.2f}' .format
                  (str, minVec))

@@ -21,14 +21,11 @@ def parseCsvTrace (
     - print the trace's stat to a file.
     - print to file an compressed version of the trace, where each key is replaced by a unique flowId, allocated to each flow in sequential order of appearance in the trace. 
     """
-    relativePathToInputFile = getRelativePathToTraceFile (traceFileName)
+    relativePathToInputFile = getRelativePathToTraceFile (f'{traceFileName}.csv')
     checkIfInputFileExists (relativePathToInputFile)
-    csvFile = open (relativePathToInputFile, 'r')
-    csvReader = csv.reader(csvFile) 
-
-    rowNum          = 1
-    listOfFlowKeys  = []
-    flowSizes       = []
+    trace           = np.fromfile(relativePathToInputFile, count = self.maxNumIncs, sep='\n', dtype='uint32')
+    listOfFlowKeys  = np.empty(dtype=FLOW_TYPE)
+    flowSizes       = np.empty(dtype=FLOW_TYPE)
     
     if VERBOSE_RES in verbose:
         relativePathToTraceOutputFile = relativePathToInputFile.split('.csv')[0] + '.txt'
@@ -37,94 +34,83 @@ def parseCsvTrace (
         warning ('TraceParser.parseCsvTrace() was called without VERBOSE_RES')
 
     tic ()
-    print (f'Started parsing trace {traceFileName}')        
-    for row in csvReader:
-        flowKey = int(row[0])
-        flowId = indexOrNone(l=listOfFlowKeys, elem=flowKey)
-        if flowId==None: # first pkt of this flow
+    print (f'Started parsing trace {traceFileName}.csv')        
+    for flowKey in trace:
+        flowId = np.where(listOfFlowKeys==flowKey)[0]
+        if (len(flowId)==0): # first pkt of this flow
             flowId = len(flowSizes)
-            listOfFlowKeys.append (flowKey)
-            flowSizes.append (1) # the size of this flow is 1
+            listOfFlowKeys = np.append (listOfFlowKeys, flowKey)
+            flowSizes = np.append (flowSizes, 1) # the size of this flow is 1
+        if (len(flowId)==2):
+            error (f'In TraceParser.parseCsvTrace(). FlowId {} is duplicated in listOfFlowKeys')
         else:
+            flowId = flowId[0]
             flowSizes[flowId] += 1
         if VERBOSE_RES in verbose:
             printf (traceOutputFile, f'{flowId}\n')
-        rowNum += 1
-        if rowNum > maxNumRows:
-            break
 
-    printTraceStatToFile (traceFileName=traceFileName, flowSizes=flowSizes)
     print (f'Finished parsing after {genElapsedTimeStr(toc())}')
 
 def calcTraceStat (
-        traceName     = None,
-        maxNumOfRows  = float('inf'),
+        traceFileName = None,
+        maxNumOfRows  = INF_INT,
         numFlows      = 2000000
         ):
     """
     Collect stat about the trace, and print it to a file.
     The trace is merely a list of integers (keys), representing the flow to which each pkt belongs, in a .txt file.
     """
-    relativePathToTraceFile = getRelativePathToTraceFile (f'{traceName}.txt')
+    relativePathToTraceFile = getRelativePathToTraceFile (f'{traceFileName}.txt')
     checkIfInputFileExists (relativePathToTraceFile)
     if numFlows==None:
         error ('In TraceParser.calcTraceStat(). Sorry, currently you must specify the num of flows for parsing the trace.')
     traceFile = open (relativePathToTraceFile, 'r')
+    trace = np.fromfile(relativePathToInputFile, count = self.maxNumIncs, sep='\n', dtype='uint32')
 
-    flowSizes                 = np.zeros (numFlows,     dtype='int32')
-    interAppearanceVec        = np.zeros (maxNumOfRows, dtype='int32')
-    last_appearance_of        = np.zeros (numFlows,     dtype='int32')
+    flowSizes                 = np.zeros (numFlows,     dtype=FLOW_TYPE)
+    interAppearanceVec        = np.zeros (maxNumOfRows, dtype=FLOW_TYPE)
+    last_appearance_of        = np.zeros (numFlows,     dtype=FLOW_TYPE)
     idx_in_interAppearanceVec = 0
-    rowNum                      = 0
-    for row in traceFile:            
-        rowNum += 1
-        flowId = int(row)
+    for rowNum in range(maxNumOfRows):
+        flowId = trace[rowNum]
         flowSizes[flowId] += 1        
         if last_appearance_of[flowId]>0: # This key has already appeared before #is the first appearance of this key
             interAppearanceVec[idx_in_interAppearanceVec] = rowNum-last_appearance_of[flowId]
             idx_in_interAppearanceVec += 1 
         last_appearance_of[flowId] = rowNum
-        if rowNum>maxNumOfRows:
-            break 
         
     interAppearanceVec = interAppearanceVec[:idx_in_interAppearanceVec]        
     printTraceStatToFile (
-        traceName           = traceName, 
+        traceFileName       = traceFileName, 
         flowSizes           = flowSizes,
         interAppearanceVec  = interAppearanceVec
     )
         
 def printTraceStatToFile (
-    traceName       = None,
-    flowSizes           = [],
-    interAppearanceVec  = None
+    interAppearanceVec  : np.array,
+    flowSizes           : np.array,
+    traceFileName       : str,
     ):
     """
     Given a vector with the flowId accessed at each cycle, calculate the trace's stat.
     """    
-    relativePathToStatFile = getRelativePathToTraceFile (f'{traceName}_stat.txt')
-    checkIfInputFileExists (relativePathToStatFile)
+    relativePathToStatFile = getRelativePathToTraceFile (f'{traceFileName}_stat.txt')
     statFile    = open (relativePathToStatFile, 'w')
+    if len(interAppearanceVec)==0:
+        error ('In TraceParser.printTraceStatToFile(). interAppearanceVec is empty. Did you use too short sim?')
     printf (statFile, '// mean inter arrival = {:.2f}\n'  .format(np.mean(interAppearanceVec)))
     printf (statFile, '// stdev inter arrival = {:.2f}\n' .format(np.std(interAppearanceVec)))
     writeVecStatToFile (
         statFile    = statFile,
-        vec         = np.array([f for f in flowSizes if f>0]),
+        vec         = flowSizes,
         str         = 'flow sizes'        
     )
     
-parseCsvTrace (
-    traceFileName   = 'Caida2_equinix-nyc.dirA.20181220-130000.UTC.anon.pcap.csv',
-    maxNumRows      = 25000000,
-)
-
-# traceName = 'Caida1'
 # calcTraceStat (
-#     traceName     = traceName, 
-#     maxNumOfRows  = 250, #$$$$ 00000,
+#     traceFileName = 'Caida1_equinix-chicago.dirA.20160406-130000.UTC.anon'
 # )
 
-# relativePathToInputFile = '../../traces/Caida/‏‏Caida1.txt'
-# if os.path.isfile (relativePathToInputFile):
-#     error ('yesh')
-# error ('ein')
+parseCsvTrace (
+    traceFileName   = 'Caida2_equinix-nyc.dirA.20181220-130000.UTC.anon.pcap',
+    maxNumRows      = 25 #$$$$ 000000,
+)
