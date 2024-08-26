@@ -14,21 +14,11 @@ np.set_printoptions(precision=4)
 
 class CountMinSketch:
 
-    # # given the flowId and the row, return the hash, namely, the corresponding counter in that row  
-    # hashOfFlow = lambda self, flowId, row : mmh3.hash(str(flowId), seed=self.seed + row) % self.width
-
-    # given the flowId and the row, return the hash, namely, the corresponding counter in that row. 
-    # As the flowId are already the result of a hash function, no need to re-hash; using modulo suffices.  
-    hashOfFlow = lambda self, flowId, row : (flowId+row) % self.width
-
-    # given the flowId, return the list of cntrs hashed to this flow Id.   
-    hashedCntrsOfFlow = lambda self, flowId : [self.mat2aridx(row, self.hashOfFlow(flowId, row)) for row in range(self.depth)] 
-
     # given the row and col. in a matrix, return the corresponding index if the mat is flattened into a 1D array.
     mat2aridx  = lambda self, row, col       : self.width*row + col 
 
     # Generate a string that details the parameters' values.
-    genSettingsStr = lambda self : f'cms_{self.traceFileName}_{self.mode}_d{self.depth}_w{self.width}_f{self.numFlows}_bit{self.cntrSize}'
+    genSettingsStr = lambda self : f'cms_{self.traceName}_{self.mode}_d{self.depth}_w{self.width}_f{self.numFlows}_bit{self.cntrSize}'
     
     def __init__(self,
             width           = 2, # the number of counters per row.
@@ -42,7 +32,7 @@ class CountMinSketch:
             maxValBy        = None, # How to calculate the maximum value (for SEAD/CEDAR).   
             maxNumIncs      = INF_INT, # maximum # of increments (pkts in the trace), after which the simulation will be stopped. 
             numOfExps       = 1,  # number of repeated experiments. Relevant only for randomly-generated traces.
-            traceFileName   = 'Rand',
+            traceName   = 'Rand',
             numEpsilonStepsIceBkts  = 6, # number of "epsilon" steps in Ice Buckets.
             numEpsilonStepsInRegBkt = 5, # number of "epsilon" steps in regular buckets in NiceBuckets.
             numEpsilonStepsInXlBkt  = 6,  # number of "epsilon" steps in the XL buckets in NiceBuckets.
@@ -52,7 +42,7 @@ class CountMinSketch:
         """
         self.mode, self.seed = mode, seed
         self.numCntrsPerBkt  = int(numCntrsPerBkt)
-        self.traceFileName   = traceFileName
+        self.traceName   = traceName
         self.maxValBy        = maxValBy
         self.dwnSmpl         = self.mode.endswith('_ds')
         if depth<1 or width<1 or cntrSize<1:
@@ -62,10 +52,10 @@ class CountMinSketch:
         self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
         self.maxNumIncs, self.numOfExps, = maxNumIncs, numOfExps
         if self.maxValBy==None: # By default, the maximal counter's value is the trace length 
-            if self.traceFileName=='Rand':
+            if self.traceName=='Rand':
                 self.cntrMaxVal = self.maxNumIncs
             else:
-                self.cntrMaxVal = getTraceLen(self.traceFileName)
+                self.cntrMaxVal = getTraceLen(self.traceName)
         else:
             if self.cntrSize==4: # tiny counters, used for development and debugging
                 self.cntrMaxVal = 30
@@ -276,10 +266,10 @@ class CountMinSketch:
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
         """      
         if VERBOSE_PCL in self.verbose:
-            self.pclOutputFile = open(f'../res/pcl_files/cms_{self.traceFileName}_{getMachineStr()}.pcl', 'ab+')
+            self.pclOutputFile = open(f'../res/pcl_files/cms_{self.traceName}_{getMachineStr()}.pcl', 'ab+')
 
         if (VERBOSE_RES in self.verbose):
-            self.resFile = open (f'../res/cms_{self.traceFileName}_{getMachineStr()}.res', 'a+')
+            self.resFile = open (f'../res/cms_{self.traceName}_{getMachineStr()}.res', 'a+')
             
         if (VERBOSE_FULL_RES in self.verbose):
             self.fullResFile = open (f'../res/cms_full.res', 'a+')
@@ -298,7 +288,7 @@ class CountMinSketch:
         Print-screen an info msg about the parameters and hours of the simulation starting to run. 
         """             
         print ('{} running cms at t={}. trace={}, numOfExps={}, mode={}, cntrSize={}, depth={}, width={}, numFlows={}, verbose={}' .format (
-                        str, datetime.now().strftime('%H:%M:%S'), self.traceFileName, self.numOfExps, self.mode, self.cntrSize, self.depth, self.width, self.numFlows, self.verbose))
+                        str, datetime.now().strftime('%H:%M:%S'), self.traceName, self.numOfExps, self.mode, self.cntrSize, self.depth, self.width, self.numFlows, self.verbose))
 
     def logEndSim (self):
         """
@@ -324,15 +314,16 @@ class CountMinSketch:
         """
         returns a 2D array that contains, at each row, all the (depth) hashes of the flowId at that row. 
         """
-        traceHashes = np.zeros (self.maxNumIncs, self.depth)
+        if self.depth*self.width < 2**16:
+            traceHashes = np.zeros ([self.maxNumIncs, self.depth], dtype='uint16')
+        else:
+            traceHashes = np.zeros (self.maxNumIncs, self.depth, dtype='uint32')            
         for depth in range(self.depth):
             traceHashes[:,depth] = (self.trace + depth) % self.width
-        error (traceHashes) #$$$
-   
         
     def sim (
         self, 
-        traceFileName   = None,
+        traceName   = None,
         ):
         """
         Simulate the count min sketch
@@ -346,13 +337,13 @@ class CountMinSketch:
         if self.numFlows==None:
             error ('In CountMinSketch.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
 
-        if self.traceFileName==Rand:
-            self.trace = ...
+        if self.traceName=='Rand': # run synthetic, randomized trace
+            rng = np.random.default_rng()
+            self.trace = rng.integers (self.numFlows, size=self.maxNumIncs, dtype='uint32')
         else:
-            relativePathToInputFile = getRelativePathToTraceFile (f'{self.traceFileName}.txt')
+            relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}.txt')
             checkIfInputFileExists (relativePathToInputFile, exitError=True)
-            self.trace = np.fromfile(relativePathToInputFile, count = 10, sep='\n', dtype='uint32')
-            traceFile.close ()
+            self.trace = np.fromfile(relativePathToInputFile, count = self.maxNumIncs, sep='\n', dtype='uint32')
         traceHashes = self.calcTraceHashes () 
 
         for self.expNum in range (self.numOfExps):
@@ -432,7 +423,7 @@ class CountMinSketch:
         return dict
     
 def LaunchCmsSim (
-        traceFileName   : str = 'Rand', 
+        traceName   : str = 'Rand', 
         mode            : str = 'AEE_ds',
         cntrSize        : int = 4, 
         width           : int = 2,
@@ -440,20 +431,20 @@ def LaunchCmsSim (
     """
     """   
     depth = 4
-    if traceFileName=='Rand':
+    if traceName=='Rand':
         cms = CountMinSketch (
             width           = 2, 
             depth           = 2,
             numFlows        = 4,
             numCntrsPerBkt  = 2,
             mode            = mode, 
-            traceFileName   = traceFileName,
+            traceName   = traceName,
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
             numEpsilonStepsInXlBkt  = 5,
             verbose                 = [], #[VERBOSE_LOG_SHORT, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, VERBOSE_DETAILS
             numOfExps               = 1, 
-            maxNumIncs              = 1111,
+            maxNumIncs              = 10,
             maxValBy                = 'F3P_li_h3',
             cntrSize                = cntrSize, 
         )
@@ -463,15 +454,16 @@ def LaunchCmsSim (
             maxValBy        = 'F3P_li_h3',
             width           = width,
             depth           = depth,
-            numFlows        = getNumFlowsByTraceName (traceFileName), 
+            numFlows        = getNumFlowsByTraceName (traceName), 
             mode            = mode,
             numCntrsPerBkt  = 1, #16
             cntrSize        = cntrSize, 
-            traceFileName   = traceFileName,
+            traceName   = traceName,
             numEpsilonStepsIceBkts  = 6, 
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
             numOfExps               = 10, 
+            maxNumIncs              = 10, #$$$
             verbose                 = [VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES] #, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL] #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
         )
         cms.sim ()
@@ -499,17 +491,14 @@ def runMultiProcessSim ():
     
 if __name__ == '__main__':
     try:
-        relativePathToInputFile = getRelativePathToTraceFile ('Caida1.txt')
-        checkIfInputFileExists (relativePathToInputFile, exitError=True)
-
         mode = 'CEDAR' #'F3P_li_h3_ds'     
-        for trace in ['Rand']: #['Caida2']: #, 'Caida2']: #$$$
-            for width in [2]: #[2**i for i in range (10, 11)]: #19)]: #$$$ 
+        for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: #$$$
+            for width in [10]: #[2**i for i in range (10, 11)]: #19)]: #$$$ 
                 LaunchCmsSim (
-                    traceFileName   = trace,
-                    cntrSize        = 8,
-                    mode            = mode,
-                    width           = width,
+                    traceName   = traceName,
+                    cntrSize    = 8,
+                    mode        = mode,
+                    width       = width,
                 )
                 
     except KeyboardInterrupt:

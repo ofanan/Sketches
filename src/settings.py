@@ -49,8 +49,8 @@ FP8modes  = ['FP_e2', 'FP_e3', 'FP_e4', 'FP_e5']
 FP16modes = ['FP_e5', 'FP_e8'] #, 'FP_e10'] # 'FP_e5' is FP16. 'FP_e8' is BFloat.
 FP19modes = ['FP_e5'] #, 'FP_e8' is very bad --> removing it.
 
-traceInfo = [{'traceName' : 'Caida1', 'len' : 25000000, 'numFlows' : 1319880, 'maxFlowSize' :  455156}, 
-             {'traceName' : 'Caida2', 'len' : 25000000, 'numFlows' :  807366, 'maxFlowSize' : 3128382},           
+traceInfo = [{'traceName' : 'Caida1', 'traceFullName' : 'Caida1_equinix-chicago.dirA.20160406-130000.UTC.anon', 'len' : 25000000, 'numFlows' : 1319880, 'maxFlowSize' :  455156}, 
+             {'traceName' : 'Caida2', 'traceFullName' : 'Caida2_equinix-nyc.dirA.20181220-130000.UTC.anon', 'len' : 25000000, 'numFlows' :  807366, 'maxFlowSize' : 3128382},           
             ]
 
 VECTOR_SIZE = 1000
@@ -120,6 +120,19 @@ def getTraceLen (
     elif (len(listOfTraces)>1):
         error (f'In settings.getTraceLen(). Sorry. Too many known traces for trace={traceName}')
     return listOfTraces[0]['len']
+   
+def getTraceFullName (
+        traceName
+    ):
+    """
+    given the trace's name, return its full name, detailing its origin.
+    """
+    listOfTraces = [item for item in traceInfo if item['traceName']==traceName]
+    if (len(listOfTraces)<1): 
+        error (f'In settings.getTraceLen(). Sorry. No known traceInfo for traceName={traceName}')
+    elif (len(listOfTraces)>1):
+        error (f'In settings.getTraceLen(). Sorry. Too many known traces for trace={traceName}')
+    return listOfTraces[0]['traceFullName']
    
 def getNumFlowsByTraceName (
         traceName : str
