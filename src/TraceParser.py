@@ -71,6 +71,7 @@ def calcTraceStat (
     interAppearanceVec        = np.zeros (maxNumOfRows, dtype=FLOW_TYPE)
     last_appearance_of        = np.zeros (numFlows,     dtype=FLOW_TYPE)
     idx_in_interAppearanceVec = 0
+    maxNumOfRows = min(maxNumOfRows, len(trace))
     for rowNum in range(maxNumOfRows):
         flowId = trace[rowNum]
         flowSizes[flowId] += 1        
@@ -108,7 +109,8 @@ def printTraceStatToFile (
     )
     
 calcTraceStat (
-    traceFileName = 'Caida1_equinix-chicago.dirA.20160406-130000.UTC.anon'
+    traceFileName   = 'Caida1_equinix-chicago.dirA.20160406-130000.UTC.anon',
+    maxNumOfRows    = 25000000,
 )
 
 # parseCsvTrace (
