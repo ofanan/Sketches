@@ -320,6 +320,7 @@ class CountMinSketch:
             traceHashes = np.zeros (self.maxNumIncs, self.depth, dtype='uint32')            
         for depth in range(self.depth):
             traceHashes[:,depth] = (self.trace + depth) % self.width
+        return traceHashes 
         
     def sim (
         self, 
@@ -344,7 +345,7 @@ class CountMinSketch:
             relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}.txt')
             checkIfInputFileExists (relativePathToInputFile, exitError=True)
             self.trace = np.fromfile(relativePathToInputFile, count = self.maxNumIncs, sep='\n', dtype='uint32')
-        traceHashes = self.calcTraceHashes () 
+        traceHashes = self.calcTraceHashes ()
 
         for self.expNum in range (self.numOfExps):
             self.seed = self.expNum+1
@@ -355,9 +356,9 @@ class CountMinSketch:
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
 
             for self.incNum in range(self.maxNumIncs):#in traceFile:
-                flowId = trace[self.incNum]            
+                flowId = self.trace[self.incNum]            
                 flowRealVal[flowId]     += 1
-                flowEstimatedVal = self.incNQueryFlow (hashes=traceHashes[incNum])
+                flowEstimatedVal = self.incNQueryFlow (hashes=traceHashes[self.incNum])
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr    
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
@@ -393,7 +394,7 @@ class CountMinSketch:
                     self.dumpDictToPcl    (dict)
                 if VERBOSE_RES in self.verbose:
                     printf (self.resFile, f'{dict}\n\n') 
-        print (f'Finished {self.incNum} increments. {genElapsedTimeStr (toc())}')
+        print (f'Finished {self.incNum+1} increments. {genElapsedTimeStr (toc())}')
 
                 
     def writeProgress (self, infoStr=None):

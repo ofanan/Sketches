@@ -434,7 +434,7 @@ def writeVecStatToFile (
     if lenVec<11: # No need to print binning data for up to 10 bins: one can merely print the data itself.
         return
     
-    numBins = np.min (100, maxVec+1, lenVec)
+    numBins = np.min ([100, int(maxVec)+1, lenVec])
     binSize = maxVec // (numBins-1)
     binVal  = [None] * numBins 
     for bin in range(numBins):
