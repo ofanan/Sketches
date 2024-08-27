@@ -346,6 +346,7 @@ class CountMinSketch:
             checkIfInputFileExists (relativePathToInputFile, exitError=True)
             self.trace = np.fromfile(relativePathToInputFile, count = self.maxNumIncs, sep='\n', dtype='uint32')
         traceHashes = self.calcTraceHashes ()
+        self.maxNumIncs = min (self.maxNumIncs, self.trace.shape[0]) 
 
         for self.expNum in range (self.numOfExps):
             self.seed = self.expNum+1
@@ -355,7 +356,7 @@ class CountMinSketch:
             flowRealVal = np.zeros(self.numFlows)
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
 
-            for self.incNum in range(self.maxNumIncs):#in traceFile:
+            for self.incNum in range(self.maxNumIncs):
                 flowId = self.trace[self.incNum]            
                 flowRealVal[flowId]     += 1
                 flowEstimatedVal = self.incNQueryFlow (hashes=traceHashes[self.incNum])
@@ -413,7 +414,7 @@ class CountMinSketch:
         Add to the given dict some fields detailing the sim settings. Return the full dict.
         """
         dict['numOfExps']   = self.expNum+1# The count of the experiments started in 0
-        dict['numIncs']     = self.incNum
+        dict['numIncs']     = self.incNum+1
         dict['mode']        = self.mode
         dict['cntrSize']    = self.cntrSize
         dict['depth']       = self.depth
@@ -464,7 +465,6 @@ def LaunchCmsSim (
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
             numOfExps               = 10, 
-            maxNumIncs              = 10,
             verbose                 = [VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES, VERBOSE_PCL], #VERBOSE_LOG_DWN_SMPL] #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
         )
         cms.sim ()
@@ -493,8 +493,8 @@ def runMultiProcessSim ():
 if __name__ == '__main__':
     try:
         mode = 'CEDAR' #'F3P_li_h3_ds'     
-        for traceName in ['Rand']: #['Caida2']: #, 'Caida2']: #$$$
-            for width in [2**i for i in range (10, 11)]:  
+        for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: 
+            for width in [2**i for i in range (10, 19)]:  
                 LaunchCmsSim (
                     traceName   = traceName,
                     cntrSize    = 8,
