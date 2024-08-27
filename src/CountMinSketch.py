@@ -317,7 +317,7 @@ class CountMinSketch:
         if self.depth*self.width < 2**16:
             traceHashes = np.zeros ([self.maxNumIncs, self.depth], dtype='uint16')
         else:
-            traceHashes = np.zeros (self.maxNumIncs, self.depth, dtype='uint32')            
+            traceHashes = np.zeros ([self.maxNumIncs, self.depth], dtype='uint32')            
         for depth in range(self.depth):
             traceHashes[:,depth] = (self.trace + depth) % self.width
         return traceHashes 
@@ -459,11 +459,12 @@ def LaunchCmsSim (
             mode            = mode,
             numCntrsPerBkt  = 1, #16
             cntrSize        = cntrSize, 
-            traceName   = traceName,
+            traceName       = traceName,
             numEpsilonStepsIceBkts  = 6, 
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
             numOfExps               = 10, 
+            maxNumIncs              = 10,
             verbose                 = [VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES, VERBOSE_PCL], #VERBOSE_LOG_DWN_SMPL] #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
         )
         cms.sim ()
@@ -491,13 +492,9 @@ def runMultiProcessSim ():
     
 if __name__ == '__main__':
     try:
-        flowKey=3
-        listOfFlowKeys = np.array ([1,2,3])
-        gamad = np.append (listOfFlowKeys, 4)
-        error (gamad)
         mode = 'CEDAR' #'F3P_li_h3_ds'     
-        for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: #$$$
-            for width in [2**i for i in range (10, 19)]:  
+        for traceName in ['Rand']: #['Caida2']: #, 'Caida2']: #$$$
+            for width in [2**i for i in range (10, 11)]:  
                 LaunchCmsSim (
                     traceName   = traceName,
                     cntrSize    = 8,

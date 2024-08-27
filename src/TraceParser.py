@@ -82,7 +82,6 @@ def calcTraceStat (
         
     interAppearanceVec = interAppearanceVec[:idx_in_interAppearanceVec]
     flowSizes = flowSizes[np.where(flowSizes>0)[0]].astype(FLOW_TYPE)
-    error (flowSizes)         
     printTraceStatToFile (
         traceFileName       = traceFileName, 
         flowSizes           = flowSizes,
@@ -110,7 +109,7 @@ def printTraceStatToFile (
     )
     
 calcTraceStat (
-    traceFileName   = 'Caida1_equinix-chicago.dirA.20160406-130000.UTC.anon',
+    traceFileName   = getTraceFullName('Caida1'),
     maxNumOfRows    = 25000000,
 )
 
