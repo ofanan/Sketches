@@ -81,7 +81,8 @@ def calcTraceStat (
         last_appearance_of[flowId] = rowNum
         
     interAppearanceVec = interAppearanceVec[:idx_in_interAppearanceVec]
-    printTraceStatToFile = printTraceStatToFile.astype(FLOW_TYPE)        
+    flowSizes = flowSizes[np.where(flowSizes>0)[0]].astype(FLOW_TYPE)
+    error (flowSizes)         
     printTraceStatToFile (
         traceFileName       = traceFileName, 
         flowSizes           = flowSizes,
