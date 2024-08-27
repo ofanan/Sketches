@@ -345,8 +345,8 @@ class CountMinSketch:
             relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}.txt')
             checkIfInputFileExists (relativePathToInputFile, exitError=True)
             self.trace = np.fromfile(relativePathToInputFile, count = self.maxNumIncs, sep='\n', dtype='uint32')
-        traceHashes = self.calcTraceHashes ()
         self.maxNumIncs = min (self.maxNumIncs, self.trace.shape[0]) 
+        traceHashes = self.calcTraceHashes ()
 
         for self.expNum in range (self.numOfExps):
             self.seed = self.expNum+1
