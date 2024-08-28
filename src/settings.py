@@ -331,7 +331,7 @@ def indexOrNone(l : list,
     
 def calcPostSimStat (
         sumSqEr       : np.array, # sum of the square errors, collected at each experiment during the sim
-        numMeausures  : int, # num of error measurements  
+        numMeausures  : np.array, # numMeausures[i] should hold the num of error measurements in the i-th experiment  
         statType      : str = 'normRmse', # Type of the statistic to write. May be either 'normRmse', or 'Mse'
         confLvl       : float = 0.95, # required conf' level
         verbose       : list = [], # verbose level, defining the type and format of output
@@ -342,11 +342,11 @@ def calcPostSimStat (
     The stat is based on the sum of square errors given as input.
     Return a dict of the calculated stat.  
     """
-    sumSqEr /=  numMeausures 
+    sumSqEr = np.divide (sumSqEr, numMeausures) 
     if statType=='Mse': # Normalized RMSE
         pass 
     elif statType=='normRmse': # Normalized RMSE
-        sumSqEr  = np.sqrt (sumSqEr) / numMeausures 
+        sumSqEr  = np.divide (np.sqrt (sumSqEr), numMeausures) 
     else:
         error (f'In settings.calcPostSimStat(). Sorry, the requested statType {statType} is not supported.')
     if (VERBOSE_LOG in verbose):

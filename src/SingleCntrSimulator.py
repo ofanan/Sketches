@@ -180,12 +180,20 @@ class SingleCntrSimulator (object):
  
         for rel_abs_n in [True, False]:
             for statType in ['Mse', 'normRmse']:
-                dict = self.calcPostSimStat(
-                    statType    = statType, 
-                    sumSqEr     = self.cntrRecord['sumSqRelEr'] if rel_abs_n else self.cntrRecord['sumSqAbsEr'],
+                dict = calcPostSimStat (
+                    sumSqEr      = self.cntrRecord['sumSqRelEr'] if rel_abs_n else self.cntrRecord['sumSqAbsEr'],
+                    numMeausures = self.numOfPoints,   
+                    statType     = statType,
+                    verbose      = self.verbose,
+                    logFile      = self.logFile,
                 )
                 dict['rel_abs_n']   = rel_abs_n
                 dict['erType']      = 'WrRmse'
+                dict['numOfExps']   = self.numOfExps
+                dict['mode']        = self.cntrRecord['mode']
+                dict['settingStr']  = self.cntrRecord['cntr'].genSettingsStr()
+                dict['cntrSize']    = self.cntrSize
+                dict['cntrMaxVal']  = self.cntrMaxVal                
                 self.dumpDictToPcl       (dict, pclOutputFile)
                 self.writeDictToResFile  (dict)
 
@@ -233,12 +241,20 @@ class SingleCntrSimulator (object):
     
         for rel_abs_n in [True, False]:
             for statType in ['Mse', 'normRmse']:
-                dict = self.calcPostSimStat(
-                    statType    = statType, 
-                    sumSqEr     = self.cntrRecord['sumSqRelEr'] if rel_abs_n else self.cntrRecord['sumSqAbsEr'],
+                dict = calcPostSimStat (
+                    sumSqEr      = self.cntrRecord['sumSqRelEr'] if rel_abs_n else self.cntrRecord['sumSqAbsEr'],
+                    numMeausures = self.numOfPoints,   
+                    statType     = statType,
+                    verbose      = self.verbose,
+                    logFile      = self.logFile,
                 )
                 dict['rel_abs_n']   = rel_abs_n
                 dict['erType']      = 'RdRmse'
+                dict['numOfExps']   = self.numOfExps
+                dict['mode']        = self.cntrRecord['mode']
+                dict['settingStr']  = self.cntrRecord['cntr'].genSettingsStr()
+                dict['cntrSize']    = self.cntrSize
+                dict['cntrMaxVal']  = self.cntrMaxVal                
                 self.dumpDictToPcl       (dict, pclOutputFile)
                 self.writeDictToResFile  (dict)
         
@@ -250,7 +266,7 @@ class SingleCntrSimulator (object):
         as the difference between the measured value, and the value represented by the cntr.
         """
     
-        self.cntrRecord['RdEr'] = [0] * self.numOfExps
+        self.cntrRecord['RdEr'] = np.zeros (self.numOfExps)
         self.numOfPoints        = [self.maxRealVal] * self.numOfExps # self.numOfPoints[j] will hold the number of points collected for statistic at experiment j. The number of points varies, as it depends upon the random process of increasing the approximated cntr. 
     
         for expNum in range(self.numOfExps):
@@ -278,7 +294,7 @@ class SingleCntrSimulator (object):
         if (VERBOSE_LOG in self.verbose):
             printf (self.log_file, f'diff vector={self.cntrRecorRdErimeVar}\n\n')
 
-        self.cntrRecord['RdEr'] = [self.cntrRecord['RdEr'][expNum]/self.numOfPoints[expNum] for expNum in range(self.numOfExps)] 
+        self.cntrRecord['RdEr'] = np.divide (self.cntrRecord['RdEr'], self.numOfPoints[expNum]) 
         if (VERBOSE_LOG in self.verbose):
             printf (self.log_file, 'RdEr=\n{:.3f}\n, ' .format (self.cntrRecord['RdEr']))
         
@@ -297,51 +313,6 @@ class SingleCntrSimulator (object):
         self.dumpDictToPcl       (dict, pclOutputFile)
         self.writeDictToResFile  (dict)
         
-    def calcPostSimStat (
-            self,
-            sumSqEr  : list, # sum of the square errors, collected during the sim
-            statType : str = 'normRmse', # Type of the statistic to write. May be either 'normRmse', or 'Mse'
-            ) -> dict: 
-        """
-        Calculate and potentially print to .log and/or .res file (based on self.verbose) the RMSE statistics based on the values measured and stored in self.cntrRecord['sumSqEr'].
-        Return a dict of the calculated data.  
-        """
-        if statType=='Mse':
-            expResults  = [sumSqEr[expNum]/self.numOfPoints[expNum] for expNum in range(self.numOfExps)]
-        elif statType=='normRmse': # Normalized RMSE
-            Rmse = [math.sqrt (sumSqEr[expNum]/self.numOfPoints[expNum]) for expNum in range(self.numOfExps)]
-            expResults  = [              Rmse[expNum]/self.numOfPoints[expNum]  for expNum in range(self.numOfExps)]
-        else:
-            error (f'In SingleCntrSimulator.calcPostSimStat(). Sorry, the requested statType {statType} is not supported.')
-        if (VERBOSE_LOG in self.verbose):
-            printf (self.log_file, 'expResults=')
-            printarFp (self.log_file, expResults)
-        
-        expResultsAvg          = np.average (expResults)
-        expResultsConfInterval = confInterval (ar=expResults, avg=expResultsAvg)
-        # maxMinRelDiff will hold the relative difference between the largest and the smallest value.
-        warningField    = False # Will be set True if the difference between the largest and the smallest value is too high.
-        if expResultsAvg==0:
-            maxMinRelDiff = None  
-        else:
-            maxMinRelDiff = (max(expResults) - min(expResults))/expResultsAvg
-            if maxMinRelDiff>0.1:
-                warningField = True
-            
-        return {
-            'numOfExps'     : self.numOfExps,
-            'mode'          : self.cntrRecord['mode'],
-            'settingStr'    : self.cntrRecord['cntr'].genSettingsStr(),
-            'statType'      : statType,
-            'cntrSize'      : self.cntrSize, 
-            'cntrMaxVal'    : self.cntrMaxVal,
-            'Avg'           : expResultsAvg,
-            'Lo'            : expResultsConfInterval[0],
-            'Hi'            : expResultsConfInterval[1],
-            'maxMinRelDiff' : maxMinRelDiff, 
-            'warning'       : warningField 
-        }
-
     def measureResolutionsByModes (
             self, 
             delPrevPcl  = False, # When True, delete the previous .pcl file, if exists
@@ -505,6 +476,7 @@ class SingleCntrSimulator (object):
                 pclOutputFile = self.openPclOuputFile (pclOutputFileName=f'{outputFileStr}.pcl')
             simT = time.time()
             infoStr = '{}_{}' .format (self.cntrRecord['cntr'].genSettingsStr(), self.erType)
+            self.logFile  = None
             if (VERBOSE_LOG in self.verbose or VERBOSE_PROGRESS in self.verbose):
                 self.log_file = open (f'../res/log_files/{infoStr}.log', 'w')
             self.writeProgress (infoStr=infoStr)

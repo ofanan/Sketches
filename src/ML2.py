@@ -1,6 +1,9 @@
 import numpy as np
+from numpy import linalg as LA
 import matplotlib.pyplot as plt
 from settings import * #error
+np.set_printoptions(precision=2)
+from fractions import Fraction
 # import tensorflow as tf
 # import logging
 # logging.getLogger("tensorflow").setLevel(logging.ERROR)
@@ -32,22 +35,35 @@ def my_dense(a_in, W, b):
         a_out[j] = sigmoid(z)               
     return(a_out)
 
-x = np.array([])
-print (f'x.shape={x.shape[0]}')
-# m = 5
-# n = 2
+m           = 5 # of examples
+n           = 3 # of dimensions
+K           = 2 # of centroids
+X           = np.ones  ([m, n])
+centroids   = 0.9*np.ones ([K, n]) 
 
-# X = np.array ([(i+1)*(np.arange(n)+1) for i in range(m)])
-# y = np.ones (m) 
-# w = np.array ([1,2])
-# b = 1
-# X = np.array([
-#     [1,2],  # postive example
-#     [3,4]])   # negative example
-# W = np.array( [[-8.93,  0.29, 12.9 ], [-0.1,  -7.32, 10.81]] )
-# b = np.array( [-9.82, -9.28,  0.96] )
-# print (f'X={X}\nw={W}\b={b}')
-# print (f'X.shape={X.shape}, W.shape={W.shape}, b.shape={b.shape}')
-# print (f'my_dense={my_dense(a_in=X[0], W=W, b=b)}')
-# print (f'vect_dense={vectorized_dense(a_in=X[0], W=W, b=b)}')
-# print (np.dot([[1,2], [3,4]], [[1,2], [2,3]]))
+# print (f'X={X}\ncentroids={centroids}')
+
+# idx     = np.zeros(X.shape[0], dtype=int)
+# minDist = float('inf') * np.ones (X.shape[0])
+# for centroidNum in range(K):
+#     dist = np.linalg.norm(X - centroids [centroidNum, :], axis=1)
+#     idx = np.where (dist<minDist, centroidNum, idx)
+#     minDist = np.minimum (dist, minDist)
+#
+# for centroidNum in range(K):
+#     pointsOfThisCentroid = np.where (idx==centroidNum)[0]
+#     centroids[centroidNum] = np.mean(X[pointsOfThisCentroid], axis=0)
+# print (centroids)
+# a = np.array ([1,1,1])
+# b = np.array ([1,2,3])
+# print (np.divide (a, b))
+    # print (pointsOfThisCentroid)
+    # centroids[centroidNum] = np.mean (X[np.where (idx==centroidNum)[0]])
+    # print (np.mean(X[pointsOfThisCentroid], axis=0))
+# minDist = np.array([2, 2, 2])
+# dist    = np.array([1, 2, 3])
+# print (np.where (dist>1))
+# print (np.minimum (dist, minDist))
+# print (np.where (dist<minDist, dist, minDist))
+
+
