@@ -30,16 +30,6 @@ LEGEND_FONT_SIZE = 10
 LEGEND_FONT_SIZE_SMALL = 5 
 USE_FRAME              = True # When True, plot a "frame" (box) around the plot 
 
-# Color-blind friendly pallette
-BLACK       = '#000000' 
-ORANGE      = '#E69F00'
-SKY_BLUE    = '#56B4E9'
-GREEN       = '#009E73'
-YELLOW      = '#F0E442'
-BLUE        = '#0072B2'
-VERMILION   = '#D55E00'
-PURPLE      = '#CC79A7'
-
 def colorOfMode (
         modeStr : str
     ) -> str:
@@ -185,18 +175,18 @@ class ResFileParser (object):
     # Set the parameters of the plot (sizes of fonts, legend, ticks etc.).
     # mfc='none' makes the markers empty.
     setPltParams = lambda self, size = 'large': matplotlib.rcParams.update({
-        'font.size': FONT_SIZE,
-        'legend.fontsize': LEGEND_FONT_SIZE,
-        'xtick.labelsize': FONT_SIZE,
-        'ytick.labelsize': FONT_SIZE,
-        'axes.labelsize': FONT_SIZE,
-        'axes.titlesize': FONT_SIZE, }) if (size == 'large') else matplotlib.rcParams.update({
-        'font.size': FONT_SIZE_SMALL,
-        'legend.fontsize': LEGEND_FONT_SIZE_SMALL,
-        'xtick.labelsize': FONT_SIZE_SMALL,
-        'ytick.labelsize': FONT_SIZE_SMALL,
-        'axes.labelsize': FONT_SIZE_SMALL,
-        'axes.titlesize':FONT_SIZE_SMALL
+        'font.size'         : FONT_SIZE,
+        'legend.fontsize'   : LEGEND_FONT_SIZE,
+        'xtick.labelsize'   : FONT_SIZE,
+        'ytick.labelsize'   : FONT_SIZE,
+        'axes.labelsize'    : FONT_SIZE,
+        'axes.titlesize'    : FONT_SIZE, }) if (size == 'large') else matplotlib.rcParams.update({
+        'font.size'         : FONT_SIZE_SMALL,
+        'legend.fontsize'   : LEGEND_FONT_SIZE_SMALL,
+        'xtick.labelsize'   : FONT_SIZE_SMALL,
+        'ytick.labelsize'   : FONT_SIZE_SMALL,
+        'axes.labelsize'    : FONT_SIZE_SMALL,
+        'axes.titlesize'    :FONT_SIZE_SMALL
         })
     
     def __init__ (self):
@@ -299,6 +289,7 @@ class ResFileParser (object):
         ):
         """
         Generate a plot showing the error as a function of the counter's size.
+        This function is used show the results of single-cntr sim.
         """
 
         outputFileName = f'1cntr_PC_{erType}' 
@@ -352,6 +343,7 @@ class ResFileParser (object):
         ):
         """
         Generate a table showing the error as a function of the counter's size.
+        This function is used show the results of a single-cntr sim.
         """
     
         points = [point for point in self.points if point['numOfExps'] == numOfExps and point['statType']==statType and point['rel_abs_n']==rel_abs_n]
@@ -419,7 +411,7 @@ class ResFileParser (object):
                     printf (datOutputFile, ' & ')
             printf (datOutputFile, ' \\\\\n')
     
-    def genErVsMemSizePlot (
+    def genErVsMemSizePlotCms (
             self,
             traceName   : str  = 'Caida1',
             numOfExps   : int  = 10,
@@ -430,7 +422,8 @@ class ResFileParser (object):
             ignoreModes : list = [],# List of modes to NOT include in the plot
         ):
         """
-        Generate a plot showing the error as a function of the counter's size.
+        Generate a plot showing the error as a function of the overall memory size.
+        This function is used to show the results of CMS (Count Min Sketch) simulations.        
         """
     
         dupsFileName = 'listOfDuplicateEntries.txt'
@@ -509,7 +502,7 @@ class ResFileParser (object):
         if not(foundDups) and os.path.isfile (f'../res/{dupsFileName}'):
             os.remove(f'../res/{dupsFileName}')            
                 
-    def genErVsMemSizePlotSs (
+    def genErVsMemSizePlotSpaceSaving (
             self,
             traceName   : str  = 'Caida1',
             numOfExps   : int  = 10,
@@ -521,6 +514,7 @@ class ResFileParser (object):
         ):
         """
         Generate a plot showing the error as a function of the counter's size.
+        This function is used to show the results of Space-Saving simulations.        
         """
     
         dupsFileName = 'listOfDuplicateEntries.txt'
@@ -589,12 +583,13 @@ class ResFileParser (object):
         if not(foundDups) and os.path.isfile (f'../res/{dupsFileName}'):
             os.remove(f'../res/{dupsFileName}')            
                 
-    def genErVsCntrMaxValPlot (self, cntrSize=8, plotAbsEr=True):
+    def genErVsCntrMaxValPlot (
+            self, 
+            cntrSize    = 8, # size of the compared counters.
+            plotAbsEr   = True # if True, plot the absolute errors. Else, plot the relative errors
+        ):
         """
         Generate a plot showing the relative / abs err as a function of the maximum counted value
-        Inputs:
-            cntrSize - size of the compared counters.
-            plotAbsEr - if True, plot the absolute errors. Else, plot the relative errors
         """
 
         outputFileName = '1cntr_{}_n{}' .format ('abs' if plotAbsEr else 'rel', cntrSize) 
@@ -919,6 +914,7 @@ class ResFileParser (object):
 
 def genResolutionPlot ():
     """
+    Generate plots showing the resolution as a function of the counted val for the given modes
     """
     
     my_ResFileParser = ResFileParser ()
@@ -1035,54 +1031,54 @@ def plotErVsCntrSize ():
 
 
 def genErVsCntrSizeSingleCntr ():
-        """
-        Generate a table showing the error as a function of the counter's size.
-        """
-        my_ResFileParser = ResFileParser ()
-        outputFileName = f'1cntr.dat' 
-        datOutputFile = open (f'../res/{outputFileName}', 'a+')
-        abs     = True
-        my_ResFileParser.rdPcl (pclFileName='1cntr_PC.pcl', exitError=True)
-        maxValBy = 'F3P_li_h3'
-        for rel_abs_n in [True, False]:
-            for statType in ['normRmse']:
-                printf (datOutputFile, '\n// {} {}\n' .format ('rel' if rel_abs_n else 'abs', statType))
-                my_ResFileParser.genErVsCntrSizeTable(
-                    modes           = ['F3P_li_h3', 'CEDAR', 'Morris', 'SEAD_dyn'],
-                    datOutputFile   = datOutputFile, 
-                    numOfExps       = 100, 
-                    cntrSizes       = [8],
-                    statType        = statType,
-                    maxValBy        = maxValBy,
-                    rel_abs_n       = rel_abs_n,
-                    normalizeByPerfectCntr  = False,
-                    # normalizeByMinimal      = False
-                ) 
+    """
+    Generate a table showing the error as a function of the counter's size.
+    """
+    my_ResFileParser = ResFileParser ()
+    outputFileName = f'1cntr.dat' 
+    datOutputFile = open (f'../res/{outputFileName}', 'a+')
+    abs     = True
+    my_ResFileParser.rdPcl (pclFileName='1cntr_PC.pcl', exitError=True)
+    maxValBy = 'F3P_li_h3'
+    for rel_abs_n in [True, False]:
+        for statType in ['normRmse']:
+            printf (datOutputFile, '\n// {} {}\n' .format ('rel' if rel_abs_n else 'abs', statType))
+            my_ResFileParser.genErVsCntrSizeTable(
+                modes           = ['F3P_li_h3', 'CEDAR', 'Morris', 'SEAD_dyn'],
+                datOutputFile   = datOutputFile, 
+                numOfExps       = 100, 
+                cntrSizes       = [8],
+                statType        = statType,
+                maxValBy        = maxValBy,
+                rel_abs_n       = rel_abs_n,
+                normalizeByPerfectCntr  = False,
+                # normalizeByMinimal      = False
+            ) 
 
 def genErVsCntrSizeTableTrace ():
-        """
-        Generate a table showing the error as a function of the counter's size.
-        """
-        my_ResFileParser    = ResFileParser ()
-        datOutputFile       = open (f'../res/cms_Caida1.dat', 'a+')
-        for mode in ['F2P_li_h2', 'F3P_li_h2', 'F3P_li_h3', 'F3P_si_h2', 'F3P_si_h3']:
-            # my_ResFileParser.rdPcl (pclFileName=f'cms_{mode}_PC.pcl')
-            my_ResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
-        for rel_abs_n in [False]:
-            for width in [2**i for i in range (8, 19)]:
-                for statType in ['normRmse']:
-                    printf (datOutputFile, '\n// width={} {} {}\n' .format (width, 'rel' if rel_abs_n else 'abs', statType))
-                    my_ResFileParser.genErVsCntrSizeTable(
-                        datOutputFile   = datOutputFile, 
-                        numOfExps       = 10, 
-                        cntrSizes       = [8],
-                        statType        = statType,
-                        rel_abs_n       = rel_abs_n,
-                        width           = width, 
-                        modes           = ['F2P_li_h2', 'F3P_li_h2', 'F3P_li_h3', 'CEDAR', 'Morris', 'SEAD_dyn'],
-                        normalizeByPerfectCntr  = False,
-                        normalizeByMinimal      = False
-                    ) 
+    """
+    Generate a table showing the error as a function of the counter's size.
+    """
+    my_ResFileParser    = ResFileParser ()
+    datOutputFile       = open (f'../res/cms_Caida1.dat', 'a+')
+    for mode in ['F2P_li_h2', 'F3P_li_h2', 'F3P_li_h3', 'F3P_si_h2', 'F3P_si_h3']:
+        # my_ResFileParser.rdPcl (pclFileName=f'cms_{mode}_PC.pcl')
+        my_ResFileParser.rdPcl (pclFileName=f'cms_{mode}_HPC_u.pcl')
+    for rel_abs_n in [False]:
+        for width in [2**i for i in range (8, 19)]:
+            for statType in ['normRmse']:
+                printf (datOutputFile, '\n// width={} {} {}\n' .format (width, 'rel' if rel_abs_n else 'abs', statType))
+                my_ResFileParser.genErVsCntrSizeTable(
+                    datOutputFile   = datOutputFile, 
+                    numOfExps       = 10, 
+                    cntrSizes       = [8],
+                    statType        = statType,
+                    rel_abs_n       = rel_abs_n,
+                    width           = width, 
+                    modes           = ['F2P_li_h2', 'F3P_li_h2', 'F3P_li_h3', 'CEDAR', 'Morris', 'SEAD_dyn'],
+                    normalizeByPerfectCntr  = False,
+                    normalizeByMinimal      = False
+                ) 
 
 def rmvFromPcl ():
     myResFileParser = ResFileParser()
@@ -1116,30 +1112,35 @@ def genUniqPcl (
     for point in points:
         pickle.dump(point, pclOutputFile) 
 
-def genErVsMemSizePlot (
+def genErVsMemSizePlotCms (
         ignoreModes : list = [],# List of modes to NOT include in the plot
     ):
-    
+    """
+    Read the relevant .pcl files, and generate plots showing the error as a function of the overall memory size.
+    This function is used to show the results of CMS (Count Min Sketch) simulations.        
+    """    
     for traceName in ['Caida1', 'Caida2']:
         myResFileParser = ResFileParser ()
-        # myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC.pcl')
-        myResFileParser.rdPcl (pclFileName=f'ss_{traceName}_PC.pcl')
-        myResFileParser.genErVsMemSizePlot (
+        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC.pcl')
+        myResFileParser.genErVsMemSizePlotCms (
             traceName   = traceName,
             ignoreModes = ignoreModes,
             rel_abs_n   = False,
             cntrSize    = 8,
         )
 
-def genErVsMemSizePlotSs (
+def genErVsMemSizePlotSpaceSaving (
         ignoreModes : list = [],# List of modes to NOT include in the plot
     ):
-    
+    """
+    Read the relevant .pcl files, and generate plots showing the error as a function of the overall memory size.
+    This function is used to show the results of Space Saving simulations.        
+    """
     for traceName in ['Caida1', 'Caida2']:
         myResFileParser = ResFileParser ()
         myResFileParser.rdPcl (pclFileName=f'ss_{traceName}_PC.pcl')
         # myResFileParser.rdPcl (pclFileName=f'ss_{traceName}_HPC.pcl')
-        myResFileParser.genErVsMemSizePlotSs (
+        myResFileParser.genErVsMemSizePlotSpaceSaving (
             traceName   = traceName,
             ignoreModes = ignoreModes,
             rel_abs_n   = False,
@@ -1148,25 +1149,14 @@ def genErVsMemSizePlotSs (
 
 if __name__ == '__main__':
     try:
-        # genErVsMemSizePlot (
-        #     ignoreModes = ['PerfectCounter', 'SEAD_dyn']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
-        # )
+        genErVsMemSizePlotCms (
+            ignoreModes = ['PerfectCounter', 'SEAD_dyn']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
+        )
         # genUniqPcl (pclFileName='cms_Caida2_PC.pcl')
         # genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
-        rmvFromPcl ()
+        # rmvFromPcl ()
         # genQuantErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
-
-# genResolutionPlot ()
-    # my_ResFileParser.printAllPoints (cntrSize=8, cntrMaxVal=1488888, printToScreen=True)
-
-        #     verbose     = [VERBOSE_RES]
-        #     )
-        # plotErVsCntrSize ()
-        # printAllOptModes ()
-        # calcOptModeByDist ()
-        # genErrByDistBar ()
-        # genErrByDfGraph ()
