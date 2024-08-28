@@ -295,9 +295,12 @@ class ResFileParser (object):
         outputFileName = f'1cntr_PC_{erType}' 
         self.setPltParams ()  # set the plot's parameters (formats of lines, markers, legends etc.).
         _, ax = plt.subplots()
+        points = [point for point in self.points if point['numOfExps'] == numOfExps and point['erType'] == erType]
+        if len(points)==0: # no points to plot
+            return
 
         for mode in modes:
-            pointsOfThisMode = [point for point in self.points if point['mode'] == mode and point['numOfExps'] == numOfExps and point['erType'] == erType]
+            pointsOfThisMode = [point for point in points if point['mode'] == mode]
             if pointsOfThisMode == []:
                 print (f'No points found for mode {mode} and numOfExps={numOfExps}')
                 continue
@@ -317,7 +320,7 @@ class ResFileParser (object):
                 y.append (y_avg)
             ax.plot (cntrSizes, y, color=colorOfMode(mode), marker=markerOfMode[mode],
                      markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH, label=point['mode'], mfc='none') 
-
+        
         plt.xlabel('Counter Size [bits]')
         plt.ylabel('RMSE')
         plt.yscale ('log')
@@ -439,6 +442,7 @@ class ResFileParser (object):
                   point['cntrSize']  == cntrSize]
         if points == []:
             warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}')
+            return
         modes = [point['mode'] for point in points]
         modes = [mode for mode in modes if mode not in ignoreModes]
         minY, maxY = float('inf'), 0 
@@ -529,6 +533,7 @@ class ResFileParser (object):
                   point['rel_abs_n'] == rel_abs_n]
         if points == []:
             warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}')
+            return
         modes = [point['mode'] for point in points]
         modes = [mode for mode in modes if mode not in ignoreModes]
         minY, maxY = float('inf'), 0 
