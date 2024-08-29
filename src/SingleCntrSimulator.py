@@ -54,7 +54,7 @@ class SingleCntrSimulator (object):
         else:
             printf (self.log_file, f'{infoStr}\n')
     
-    def runSingleCntrSingleModeWrEr (self, pclOutputFile=None):
+    def runSingleCntrSingleModeWrEr (self):
         """
         Run a single counter of mode self.mode (self.mode is the approximation cntr architecture - e.g., 'F2P', 'CEDAR').  
         Collect and write statistics about the write ("hit time") errors.
@@ -115,15 +115,15 @@ class SingleCntrSimulator (object):
                 'Hi'                : wrErConfInterval[1],
                 'confLvl'           : self.confLvl
                 }
-        self.dumpDictToPcl      (dict, pclOutputFile)
+        self.dumpDictToPcl      (dict)
         self.writeDictToResFile (dict)
     
-    def dumpDictToPcl (self, dict, pclOutputFile):
+    def dumpDictToPcl (self, dict):
         """
         Dump a single dict of data into pclOutputFile
         """
         if (VERBOSE_PCL in self.verbose):
-            pickle.dump(dict, pclOutputFile) 
+            pickle.dump(dict, self.pclOutputFile) 
     
     def writeDictToResFile (self, dict):
         """
@@ -132,7 +132,7 @@ class SingleCntrSimulator (object):
         if (VERBOSE_RES in self.verbose):
             printf (self.resFile, f'{dict}\n\n') 
     
-    def runSingleCntrSingleModeWrRmse (self, pclOutputFile=None):
+    def runSingleCntrSingleModeWrRmse (self):
         """
         Run a single counter of mode self.mode (self.mode is the approximation cntr architecture - e.g., 'F2P', 'CEDAR').  
         Collect and write statistics about the write ("hit time") errors.
@@ -178,6 +178,7 @@ class SingleCntrSimulator (object):
                         if cntrValAfterInc==self.cntrRecord['cntr'].cntrMaxVal: # the cntr reached its maximum values and no down-sample is used --> finish this experiment
                             break  
  
+        self.erType      = 'WrRmse'
         for rel_abs_n in [True, False]:
             for statType in ['Mse', 'normRmse']:
                 dict = calcPostSimStat (
@@ -187,18 +188,10 @@ class SingleCntrSimulator (object):
                     verbose      = self.verbose,
                     logFile      = self.logFile,
                 )
-                dict['rel_abs_n']   = rel_abs_n
-                dict['erType']      = 'WrRmse'
-                dict['numOfExps']   = self.numOfExps
-                dict['mode']        = self.cntrRecord['mode']
-                dict['settingStr']  = self.cntrRecord['cntr'].genSettingsStr()
-                dict['cntrSize']    = self.cntrSize
-                dict['cntrMaxVal']  = self.cntrMaxVal                
-                self.dumpDictToPcl       (dict, pclOutputFile)
-                self.writeDictToResFile  (dict)
+                self.handleResDict (dict, rel_abs_n)
 
 
-    def runSingleCntrSingleModeRdRmse (self, pclOutputFile=None): 
+    def runSingleCntrSingleModeRdRmse (self): 
         """
         Run a single counter of mode self.mode (self.mode is the approximation cntr architecture - e.g., 'F2P', 'CEDAR').  
         Collect and write statistics about the errors w.r.t. the real cntr (measured) value.
@@ -206,10 +199,9 @@ class SingleCntrSimulator (object):
         as the difference between the measured value, and the value represented by the cntr.
         The type of statistic collected is the Round Mean Square Error of such write errors.
         """
-    
         self.cntrRecord['sumSqAbsEr'] = np.zeros (self.numOfExps) # self.cntrRecord['sumSqAbsEr'][j] will hold the sum of the square absolute errors collected at experiment j. 
         self.cntrRecord['sumSqRelEr'] = np.zeros (self.numOfExps) # self.cntrRecord['sumSqRelEr'][j] will hold the sum of the square relative errors collected at experiment j. 
-        self.numOfPoints           = [self.maxRealVal] * self.numOfExps # self.numOfPoints[j] will hold the number of points collected for statistic at experiment j. The number of points varies, as it depends upon the random process of increasing the approximated cntr. 
+        self.erType                   = 'RdRmse'
         for expNum in range(self.numOfExps):
             realValCntr = 0 # will cnt the real values (the accurate value)
             cntrVal     = 0 # will cnt the counter's value
@@ -243,22 +235,30 @@ class SingleCntrSimulator (object):
             for statType in ['Mse', 'normRmse']:
                 dict = calcPostSimStat (
                     sumSqEr      = self.cntrRecord['sumSqRelEr'] if rel_abs_n else self.cntrRecord['sumSqAbsEr'],
-                    numMeausures = self.numOfPoints,   
+                    numMeausures = self.maxRealVal * np.ones(self.numOfExps), # numMeausures[j] captures the # of points collected for statistic at experiment j. In other sim settings, this # may vary, as it depends upon the random process of increasing the approximated cntr.   
                     statType     = statType,
                     verbose      = self.verbose,
                     logFile      = self.logFile,
                 )
-                dict['rel_abs_n']   = rel_abs_n
-                dict['erType']      = 'RdRmse'
-                dict['numOfExps']   = self.numOfExps
-                dict['mode']        = self.cntrRecord['mode']
-                dict['settingStr']  = self.cntrRecord['cntr'].genSettingsStr()
-                dict['cntrSize']    = self.cntrSize
-                dict['cntrMaxVal']  = self.cntrMaxVal                
-                self.dumpDictToPcl       (dict, pclOutputFile)
-                self.writeDictToResFile  (dict)
+                self.handleResDict (dict, rel_abs_n)
         
-    def runSingleCntrSingleModeRdEr (self, pclOutputFile=None): 
+    def handleResDict (
+            self, 
+            dict,       # dictionary to write to .pcl / .res file 
+            rel_abs_n   # indicates whether the results are for relative or abs error
+        ):
+
+        dict['rel_abs_n']   = rel_abs_n
+        dict['erType']      = self.erType
+        dict['numOfExps']   = self.numOfExps
+        dict['mode']        = self.cntrRecord['mode']
+        dict['settingStr']  = self.cntrRecord['cntr'].genSettingsStr()
+        dict['cntrSize']    = self.cntrSize
+        dict['cntrMaxVal']  = self.cntrMaxVal                
+        self.dumpDictToPcl       (dict)
+        self.writeDictToResFile  (dict)
+    
+    def runSingleCntrSingleModeRdEr (self): 
         """
         Run a single counter of mode self.mode (self.mode is the approximation cntr architecture - e.g., 'F2P', 'CEDAR').  
         Collect and write statistics about the errors w.r.t. the real cntr (measured) value.
@@ -310,7 +310,7 @@ class SingleCntrSimulator (object):
                 'Lo'                : rdErConfInterval[0],
                 'Hi'                : rdErConfInterval[1],
                 'confLvl'           : self.confLvl}
-        self.dumpDictToPcl       (dict, pclOutputFile)
+        self.dumpDictToPcl       (dict)
         self.writeDictToResFile  (dict)
         
     def measureResolutionsByModes (
@@ -327,7 +327,7 @@ class SingleCntrSimulator (object):
             pclOutputFileName = 'resolutionByModes'
             if delPrevPcl and os.path.exists(f'../res/pcl_files/{pclOutputFileName}.pcl'):
                 os.remove(f'../res/pcl_files/{pclOutputFileName}.pcl')
-            pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}.pcl', 'ab+')
+            self.pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}.pcl', 'ab+')
         for self.cntrSize in cntrSizes:
             self.conf = getConfByCntrSize (cntrSize=self.cntrSize)
             self.cntrMaxVal   = self.conf['cntrMaxVal'] 
@@ -341,7 +341,7 @@ class SingleCntrSimulator (object):
                 listOfVals = sorted (listOfVals)
                 points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : [(listOfVals[i+1]-listOfVals[i])/listOfVals[i+1] for i in range (len(listOfVals)-1)]}
                 if VERBOSE_PCL in self.verbose:
-                    self.dumpDictToPcl ({'mode' : self.mode, 'cntrSize' : self.cntrSize, 'points' : points}, pclOutputFile)
+                    self.dumpDictToPcl ({'mode' : self.mode, 'cntrSize' : self.cntrSize, 'points' : points})
 
     def measureResolutionsBySettingStrs (
             self, 
@@ -373,7 +373,7 @@ class SingleCntrSimulator (object):
             listOfVals = sorted (listOfVals)
             points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : [(listOfVals[i+1]-listOfVals[i])/listOfVals[i+1] for i in range (len(listOfVals)-1)]}
             if VERBOSE_PCL in self.verbose:
-                self.dumpDictToPcl ({'settingStr' : settingStr, 'points' : points}, pclOutputFile)
+                self.dumpDictToPcl ({'settingStr' : settingStr, 'points' : points})
 
     def genCntrRecord (self,
                        expSize=None, # When expSize==None, read the expSize from the hard-coded configurations in py 
@@ -456,7 +456,7 @@ class SingleCntrSimulator (object):
         outputFileStr = '1cntr_{}{}' .format (self.machineStr, '_w_dwnSmpl' if self.dwnSmple else '')
         if (VERBOSE_RES in self.verbose):
             self.resFile = open (f'../res/{outputFileStr}.res', 'a+')
-
+        
         print ('Started running runSingleCntr at t={}. erTypes={} mode={}, cntrSize={}, maxRealVal={}, cntrMaxVal={}' .format (
                 datetime.now().strftime("%H:%M:%S"), self.erTypes, self.mode, self.cntrSize, self.maxRealVal, self.cntrRecord['cntr'].cntrMaxVal))
         
@@ -471,37 +471,26 @@ class SingleCntrSimulator (object):
                 self.erType = 'RdRmse'
             if not (self.erType in ['WrEr', 'WrRmse', 'RdEr', 'RdRmse', 'WrMse', 'RdMse']):
                 error ('Sorry, the requested error mode {self.erType} is not supported')
-            pclOutputFile = None # default value
+            self.pclOutputFile = None # default value
             if VERBOSE_PCL in self.verbose:
-                pclOutputFile = self.openPclOuputFile (pclOutputFileName=f'{outputFileStr}.pcl')
+                self.pclOutputFile = open(f'../res/pcl_files/{outputFileStr}.pcl', 'ab+')
             simT = time.time()
             infoStr = '{}_{}' .format (self.cntrRecord['cntr'].genSettingsStr(), self.erType)
             self.logFile  = None
             if (VERBOSE_LOG in self.verbose or VERBOSE_PROGRESS in self.verbose):
                 self.log_file = open (f'../res/log_files/{infoStr}.log', 'w')
             self.writeProgress (infoStr=infoStr)
-            getattr (self, f'runSingleCntrSingleMode{self.erType}') (pclOutputFile) # Call the corresponding function, according to erType (read/write error, regular/RMSE).
-            self.closePclOuputFile(pclOutputFile)
+            getattr (self, f'runSingleCntrSingleMode{self.erType}') () # Call the corresponding function, according to erType (read/write error, regular/RMSE).
+            self.closePclOuputFile()
             print ('finished. Elapsed time={:.2f} secs' .format (time.time() - simT))
 
-    def closePclOuputFile (self, pclOutputFile):
+    def closePclOuputFile (self):
         """
         If VERBOSE_PCL is set, close sel.fpclOutputFile
         """
         if VERBOSE_PCL in self.verbose:
-            pclOutputFile.close ()
+            self.pclOutputFile.close ()
 
-    def openPclOuputFile (self, pclOutputFileName):
-        """
-        If VERBOSE_PCL is set, return an pclOutputFile with the requested file name.
-        Else, return None
-        """
-        if VERBOSE_PCL in self.verbose:
-            pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}', 'ab+')
-        else:
-            pclOutputFile = None
-        return pclOutputFile 
-        
     def runSingleCntr (self, 
                        cntrSize, 
                        modes        = [], # modes (type of counter) to run  
@@ -668,8 +657,8 @@ def getAllValsFxp (flavor='',
             printf (outputFile, '{}={}\n' .format (item['cntrVec'], item['val']))
     
     if (VERBOSE_PCL in verbose):
-        with open('../res/pcl_files/{}.pcl' .format (myCntrMaster.genSettingsStr()), 'wb') as pclOutputFile:
-            pickle.dump(listOfVals, pclOutputFile)
+        with open('../res/pcl_files/{}.pcl' .format (myCntrMaster.genSettingsStr()), 'wb') as self.pclOutputFile:
+            pickle.dump(listOfVals)
 
     listOfVals = [item['val'] for item in listOfVals]    
     if signed:
@@ -811,8 +800,7 @@ def main ():
 
 if __name__ == '__main__':
     try:
-        testDwnSmpling ()
-        # main ()
+        main ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
         exit ()
