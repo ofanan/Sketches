@@ -5,7 +5,7 @@ import math, random, pickle, numpy as np
 
 from printf import printf
 import settings, F3P_lr
-from settings import error, VERBOSE_DEBUG, VERBOSE_LOG_DWN_SMPL
+from settings import *
 
 class CntrMaster (F3P_lr.CntrMaster):
     """

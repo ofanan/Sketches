@@ -2,7 +2,7 @@ import math, time, random, numpy as np
 
 from printf import printf
 import settings, SEAD_stat
-from settings import error, warning
+from settings import *
 
 class CntrMaster (SEAD_stat.CntrMaster):
     """

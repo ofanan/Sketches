@@ -1,8 +1,6 @@
 import math, time, random, numpy as np
-
 from printf import printf
 import settings, Cntr
-
 
 class CntrMaster (Cntr.CntrMaster):
     """

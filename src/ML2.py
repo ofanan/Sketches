@@ -1,7 +1,6 @@
 import numpy as np
-from numpy import linalg as LA
 import matplotlib.pyplot as plt
-from settings import * #error
+from settings import * 
 np.set_printoptions(precision=2)
 from fractions import Fraction
 # import tensorflow as tf

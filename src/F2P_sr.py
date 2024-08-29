@@ -3,7 +3,7 @@
 import math, random, pickle, numpy as np
 
 import settings, Cntr
-from settings import error, warning, VERBOSE_RES
+from settings import *
 from printf import printf
 # from builtins import False
 

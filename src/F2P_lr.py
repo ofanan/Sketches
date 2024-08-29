@@ -4,7 +4,7 @@
 import math, random, pickle, numpy as np
 
 import settings, F2P_sr
-from settings import error, warning, VERBOSE_RES
+from settings import *
 from printf import printf
 
 

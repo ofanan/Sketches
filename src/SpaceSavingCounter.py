@@ -6,12 +6,10 @@ from datetime import datetime
 from collections import defaultdict, Counter 
 
 import settings #, PerfectCounter, Buckets, NiceBuckets, 
-from settings import warning, error, INF_INT, VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, calcPostSimStat
-from settings import getRelativePathToTraceFile, checkIfInputFileExists
+from settings import *
 from   tictoc import tic, toc # my modules for measuring and print-out the simulation time.
 from printf import printf, printarFp 
 from SingleCntrSimulator import getFxpCntrMaxVal, genCntrMasterFxp
-# from CountMinSketch import CountMinSketch
 from _ast import Or
 
 class SpaceSavingCounter:

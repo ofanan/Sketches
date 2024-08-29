@@ -4,8 +4,7 @@ import random, math, numpy as np
 
 from printf import printf
 import settings, Cntr
-from settings import warning, error
-from settings import VERBOSE_DEBUG, VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL
+from settings import *
 
 # The 'delta' parameter determines CEDAR's accuracy.
 # Given a counter size and maximum value to count, the function findMinDeltaByMaxVal finds the minimal delta. using binary search.

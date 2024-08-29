@@ -3,7 +3,7 @@
 import math, random, pickle, numpy as np
 
 import settings, Cntr, F3P_sr
-from settings import error, warning, VERBOSE_RES, VERBOSE_COUT_CONF, VERBOSE_COUT_CNTRLINE
+from settings import *
 from printf import printf
 
 class CntrMaster (F3P_sr.CntrMaster):

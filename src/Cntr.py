@@ -4,7 +4,7 @@ General class of counters, with some functionalities common to all the counters.
 import math, time, random, numpy as np
 
 import settings, Cntr
-from settings import VERBOSE_DEBUG, error
+from settings import *
 from printf import printf
 
 class CntrMaster (object):

@@ -4,8 +4,7 @@ import random, math, numpy as np
 
 from printf import printf
 import settings, CEDAR
-from settings import warning, error
-from settings import VERBOSE_DEBUG, VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL
+from settings import *
 
 class CntrMaster (CEDAR.CntrMaster):
     """

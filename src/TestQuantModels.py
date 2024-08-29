@@ -11,7 +11,7 @@ from PIL import Image
 import os, scipy, pickle, numpy as np
 
 import Quantizer, settings
-from settings import error, warning, VERBOSE_RES, VERBOSE_PCL
+from settings import *
 
 # def preprocessImage(imagePath):
 #     # Define the transformations to be applied to the input image

@@ -7,9 +7,9 @@ from fitter import Fitter, get_common_distributions, get_distributions
 import settings, ResFileParser, F2P_sr, F2P_lr, F2P_li, FP, SEAD_stat, SEAD_dyn  
 from tictoc import tic, toc
 from printf import printf, printar, printarFp
-from SingleCntrSimulator import main, getAllValsFP, getAllValsFxp
-from ResFileParser import genRndErrFileName, getFxpSettings, colors, colorOfMode, labelOfMode, markerOfMode, MARKER_SIZE_SMALL, FONT_SIZE, FONT_SIZE_SMALL, LEGEND_FONT_SIZE, LEGEND_FONT_SIZE_SMALL
-from settings import error, warning, VERBOSE_RES, VERBOSE_PCL 
+from SingleCntrSimulator import *
+from ResFileParser import *
+from settings import *
 
 MAX_DF = 20
 
