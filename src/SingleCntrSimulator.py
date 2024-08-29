@@ -54,70 +54,7 @@ class SingleCntrSimulator (object):
         else:
             printf (self.log_file, f'{infoStr}\n')
     
-    def runSingleCntrSingleModeWrEr (self):
-        """
-        Run a single counter of mode self.mode (self.mode is the approximation cntr architecture - e.g., 'F2P', 'CEDAR').  
-        Collect and write statistics about the write ("hit time") errors.
-        "Hit time" error (aka "wr error") is the diff between the value the cntr represent, and
-        the # of increments ("hit time") needed to make the cntr reach that value.
-        For each such hit time, we calculate the relative error, defined as (cntr_val - real_val)/real_val.
-        For each experiment, we calculate the avg of these relative error measurements along the simulation.
-        This calculation conforms to the definition in the paper CEDAR.
-        """
-        self.erType                  = 'wrEr'
-        self.cntrRecord[self.erType] = [0] * self.numOfExps
-        self.numOfPoints             = [0] * self.numOfExps # self.numOfPoints[j] will hold the number of points collected for statistic at experiment j. The number of points varies, as it depends upon the random process of increasing the approximated cntr. 
-        for expNum in range(self.numOfExps):
-            realValCntr = 0 # will cnt the real values (the accurate value)
-            cntrVal     = 0 # will cnt the counter's value
-            self.cntrRecord['cntr'].rstCntr ()
-            self.cntrRecord['sampleProb'] = 1 # probability of sampling
-            self.writeProgress (expNum)
-            while (cntrVal < self.maxRealVal):
-                realValCntr += 1
-                if (self.cntrRecord['sampleProb']==1 or random.random() < self.cntrRecord['sampleProb']): # sample w.p. self.cntrRecord['sampleProb']
-                    cntrAfterInc = self.cntrRecord['cntr'].incCntr (factor=int(1), mult=False, verbose=self.verbose)
-                    cntrNewVal   = cntrAfterInc['val'] / self.cntrRecord['sampleProb']
-                    if (VERBOSE_DETAILS in self.verbose): 
-                        print ('realVal={:.0f} oldVal={:.0f}, cntrWoScaling={:.0f}, cntrNewValScaled={:.0f}, maxRealVal={:.0f}'
-                               .format (realValCntr, cntrVal, cntrAfterInc['val'], cntrNewVal, self.maxRealVal))
-                    if (cntrNewVal != cntrVal): # the counter was incremented
-                        cntrVal = cntrNewVal
-                        self.cntrRecord['wrEr'][expNum] += abs(realValCntr - cntrVal)/realValCntr
-                        self.numOfPoints       [expNum] += 1  
-                    if self.dwnSmple:
-                        if cntrAfterInc['val']==self.cntrRecord['cntr'].cntrMaxVal: # the cntr overflowed --> downsample
-                            self.cntrRecord['cntr'].incCntr (mult=True, factor=1/2)
-                            self.cntrRecord['sampleProb'] /= 2
-                        if (VERBOSE_DETAILS in self.verbose): 
-                            print ('smplProb={}' .format (self.cntrRecord['sampleProb'])) 
-                    else:
-                        if cntrAfterInc['val']==self.cntrRecord['cntr'].cntrMaxVal: # the cntr reached its maximum values and no dwon-sample is used --> finish this experiment
-                            break  
- 
-        if (VERBOSE_LOG in self.verbose):
-            printf (self.log_file, f'diff vector={self.cntrRecorwrErimeVar}\n\n')
-
-        self.cntrRecord['wrEr'] = np.divide (self.cntrRecord['wrEr'], self.numOfPoints) 
-        if (VERBOSE_LOG in self.verbose):
-            printf (self.log_file, 'wrEr=\n{:.3f}\n, ' .format (self.cntrRecord['wrEr']))
-        
-        wrErAvg             = np.average    (self.cntrRecord['wrEr'])
-        wrErConfInterval = confInterval (ar=self.cntrRecord['wrEr'], avg=wrErAvg, confLvl=self.confLvl)
-        dict = {'erType'            : self.erType,
-                'numOfExps'         : self.numOfExps,
-                'mode'              : self.cntrRecord['mode'],
-                'cntrSize'          : self.cntrSize, 
-                'cntrMaxVal'        : self.cntrMaxVal,
-                'settingStr'        : self.cntrRecord['cntr'].genSettingsStr(),
-                'Avg'               : wrErAvg,
-                'Lo'                : wrErConfInterval[0],
-                'Hi'                : wrErConfInterval[1],
-                'confLvl'           : self.confLvl
-                }
-        self.dumpDictToPcl      (dict)
-        self.writeDictToResFile (dict)
-    
+   
     def dumpDictToPcl (self, dict):
         """
         Dump a single dict of data into pclOutputFile
@@ -132,7 +69,7 @@ class SingleCntrSimulator (object):
         if (VERBOSE_RES in self.verbose):
             printf (self.resFile, f'{dict}\n\n') 
     
-    def runSingleCntrSingleModeWrRmse (self):
+    def runSingleCntrSingleModeWrEr (self):
         """
         Run a single counter of mode self.mode (self.mode is the approximation cntr architecture - e.g., 'F2P', 'CEDAR').  
         Collect and write statistics about the write ("hit time") errors.
@@ -178,7 +115,6 @@ class SingleCntrSimulator (object):
                         if cntrValAfterInc==self.cntrRecord['cntr'].cntrMaxVal: # the cntr reached its maximum values and no down-sample is used --> finish this experiment
                             break  
  
-        self.erType      = 'WrRmse'
         for rel_abs_n in [True, False]:
             for statType in ['Mse', 'normRmse']:
                 dict = calcPostSimStat (
@@ -191,7 +127,7 @@ class SingleCntrSimulator (object):
                 self.handleResDict (dict, rel_abs_n)
 
 
-    def runSingleCntrSingleModeRdRmse (self): 
+    def runSingleCntrSingleModeRdEr (self): 
         """
         Run a single counter of mode self.mode (self.mode is the approximation cntr architecture - e.g., 'F2P', 'CEDAR').  
         Collect and write statistics about the errors w.r.t. the real cntr (measured) value.
@@ -258,61 +194,6 @@ class SingleCntrSimulator (object):
         self.dumpDictToPcl       (dict)
         self.writeDictToResFile  (dict)
     
-    def runSingleCntrSingleModeRdEr (self): 
-        """
-        Run a single counter of mode self.mode (self.mode is the approximation cntr architecture - e.g., 'F2P', 'CEDAR').  
-        Collect and write statistics about the errors w.r.t. the real cntr (measured) value.
-        The error is calculated upon each increment of the real cntr (measured) value, 
-        as the difference between the measured value, and the value represented by the cntr.
-        """
-    
-        self.cntrRecord['RdEr'] = np.zeros (self.numOfExps)
-        self.numOfPoints        = [self.maxRealVal] * self.numOfExps # self.numOfPoints[j] will hold the number of points collected for statistic at experiment j. The number of points varies, as it depends upon the random process of increasing the approximated cntr. 
-    
-        for expNum in range(self.numOfExps):
-            realValCntr = 0 # will cnt the real values (the accurate value)
-            cntrVal     = 0 # will cnt the counter's value
-            self.cntrRecord['cntr'].rstCntr ()
-            self.cntrRecord['sampleProb'] = 1 # probability of sampling
-            self.writeProgress (expNum)
-            while realValCntr < self.maxRealVal:
-                realValCntr += 1
-                if (self.cntrRecord['sampleProb']==1 or random.random() < self.cntrRecord['sampleProb']): # sample w.p. self.cntrRecord['sampleProb']
-                    cntrAfterInc = self.cntrRecord['cntr'].incCntr (factor=int(1), mult=False, verbose=self.verbose)
-                    cntrNewVal   = cntrAfterInc['val'] / self.cntrRecord['sampleProb']
-                    if (VERBOSE_DETAILS in self.verbose): 
-                        print ('realVal={:.0f} oldVal={:.0f}, cntrWoScaling={:.0f}, cntrNewValScaled={:.0f}, maxRealVal={:.0f}'
-                               .format (realValCntr, cntrVal, cntrAfterInc['val'], cntrNewVal, self.maxRealVal))
-                    cntrVal = cntrNewVal
-                    if (self.dwnSmple and cntrAfterInc['cntrVec']==self.cntrRecord['cntr'].cntrMaxVec): # the cntr overflowed --> downsample
-                        self.cntrRecord['cntr'].incCntr (mult=True, factor=1/2)
-                        self.cntrRecord['sampleProb'] /= 2
-                        if (VERBOSE_DETAILS in self.verbose): 
-                            print ('smplProb={}' .format (self.cntrRecord['sampleProb'])) 
-                self.cntrRecord['RdEr'][expNum] += abs(realValCntr - cntrVal)/realValCntr
- 
-        if (VERBOSE_LOG in self.verbose):
-            printf (self.log_file, f'diff vector={self.cntrRecorRdErimeVar}\n\n')
-
-        self.cntrRecord['RdEr'] = np.divide (self.cntrRecord['RdEr'], self.numOfPoints[expNum]) 
-        if (VERBOSE_LOG in self.verbose):
-            printf (self.log_file, 'RdEr=\n{:.3f}\n, ' .format (self.cntrRecord['RdEr']))
-        
-        rdErAvg          = np.average    (self.cntrRecord['RdEr'])
-        rdErConfInterval = confInterval (ar=self.cntrRecord['RdEr'], avg=rdErAvg, confLvl=confLvl)
-        dict = {'erType'            : self.erType,
-                'numOfExps'         : self.numOfExps,
-                'mode'              : self.cntrRecord['mode'],
-                'cntrSize'          : self.cntrSize, 
-                'cntrMaxVal'        : self.cntrMaxVal,
-                'settingStr'        : self.cntrRecord['cntr'].genSettingsStr(),
-                'Avg'               : rdErAvg,
-                'Lo'                : rdErConfInterval[0],
-                'Hi'                : rdErConfInterval[1],
-                'confLvl'           : self.confLvl}
-        self.dumpDictToPcl       (dict)
-        self.writeDictToResFile  (dict)
-        
     def measureResolutionsByModes (
             self, 
             delPrevPcl  = False, # When True, delete the previous .pcl file, if exists
@@ -418,8 +299,8 @@ class SingleCntrSimulator (object):
         expSize      = None, # Size of the exponent. Relevant only for Static SEAD counter. If cntrMaxVal==None (default), take expSize from Confs global parameter (found in this file). 
         numOfExps    = 1,    # number of experiments to run. 
         dwnSmple     = False,# When True, down-sample each time the counter's maximum value is reached.
-        erTypes      = [],   # either 'RdEr', 'WrEr', 'RdRmse' or 'WrRmse'.
-        rel_abs_n    = True # When True, consider rel err. Else, consider abs err.
+        erTypes      = [],   # either 'RdEr' or 'WrEr'
+        rel_abs_n    = True  # When True, consider rel err. Else, consider abs err.
     ):
         """
         Run a single counter for the given mode for the requested numOfExps, and write the results (statistics
@@ -462,14 +343,7 @@ class SingleCntrSimulator (object):
         
         # run the simulation          
         for self.erType in self.erTypes:
-            self.calc_MSE = False # By default, do not calculate the MSE
-            if self.erType=='WrMse':
-                self.calc_MSE = True
-                self.erType = 'WrRmse'
-            elif self.erType=='RdMse':
-                self.calc_MSE = True
-                self.erType = 'RdRmse'
-            if not (self.erType in ['WrEr', 'WrRmse', 'RdEr', 'RdRmse', 'WrMse', 'RdMse']):
+            if not (self.erType in ['WrEr', 'RdEr']):
                 error ('Sorry, the requested error mode {self.erType} is not supported')
             self.pclOutputFile = None # default value
             if VERBOSE_PCL in self.verbose:
