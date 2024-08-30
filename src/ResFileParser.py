@@ -656,7 +656,6 @@ class ResFileParser (object):
             modes           = [],   # modes for which the plot will be generated. 
             cntrSize        = 8,    # cntrSizes for which the plot will be generated. 
             minCntrVal      = 0,  # min' X (counter) value at the plot
-            maxCntrVal      = float('inf'), # max X (counter) value at the plot
             xLog            = False,    # When True, plot the x axis in a log' scaling.
             ) -> None:
         """
@@ -666,15 +665,17 @@ class ResFileParser (object):
         _, ax = plt.subplots()
         points = [point for point in self.points if point['cntrSize'] == cntrSize]
         modes = list(set([point['mode'] for point in points]))
+        xMaxVals = []
         for mode in modes:
             pointsOfThisMode = [point for point in points if point['mode'] == mode]
             if pointsOfThisMode == []:
                 print (f'No points found for mode {mode}')
                 continue
-            if len(pointsOfThisMode) < 1:
+            if len(pointsOfThisMode) > 1:
                 settings.error (f'More than a single list of points for mode {mode}')
             points2plot = pointsOfThisMode[0]['points']
-            
+        
+            xMaxVals.append (points2plot['X'][-1]) # the array should be sorted; the last val is the largest val
             ax.plot (points2plot['X'], points2plot['Y'], color=colorOfMode(mode), marker=markerOfMode(mode),
                      markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=mode, mfc='none') 
 
@@ -684,8 +685,7 @@ class ResFileParser (object):
         if xLog: 
             plt.xscale ('log')
 
-        conf        = settings.getConfByCntrSize (cntrSize=cntrSize)
-        plt.xlim ([minCntrVal, conf['cntrMaxVal']+1])
+        plt.xlim ([minCntrVal, min(xMaxVals)])
         # plt.ylim (0.01, 0.1) 
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
@@ -946,7 +946,6 @@ def genResolutionPlot ():
             my_ResFileParser.genResolutionPlotByModes (
                 modes       = ['SEAD_stat', 'Morris', 'F2P_li', 'AEE'],   
                 minCntrVal  = 1000,
-                maxCntrVal  = float('inf'),
                 cntrSize    = cntrSize,
                 xLog        = False
                 )

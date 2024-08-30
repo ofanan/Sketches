@@ -231,6 +231,7 @@ class SingleCntrSimulator (object):
                     cntrVec = np.binary_repr(i, self.cntrSize) 
                     listOfVals[i] = (self.cntrRecord['cntr'].cntr2num(cntrVec))           
                 listOfVals = np.sort (listOfVals)
+                print (f'mode={self.mode}, maxVal={listOfVals[-1]}')
                 points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : np.divide (listOfVals[1:] - listOfVals[:-1], listOfVals[1:])}
                 dict = {'mode' : self.mode, 'cntrSize' : self.cntrSize, 'points' : points}
                 if VERBOSE_PCL in self.verbose:
@@ -668,7 +669,7 @@ def main ():
     #             erTypes         = ['WrEr'], # Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
     #         )
         
-        simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL]) #VERBOSE_RES, VERBOSE_PCL],)
+        simController = SingleCntrSimulator (verbose = []) #VERBOSE_RES, VERBOSE_PCL],)
         simController.measureResolutionsByModes (
             cntrSizes   = [8], 
             expSize     = 2, 
