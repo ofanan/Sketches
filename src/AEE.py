@@ -15,18 +15,30 @@ class CntrMaster (Cntr.CntrMaster):
     """
 
     # Generates a strings that details the counter's settings (param vals).    
-    genSettingsStr = lambda self : 'AEE_n{}' .format (self.cntrSize)
+    genSettingsStr = lambda self : f'AEE_n{self.cntrSize}_maxVal{self.cntrMaxVal}'
        
-    cntr2num    = lambda self, cntr : cntr / self.p # Given the counter (as a binary vector string) return the value it represents
+    
     
     setP        = lambda self : self.cntrMaxVec / self.cntrMaxVal # Set the value of the increment prob', p. 
 
+    def cntr2num (self, cntr): 
+        """
+        # Given the counter (as a binary vector string) return the value it represents
+        Given a cntr, return the value it represents
+        """
+        if isinstance (cntr, int): 
+            return cntr / self.p
+        elif isinstance (cntr, str):
+            return float(int(cntr, base=2))/self.p
+        else:
+            error (f'in AEE.cntrwnum(): got cntr of unexpected type {type(cntr)}') #$$$  
+    
     def __init__ (
             self, 
             cntrMaxVal    = 30, # Denoted N in [AEE] 
             cntrSize      = 4, # num of bits in each counter. 
             numCntrs      = 1, # number of counters in the array.
-            verbose       = [], # determines which outputs would be written to .log/.res/.pcl/debug files, as detailed in settings.py. 
+            verbose       = [], # determines which outputs would be written to .log/.res/.pcl/debug files, as detailed in py. 
         ):
 
         super(CntrMaster, self).__init__ (
@@ -56,10 +68,10 @@ class CntrMaster (Cntr.CntrMaster):
         cntrDict: a dictionary representing the modified counter where: 
             - cntrDict['cntrVec'] is the counter's binary representation; cntrDict['val'] is its value.
         """
-        settings.checkCntrIdx (cntrIdx=cntrIdx, numCntrs=self.numCntrs, cntrType='AEE')
+        checkCntrIdx (cntrIdx=cntrIdx, numCntrs=self.numCntrs, cntrType='AEE')
         if self.cntrs[cntrIdx]!=self.cntrMaxVec and (forceInc or random.random() < self.p):
             self.cntrs[cntrIdx] += 1
-        return {'cntrVec' : self.cntrs[cntrIdx], 'val' : self.cntr2num(self.cntrs[cntrIdx])}
+        return {'cntrVec' : np.binary_repr(num=self.cntrs[cntrIdx], width=self.cntrSize), 'val' : self.cntr2num(self.cntrs[cntrIdx])}
 
     def incCntrBy1GetVal (
             self, 
@@ -83,23 +95,22 @@ def printAllVals (cntrSize=4, cntrMaxVal=100, verbose=[]):
     The prints are sorted in an increasing order of values.
     """
     if cntrMaxVal < 2**cntrSize:
-        settings.error (f'cntrMaxVal={cntrMaxVal} while max accurately representable value for {cntrSize}-bit counter is {2**cntrSize-1}')
+        error (f'cntrMaxVal={cntrMaxVal} while max accurately representable value for {cntrSize}-bit counter is {2**cntrSize-1}')
     myCntrMaster = CntrMaster(cntrSize=cntrSize, cntrMaxVal=cntrMaxVal)
 
-    if (settings.VERBOSE_RES in verbose):
+    if (VERBOSE_RES in verbose):
         outputFile    = open ('../res/single_cntr_log_files/{}.res' .format (myCntrMaster.genSettingsStr()), 'w')
     
     print ('running printAllVals')
     listOfVals = []
-    for i in range (2**cntrSize):
-        cntr = np.binary_repr(i, cntrSize) 
-        listOfVals.append ({'cntrVec' : cntr, 'val' : myCntrMaster.cntr2num(cntr)})
+    for cntr in range (2**cntrSize):
+        listOfVals.append ({'cntrVec' : np.binary_repr(cntr, cntrSize), 'val' : myCntrMaster.cntr2num(cntr)})
 
-    if (settings.VERBOSE_RES in verbose):
+    if (VERBOSE_RES in verbose):
         for item in listOfVals:
             printf (outputFile, '{}={:.2f}\n' .format (item['cntrVec'], item['val']))
     
-    if (settings.VERBOSE_PCL in verbose):
+    if (VERBOSE_PCL in verbose):
         with open('../res/pcl_files/{}.pcl' .format (myCntrMaster.genSettingsStr()), 'wb') as pclOutputFile:
             pickle.dump(listOfVals, pclOutputFile) 
       

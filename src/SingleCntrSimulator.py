@@ -8,6 +8,7 @@ import settings, Cntr, CEDAR, Morris, AEE, FP, SEAD_stat, SEAD_dyn
 import F2P_sr, F2P_lr, F2P_li, F2P_li_ds, F2P_si, F3P_sr, F3P_lr, F3P_li, F3P_li_ds, F3P_si    
 from settings import * 
 from datetime import datetime
+np.set_printoptions(precision=2)
 
 class SingleCntrSimulator (object):
     """
@@ -116,9 +117,13 @@ class SingleCntrSimulator (object):
                             break  
  
         for rel_abs_n in [True, False]:
+            if rel_abs_n: 
+                sumSqEr = self.cntrRecord['sumSqRelEr']
+            else:
+                sumSqEr = self.cntrRecord['sumSqAbsEr'],
             for statType in ['Mse', 'normRmse']:
                 dict = calcPostSimStat (
-                    sumSqEr      = self.cntrRecord['sumSqRelEr'] if rel_abs_n else self.cntrRecord['sumSqAbsEr'],
+                    sumSqEr      = sumSqEr,
                     numMeausures = self.numOfPoints,   
                     statType     = statType,
                     verbose      = self.verbose,
@@ -137,7 +142,6 @@ class SingleCntrSimulator (object):
         """
         self.cntrRecord['sumSqAbsEr'] = np.zeros (self.numOfExps) # self.cntrRecord['sumSqAbsEr'][j] will hold the sum of the square absolute errors collected at experiment j. 
         self.cntrRecord['sumSqRelEr'] = np.zeros (self.numOfExps) # self.cntrRecord['sumSqRelEr'][j] will hold the sum of the square relative errors collected at experiment j. 
-        self.erType                   = 'RdRmse'
         for expNum in range(self.numOfExps):
             realValCntr = 0 # will cnt the real values (the accurate value)
             cntrVal     = 0 # will cnt the counter's value
@@ -168,10 +172,14 @@ class SingleCntrSimulator (object):
                 self.cntrRecord['sumSqRelEr'][expNum] += sqEr/realValCntr**2
     
         for rel_abs_n in [True, False]:
+            if rel_abs_n: 
+                sumSqEr = self.cntrRecord['sumSqRelEr']
+            else:
+                sumSqEr = self.cntrRecord['sumSqAbsEr'],
             for statType in ['Mse', 'normRmse']:
                 dict = calcPostSimStat (
-                    sumSqEr      = self.cntrRecord['sumSqRelEr'] if rel_abs_n else self.cntrRecord['sumSqAbsEr'],
                     numMeausures = self.maxRealVal * np.ones(self.numOfExps), # numMeausures[j] captures the # of points collected for statistic at experiment j. In other sim settings, this # may vary, as it depends upon the random process of increasing the approximated cntr.   
+                    sumSqEr      = sumSqEr,
                     statType     = statType,
                     verbose      = self.verbose,
                     logFile      = self.logFile,
@@ -209,20 +217,24 @@ class SingleCntrSimulator (object):
             if delPrevPcl and os.path.exists(f'../res/pcl_files/{pclOutputFileName}.pcl'):
                 os.remove(f'../res/pcl_files/{pclOutputFileName}.pcl')
             self.pclOutputFile = open(f'../res/pcl_files/{pclOutputFileName}.pcl', 'ab+')
+        if VERBOSE_RES in self.verbose:
+            resFileName  = 'resolutionByModes'
+            self.resFile = open(f'../res/{resFileName}.res', 'ab+')
         for self.cntrSize in cntrSizes:
             self.conf = getConfByCntrSize (cntrSize=self.cntrSize)
             self.cntrMaxVal   = self.conf['cntrMaxVal'] 
             self.hyperSize    = self.conf['hyperSize'] 
             for self.mode in modes:
                 self.genCntrRecord (expSize=None if self.mode.startswith('SEAD_stat') else expSize)
-                listOfVals = []
+                listOfVals = np.empty (2**self.cntrSize)
                 for i in range (2**self.cntrSize-2 if self.mode.startswith('SEAD_dyn') else (1 << self.cntrSize)):
                     cntrVec = np.binary_repr(i, self.cntrSize) 
-                    listOfVals.append (self.cntrRecord['cntr'].cntr2num(cntrVec))           
-                listOfVals = sorted (listOfVals)
-                points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : [(listOfVals[i+1]-listOfVals[i])/listOfVals[i+1] for i in range (len(listOfVals)-1)]}
+                    listOfVals[i] = (self.cntrRecord['cntr'].cntr2num(cntrVec))           
+                listOfVals = np.sort (listOfVals)
+                points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : np.divide (listOfVals[1:] - listOfVals[:-1], listOfVals[1:])}
+                dict = {'mode' : self.mode, 'cntrSize' : self.cntrSize, 'points' : points}
                 if VERBOSE_PCL in self.verbose:
-                    self.dumpDictToPcl ({'mode' : self.mode, 'cntrSize' : self.cntrSize, 'points' : points})
+                    self.dumpDictToPcl (dict)                   
 
     def measureResolutionsBySettingStrs (
             self, 
@@ -344,7 +356,7 @@ class SingleCntrSimulator (object):
         # run the simulation          
         for self.erType in self.erTypes:
             if not (self.erType in ['WrEr', 'RdEr']):
-                error ('Sorry, the requested error mode {self.erType} is not supported')
+                error (f'Sorry, the requested error type {self.erType} is not supported')
             self.pclOutputFile = None # default value
             if VERBOSE_PCL in self.verbose:
                 self.pclOutputFile = open(f'../res/pcl_files/{outputFileStr}.pcl', 'ab+')
@@ -632,38 +644,37 @@ def testDwnSmpling ():
 
 
 def main ():
-    maxValBy = 'F3P_li_h2'
-    modes = ['F3P_li_h2_ds'] #['AEE', 'CEDAR', 'Morris', 'SEAD_dyn']
-    for cntrSize in [6]:
-        simController = SingleCntrSimulator (
-            verbose = [VERBOSE_RES]
-        ) 
-        numSettings = getFxpSettings (maxValBy)
-        cntrMaxVal = getCntrsMaxValsFxp (
-            nSystem         = numSettings['nSystem'], # either 'F2p' or 'F3P.
-            flavor          = numSettings['flavor'], 
-            hyperSizeRange  = [numSettings['hyperSize']], # list of hyper-sizes to consider  
-            cntrSizeRange   = [cntrSize], # list of cntrSizes to consider
-            verbose         = [VERBOSE_RES],
-        )
-        for mode in modes:
-            simController.runSingleCntrSingleMode \
-                (dwnSmple       = False,  
-                mode            = mode, 
-                cntrSize        = cntrSize, 
-                cntrMaxVal      = cntrMaxVal,
-                numOfExps       = 1, #100,
-                erTypes         = ['RdRmse'], # The error modes to gather during the simulation. Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
-            )
+    # maxValBy = 'F3P_li_h2'
+    # modes = ['F3P_li_h2_ds'] #['AEE', 'CEDAR', 'Morris', 'SEAD_dyn']
+    # for cntrSize in [6]:
+    #     simController = SingleCntrSimulator (
+    #         verbose = [VERBOSE_RES]
+    #     ) 
+    #     numSettings = getFxpSettings (maxValBy)
+    #     cntrMaxVal = getCntrsMaxValsFxp (
+    #         nSystem         = numSettings['nSystem'], # either 'F2p' or 'F3P.
+    #         flavor          = numSettings['flavor'], 
+    #         hyperSizeRange  = [numSettings['hyperSize']], # list of hyper-sizes to consider  
+    #         cntrSizeRange   = [cntrSize], # list of cntrSizes to consider
+    #         verbose         = [VERBOSE_RES],
+    #     )
+    #     for mode in modes:
+    #         simController.runSingleCntrSingleMode \
+    #             (dwnSmple       = False,  
+    #             mode            = mode, 
+    #             cntrSize        = cntrSize, 
+    #             cntrMaxVal      = cntrMaxVal,
+    #             numOfExps       = 1, #100,
+    #             erTypes         = ['WrEr'], # Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
+    #         )
         
-
-        # simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL]) #VERBOSE_RES, VERBOSE_PCL],)
-        # simController.measureResolutionsByModes (
-        #     cntrSizes   = [8], 
-        #     expSize     = 2, 
-        #     modes       = ['SEAD stat', 'Morris', 'F2P_li'],
-        #     delPrevPcl  = True
-        #     ) 
+        simController = SingleCntrSimulator (verbose = [VERBOSE_RES, VERBOSE_PCL]) #VERBOSE_RES, VERBOSE_PCL],)
+        simController.measureResolutionsByModes (
+            cntrSizes   = [8], 
+            expSize     = 2, 
+            modes       = ['SEAD_stat', 'Morris', 'F2P_li_h2', 'AEE'],            
+            delPrevPcl  = False
+        ) 
         # simController.measureResolutionsBySettingStrs (
         #     delPrevPcl  = False, # When True, delete the previous .pcl file, if exists
         #     settingStrs = ['FP_n15_m10_e5'], # 'FP_n15_m2_e13'],  # 'FP_n7_m5_e2'# Concrete settings for which the measurements will be done 

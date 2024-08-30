@@ -6,6 +6,7 @@ import os, numpy as np, pandas as pd
 from pandas._libs.tslibs import period
 from printf import printf, printfDict
 from nltk.corpus.reader import lin
+np.set_printoptions(precision=1)
 
 import settings, SingleCntrSimulator
 from settings import * 
@@ -29,6 +30,30 @@ FONT_SIZE_SMALL = 5
 LEGEND_FONT_SIZE = 10
 LEGEND_FONT_SIZE_SMALL = 5 
 USE_FRAME              = True # When True, plot a "frame" (box) around the plot 
+
+# The markers used for each alg', in the dist' case
+def markerOfMode (
+        modeStr : str
+    )   -> str:
+    """
+    Given a string defining a mode, return the color used when plotting the results of this mode.
+    """
+    return 'o'
+    # {'F2P_li'    : 'o',
+    #      'F2P_lr'    : 'o',
+    #      'F2P_sr'    : 'o',
+    #      'F3P'       : 'v',
+    #      'SEAD stat' : '^',
+    #      'SEAD_stat' : '^',
+    #      'SEAD dyn'  : 's',
+    #      'FP'        : 'p',
+    #      'Tetra stat': 'p',
+    #      'Tetra dyn' : 'X',
+    #      'CEDAR'     : '<',
+    #      'Morris'    : '>',
+    #      'AEE'       : 'o'
+    # }
+
 
 def colorOfMode (
         modeStr : str
@@ -64,21 +89,6 @@ def colorOfMode (
         return BLUE
     
 colors = ['green', 'purple', 'brown', 'black', 'blue', 'yellow', 'magenta', 'red', 'green', 'purple', 'brown', 'black']
-
-# The markers used for each alg', in the dist' case
-markerOfMode = {'F2P_li'    : 'o',
-     'F2P_lr'    : 'o',
-     'F2P_sr'    : 'o',
-     'F3P'       : 'v',
-     'SEAD stat' : '^',
-     'SEAD dyn'  : 's',
-     'FP'        : 'p',
-     'Tetra stat': 'p',
-     'Tetra dyn' : 'X',
-     'CEDAR'     : '<',
-     'Morris'    : '>',
-     'AEE'       : 'o'
-}
 
 def labelOfDist (dist : str) -> str:
     """
@@ -281,7 +291,7 @@ class ResFileParser (object):
 
     def genErVsCntrSizePlot (
             self,
-            erType         = 'RdRmse',
+            erType         = 'Rd',
             numOfExps      = 50,
             modes          = ['F2P_li', 'CEDAR', 'Morris'], # 'SEAD_dyn'],
             minCntrSize    = 8,
@@ -295,7 +305,7 @@ class ResFileParser (object):
         outputFileName = f'1cntr_PC_{erType}' 
         self.setPltParams ()  # set the plot's parameters (formats of lines, markers, legends etc.).
         _, ax = plt.subplots()
-        points = [point for point in self.points if point['numOfExps'] == numOfExps and point['erType'] == erType]
+        points = [point for point in self.points if point['numOfExps'] == numOfExps and point['erType'].startswith(erType)]
         if len(points)==0: # no points to plot
             return
 
@@ -318,7 +328,7 @@ class ResFileParser (object):
                 y_lo, y_avg, y_hi = point['Lo'], point['Avg'], point['Hi']                     
                 ax.plot ((cntrSize, cntrSize), (y_lo, y_hi), color=colorOfMode(mode))  # Plot the conf' interval line
                 y.append (y_avg)
-            ax.plot (cntrSizes, y, color=colorOfMode(mode), marker=markerOfMode[mode],
+            ax.plot (cntrSizes, y, color=colorOfMode(mode), marker=markerOfMode(mode),
                      markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH, label=point['mode'], mfc='none') 
         
         plt.xlabel('Counter Size [bits]')
@@ -338,6 +348,7 @@ class ResFileParser (object):
             modes       : list = ['CEDAR', 'Morris', 'SEAD_dyn'],
             cntrSizes   : list = [],
             statType    : str  = 'Mse',
+            erType      : str  = 'Rd',
             rel_abs_n   : bool = False, # When True, consider relative errors, Else, consider absolute errors.
             width       : int  = None,  # The width of the CMS. Relevant only for CMS' sim results.
             maxValBy    : str  = None,
@@ -352,7 +363,10 @@ class ResFileParser (object):
         points = [point for point in self.points if point['numOfExps'] == numOfExps and point['statType']==statType and point['rel_abs_n']==rel_abs_n]
         if width!=None:
             points = [point for point in points if point['width']==width]
-    
+        
+        if len(points)==0:
+            warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, statType={statType}, rel_abs_not={rel_abs_n}, width={width}')
+            return     
         printf (datOutputFile, '\t')
         if maxValBy!=None:
             printf (datOutputFile, f'cntrMaxVal\t')
@@ -371,9 +385,9 @@ class ResFileParser (object):
                 ))
                 printf (datOutputFile, f'{cntrMaxVal} &\t')
                 pointsOfThisCntrSize = [point for point in pointsOfThisCntrSize if point['cntrMaxVal']==cntrMaxVal]
-            pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize]  
+            pointsOfThisCntrSizeErType = [point for point in pointsOfThisCntrSize if point['erType'].startswith(erType)]  
             if pointsOfThisCntrSizeErType == []:
-                warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, width={width}')
+                warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, , statType={statType}, rel_abs_not={rel_abs_n}, erType={erType}, width={width}')
                 continue
             minVal = min ([point['Avg'] for point in pointsOfThisCntrSizeErType if point['mode']!='PerfectCounter'])
             if normalizeByPerfectCntr:
@@ -626,7 +640,7 @@ class ResFileParser (object):
                                        (point['settingStr'], mode, cntrMaxVal, y_lo, y_hi, y_avg))                    
                 y.append (y_avg)
 
-            ax.plot (cntrMaxVals, y, color=colorOfMode(mode), marker=markerOfMode[mode],
+            ax.plot (cntrMaxVals, y, color=colorOfMode(mode), marker=markerOfMode(mode),
                      markersize=MARKER_SIZE, linewidth=LINE_WIDTH, label=point['settingStr'], mfc='none') 
 
         plt.xlabel('Counter Maximum Value')
@@ -650,17 +664,18 @@ class ResFileParser (object):
         """
         self.setPltParams   ()  # set the plot's parameters (formats of lines, markers, legends etc.).
         _, ax = plt.subplots()
+        points = [point for point in self.points if point['cntrSize'] == cntrSize]
+        modes = list(set([point['mode'] for point in points]))
         for mode in modes:
-            pointsOfThisCntrSize = [point for point in self.points if point['cntrSize'] == cntrSize]
-            pointsOfThisMode = [point for point in pointsOfThisCntrSize if point['mode'] == mode]
+            pointsOfThisMode = [point for point in points if point['mode'] == mode]
             if pointsOfThisMode == []:
                 print (f'No points found for mode {mode}')
                 continue
             if len(pointsOfThisMode) < 1:
                 settings.error (f'More than a single list of points for mode {mode}')
-            points = pointsOfThisMode[0]['points']
+            points2plot = pointsOfThisMode[0]['points']
             
-            ax.plot (points['X'], points['Y'], color=colorOfMode(mode), marker=markerOfMode[mode],
+            ax.plot (points2plot['X'], points2plot['Y'], color=colorOfMode(mode), marker=markerOfMode(mode),
                      markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=mode, mfc='none') 
 
         plt.xlabel('Counted Value')
@@ -678,12 +693,13 @@ class ResFileParser (object):
         plt.savefig ('../res/ResolutionByModes_n{}_{}.pdf' .format (cntrSize, 'log' if xLog else 'lin'), bbox_inches='tight')        
 
 
-    def genResolutionPlotBySettingStrs (self,
+    def genResolutionPlotBySettingStrs (
+            self,
             settingStrs    = [],           # Concrete settings for which the plot will be generated
             minCntrVal      = 1,            # min' X (counter) value at the plot
             maxCntrVal      = float('inf'), # max X (counter) value at the plot
             xLog            = False,        # When True, plot the x axis in a log' scaling.
-            ) -> None:
+        ) -> None:
         """
         Generate a plot showing the resolution as a function of the counted val for the given settings.
         Each input setting string details the cntrSize, exponent size (expSize), hyper-exp size (hyperSize), etc.
@@ -923,12 +939,12 @@ def genResolutionPlot ():
     """
     
     my_ResFileParser = ResFileParser ()
-    byModes = False
+    byModes = True
     if byModes:
         my_ResFileParser.rdPcl (pclFileName=f'resolutionByModes.pcl')
         for cntrSize in [8]:  # , 12, 16]:
             my_ResFileParser.genResolutionPlotByModes (
-                modes       = ['SEAD stat', 'Morris', 'F2P_li'], #  
+                modes       = ['SEAD_stat', 'Morris', 'F2P_li', 'AEE'],   
                 minCntrVal  = 1000,
                 maxCntrVal  = float('inf'),
                 cntrSize    = cntrSize,
@@ -1052,12 +1068,11 @@ def genErVsCntrSizeSingleCntr ():
                 modes           = ['F3P_li_h3', 'CEDAR', 'Morris', 'SEAD_dyn'],
                 datOutputFile   = datOutputFile, 
                 numOfExps       = 100, 
-                cntrSizes       = [8],
+                cntrSizes       = [8, 10],
                 statType        = statType,
                 maxValBy        = maxValBy,
                 rel_abs_n       = rel_abs_n,
                 normalizeByPerfectCntr  = False,
-                # normalizeByMinimal      = False
             ) 
 
 def genErVsCntrSizeTableTrace ():
@@ -1091,7 +1106,7 @@ def rmvFromPcl ():
         myResFileParser.rmvFromPcl(
             pclFileName = pclFileName,
             listOfDicts = [
-                {'mode' : 'F3P_li_h3_ds'}
+                {'mode' : 'AEE'}
             ]
         )
         
@@ -1124,7 +1139,7 @@ def genErVsMemSizePlotCms (
     Read the relevant .pcl files, and generate plots showing the error as a function of the overall memory size.
     This function is used to show the results of CMS (Count Min Sketch) simulations.        
     """    
-    for traceName in ['Caida1', 'Caida2']:
+    for traceName in ['Caida1']:
         myResFileParser = ResFileParser ()
         myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC.pcl')
         myResFileParser.genErVsMemSizePlotCms (
@@ -1154,9 +1169,10 @@ def genErVsMemSizePlotSpaceSaving (
 
 if __name__ == '__main__':
     try:
-        genErVsMemSizePlotCms (
-            ignoreModes = ['PerfectCounter', 'SEAD_dyn']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
-        )
+        genResolutionPlot ()
+        # genErVsMemSizePlotCms (
+        #     ignoreModes = ['PerfectCounter', 'SEAD_dyn', 'AEE_ds']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
+        # )
         # genUniqPcl (pclFileName='cms_Caida2_PC.pcl')
         # genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()

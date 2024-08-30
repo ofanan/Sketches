@@ -389,7 +389,6 @@ class CountMinSketch:
                     )
                 dict = self.fillStatDictsFields(dict)
                 dict['rel_abs_n']   = rel_abs_n
-                dict['dwnSmpl']     = self.dwnSmpl
                 
                 if VERBOSE_PCL in self.verbose:
                     self.dumpDictToPcl    (dict)
@@ -422,6 +421,7 @@ class CountMinSketch:
         dict['numFlows']    = self.numFlows
         dict['seed']        = self.seed
         dict['maxValBy']    = self.maxValBy
+        dict['dwnSmpl']     = self.dwnSmpl
         return dict
     
 def LaunchCmsSim (
@@ -464,8 +464,9 @@ def LaunchCmsSim (
             numEpsilonStepsIceBkts  = 6, 
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
-            numOfExps               = 10, 
-            verbose                 = [VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES, VERBOSE_PCL], #VERBOSE_LOG_DWN_SMPL] #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
+            numOfExps               = 1, #$$$ 10,
+            maxNumIncs              = 100000, #$$$  
+            verbose                 = [VERBOSE_LOG_SHORT, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], #[VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES, VERBOSE_PCL], #VERBOSE_LOG_DWN_SMPL] #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
         )
         cms.sim ()
 
@@ -492,9 +493,9 @@ def runMultiProcessSim ():
     
 if __name__ == '__main__':
     try:
-        mode = 'AEE_ds' #'F3P_li_h3_ds'     
+        mode = 'AEE_ds' #'F3P_li_h3_ds' 
         for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: 
-            for width in [2**i for i in range (10, 19)]:  
+            for width in [8]: #[2**i for i in range (10, 19)]: #$$  
                 LaunchCmsSim (
                     traceName   = traceName,
                     cntrSize    = 8,
