@@ -204,10 +204,11 @@ class SingleCntrSimulator (object):
     
     def measureResolutionsByModes (
             self, 
-            delPrevPcl  = False, # When True, delete the previous .pcl file, if exists
-            cntrSizes   = [], 
-            expSize     = None, # num of bits in the exponent to run  
-            modes       = [], # modes (type of counter) to run
+            delPrevPcl  : bool = False, # When True, delete the previous .pcl file, if exists
+            cntrSizes   : list = [], 
+            expSize     : list = None, # num of bits in the exponent to run
+            maxValBy    : str  = None,  
+            modes       : list = [], # modes (type of counter) to run
             ) -> None:    
         """
         Loop over all requested modes and cntrSizes, measure the relative resolution, and write the results to output files as defined by self.verbose.
@@ -221,9 +222,7 @@ class SingleCntrSimulator (object):
             resFileName  = 'resolutionByModes'
             self.resFile = open(f'../res/{resFileName}.res', 'ab+')
         for self.cntrSize in cntrSizes:
-            self.conf = getConfByCntrSize (cntrSize=self.cntrSize)
-            self.cntrMaxVal   = self.conf['cntrMaxVal'] 
-            self.hyperSize    = self.conf['hyperSize'] 
+            self.cntrMaxVal   = getCntrMaxValFromFxpStr(cntrSize=self.cntrSize, fxpSettingStr=maxValBy)                
             for self.mode in modes:
                 self.genCntrRecord (expSize=None if self.mode.startswith('SEAD_stat') else expSize)
                 listOfVals = np.empty (2**self.cntrSize)
@@ -232,6 +231,9 @@ class SingleCntrSimulator (object):
                     listOfVals[i] = (self.cntrRecord['cntr'].cntr2num(cntrVec))           
                 listOfVals = np.sort (listOfVals)
                 print (f'mode={self.mode}, maxVal={listOfVals[-1]}')
+                zeroEntries = np.where (listOfVals[1:]==0)[0]
+                if len(zeroEntries)>0:
+                    error (f'mode={self.mode}: a zero entry in the divisor in entries\n{zeroEntries}.Divisor is\n{listOfVals[1:]}')
                 points = {'X' : listOfVals[:len(listOfVals)-1], 'Y' : np.divide (listOfVals[1:] - listOfVals[:-1], listOfVals[1:])}
                 dict = {'mode' : self.mode, 'cntrSize' : self.cntrSize, 'points' : points}
                 if VERBOSE_PCL in self.verbose:
@@ -269,9 +271,10 @@ class SingleCntrSimulator (object):
             if VERBOSE_PCL in self.verbose:
                 self.dumpDictToPcl ({'settingStr' : settingStr, 'points' : points})
 
-    def genCntrRecord (self,
-                       expSize=None, # When expSize==None, read the expSize from the hard-coded configurations in py 
-                       ):
+    def genCntrRecord (
+            self,
+            expSize=None, # When expSize==None, read the expSize from the hard-coded configurations in settings.py 
+        ):
         """
         Set self.cntrRecord, which holds the counters to run
         """
@@ -329,7 +332,7 @@ class SingleCntrSimulator (object):
         if (VERBOSE_DETAILED_LOG in self.verbose): # a detailed log include also all the prints of a simple log
             verbose.append(VERBOSE_LOG)
         if cntrMaxVal==None:
-            self.conf = getConfByCntrSize (cntrSize=self.cntrSize)
+            self.conf         = getConfByCntrSize (cntrSize=self.cntrSize)
             self.cntrMaxVal   = self.conf['cntrMaxVal']
             self.hyperSize    = self.conf['hyperSize'] 
             self.hyperMaxSize = self.conf['hyperMaxSize'] 
@@ -377,47 +380,6 @@ class SingleCntrSimulator (object):
         """
         if VERBOSE_PCL in self.verbose:
             self.pclOutputFile.close ()
-
-    def runSingleCntr (self, 
-                       cntrSize, 
-                       modes        = [], # modes (type of counter) to run  
-                       maxRealVal   = None, # The maximal value to be counted at each experiment, possibly using down-sampling. When None (default), will be equal to cntrMaxval. 
-                       cntrMaxVal   = None, # cntrMaxVal - The maximal value that the cntr can represent w/o down-sampling. When None (default), take cntrMaxVal from Confs.  global parameter (found in this file). 
-                       hyperSize    = None, # Relevant only for F2P counter. When cntrMaxVal==None (default), take hyperSize from Confs global parameter (found in this file). 
-                       hyperMaxSize = None, # Relevant only for F3P counter. When cntrMaxVal==None (default), take hyperMaxSize from Confs global parameter (found in this file). 
-                       expSize      = None, # Size of the exponent. Relevant only for Static SEAD counter. If cntrMaxVal==None (default), take expSize from Confs global parameter (found in this file). 
-                       numOfExps    = 1,    # number of experiments to run. 
-                       dwnSmple     = False,# When True, down-sample each time the counter's maximum value is reached.
-                       erTypes      = [],   # either 'RdEr', 'WrEr', 'RdRmse' or 'WrRmse'.
-                       rel_abs_n    = True, # When True, consider rel err. Else, consider abs err.
-                       ):
-        """
-        run a single counter of each given mode for the requested numOfExps.
-        Write the results (statistics) as determined by self.verbose to either .pcl / .res output file.
-        about the absolute/relative error) to a .res file.
-        The wr ("hitting time") error  of a counter for a given is the number of increments until the counter reaches this value.
-            For instance, suppose we have 100 experiments, and the number of increments until the counter's value is 10 are: 8,9,11,13. 
-            Then, CEDAR-style relative error is stdev([8,9,11,13])/avg([8,9,11,13]). 
-            In practice, it's fair to assume that the avg hitting time is the relevant counter's value. E.g., in the example above,
-            assume that avg([8,9,11,13]) = 10.
-        The read error of a counter is caluclated as follows:
-            Upon each increment of the real cntr (measured) value, define the error as the difference between the measured value, 
-            and the value represented by the cntr.
-        """
-        self.cntrSize       = cntrSize
-        self.maxRealVal     = maxRealVal
-        self.cntrMaxVal     = cntrMaxVal 
-        self.hyperSize      = hyperSize
-        self.hyperMaxSize   = hyperMaxSize
-        self.expSize        = expSize
-        self.numOfExps      = numOfExps
-        self.dwnSmple       = dwnSmple
-        self.erTypes        = erTypes # the error modes to calculate. See possible erTypes in the documentation above.
-        if (VERBOSE_DETAILED_LOG in self.verbose): # a detailed log include also all the prints of a simple log
-            verbose.append(VERBOSE_LOG)
-        for self.mode in modes:
-            self.runSingleCntrSingleMode ()
-        return
 
 def genCntrMasterFxp (
         cntrSize        : int, 
@@ -569,11 +531,8 @@ def getCntrsMaxValsFxp (
     for cntrSize in cntrSizeRange:
         for hyperSize in range (1,cntrSize-2) if hyperSizeRange==None else hyperSizeRange:
             myCntrMaster = genCntrMasterFxp (
-                fxpSettingStr = f'{nSystem}_{flavor}_h{hyperSize}',
-                # nSystem     = nSystem, 
-                # flavor      = flavor, 
+                fxpSettingStr = f'{nSystem}_{flavor}_h{hyperSize}', #$$$
                 cntrSize    = cntrSize, 
-                # hyperSize   = hyperSize
             )
             if not(myCntrMaster.isFeasible):
                 continue
@@ -592,7 +551,7 @@ def getCntrsMaxValsFxp (
                 printf (outputFile, '{} cntrMaxVal={}\n' .format (myCntrMaster.genSettingsStr(), cntrMaxVal))
     return cntrMaxVal
 
-def getFxpCntrMaxVal (
+def getCntrMaxValFromFxpStr (
         cntrSize : int,
         fxpSettingStr : str
         ) -> float:
@@ -600,7 +559,7 @@ def getFxpCntrMaxVal (
     Given a string detailing the settings an F2P/F3P counter, returns its maximum representable value. 
     """
     if not(fxpSettingStr.startswith('F2P')) and not(fxpSettingStr.startswith('F3P')):
-        error (f'SingleCntrSimulator.getFxpCntrMaxVal() was called with Fxp settings str={fxpSettingStr}')
+        error (f'SingleCntrSimulator.getCntrMaxValFromFxpStr() was called with Fxp settings str={fxpSettingStr}')
     myCntrMaster = genCntrMasterFxp (cntrSize=cntrSize, fxpSettingStr=fxpSettingStr)
     return myCntrMaster.getCntrMaxVal ()
 
@@ -633,8 +592,8 @@ def testDwnSmpling ():
     cntrSize        = 8
     fxpSettingStr   = 'F2P_li_h2_ds'
     cntrMaster = genCntrMasterFxp(
-        cntrSize    = cntrSize, 
-        fxpSettingStr = fxpSettingStr, 
+        cntrSize        = cntrSize, 
+        fxpSettingStr   = fxpSettingStr, 
         verbose         = [VERBOSE_LOG_DWN_SMPL]
     ) 
     logFile = open (f'../res/log_files/{fxpSettingStr}_n{cntrSize}.log', 'w')
@@ -651,14 +610,7 @@ def main ():
     #     simController = SingleCntrSimulator (
     #         verbose = [VERBOSE_RES]
     #     ) 
-    #     numSettings = getFxpSettings (maxValBy)
-    #     cntrMaxVal = getCntrsMaxValsFxp (
-    #         nSystem         = numSettings['nSystem'], # either 'F2p' or 'F3P.
-    #         flavor          = numSettings['flavor'], 
-    #         hyperSizeRange  = [numSettings['hyperSize']], # list of hyper-sizes to consider  
-    #         cntrSizeRange   = [cntrSize], # list of cntrSizes to consider
-    #         verbose         = [VERBOSE_RES],
-    #     )
+    #     numSettings = getCntrMaxValFromFxpStr (cntrSize=cntrSize, fxpSettingStr=maxValBy) 
     #     for mode in modes:
     #         simController.runSingleCntrSingleMode \
     #             (dwnSmple       = False,  
@@ -669,12 +621,14 @@ def main ():
     #             erTypes         = ['WrEr'], # Options are: 'WrEr', 'WrRmse', 'RdEr', 'RdRmse' 
     #         )
         
-        simController = SingleCntrSimulator (verbose = []) #VERBOSE_RES, VERBOSE_PCL],)
+        simController = SingleCntrSimulator (verbose = [VERBOSE_PCL]) #VERBOSE_RES, VERBOSE_PCL],)
+        maxValBy      = 'F2P_li_h2'
         simController.measureResolutionsByModes (
             cntrSizes   = [8], 
             expSize     = 2, 
-            modes       = ['SEAD_stat', 'Morris', 'F2P_li_h2', 'AEE'],            
-            delPrevPcl  = False
+            maxValBy    = maxValBy,
+            modes       = [maxValBy, 'Morris', 'AEE', 'CEDAR'],            
+            delPrevPcl  = True
         ) 
         # simController.measureResolutionsBySettingStrs (
         #     delPrevPcl  = False, # When True, delete the previous .pcl file, if exists

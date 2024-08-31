@@ -39,11 +39,7 @@ class CntrMaster (Cntr.CntrMaster):
     # print the details of the counter in a convenient way
     printCntrLine = lambda self, cntrSize, delta, numCntrs, mantVal, cntrVal: print('cntrSize={}, delta={}' .format(cntrSize, delta))
 
-    # Given the cntr's integer value, returns the value it represents 
-    cntr2num = lambda self, i: self.estimators[i]
-    # # Given the cntr's vector, returns the it represents value #$$$
-    # cntr2num = lambda self, cntr : self.cntrInt2num (int (cntr, base=2)) #$$$
-    
+   
     # Given the cntr's index, returns estimation
     estimatedValOfCntrIdx = lambda self, idx : self.estimators[self.cntrs[idx]]
 
@@ -82,6 +78,16 @@ class CntrMaster (Cntr.CntrMaster):
             self.calcDiffsNSharedEstimators ()
         
     
+
+    def cntr2num (self, cntr): 
+        """
+        # Given the counter (as a binary vector string) return the value it represents
+        Given a cntr, return the value it represents
+        """
+        if isinstance (cntr, str):
+            cntr = int(cntr, base=2)
+        return self.estimators[cntr] 
+
     def findPreComputedDatum (self):
         """
         Returns the precomputed datum with the requested cntrSize.

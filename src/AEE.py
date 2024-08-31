@@ -16,8 +16,6 @@ class CntrMaster (Cntr.CntrMaster):
 
     # Generates a strings that details the counter's settings (param vals).    
     genSettingsStr = lambda self : f'AEE_n{self.cntrSize}_maxVal{self.cntrMaxVal}'
-       
-    
     
     setP        = lambda self : self.cntrMaxVec / self.cntrMaxVal # Set the value of the increment prob', p. 
 

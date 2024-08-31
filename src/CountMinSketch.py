@@ -9,7 +9,7 @@ from datetime import datetime
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_si, Morris, CEDAR, CEDAR_ds, AEE_ds
 from settings import * 
 from printf import printf, printarFp
-from SingleCntrSimulator import getFxpCntrMaxVal, genCntrMasterFxp
+from SingleCntrSimulator import getCntrMaxValFromFxpStr, genCntrMasterFxp
 np.set_printoptions(precision=1)
 
 class CountMinSketch:
@@ -60,7 +60,7 @@ class CountMinSketch:
             if self.cntrSize==4: # tiny counters, used for development and debugging
                 self.cntrMaxVal = 30
             else:
-                self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
+                self.cntrMaxVal = getCntrMaxValFromFxpStr (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
         random.seed (self.seed)
         self.numEpsilonStepsInRegBkt    = numEpsilonStepsInRegBkt
         self.numEpsilonStepsInXlBkt     = numEpsilonStepsInXlBkt
@@ -73,7 +73,6 @@ class CountMinSketch:
             error (f'CountMinSketch__init() was called with numCntrs={self.numCntrs}, numCntrsPerBkt={self.numCntrsPerBkt}. However, numCntrs should be divisible by numCntrsPerBkt')           
         if self.numBuckets < 1:
             error (f'CountMinSketch.__init() was called with numOfBkts={self.numOfBkts}')
-        self.conf       = getConfByCntrSize (cntrSize=self.cntrSize)
         self.verbose = verbose
         self.genOutputDirectories ()
 
@@ -492,7 +491,7 @@ def runMultiProcessSim ():
     
 if __name__ == '__main__':
     try:
-        mode = 'F3P_li_h3_ds' #'F3P_li_h3_ds' 
+        mode = 'F2P_li_h2_ds' #'F3P_li_h3_ds' 
         for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: 
             for width in [2**i for i in range (10, 19)]:   
                 LaunchCmsSim (

@@ -379,7 +379,7 @@ class ResFileParser (object):
             pointsOfThisCntrSize = [point for point in points if point['cntrSize']==cntrSize]
             printf (datOutputFile, f'{cntrSize} & ')
             if maxValBy!=None:
-                cntrMaxVal = int (SingleCntrSimulator.getFxpCntrMaxVal (
+                cntrMaxVal = int (SingleCntrSimulator.getCntrMaxValFromFxpStr (
                     cntrSize = cntrSize,
                     fxpSettingStr = maxValBy 
                 ))
@@ -653,10 +653,10 @@ class ResFileParser (object):
         
        
     def genResolutionPlotByModes (self,
-            modes           = [],   # modes for which the plot will be generated. 
             cntrSize        = 8,    # cntrSizes for which the plot will be generated. 
             minCntrVal      = 0,  # min' X (counter) value at the plot
             xLog            = False,    # When True, plot the x axis in a log' scaling.
+            ignoreModes     = [],       # modes to ignore (do NOT plot for these modes)
             ) -> None:
         """
         Generate a plot showing the resolution as a function of the counted val for the given modes
@@ -665,8 +665,12 @@ class ResFileParser (object):
         _, ax = plt.subplots()
         points = [point for point in self.points if point['cntrSize'] == cntrSize]
         modes = list(set([point['mode'] for point in points]))
-        xMaxVals = []
-        for mode in modes:
+        modes = [item for item in modes if not(item in ignoreModes)]
+        xMaxVals = np.zeros (len(modes))
+        yMinVal  = float('inf')
+        yMaxVal  = 0
+        for i in range(len(modes)):
+            mode = modes[i]
             pointsOfThisMode = [point for point in points if point['mode'] == mode]
             if pointsOfThisMode == []:
                 print (f'No points found for mode {mode}')
@@ -674,10 +678,20 @@ class ResFileParser (object):
             if len(pointsOfThisMode) > 1:
                 settings.error (f'More than a single list of points for mode {mode}')
             points2plot = pointsOfThisMode[0]['points']
-        
-            xMaxVals.append (points2plot['X'][-1]) # the array should be sorted; the last val is the largest val
-            ax.plot (points2plot['X'], points2plot['Y'], color=colorOfMode(mode), marker=markerOfMode(mode),
-                     markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=mode, mfc='none') 
+            xMaxVals[i] = points2plot['X'][-1] # the array should be sorted; the last val is the largest val
+            yMaxVal = max (yMaxVal, np.max(points2plot['Y']))
+            yMinVal = min (yMinVal, np.min(points2plot['Y']))
+            ax.plot (
+                points2plot['X'], 
+                points2plot['Y'], 
+                color       = colorOfMode(mode), 
+                marker      = markerOfMode(mode),
+                markersize  = MARKER_SIZE_SMALL, 
+                linewidth   = LINE_WIDTH_SMALL,
+                # linestyle   = '', 
+                label       = mode, 
+                mfc         = 'none'
+            ) 
 
         plt.xlabel('Counted Value')
         plt.ylabel(f'Relative Resolution')
@@ -685,8 +699,9 @@ class ResFileParser (object):
         if xLog: 
             plt.xscale ('log')
 
-        plt.xlim ([minCntrVal, min(xMaxVals)])
-        # plt.ylim (0.01, 0.1) 
+        plt.xlim ([minCntrVal, np.min(xMaxVals)])
+        print (f'yMinVal={yMinVal}, yMaxVal={yMaxVal}')
+        plt.ylim (0.99*yMinVal, 1.01*yMaxVal) 
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)        
@@ -933,7 +948,7 @@ class ResFileParser (object):
                     printf (resFile, ' & ' .format (pointsOfThisDistAndMode[0][errType]/minErr))
             printf (resFile, ' \\\\ \n')
 
-def genResolutionPlot ():
+def genResolutionPlotByModes ():
     """
     Generate plots showing the resolution as a function of the counted val for the given modes
     """
@@ -941,10 +956,10 @@ def genResolutionPlot ():
     my_ResFileParser = ResFileParser ()
     byModes = True
     if byModes:
-        my_ResFileParser.rdPcl (pclFileName=f'resolutionByModes.pcl')
+        my_ResFileParser.rdPcl (pclFileName=f'resolutionByModes_F3P.pcl')
         for cntrSize in [8]:  # , 12, 16]:
             my_ResFileParser.genResolutionPlotByModes (
-                modes       = ['SEAD_stat', 'Morris', 'F2P_li', 'AEE'],   
+                # ignoreModes = ['CEDAR'],
                 minCntrVal  = 1000,
                 cntrSize    = cntrSize,
                 xLog        = False
@@ -1168,7 +1183,7 @@ def genErVsMemSizePlotSpaceSaving (
 
 if __name__ == '__main__':
     try:
-        genResolutionPlot ()
+        genResolutionPlotByModes ()
         # genErVsMemSizePlotCms (
         #     ignoreModes = ['PerfectCounter', 'SEAD_dyn', 'AEE_ds']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
         # )

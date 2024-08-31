@@ -101,7 +101,7 @@ def modesOfCntrSize (cntrSize):
 def getConfByCntrSize (cntrSize):
     """
     given the counter's size, return the configuration with that counter size.
-    If the number of configurations with that counter's size, exit with a proper error message.
+    If the number of configurations with that counter's size is not 1, exit with a proper error message.
     """
     listOfConfs = [item for item in Confs if item['cntrSize']==cntrSize]
     if (len(listOfConfs)<1): 
@@ -109,6 +109,38 @@ def getConfByCntrSize (cntrSize):
     elif (len(listOfConfs)>1):
         error (f'Sorry. Too many known configurations for cntrSize={cntrSize}')
     return listOfConfs[0]
+   
+def getConfByCntrMaxVal (cntrSize, cntrMaxVal):
+    """
+    return the hard-coded configuration that has the required counter size and counter max size. 
+    If the number of configurations with that counter's size is not 1, exit with a proper error message.
+    """
+    listOfConfs = [item for item in Confs if item['cntrSize']==cntrSize and item['cntrMaxVal']==cntrMaxVal]
+    if (len(listOfConfs)<1): 
+        error (f'Sorry. No known configuration for cntrSize={cntrSize} and cntrMaxVal={cntrMaxVal}')
+    elif (len(listOfConfs)>1):
+        error (f'Sorry. Too many known configurations for cntrSize={cntrSize} and cntrMaxVal={cntrMaxVal}')
+    return listOfConfs[0]
+
+
+# def getSeadExpSizeByCntrMaxVal (
+#         cntrSize    : int,
+#         cntrMaxVla  : int, 
+#     ) -> int:
+#     """
+#     return the size of the exponent field in Sead_stat with the required counter size and counter max size. 
+#     """
+#     seadStatConfs = [
+#         {'cntrSize: 8,    'cntrMaxVal: 8032,     'expSize' : 3},
+#         {'cntrSize: 8,    'cntrMaxVal: 1015792,  'expSize' : 4},
+#         {'cntrSize: 9,    'cntrMaxVal, 16192,    'expSize' : 3},
+#         {'cntrSize: 9,    'cntrMaxVal, 2064352   'expSize' : 4},
+#         {'cntrSize: ,     'cntrMaxVal,           'expSize' : },
+#         {'cntrSize: ,     'cntrMaxVal,           'expSize' : },
+#         {'cntrSize: ,     'cntrMaxVal,           'expSize' : },
+#         {'cntrSize: ,     'cntrMaxVal,           'expSize' : },
+#     ] 
+    
    
 def getTraceLen (
         traceName

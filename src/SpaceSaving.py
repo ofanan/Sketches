@@ -10,7 +10,7 @@ import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_
 from settings import * 
 from ttictoc import tic,toc
 from printf import printf, printarFp 
-from SingleCntrSimulator import getFxpCntrMaxVal, genCntrMasterFxp
+from SingleCntrSimulator import getCntrMaxValFromFxpStr, genCntrMasterFxp
 from CountMinSketch import CountMinSketch
 from _ast import Or
 
@@ -25,7 +25,7 @@ class SpaceSaving (CountMinSketch):
         verbose         = [], # The chosen verbose options, detailed in settings.py, determine the output (e.g., to a .pcl, .res or .log file).
         cacheSize       = 1, # number of counters -- actually, the cache's size
         numFlows        = 10, # the total number of flows to be estimated.
-        seed            = settings.SEED,
+        seed            = SEED,
         traceFileName   = None,
         maxValBy        = None, # How to calculate the maximum value (for SEAD/CEDAR).   
         numOfExps       = 1, 
@@ -52,7 +52,7 @@ class SpaceSaving (CountMinSketch):
             else:
                 self.cntrMaxVal = getTraceLen(self.traceFileName)
         else:
-            self.cntrMaxVal = getFxpCntrMaxVal (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
+            self.cntrMaxVal = getCntrMaxValFromFxpStr (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
         random.seed (self.seed)
 
     def incNQueryFlow(
@@ -199,8 +199,6 @@ class SpaceSaving (CountMinSketch):
                     estimatedVal    = flowEstimatedVal,
                     realVal         = flowRealVal[flowId]
                 )     
-            if VERBOSE_FULL_RES in self.verbose:
-                dict = settings
             
     def sim (
         self, 
@@ -290,12 +288,12 @@ class SpaceSaving (CountMinSketch):
 #     )
 #     ss.sim ()
     
-def threadLuncher (
-        traceFileName, 
-        cntrSize, 
-        mode,
-        maxNumIncs, 
-        cacheSize,
+def LaunchSsSim (
+        traceFileName   : str, 
+        cntrSize        : int, 
+        mode            : str, # a string, detailing the mode of the counter, e.g. "F2P_li_h2".
+        maxNumIncs      : float = float ('inf'), 
+        cacheSize       : int,
     ):
     if traceFileName=='Rand':
         ss = SpaceSaving (
@@ -326,33 +324,14 @@ if __name__ == '__main__':
     try:
         # thread = Thread (target = threaded_function, args = (10, ))
         for cacheSize in [2**i for i in range(10, 19)]:
-            for trace in ['Caida1', 'Caida2']:
-                threading.Thread (
-                    target = threadLuncher, 
-                    args   = (trace,), 
-                    kwargs = {
-                        'cntrSize'      : 8,
-                        'mode'          : 'F2P_li_h2_ds',
-                        'maxNumIncs'    : float ('inf'),
-                        'cacheSize'     : cacheSize,
-                    }
-                    ).start()
-            print (f'Launched ss thread for cahceSize={cacheSize}')    
-        # thread = Thread (target = runSS, args = (10, 3, 2, 1))# cntrSize  = 8, mode = mode, cacheSize = cacheSize, traceFileName   = 'Caida2'))
-        # thread.start()
+            for traceFileName in ['Caida1', 'Caida2']:
+                LaunchSsSim (
+                    traceFileName   = traceFileName, 
+                    cntrSize        = 8, 
+                    mode            = 'F2P_li_h2_ds', # a string, detailing the mode of the counter, e.g. "F2P_li_h2".
+                    maxNumIncs      = maxNumIncs, 
+                    cacheSize       = cacheSize
+                )
 
-        # thread = Thread (target = threaded_function, args = (cntrSize  = 8, mode = mode, cacheSize = cacheSize, traceFileName   = 'Caida2'))
-                # )
-            # )
-            # for cacheSize in [2**i for i in range(10, 19)]:
-            # # for mode in ['F2P_li_h2_ds']:    
-            # # for mode in ['CEDAR_ds']:    
-            # for mode in ['AEE_ds']:    
-            #     runSS (
-            #         cntrSize        = 8,
-            #         mode            = mode,
-            #         cacheSize       = cacheSize,
-            #         traceFileName   = 'Caida2',
-            #     )
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
