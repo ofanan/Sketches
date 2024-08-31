@@ -13,7 +13,11 @@ from CountMinSketch import CountMinSketch
 from _ast import Or
 
 class SpaceSaving (CountMinSketch):
-
+    """
+    Efficient `Counter`-like structure for approximating the top `m` elements of a stream, in O(m)
+    space (https://www.cse.ust.hk/~raywong/comp5331/References/EfficientComputationOfFrequentAndTop-kElementsInDataStreams.pdf).
+    """
+    
     # Generate a string that details the parameters' values.
     genSettingsStr = lambda self : f'ss_{self.traceFileName}_{self.mode}_n{self.cntrSize}'
     
@@ -35,15 +39,11 @@ class SpaceSaving (CountMinSketch):
         self.cntrSize, self.traceFileName = cntrSize, traceFileName
         self.maxNumIncs, self.numOfExps, = maxNumIncs, numOfExps
         self.cacheSize, self.numFlows, self.mode, self.seed = cacheSize, numFlows, mode, seed
-        self.usedCacheSpace = 0 
-        self.verbose = verbose
-        self.cntrsAr = defaultdict(int)
         self.genOutputDirectories ()
         self.openOutputFiles ()
-        self.flowIds    = np.zeros (self.cacheSize, dtype='uint32')
-        self.flowSizes  = np.zeros (self.cacheSize, dtype='uint32')
-        self.dwnSmpl    = self.mode.endswith('_ds')
-        self.maxValBy   = maxValBy
+        self.verbose        = verbose
+        self.dwnSmpl        = self.mode.endswith('_ds')
+        self.maxValBy       = maxValBy
         if self.maxValBy==None: # By default, the maximal counter's value is the trace length 
             if self.traceFileName=='Rand':
                 self.cntrMaxVal = self.maxNumIncs
@@ -52,6 +52,15 @@ class SpaceSaving (CountMinSketch):
         else:
             self.cntrMaxVal = getCntrMaxValFromFxpStr (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
         random.seed (self.seed)
+
+    def rstCache (self):
+        """
+        rst the cache. To be called at the beginning of each experiment 
+        """             
+        self.usedCacheSpace = 0 
+        self.flowIds        = np.zeros (self.cacheSize, dtype='uint32')
+        self.flowSizes      = np.zeros (self.cacheSize, dtype='uint32')    
+        self.flowRealVal         = np.zeros(self.numFlows)
 
     def incNQueryFlow(
             self, 
@@ -67,18 +76,39 @@ class SpaceSaving (CountMinSketch):
             error (f'In SpaceSaving.incNQueryFlow(). More than 2 cache entries for flowId {flowId}')
         if len(idxOfFlowIdInCache)==1: # looked item is already cached
             cntrIdx = idxOfFlowIdInCache[0]
-            self.flowSizes[cntrIdx] = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob-inc. the counter, and get its val
         elif self.usedCacheSpace<self.cacheSize: # looked item is not cached, but cache isn't full
             cntrIdx                  = self.usedCacheSpace
             self.flowIds  [cntrIdx]  = flowId # insert flowId into the $
-            self.flowSizes[cntrIdx]  = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob-inc. the counter, and get its val
             self.usedCacheSpace     += 1
         else: # didn't find flowId in the $ --> insert the flowId
             cntrIdx = np.argmin (self.flowSizes)
-            self.flowIds  [cntrIdx] = flowId # replace the item by the newly-inserted flowId
-            self.flowSizes[cntrIdx] = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob'-inc. the value
+            self.flowIds [cntrIdx] = flowId # replace the item by the newly-inserted flowId
+        self.flowSizes[cntrIdx] = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob'-inc. the value
         return self.flowSizes[cntrIdx]
         
+    def genOutputDirectories (self):
+        """
+        Generate and open the directories for output (results, logs, etc.):
+        - Generate directories for the output files if not exist
+        - Verify the verbose level requested.
+        """      
+        if VERBOSE_DETAILED_RES in self.verbose or VERBOSE_FULL_RES in self.verbose:
+            self.verbose.append (VERBOSE_RES)
+        if not (VERBOSE_PCL in self.verbose):
+            print ('Note: verbose does not include .pcl')  
+        
+        pwdStr = os.getcwd()
+        if (pwdStr.find ('itamarc')>-1): # the string 'HPC' appears in the path only in HPC runs
+            self.machineStr  = 'HPC' # indicates that this sim runs on my PC
+        else:
+            self.machineStr  = 'PC' # indicates that this sim runs on an HPC       
+        if not (os.path.exists('../res')):
+            os.makedirs ('../res')
+        if not (os.path.exists('../res/log_files')):
+            os.makedirs ('../res/log_files')
+        if not (os.path.exists('../res/pcl_files')):
+            os.makedirs ('../res/pcl_files')
+
     def openOutputFiles (self) -> None:
         """
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
@@ -106,7 +136,6 @@ class SpaceSaving (CountMinSketch):
         print ('{} running ss at t={}. trace={}, numOfExps={}, mode={}, cntrSize={}, cacheSize={}' .format (
                         str, datetime.now().strftime('%H:%M:%S'), self.traceFileName, self.numOfExps, self.mode, self.cntrSize, self.cacheSize))
 
-
     def printLogLine (
             self, 
             flowId, 
@@ -126,79 +155,6 @@ class SpaceSaving (CountMinSketch):
                 ' incNum={}, flowId={}, flowSizes={}, estimatedVal={:.0f} realVal={}\n' .format(
                 self.incNum, flowId, self.flowSizes, estimatedVal, realVal)) 
 
-    def runSimFromTrace (self):
-        """
-        Run a simulation where the input is taken from self.traceFileName.
-        """
-
-        if self.numFlows==None:
-            error ('In SpaceSaving.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
-
-        relativePathToInputFile = getRelativePathToTraceFile (f'{self.traceFileName}.txt')
-        checkIfInputFileExists (relativePathToInputFile)
-        for self.expNum in range (self.numOfExps):
-            self.seed = self.expNum+1 
-            random.seed (self.seed)
-            self.genCntrMaster () # Generate a fresh, empty CntrMaster, for each experiment
-            self.cntrMaster.setLogFile(self.logFile)
-            if self.expNum==0 and self.logFile!=None:
-                printf (self.logFile, f'// cntrMaxVal = {self.cntrMaxVal}\n')
-            flowRealVal = [0] * self.numFlows
-            self.incNum = 0
-            self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
-            
-            traceFile = open (relativePathToInputFile, 'r')
-            for row in traceFile:            
-                flowId = int(row) 
-                self.incNum  += 1                
-                flowRealVal[flowId]     += 1
-                
-                flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
-                sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
-                self.sumSqAbsEr[self.expNum] += sqEr    
-                self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
-                self.printLogLine (
-                    flowId          = flowId, 
-                    estimatedVal    = flowEstimatedVal,
-                    realVal         = flowRealVal[flowId]
-                )
-                if VERBOSE_DETAILED_LOG in self.verbose and self.incNum>10000: #$$$
-                    printf (self.logFile, 'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumAbsSqEr={:.1e}, sumRelSqEr={:.1e}\n' .format (self.incNum, flowRealVal[flowId], flowEstimatedVal, sqEr, sqEr/(flowRealVal[flowId])**2, self.sumSqAbsEr[self.expNum], self.sumSqRelEr[self.expNum]))
-                if self.incNum==self.maxNumIncs:
-                    break
-        traceFile.close ()
-    
-        if VERBOSE_LOG_END_SIM in self.verbose:
-            printf (self.logFile, '// cacheSize={self.cacheSize}')
-            self.cntrMaster.printCntrsStat (self.logFile, genPlot=True) 
-            self.cntrMaster.printAllCntrs  (self.logFile)
-    
-    def runSimRandInput (self):
-        """
-        Run a simulation with synthetic, randomly-generated, input.
-        """
-             
-        randInput = True
-        for self.expNum in range (self.numOfExps):
-            flowRealVal = [0] * self.numFlows
-            self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
-            self.genCntrMaster ()
-            self.cntrMaster.setLogFile (self.logFile)
-            printf (self.logFile, f'// cntrMaxVal = {self.cntrMaxVal}\n')
-
-            for self.incNum in range(self.maxNumIncs):
-                flowId = random.randint (0, self.numFlows-1)
-                flowRealVal[flowId]     += 1
-                flowEstimatedVal   = self.incNQueryFlow (flowId=flowId)
-                sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
-                self.sumSqAbsEr[self.expNum] += sqEr                
-                self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2
-                self.printLogLine (
-                    flowId          = flowId, 
-                    estimatedVal    = flowEstimatedVal,
-                    realVal         = flowRealVal[flowId]
-                )     
-            
     def sim (
         self, 
         ):
@@ -228,27 +184,27 @@ class SpaceSaving (CountMinSketch):
             random.seed (self.seed) 
             self.genCntrMaster () # Generate a fresh, empty CntrMaster, for each experiment
             self.cntrMaster.setLogFile(self.logFile)
-            flowRealVal = np.zeros(self.numFlows)
+            self.rstCache()
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
 
             for self.incNum in range(self.maxNumIncs):
                 flowId = self.trace[self.incNum]            
-                flowRealVal[flowId]     += 1
+                self.flowRealVal[flowId]     += 1
                 flowEstimatedVal = self.incNQueryFlow (flowId)
-                sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
+                sqEr = (self.flowRealVal[flowId] - flowEstimatedVal)**2
                 self.sumSqAbsEr[self.expNum] += sqEr    
-                self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
+                self.sumSqRelEr[self.expNum] += sqEr/(self.flowRealVal[flowId])**2                
                 if VERBOSE_LOG_SHORT in self.verbose: 
                     self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=False)
-                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
-                        self.incNum, traceHashes[self.incNum], flowEstimatedVal, flowRealVal[flowId]))
+                    printf (self.logFile, 'incNum={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
+                        self.incNum, flowEstimatedVal, self.flowRealVal[flowId]))
                 elif VERBOSE_LOG in self.verbose: 
                     self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=True)
-                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
-                        self.incNum, traceHashes[self.incNum], flowEstimatedVal, flowRealVal[flowId]))
+                    printf (self.logFile, 'incNum={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
+                        self.incNum, flowEstimatedVal, self.flowRealVal[flowId]))
                 if VERBOSE_DETAILED_LOG in self.verbose and self.incNum>10000: #$$$
                     printf (self.logFile, 'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumSqAbsEr={:.1e}, sumSqRelEr={:.1e}\n' .format (
-                        self.incNum, flowRealVal[flowId], flowEstimatedVal, sqAbsEr, sqRelEr, self.sumSqAbsEr[self.expNum], self.sumSqRelEr[self.expNum]))
+                        self.incNum, self.flowRealVal[flowId], flowEstimatedVal, sqAbsEr, sqRelEr, self.sumSqAbsEr[self.expNum], self.sumSqRelEr[self.expNum]))
             if self.expNum==0: # Log (if at all) only in the first experiment. No need to log again in further exps.
                 self.logEndSim ()
                 self.rmvVerboseLogs ()
@@ -291,8 +247,8 @@ def LaunchSsSim (
         traceFileName   : str, 
         cntrSize        : int, 
         mode            : str, # a string, detailing the mode of the counter, e.g. "F2P_li_h2".
-        maxNumIncs      : float = float ('inf'), 
         cacheSize       : int,
+        maxNumIncs      : float = float ('inf'), 
     ):
     """
     Lanuch a simulation of Space Saving.
@@ -323,7 +279,7 @@ def LaunchSsSim (
     ss.sim ()
     
 if __name__ == '__main__':
-    try:
+    try:        
         for cacheSize in [2**i for i in range(10, 19)]:
             for traceFileName in ['Caida1', 'Caida2']:
                 LaunchSsSim (
