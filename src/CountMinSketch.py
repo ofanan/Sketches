@@ -447,13 +447,13 @@ def LaunchCmsSim (
             verbose                 = [], #[VERBOSE_LOG_SHORT, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, VERBOSE_DETAILS
             numOfExps               = 1, 
             maxNumIncs              = 10,
-            maxValBy                = 'F3P_li_h3',
+            maxValBy                = 'F2P_li_h2',
             cntrSize                = cntrSize, 
         )
         cms.sim ()
     else:
         cms = CountMinSketch (
-            maxValBy        = 'F3P_li_h3',
+            maxValBy        = 'F2P_li_h2',
             width           = width,
             depth           = depth,
             numFlows        = getNumFlowsByTraceName (traceName), 
@@ -464,9 +464,8 @@ def LaunchCmsSim (
             numEpsilonStepsIceBkts  = 6, 
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
-            numOfExps               = 1, #$$$ 10,
-            maxNumIncs              = 100000, #$$$  
-            verbose                 = [VERBOSE_LOG_SHORT, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], #[VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES, VERBOSE_PCL], #VERBOSE_LOG_DWN_SMPL] #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
+            numOfExps               = 10,
+            verbose                 = [VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES, VERBOSE_PCL], #VERBOSE_LOG_DWN_SMPL] #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
         )
         cms.sim ()
 
@@ -493,9 +492,9 @@ def runMultiProcessSim ():
     
 if __name__ == '__main__':
     try:
-        mode = 'AEE_ds' #'F3P_li_h3_ds' 
+        mode = 'F3P_li_h3_ds' #'F3P_li_h3_ds' 
         for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: 
-            for width in [8]: #[2**i for i in range (10, 19)]: #$$  
+            for width in [2**i for i in range (10, 19)]:   
                 LaunchCmsSim (
                     traceName   = traceName,
                     cntrSize    = 8,

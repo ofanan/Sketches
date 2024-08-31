@@ -26,12 +26,9 @@ class CntrMaster (Cntr.CntrMaster):
         # Given the counter (as a binary vector string) return the value it represents
         Given a cntr, return the value it represents
         """
-        if isinstance (cntr, int): 
-            return cntr / self.p
-        elif isinstance (cntr, str):
-            return float(int(cntr, base=2))/self.p
-        else:
-            error (f'in AEE.cntrwnum(): got cntr of unexpected type {type(cntr)}') #$$$  
+        if isinstance (cntr, str):
+            cntr = float(int(cntr, base=2))
+        return cntr / self.p
     
     def __init__ (
             self, 

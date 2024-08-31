@@ -67,7 +67,7 @@ class CntrMaster (object):
                 printf (outputFile, '] ')
             else:
                 for idx in range(self.numCntrs):
-                    printf (outputFile, '{} ' .format(self.cntr2num(cntr=self.cntrs[idx])))
+                    printf (outputFile, '{} ' .format(self.cntr2num(self.cntrs[idx])))
                 printf (outputFile, '] ')
 
 
