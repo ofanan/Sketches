@@ -323,7 +323,6 @@ class CountMinSketch:
         
     def sim (
         self, 
-        traceName   = None,
         ):
         """
         Simulate the count min sketch

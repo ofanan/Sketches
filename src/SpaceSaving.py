@@ -1,9 +1,7 @@
-import threading
 import matplotlib 
 import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time, heapq
 import numpy as np
-from threading import Thread
 from datetime import datetime
 from collections import defaultdict
 import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
@@ -36,14 +34,14 @@ class SpaceSaving (CountMinSketch):
         """
         self.cntrSize, self.traceFileName = cntrSize, traceFileName
         self.maxNumIncs, self.numOfExps, = maxNumIncs, numOfExps
-        self.numCntrs, self.numFlows, self.mode, self.seed = cacheSize, numFlows, mode, seed
-        self.cacheSize = self.numCntrs # In the particular case of the SS data structure, these are the same.
+        self.cacheSize, self.numFlows, self.mode, self.seed = cacheSize, numFlows, mode, seed
+        self.usedCacheSpace = 0 
         self.verbose = verbose
         self.cntrsAr = defaultdict(int)
         self.genOutputDirectories ()
         self.openOutputFiles ()
-        self.flowIds    = [None]*self.numCntrs
-        self.flowSizes  = np.zeros(self.numCntrs, dtype='uint32')
+        self.flowIds    = np.zeros (self.cacheSize, dtype='uint32')
+        self.flowSizes  = np.zeros (self.cacheSize, dtype='uint32')
         self.dwnSmpl    = self.mode.endswith('_ds')
         self.maxValBy   = maxValBy
         if self.maxValBy==None: # By default, the maximal counter's value is the trace length 
@@ -57,25 +55,28 @@ class SpaceSaving (CountMinSketch):
 
     def incNQueryFlow(
             self, 
-            flowId
+            flowId : int, # flow Id to (probabilistic) increment
         ):
         """
         Update the value for a single flow. Return the updated estimated value for this flow.
         To ease the finding of min item (without the need to perform cntr2num), we cache also the cached values.  
         """
+        idxOfFlowIdInCache = np.where (self.flowIds==flowId)[0]
+        
+        if len(idxOfFlowIdInCache)>1:
+            error (f'In SpaceSaving.incNQueryFlow(). More than 2 cache entries for flowId {flowId}')
         hit = False
-        for cntrIdx in range(self.numCntrs): # loop over the cache's elements
-            if self.flowIds[cntrIdx]==flowId: # found the flowId in the $
-                self.flowSizes[cntrIdx] = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob-inc. the counter, and get its val
-                hit = True 
-                break
-            elif self.flowIds[cntrIdx]==None: # the flowId isn't cached yet, and the $ is not full yet
-                self.flowIds  [cntrIdx] = flowId # insert flowId into the $
-                self.flowSizes[cntrIdx] = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob-inc. the counter, and get its val
-                hit = True 
-                break
-        if not(hit): # didn't found flowId in the $ --> insert it
-            cntrIdx = min(range(self.numCntrs), key=self.flowSizes.__getitem__) # find the index of the minimal cached item # to allow randomizing between all minimal items, np.where(a==a.min())
+        if len(idxOfFlowIdInCache)==1: # looked item is already cached
+            cntrIdx = idxOfFlowIdInCache[0]
+            self.flowSizes[cntrIdx] = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob-inc. the counter, and get its val
+            hit = True 
+        elif self.usedCacheSpace<self.cacheSize: # looked item is not cached, but cache isn't full
+            cntrIdx                  = self.usedCacheSpace
+            self.flowIds  [cntrIdx]  = flowId # insert flowId into the $
+            self.flowSizes[cntrIdx]  = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob-inc. the counter, and get its val
+            self.usedCacheSpace     += 1
+        if not(hit): # didn't find flowId in the $ --> insert it
+            cntrIdx = np.argmin (self.flowSizes)
             self.flowIds  [cntrIdx] = flowId # replace the item by the newly-inserted flowId
             self.flowSizes[cntrIdx] = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob'-inc. the value
         return self.flowSizes[cntrIdx]
@@ -91,7 +92,7 @@ class SpaceSaving (CountMinSketch):
             self.resFile = open (f'../res/ss_{self.traceFileName}_{getMachineStr()}.res', 'a+')
             
         if (VERBOSE_FULL_RES in self.verbose):
-            self.fullResFile = open (f'../res/ss_M{self.numCntrs}_{getMachineStr()}_full.res', 'a+')
+            self.fullResFile = open (f'../res/ss_M{self.cacheSize}_{getMachineStr()}_full.res', 'a+')
 
         self.logFile =  None # default
         if VERBOSE_LOG in self.verbose or \
@@ -105,7 +106,7 @@ class SpaceSaving (CountMinSketch):
         Print-screen an info msg about the parameters and hours of the simulation starting to run. 
         """             
         print ('{} running ss at t={}. trace={}, numOfExps={}, mode={}, cntrSize={}, cacheSize={}' .format (
-                        str, datetime.now().strftime('%H:%M:%S'), self.traceFileName, self.numOfExps, self.mode, self.cntrSize, self.numCntrs))
+                        str, datetime.now().strftime('%H:%M:%S'), self.traceFileName, self.numOfExps, self.mode, self.cntrSize, self.cacheSize))
 
 
     def printLogLine (
@@ -204,7 +205,7 @@ class SpaceSaving (CountMinSketch):
         self, 
         ):
         """
-        Simulate the Space Saving cache.
+        Simulate the count min sketch
         """
         
         self.sumSqAbsEr  = np.zeros (self.numOfExps) # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
@@ -212,10 +213,47 @@ class SpaceSaving (CountMinSketch):
         self.printSimMsg ('Started')
         self.openOutputFiles ()
         tic ()
-        if self.traceFileName=='Rand': # random input
-            self.runSimRandInput ()
-        else: # read trace from a file
-            self.runSimFromTrace ()
+        if self.numFlows==None:
+            error ('In CountMinSketch.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
+
+        if self.traceName=='Rand': # run synthetic, randomized trace
+            rng = np.random.default_rng()
+            self.trace = rng.integers (self.numFlows, size=self.maxNumIncs, dtype='uint32')
+        else:
+            relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}.txt')
+            checkIfInputFileExists (relativePathToInputFile, exitError=True)
+            self.trace = np.fromfile(relativePathToInputFile, count = self.maxNumIncs, sep='\n', dtype='uint32')
+        self.maxNumIncs = min (self.maxNumIncs, self.trace.shape[0]) 
+
+        for self.expNum in range (self.numOfExps):
+            self.seed = self.expNum+1
+            random.seed (self.seed) 
+            self.genCntrMaster () # Generate a fresh, empty CntrMaster, for each experiment
+            self.cntrMaster.setLogFile(self.logFile)
+            flowRealVal = np.zeros(self.numFlows)
+            self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
+
+            for self.incNum in range(self.maxNumIncs):
+                flowId = self.trace[self.incNum]            
+                flowRealVal[flowId]     += 1
+                flowEstimatedVal = self.incNQueryFlow (flowId)
+                sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
+                self.sumSqAbsEr[self.expNum] += sqEr    
+                self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
+                if VERBOSE_LOG_SHORT in self.verbose: 
+                    self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=False)
+                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
+                        self.incNum, traceHashes[self.incNum], flowEstimatedVal, flowRealVal[flowId]))
+                elif VERBOSE_LOG in self.verbose: 
+                    self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=True)
+                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
+                        self.incNum, traceHashes[self.incNum], flowEstimatedVal, flowRealVal[flowId]))
+                if VERBOSE_DETAILED_LOG in self.verbose and self.incNum>10000: #$$$
+                    printf (self.logFile, 'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumSqAbsEr={:.1e}, sumSqRelEr={:.1e}\n' .format (
+                        self.incNum, flowRealVal[flowId], flowEstimatedVal, sqAbsEr, sqRelEr, self.sumSqAbsEr[self.expNum], self.sumSqRelEr[self.expNum]))
+            if self.expNum==0: # Log (if at all) only in the first experiment. No need to log again in further exps.
+                self.logEndSim ()
+                self.rmvVerboseLogs ()
         for rel_abs_n in [True, False]:
             for statType in ['Mse', 'normRmse']:
                 sumSqEr = self.sumSqRelEr if rel_abs_n else self.sumSqAbsEr
@@ -228,12 +266,12 @@ class SpaceSaving (CountMinSketch):
                     )
                 dict = self.fillStatDictsFields(dict)
                 dict['rel_abs_n']   = rel_abs_n
-    
+                
                 if VERBOSE_PCL in self.verbose:
                     self.dumpDictToPcl    (dict)
                 if VERBOSE_RES in self.verbose:
                     printf (self.resFile, f'{dict}\n\n') 
-        print (f'Finished {self.incNum} increments. {genElapsedTimeStr (toc())}')
+        print (f'Finished {self.incNum+1} increments. {genElapsedTimeStr (toc())}')
 
                 
     def fillStatDictsFields (self, dict) -> dict:
@@ -243,51 +281,14 @@ class SpaceSaving (CountMinSketch):
         dict['numOfExps']   = self.expNum+1# The count of the experiments started in 0
         dict['numIncs']     = self.incNum
         dict['mode']        = self.mode
-        dict['cacheSize']   = self.numCntrs
+        dict['cacheSize']   = self.cacheSize
         dict['numFlows']    = self.numFlows
         dict['cntrSize']    = self.cntrSize
         dict['seed']        = self.seed
         dict['maxValBy']    = self.maxValBy
         return dict
  
-# def runRandSS (args):
-#     """
-#     """ 
-#     cntrSize    = 8,
-#     maxNumIncs  = float ('inf'),
-#     cacheSize   = 1,
-#     traceFileName = 'Rand' 
-#     ss = SpaceSaving (
-#         numFlows        = 9,
-#         cntrSize        = cntrSize, 
-#         cacheSize       = 3,
-#         verbose         = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, VERBOSE_DETAILS
-#         traceFileName   = traceFileName,
-#         mode            = mode,
-#         numOfExps       = 1, 
-#         maxNumIncs      = 333333,
-#         maxValBy        = 'F2P_li_h2',
-#     )
-#
-# def runTraceSS (arg):
-#     """
-#     """
-#     cntrSize    = 8,
-#     maxNumIncs  = float ('inf'),
-#     cacheSize   = 1,
-#     traceFileName = 'Rand' 
-#     ss = SpaceSaving (
-#         cntrSize        = cntrSize,
-#         numFlows        = getNumFlowsByTraceName (traceFileName), 
-#         cacheSize       = cacheSize,
-#         verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
-#         mode            = mode,
-#         traceFileName   = traceFileName,
-#         numOfExps       = 10, 
-#         maxValBy        = 'F2P_li_h2',
-#     )
-#     ss.sim ()
-    
+   
 def LaunchSsSim (
         traceFileName   : str, 
         cntrSize        : int, 
@@ -295,6 +296,9 @@ def LaunchSsSim (
         maxNumIncs      : float = float ('inf'), 
         cacheSize       : int,
     ):
+    """
+    Lanuch a simulation of Space Saving.
+    """
     if traceFileName=='Rand':
         ss = SpaceSaving (
             numFlows        = 9,
@@ -322,7 +326,6 @@ def LaunchSsSim (
     
 if __name__ == '__main__':
     try:
-        # thread = Thread (target = threaded_function, args = (10, ))
         for cacheSize in [2**i for i in range(10, 19)]:
             for traceFileName in ['Caida1', 'Caida2']:
                 LaunchSsSim (
