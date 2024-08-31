@@ -65,17 +65,15 @@ class SpaceSaving (CountMinSketch):
         
         if len(idxOfFlowIdInCache)>1:
             error (f'In SpaceSaving.incNQueryFlow(). More than 2 cache entries for flowId {flowId}')
-        hit = False
         if len(idxOfFlowIdInCache)==1: # looked item is already cached
             cntrIdx = idxOfFlowIdInCache[0]
             self.flowSizes[cntrIdx] = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob-inc. the counter, and get its val
-            hit = True 
         elif self.usedCacheSpace<self.cacheSize: # looked item is not cached, but cache isn't full
             cntrIdx                  = self.usedCacheSpace
             self.flowIds  [cntrIdx]  = flowId # insert flowId into the $
             self.flowSizes[cntrIdx]  = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob-inc. the counter, and get its val
             self.usedCacheSpace     += 1
-        if not(hit): # didn't find flowId in the $ --> insert it
+        else: # didn't find flowId in the $ --> insert the flowId
             cntrIdx = np.argmin (self.flowSizes)
             self.flowIds  [cntrIdx] = flowId # replace the item by the newly-inserted flowId
             self.flowSizes[cntrIdx] = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob'-inc. the value
