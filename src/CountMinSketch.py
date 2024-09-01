@@ -32,7 +32,7 @@ class CountMinSketch:
             maxValBy        = None, # How to calculate the maximum value (for SEAD/CEDAR).   
             maxNumIncs      = INF_INT, # maximum # of increments (pkts in the trace), after which the simulation will be stopped. 
             numOfExps       = 1,  # number of repeated experiments. Relevant only for randomly-generated traces.
-            traceName   = 'Rand',
+            traceName       = 'Rand',
             numEpsilonStepsIceBkts  = 6, # number of "epsilon" steps in Ice Buckets.
             numEpsilonStepsInRegBkt = 5, # number of "epsilon" steps in regular buckets in NiceBuckets.
             numEpsilonStepsInXlBkt  = 6,  # number of "epsilon" steps in the XL buckets in NiceBuckets.
@@ -42,7 +42,7 @@ class CountMinSketch:
         """
         self.mode, self.seed = mode, seed
         self.numCntrsPerBkt  = int(numCntrsPerBkt)
-        self.traceName   = traceName
+        self.traceName       = traceName
         self.maxValBy        = maxValBy
         self.dwnSmpl         = self.mode.endswith('_ds')
         if depth<1 or width<1 or cntrSize<1:

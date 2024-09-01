@@ -19,7 +19,7 @@ class SpaceSaving (CountMinSketch):
     """
     
     # Generate a string that details the parameters' values.
-    genSettingsStr = lambda self : f'ss_{self.traceFileName}_{self.mode}_n{self.cntrSize}'
+    genSettingsStr = lambda self : f'ss_{self.traceName}_{self.mode}_n{self.cntrSize}'
     
     def __init__(self,
         mode            = None, # the counters' mode (e.g., SEC, AEE, realCounter).
@@ -28,7 +28,7 @@ class SpaceSaving (CountMinSketch):
         cacheSize       = 1, # number of counters -- actually, the cache's size
         numFlows        = 10, # the total number of flows to be estimated.
         seed            = SEED,
-        traceFileName   = None,
+        traceName       = None,
         maxValBy        = None, # How to calculate the maximum value (for SEAD/CEDAR).   
         numOfExps       = 1, 
         maxNumIncs      = INF_INT, # maximum # of increments (pkts in the trace), after which the simulation will be stopped. 
@@ -36,19 +36,20 @@ class SpaceSaving (CountMinSketch):
         
         """
         """
-        self.cntrSize, self.traceFileName = cntrSize, traceFileName
+        self.cntrSize, self.traceName = cntrSize, traceFileName
         self.maxNumIncs, self.numOfExps, = maxNumIncs, numOfExps
         self.cacheSize, self.numFlows, self.mode, self.seed = cacheSize, numFlows, mode, seed
-        self.genOutputDirectories ()
-        self.openOutputFiles ()
+        self.traceName      = traceName
         self.verbose        = verbose
         self.dwnSmpl        = self.mode.endswith('_ds')
         self.maxValBy       = maxValBy
+        self.genOutputDirectories ()
+        self.openOutputFiles ()
         if self.maxValBy==None: # By default, the maximal counter's value is the trace length 
-            if self.traceFileName=='Rand':
+            if self.traceName=='Rand':
                 self.cntrMaxVal = self.maxNumIncs
             else:
-                self.cntrMaxVal = getTraceLen(self.traceFileName)
+                self.cntrMaxVal = getTraceLen(self.traceName)
         else:
             self.cntrMaxVal = getCntrMaxValFromFxpStr (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
         random.seed (self.seed)
@@ -91,10 +92,10 @@ class SpaceSaving (CountMinSketch):
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
         """      
         if VERBOSE_PCL in self.verbose:
-            self.pclOutputFile = open(f'../res/pcl_files/ss_{self.traceFileName}_{getMachineStr()}.pcl', 'ab+')
+            self.pclOutputFile = open(f'../res/pcl_files/ss_{self.traceName}_{getMachineStr()}.pcl', 'ab+')
 
         if (VERBOSE_RES in self.verbose):
-            self.resFile = open (f'../res/ss_{self.traceFileName}_{getMachineStr()}.res', 'a+')
+            self.resFile = open (f'../res/ss_{self.traceName}_{getMachineStr()}.res', 'a+')
             
         if (VERBOSE_FULL_RES in self.verbose):
             self.fullResFile = open (f'../res/ss_M{self.cacheSize}_{getMachineStr()}_full.res', 'a+')
@@ -111,7 +112,7 @@ class SpaceSaving (CountMinSketch):
         Print-screen an info msg about the parameters and hours of the simulation starting to run. 
         """             
         print ('{} running ss at t={}. trace={}, numOfExps={}, mode={}, cntrSize={}, cacheSize={}' .format (
-                        str, datetime.now().strftime('%H:%M:%S'), self.traceFileName, self.numOfExps, self.mode, self.cntrSize, self.cacheSize))
+                        str, datetime.now().strftime('%H:%M:%S'), self.traceName, self.numOfExps, self.mode, self.cntrSize, self.cacheSize))
 
     def printLogLine (
             self, 
@@ -225,7 +226,6 @@ def LaunchSsSim (
         cntrSize        : int, 
         mode            : str, # a string, detailing the mode of the counter, e.g. "F2P_li_h2".
         cacheSize       : int,
-        maxNumIncs      : float = float ('inf'), 
     ):
     """
     Lanuch a simulation of Space Saving.
@@ -263,7 +263,6 @@ if __name__ == '__main__':
                     traceFileName   = traceFileName, 
                     cntrSize        = 8, 
                     mode            = 'F2P_li_h2_ds', # a string, detailing the mode of the counter, e.g. "F2P_li_h2".
-                    maxNumIncs      = maxNumIncs, 
                     cacheSize       = cacheSize
                 )
 
