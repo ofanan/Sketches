@@ -86,29 +86,6 @@ class SpaceSaving (CountMinSketch):
         self.flowSizes[cntrIdx] = int(round(self.cntrMaster.incCntrBy1GetVal (cntrIdx=cntrIdx))) # prob'-inc. the value
         return self.flowSizes[cntrIdx]
         
-    def genOutputDirectories (self):
-        """
-        Generate and open the directories for output (results, logs, etc.):
-        - Generate directories for the output files if not exist
-        - Verify the verbose level requested.
-        """      
-        if VERBOSE_DETAILED_RES in self.verbose or VERBOSE_FULL_RES in self.verbose:
-            self.verbose.append (VERBOSE_RES)
-        if not (VERBOSE_PCL in self.verbose):
-            print ('Note: verbose does not include .pcl')  
-        
-        pwdStr = os.getcwd()
-        if (pwdStr.find ('itamarc')>-1): # the string 'HPC' appears in the path only in HPC runs
-            self.machineStr  = 'HPC' # indicates that this sim runs on my PC
-        else:
-            self.machineStr  = 'PC' # indicates that this sim runs on an HPC       
-        if not (os.path.exists('../res')):
-            os.makedirs ('../res')
-        if not (os.path.exists('../res/log_files')):
-            os.makedirs ('../res/log_files')
-        if not (os.path.exists('../res/pcl_files')):
-            os.makedirs ('../res/pcl_files')
-
     def openOutputFiles (self) -> None:
         """
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
@@ -280,8 +257,8 @@ def LaunchSsSim (
     
 if __name__ == '__main__':
     try:        
-        for cacheSize in [2**i for i in range(10, 19)]:
-            for traceFileName in ['Caida1', 'Caida2']:
+        for cacheSize in [2]: #[2**i for i in range(10, 19)]:
+            for traceFileName in ['Rand']: #['Caida1', 'Caida2']:
                 LaunchSsSim (
                     traceFileName   = traceFileName, 
                     cntrSize        = 8, 

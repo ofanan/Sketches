@@ -126,8 +126,7 @@ class CntrMaster (Cntr.CntrMaster):
         for i in range (1, self.numEstimators):
             self.diffs[i-1] = self.calcDiff(self.estimators[i-1])
             self.estimators[i] = self.estimators[i-1] + self.diffs[i-1] 
-        self.cntrMaxVal = self.estimators[-1]
-    
+        self.cntrMaxVal = self.estimators[-1]    
     
     def rstCntr (self, cntrIdx=0):
         """

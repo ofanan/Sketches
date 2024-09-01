@@ -436,6 +436,7 @@ class ResFileParser (object):
             depth       : int  = 4,
             statType    : str  = 'normRmse',
             rel_abs_n   : bool = False, # When True, consider relative errors, Else, consider absolute errors.
+            maxValBy    : str  = 'F2P_li_h2_ds',
             ignoreModes : list = [],# List of modes to NOT include in the plot
         ):
         """
@@ -453,7 +454,9 @@ class ResFileParser (object):
                   point['numOfExps'] == numOfExps and 
                   point['statType']  == statType  and 
                   point['rel_abs_n'] == rel_abs_n and 
-                  point['cntrSize']  == cntrSize]
+                  point['cntrSize']  == cntrSize  and
+                  point['maxValBy']  == maxValBy
+                  ]
         if points == []:
             warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}')
             return
@@ -511,8 +514,9 @@ class ResFileParser (object):
         plt.xlim ([0.95*min(memSizesInKb), 10**3])       
         # plt.ylim ([0.98*minY, 1.02*maxY]) #$$
         # plt.yscale ('log') #$$$          
-        plt.xscale ('log')          
-        outputFileName = 'cms_{}_n{}_{}' .format (traceName, cntrSize, 'rel' if rel_abs_n else 'abs') 
+        plt.xscale ('log')
+        maxValByStr = maxValBy.split('_')[0]          
+        outputFileName = 'cms_{}_n{}_{}_by_{}' .format (traceName, cntrSize, 'rel' if rel_abs_n else 'abs', maxValByStr) 
         if not(USE_FRAME):
             seaborn.despine(left=True, bottom=True, right=True)
         plt.savefig (f'../res/{outputFileName}.pdf', bbox_inches='tight')        
@@ -689,7 +693,7 @@ class ResFileParser (object):
                 markersize  = MARKER_SIZE_SMALL, 
                 linewidth   = LINE_WIDTH_SMALL,
                 # linestyle   = '', 
-                label       = mode, 
+                label       = labelOfMode(mode), 
                 mfc         = 'none'
             ) 
 
@@ -698,9 +702,9 @@ class ResFileParser (object):
         plt.yscale ('log')
         if xLog: 
             plt.xscale ('log')
-
-        plt.xlim ([minCntrVal, np.min(xMaxVals)])
-        print (f'yMinVal={yMinVal}, yMaxVal={yMaxVal}')
+            plt.xlim ([1, 0.99*np.min(xMaxVals)])
+        else:
+            plt.xlim ([minCntrVal, np.min(xMaxVals)])
         plt.ylim (0.99*yMinVal, 1.01*yMaxVal) 
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
@@ -734,7 +738,7 @@ class ResFileParser (object):
             mode        = params['mode']
             cntrSize    = params['cntrSize']
             ax.plot (points['X'], points['Y'], color=colors[colorIdx], marker=self.markers[colorIdx],
-                     markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=settingStr, mfc='none')
+                     markersize=MARKER_SIZE_SMALL, linewidth=LINE_WIDTH_SMALL, label=labelOfMode(mode), mfc='none')
             colorIdx += 1 
 
         plt.xlabel('Counted Value')
@@ -948,7 +952,7 @@ class ResFileParser (object):
                     printf (resFile, ' & ' .format (pointsOfThisDistAndMode[0][errType]/minErr))
             printf (resFile, ' \\\\ \n')
 
-def genResolutionPlotByModes ():
+def genResolutionPlot ():
     """
     Generate plots showing the resolution as a function of the counted val for the given modes
     """
@@ -962,7 +966,7 @@ def genResolutionPlotByModes ():
                 # ignoreModes = ['CEDAR'],
                 minCntrVal  = 1000,
                 cntrSize    = cntrSize,
-                xLog        = False
+                xLog        = True
                 )
     else:
         my_ResFileParser.rdPcl (pclFileName=f'resolutionBySettingStrs.pcl')
@@ -1152,14 +1156,18 @@ def genErVsMemSizePlotCms (
     """
     Read the relevant .pcl files, and generate plots showing the error as a function of the overall memory size.
     This function is used to show the results of CMS (Count Min Sketch) simulations.        
-    """    
+    """
+    maxValBy    = 'F2P_li_h2'    
+    maxValByStr = maxValBy.split('_')[0]
     for traceName in ['Caida1']:
         myResFileParser = ResFileParser ()
+        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC_by_{maxValByStr}.pcl')
         myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC.pcl')
         myResFileParser.genErVsMemSizePlotCms (
             traceName   = traceName,
             ignoreModes = ignoreModes,
             rel_abs_n   = False,
+            maxValBy    = maxValBy,
             cntrSize    = 8,
         )
 
@@ -1183,10 +1191,10 @@ def genErVsMemSizePlotSpaceSaving (
 
 if __name__ == '__main__':
     try:
-        genResolutionPlotByModes ()
-        # genErVsMemSizePlotCms (
-        #     ignoreModes = ['PerfectCounter', 'SEAD_dyn', 'AEE_ds']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
-        # )
+        # genResolutionPlot ()
+        genErVsMemSizePlotCms (
+            ignoreModes = ['PerfectCounter', 'SEAD_dyn']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
+        )
         # genUniqPcl (pclFileName='cms_Caida2_PC.pcl')
         # genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()
