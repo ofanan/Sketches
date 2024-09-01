@@ -36,9 +36,10 @@ class SpaceSaving (CountMinSketch):
         
         """
         """
-        self.cntrSize, self.traceName = cntrSize, traceFileName
+        self.cntrSize, self.traceName = cntrSize, traceName
         self.maxNumIncs, self.numOfExps, = maxNumIncs, numOfExps
-        self.cacheSize, self.numFlows, self.mode, self.seed = cacheSize, numFlows, mode, seed
+        self.numFlows, self.mode, self.seed = numFlows, mode, seed
+        self.numCntrs       = cacheSize # for compatibility with CountMinSketch's function, the name of the class's field for "cacheSize" is self.numCntrs.  
         self.traceName      = traceName
         self.verbose        = verbose
         self.dwnSmpl        = self.mode.endswith('_ds')
@@ -59,8 +60,8 @@ class SpaceSaving (CountMinSketch):
         rst the cache. To be called at the beginning of each experiment 
         """             
         self.usedCacheSpace = 0 
-        self.flowIds        = np.zeros (self.cacheSize, dtype='uint32')
-        self.flowSizes      = np.zeros (self.cacheSize, dtype='uint32')    
+        self.flowIds        = np.zeros (self.numCntrs, dtype='uint32')
+        self.flowSizes      = np.zeros (self.numCntrs, dtype='uint32')    
         self.flowRealVal         = np.zeros(self.numFlows)
 
     def incNQueryFlow(
@@ -77,7 +78,7 @@ class SpaceSaving (CountMinSketch):
             error (f'In SpaceSaving.incNQueryFlow(). More than 2 cache entries for flowId {flowId}')
         if len(idxOfFlowIdInCache)==1: # looked item is already cached
             cntrIdx = idxOfFlowIdInCache[0]
-        elif self.usedCacheSpace<self.cacheSize: # looked item is not cached, but cache isn't full
+        elif self.usedCacheSpace<self.numCntrs: # looked item is not cached, but cache isn't full
             cntrIdx                  = self.usedCacheSpace
             self.flowIds  [cntrIdx]  = flowId # insert flowId into the $
             self.usedCacheSpace     += 1
@@ -98,7 +99,7 @@ class SpaceSaving (CountMinSketch):
             self.resFile = open (f'../res/ss_{self.traceName}_{getMachineStr()}.res', 'a+')
             
         if (VERBOSE_FULL_RES in self.verbose):
-            self.fullResFile = open (f'../res/ss_M{self.cacheSize}_{getMachineStr()}_full.res', 'a+')
+            self.fullResFile = open (f'../res/ss_M{self.numCntrs}_{getMachineStr()}_full.res', 'a+')
 
         self.logFile =  None # default
         if VERBOSE_LOG in self.verbose or \
@@ -112,7 +113,7 @@ class SpaceSaving (CountMinSketch):
         Print-screen an info msg about the parameters and hours of the simulation starting to run. 
         """             
         print ('{} running ss at t={}. trace={}, numOfExps={}, mode={}, cntrSize={}, cacheSize={}' .format (
-                        str, datetime.now().strftime('%H:%M:%S'), self.traceName, self.numOfExps, self.mode, self.cntrSize, self.cacheSize))
+                        str, datetime.now().strftime('%H:%M:%S'), self.traceName, self.numOfExps, self.mode, self.cntrSize, self.numCntrs))
 
     def printLogLine (
             self, 
@@ -127,7 +128,7 @@ class SpaceSaving (CountMinSketch):
             return
         if realVal%1>0: 
             error (f'In SpaceSaving.printLogLine(). Got realVal={realVal}. The real val of flow size should be an int.')                
-        if self.cacheSize < 10:
+        if self.numCntrs < 10:
             self.cntrMaster.printAllCntrs (self.logFile)
         printf (self.logFile, 
                 ' incNum={}, flowId={}, flowSizes={}, estimatedVal={:.0f} realVal={}\n' .format(
@@ -213,7 +214,7 @@ class SpaceSaving (CountMinSketch):
         dict['numOfExps']   = self.expNum+1# The count of the experiments started in 0
         dict['numIncs']     = self.incNum
         dict['mode']        = self.mode
-        dict['cacheSize']   = self.cacheSize
+        dict['cacheSize']   = self.numCntrs
         dict['numFlows']    = self.numFlows
         dict['cntrSize']    = self.cntrSize
         dict['seed']        = self.seed
@@ -222,7 +223,7 @@ class SpaceSaving (CountMinSketch):
  
    
 def LaunchSsSim (
-        traceFileName   : str, 
+        traceName   : str, 
         cntrSize        : int, 
         mode            : str, # a string, detailing the mode of the counter, e.g. "F2P_li_h2".
         cacheSize       : int,
@@ -230,13 +231,13 @@ def LaunchSsSim (
     """
     Lanuch a simulation of Space Saving.
     """
-    if traceFileName=='Rand':
+    if traceName=='Rand':
         ss = SpaceSaving (
             numFlows        = 9,
             cntrSize        = cntrSize, 
             cacheSize       = 3,
             verbose         = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], # VERBOSE_LOG, VERBOSE_LOG_END_SIM, VERBOSE_LOG, VERBOSE_DETAILS
-            traceFileName   = traceFileName,
+            traceName       = traceName,
             mode            = mode,
             numOfExps       = 1, 
             maxNumIncs      = 33,
@@ -245,11 +246,11 @@ def LaunchSsSim (
     else:
         ss = SpaceSaving (
             cntrSize        = cntrSize,
-            numFlows        = getNumFlowsByTraceName (traceFileName), 
+            numFlows        = getNumFlowsByTraceName (traceName), 
             cacheSize       = cacheSize,
             verbose         = [VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL], # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
             mode            = mode,
-            traceFileName   = traceFileName,
+            traceName   = traceName,
             numOfExps       = 10, 
             maxValBy        = 'F2P_li_h2',
         )
@@ -258,12 +259,12 @@ def LaunchSsSim (
 if __name__ == '__main__':
     try:        
         for cacheSize in [2]: #[2**i for i in range(10, 19)]:
-            for traceFileName in ['Rand']: #['Caida1', 'Caida2']:
+            for traceName in ['Rand']: #['Caida1', 'Caida2']:
                 LaunchSsSim (
-                    traceFileName   = traceFileName, 
-                    cntrSize        = 8, 
-                    mode            = 'F2P_li_h2_ds', # a string, detailing the mode of the counter, e.g. "F2P_li_h2".
-                    cacheSize       = cacheSize
+                    traceName   = traceName, 
+                    cntrSize    = 8, 
+                    mode        = 'F2P_li_h2_ds', # a string, detailing the mode of the counter, e.g. "F2P_li_h2".
+                    cacheSize   = cacheSize
                 )
 
     except KeyboardInterrupt:
