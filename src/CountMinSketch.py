@@ -60,7 +60,12 @@ class CountMinSketch:
             if self.cntrSize==4: # tiny counters, used for development and debugging
                 self.cntrMaxVal = 30
             else:
-                self.cntrMaxVal = getCntrMaxValFromFxpStr (cntrSize=self.cntrSize, fxpSettingStr=self.maxValBy)
+                if maxValBy=='int':
+                    self.cntrMaxVal = 2**self.cntrSize - 1
+                else:
+                    self.cntrMaxVal = getCntrMaxValFromFxpStr (
+                        cntrSize        = self.cntrSize, 
+                        fxpSettingStr   = self.maxValBy)
         random.seed (self.seed)
         self.numEpsilonStepsInRegBkt    = numEpsilonStepsInRegBkt
         self.numEpsilonStepsInXlBkt     = numEpsilonStepsInXlBkt
@@ -452,7 +457,7 @@ def LaunchCmsSim (
         cms.sim ()
     else:
         cms = CountMinSketch (
-            maxValBy        = 'F3P_li_h3_ds',
+            maxValBy        = 'int',
             width           = width,
             depth           = depth,
             numFlows        = getNumFlowsByTraceName (traceName), 

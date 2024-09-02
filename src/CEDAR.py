@@ -53,7 +53,10 @@ class CntrMaster (Cntr.CntrMaster):
         """
         Initialize an array of cntrSize counters. The cntrs are initialized to 0.
         """
-        super(CntrMaster, self).__init__ (cntrSize=cntrSize, numCntrs=numCntrs, verbose=verbose)
+        super(CntrMaster, self).__init__ (
+            cntrSize    = cntrSize, 
+            numCntrs    = numCntrs, 
+            verbose     = verbose)
         self.cntrMaxVal    = cntrMaxVal
         self.numEstimators = 2**self.cntrSize
         self.rst () # reset all the counters
