@@ -265,7 +265,8 @@ class CountMinSketch:
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
         """      
         if VERBOSE_PCL in self.verbose:
-            self.pclOutputFile = open(f'../res/pcl_files/cms_{self.traceName}_{getMachineStr()}.pcl', 'ab+')
+            maxValByStr = self.maxValBy.split('_')[0]          
+            self.pclOutputFile = open(f'../res/pcl_files/cms_{self.traceName}_{getMachineStr()}_by_{maxValByStr}.pcl', 'ab+')
 
         if (VERBOSE_RES in self.verbose):
             self.resFile = open (f'../res/cms_{self.traceName}_{getMachineStr()}.res', 'a+')
@@ -286,8 +287,8 @@ class CountMinSketch:
         """
         Print-screen an info msg about the parameters and hours of the simulation starting to run. 
         """             
-        print ('{} running cms at t={}. trace={}, numOfExps={}, mode={}, cntrSize={}, depth={}, width={}, numFlows={}, verbose={}' .format (
-                        str, datetime.now().strftime('%H:%M:%S'), self.traceName, self.numOfExps, self.mode, self.cntrSize, self.depth, self.width, self.numFlows, self.verbose))
+        print ('{} running cms at t={}. trace={}, maxValBy={}, numOfExps={}, mode={}, cntrSize={}, depth={}, width={}, numFlows={}, verbose={}' .format (
+                        str, datetime.now().strftime('%H:%M:%S'), self.traceName, self.maxValBy, self.numOfExps, self.mode, self.cntrSize, self.depth, self.width, self.numFlows, self.verbose))
 
     def logEndSim (self):
         """
@@ -451,7 +452,7 @@ def LaunchCmsSim (
         cms.sim ()
     else:
         cms = CountMinSketch (
-            maxValBy        = 'F2P_li_h2',
+            maxValBy        = 'F3P_li_h3_ds',
             width           = width,
             depth           = depth,
             numFlows        = getNumFlowsByTraceName (traceName), 
@@ -463,7 +464,7 @@ def LaunchCmsSim (
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
             numOfExps               = 10,
-            verbose                 = [VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES, VERBOSE_PCL], #VERBOSE_LOG_DWN_SMPL] #[VERBOSE_RES, VERBOSE_PCL, VERBOSE_LOG_END_SIM] # [VERBOSE_RES, VERBOSE_PCL] # VERBOSE_LOG_END_SIM,  VERBOSE_RES, VERBOSE_FULL_RES, VERBOSE_PCL] # VERBOSE_LOG, VERBOSE_RES, VERBOSE_PCL, VERBOSE_DETAILS
+            verbose                 = [VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES, VERBOSE_PCL], 
         )
         cms.sim ()
 
@@ -486,13 +487,12 @@ def runMultiProcessSim ():
                 mode     = mode,
                 width    = width,
             )
-
-    
+  
 if __name__ == '__main__':
     try:
-        mode = 'F2P_li_h2_ds' #'F3P_li_h3_ds' 
+        mode = 'AEE_ds' #'F3P_li_h3_ds' 
         for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: 
-            for width in [2**i for i in range (16, 19)]:   
+            for width in [2**i for i in range (11, 19)]:   
                 LaunchCmsSim (
                     traceName   = traceName,
                     cntrSize    = 8,

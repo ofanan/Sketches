@@ -388,7 +388,8 @@ def genCntrMasterFxp (
         hyperSize       : int  = None, 
         nSystem         : str  = None, # 'F2P' or 'F3P
         flavor          : str  = None, # 'sr' / 'lr' / 'si' / 'li' 
-        verbose         : list = []    # list of verboses taken from the veroses, defined in py 
+        dwnSmpl         : bool = False, 
+        verbose         : list = []    # list of verboses taken from the veroses, defined in py
     ):
     """
     return a CntrMaster belonging to the selected flavor ('sr', 'lr', etc.) and number system ('F2P' or 'F3P').
@@ -471,12 +472,11 @@ def getAllValsFP (cntrSize  = 8, # of bits in the cntr (WITHOUT the sign bit)
     return listOfVals
 
 
-def getAllValsFxp (flavor='', 
-   cntrSize     = 8, # size of the counter, WITHOUT the sign bit (if exists).  
-   hyperSize    = 2, # size of the hyper-exp field (in F2P); Max size of the hyper-exp field (in F2P).
-   nSystem      = 'F2P', # either 'F2P' or 'F3P'
-   verbose      = [], #verbose level. See py for details.
-   signed       = False # When True, assume an additional bit for the  
+def getAllValsFxp (
+   fxpSettingStr : str,
+   verbose       : list = [], #verbose level. See py for details.
+   cntrSize      : int  = 8,
+   signed        : bool = False # When True, assume an additional bit for the  
 ):
     """
     Loop over all the binary combinations of the given counter size. 
@@ -488,7 +488,13 @@ def getAllValsFxp (flavor='',
     """
     if signed: 
         cntrSize -= 1 
-    myCntrMaster = genCntrMasterFxp (nSystem=nSystem, flavor=flavor, cntrSize=cntrSize, hyperSize=hyperSize, verbose=verbose)
+    cntrSettings = getFxpSettings (fxpSettingStr)
+    hyperSize   = cntrSettings['hyperSize']
+    flavor      = cntrSettings['flavor']
+    myCntrMaster = genCntrMasterFxp (
+        cntrSize        = cntrSize, 
+        fxpSettingStr   = fxpSettingStr, 
+    )
     if myCntrMaster.isFeasible==False:
         error (f'The requested configuration is not feasible.')
     listOfVals = []
@@ -560,7 +566,9 @@ def getCntrMaxValFromFxpStr (
     """
     if not(fxpSettingStr.startswith('F2P')) and not(fxpSettingStr.startswith('F3P')):
         error (f'SingleCntrSimulator.getCntrMaxValFromFxpStr() was called with Fxp settings str={fxpSettingStr}')
-    myCntrMaster = genCntrMasterFxp (cntrSize=cntrSize, fxpSettingStr=fxpSettingStr)
+    myCntrMaster = genCntrMasterFxp (
+        cntrSize        = cntrSize, 
+        fxpSettingStr   = fxpSettingStr)
     return myCntrMaster.getCntrMaxVal ()
 
 
@@ -576,13 +584,11 @@ def getAllCntrsMaxValsFxP ():
             )
 
 def printAllValsFxp ():
-    getAllValsFxp (
-       nSystem      = 'F3P', # either 'F2P' or 'F3P'
-       cntrSize     = 4, # size of the counter, WITHOUT the sign bit (if exists).  
-       hyperSize    = 1, # Max size of the hyper-exp field. Relevant only for F3P. 
-       flavor       = 'li', 
-       verbose      = [VERBOSE_RES, VERBOSE_COUT_CONF], #verbose level. See py for details.
-       signed       = False # When True, assume an additional bit for the  
+    getAllValsFxp(
+        fxpSettingStr    = 'F3P_li_h3', 
+        cntrSize         = 4, # size of the counter, WITHOUT the sign bit (if exists).  
+        verbose          = [VERBOSE_RES, VERBOSE_COUT_CONF], #verbose level. See py for details.
+        signed           = False # When True, assume an additional bit for the  
     )
 
 def testDwnSmpling ():
@@ -640,7 +646,13 @@ def main ():
 
 if __name__ == '__main__':
     try:
-        main ()
+        getAllValsFxp (
+            fxpSettingStr   = 'F3P_li_h1',
+            cntrSize        = 8, # size of the counter, WITHOUT the sign bit (if exists).  
+            signed          = False,
+            verbose         = [VERBOSE_RES] #verbose level. See py for details.
+        )
+        # main ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
         exit ()

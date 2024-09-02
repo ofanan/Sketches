@@ -455,16 +455,18 @@ class ResFileParser (object):
                   point['statType']  == statType  and 
                   point['rel_abs_n'] == rel_abs_n and 
                   point['cntrSize']  == cntrSize  and
-                  point['maxValBy']  == maxValBy
+                  point['maxValBy'].split('_ds')[0]  == maxValBy.split('_ds')[0]
                   ]
         if points == []:
-            warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}')
+            warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, maxValBy={maxValBy}')
             return
         modes = [point['mode'] for point in points]
         modes = [mode for mode in modes if mode not in ignoreModes]
         minY, maxY = float('inf'), 0 
         for mode in modes:
             pointsOfMode = [point for point in points if point['mode'] == mode]
+            # if mode=='AEE_ds': #$$$
+            #     error (f'pointsOfMode[AEE]={pointsOfMode}')
             widths = [point['width'] for point in pointsOfMode]
             minMemSizeInKB  = 10**0
             minMemSize      = minMemSizeInKB * KB  
@@ -1157,12 +1159,12 @@ def genErVsMemSizePlotCms (
     Read the relevant .pcl files, and generate plots showing the error as a function of the overall memory size.
     This function is used to show the results of CMS (Count Min Sketch) simulations.        
     """
-    maxValBy    = 'F2P_li_h2'    
+    maxValBy    = 'F3P_li_h3_ds'    
     maxValByStr = maxValBy.split('_')[0]
     for traceName in ['Caida1']:
         myResFileParser = ResFileParser ()
-        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC_by_{maxValByStr}.pcl')
-        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC.pcl')
+        # myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC_by_F2P.pcl')
+        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC_by_F3P.pcl')
         myResFileParser.genErVsMemSizePlotCms (
             traceName   = traceName,
             ignoreModes = ignoreModes,
@@ -1189,11 +1191,17 @@ def genErVsMemSizePlotSpaceSaving (
             cntrSize    = 8,
         )
 
+def tmp ():
+    pclOutputFile = open(f'../res/pcl_files/cms_Caida1_PC_by_V3P.pcl', 'ab+')
+    dict = {'Avg': 0.00015852620616635594, 'Lo': 0.00014553717011662004, 'Hi': 0.00017151524221609184, 'statType': 'normRmse', 'maxMinRelDiff': 0.370999769482765, 'warning': True, 'confLvl': 0.95, 'numOfExps': 10, 'numIncs': 25000000, 'mode': 'AEE_ds', 'cntrSize': 8, 'depth': 4, 'width': 8192, 'numFlows': 1801150, 'seed': 10, 'maxValBy': 'F3P_li_h3_ds', 'dwnSmpl': True, 'rel_abs_n': False}
+    pickle.dump(dict, pclOutputFile) 
+    
 if __name__ == '__main__':
     try:
+        # tmp ()
         # genResolutionPlot ()
         genErVsMemSizePlotCms (
-            ignoreModes = ['PerfectCounter', 'SEAD_dyn']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
+            ignoreModes = ['AEE_ds']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
         )
         # genUniqPcl (pclFileName='cms_Caida2_PC.pcl')
         # genErVsCntrSizeSingleCntr ()
