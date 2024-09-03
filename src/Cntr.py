@@ -31,6 +31,18 @@ class CntrMaster (object):
         self.verbose        = verbose
         self.allowDwnSmpl   = False # Default; down-sampling is allowed only for some concrete child classes, that set this parameter. 
         
+    def rmvVerbose (
+            self, 
+            verbose : int, # verbose to remove; verboses are defined in settings.py
+        ):
+        """
+        Rmv the requested verbose codes from self.verbose. 
+        Typically called after the first experiment, as no need to log more than a single exp.
+        """
+        if verbose in self.verbose:
+            self.verbose.remove(verbose)
+        
+    
     def printAllCntrs (
             self, 
             outputFile   = None,

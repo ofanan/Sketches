@@ -5,6 +5,7 @@ import random, math, numpy as np
 from printf import printf
 import settings, Cntr
 from settings import *
+np.set_printoptions(precision=1)
 
 # The 'delta' parameter determines CEDAR's accuracy.
 # Given a counter size and maximum value to count, the function findMinDeltaByMaxVal finds the minimal delta. using binary search.
@@ -241,7 +242,7 @@ class CntrMaster (Cntr.CntrMaster):
         self.delta = deltaHi
         self.calcDiffsNSharedEstimators ()
         if (self.cntrMaxVal < targetMaxVal):
-            print ('cannot reach maxVal={} even with highest delta, deltaHi={}. Skipping binary search' .format (targetMaxVal, deltaHi))
+            print (f'cannot reach maxVal={targetMaxVal} even with highest delta, deltaHi={deltaHi}. Skipping binary search')
             return
 
         while (True):
@@ -280,10 +281,16 @@ class CntrMaster (Cntr.CntrMaster):
         prevCntrMaxVal   = self.cntrMaxVal 
         self.cntrMaxVal *= 2
         
+        if self.cntrSize<8:
+            deltaHi = 0.63
+        else:
+            deltaHi = 0.4
+        
+        error (deltaHi) #$$$
         self.findMinDeltaByMaxVal (
             targetMaxVal    = self.cntrMaxVal,
             deltaLo         = 0.00001,
-            deltaHi         = 0.4
+            deltaHi         = deltaHi
         )                
                 
         if VERBOSE_DEBUG in self.verbose:

@@ -311,9 +311,10 @@ class CountMinSketch:
         Rmv all the "log" verboses from self.verbose. To be used after the first experiment, as no need to log more than a single exp.
         """
         
-        for verbose in [VERBOSE_LOG_SHORT, VERBOSE_LOG, VERBOSE_DETAILED_LOG]:
+        for verbose in [VERBOSE_LOG_SHORT, VERBOSE_LOG, VERBOSE_DETAILED_LOG, VERBOSE_LOG_DWN_SMPL]:
             if verbose in self.verbose:
                 self.verbose.remove(verbose)
+                self.cntrMaster.rmvVerbose(verbose)
     
     def calcTraceHashes (self) ->np.array:
         """
@@ -448,10 +449,10 @@ def LaunchCmsSim (
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
             numEpsilonStepsInXlBkt  = 5,
-            verbose                 = [], #[VERBOSE_LOG_SHORT, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, VERBOSE_DETAILS
-            numOfExps               = 1, 
-            maxNumIncs              = 10,
-            maxValBy                = 'F2P_li_h2',
+            verbose                 = [VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], #[VERBOSE_LOG_SHORT, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, VERBOSE_DETAILS
+            numOfExps               = 2, 
+            maxNumIncs              = 1000,
+            maxValBy                = 'int',
             cntrSize                = cntrSize, 
         )
         cms.sim ()
@@ -495,12 +496,12 @@ def runMultiProcessSim ():
   
 if __name__ == '__main__':
     try:
-        mode = 'CEDAR_ds' #'F3P_li_h3_ds' 
+        mode = 'CEDAR_ds' #'F3P_li_h2_ds' 
         for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: 
             for width in [2**i for i in range (10, 19)]:   
                 LaunchCmsSim (
                     traceName   = traceName,
-                    cntrSize    = 8,
+                    cntrSize    = 5,
                     mode        = mode,
                     width       = width,
                 )

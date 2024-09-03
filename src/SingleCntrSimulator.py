@@ -583,14 +583,6 @@ def getAllCntrsMaxValsFxP ():
                 verbose         = [VERBOSE_PCL]
             )
 
-def printAllValsFxp ():
-    getAllValsFxp(
-        fxpSettingStr    = 'F3P_li_h3', 
-        cntrSize         = 4, # size of the counter, WITHOUT the sign bit (if exists).  
-        verbose          = [VERBOSE_RES, VERBOSE_COUT_CONF], #verbose level. See py for details.
-        signed           = False # When True, assume an additional bit for the  
-    )
-
 def testDwnSmpling ():
     """
     Test the down-sampling.
@@ -647,8 +639,8 @@ def main ():
 if __name__ == '__main__':
     try:
         getAllValsFxp (
-            fxpSettingStr   = 'F3P_li_h2',
-            cntrSize        = 8, # size of the counter, WITHOUT the sign bit (if exists).  
+            fxpSettingStr   = 'F3P_si_h2',
+            cntrSize        = 5, # size of the counter, WITHOUT the sign bit (if exists).  
             signed          = False,
             verbose         = [VERBOSE_RES] #verbose level. See py for details.
         )

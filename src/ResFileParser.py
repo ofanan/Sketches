@@ -152,6 +152,7 @@ def genFxpLabel (mode : str): # a mode describing the mode flavors
     'F2P_si_h2'     : r'F2P$_{SI}^2$',
     'F3P_lr_h2'     : r'F3P$_{LR}^2$',
     'F3P_sr_h2'     : r'F3P$_{SR}^2$',
+    'F3P_li_h2'     : r'F3P$_{LI}^2$',
     'F3P_li_h3'     : r'F3P$_{LI}^3$',
     'F3P_si_h2'     : r'F3P$_{SI}^2$',
     'F2P_li_h2_ds'  : r'F2P$_{LI}^2$',
