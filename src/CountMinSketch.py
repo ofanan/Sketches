@@ -495,9 +495,9 @@ def runMultiProcessSim ():
   
 if __name__ == '__main__':
     try:
-        mode = 'AEE_ds' #'F3P_li_h3_ds' 
+        mode = 'CEDAR_ds' #'F3P_li_h3_ds' 
         for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: 
-            for width in [2**i for i in range (11, 19)]:   
+            for width in [2**i for i in range (10, 19)]:   
                 LaunchCmsSim (
                     traceName   = traceName,
                     cntrSize    = 8,

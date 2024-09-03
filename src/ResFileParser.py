@@ -1153,18 +1153,17 @@ def genUniqPcl (
         pickle.dump(point, pclOutputFile) 
 
 def genErVsMemSizePlotCms (
+        maxValBy    : str, # the mode by which the maximum value of a counter is set.
         ignoreModes : list = [],# List of modes to NOT include in the plot
     ):
     """
     Read the relevant .pcl files, and generate plots showing the error as a function of the overall memory size.
     This function is used to show the results of CMS (Count Min Sketch) simulations.        
     """
-    maxValBy    = 'F3P_li_h3_ds'    
     maxValByStr = maxValBy.split('_')[0]
     for traceName in ['Caida1']:
         myResFileParser = ResFileParser ()
-        # myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC_by_F2P.pcl')
-        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC_by_F3P.pcl')
+        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC_by_{maxValBy}.pcl')
         myResFileParser.genErVsMemSizePlotCms (
             traceName   = traceName,
             ignoreModes = ignoreModes,
@@ -1201,7 +1200,8 @@ if __name__ == '__main__':
         # tmp ()
         # genResolutionPlot ()
         genErVsMemSizePlotCms (
-            ignoreModes = ['AEE_ds']#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
+            maxValBy    = 'int',
+            ignoreModes = []#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
         )
         # genUniqPcl (pclFileName='cms_Caida2_PC.pcl')
         # genErVsCntrSizeSingleCntr ()
