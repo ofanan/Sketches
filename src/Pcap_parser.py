@@ -64,13 +64,14 @@ def parse_pcap_file_np (
     relativePathToInputFile = f'{tracePath}/{traceFileName}'       
     checkIfInputFileExists (relativePathToInputFile)    
 
+    tic ()
     packets = rdpcap(relativePathToInputFile, count=maxNumOfPkts)
 
     # Determine the number of tuples
-    numTuples = len(packets)
+    numPkts = len(packets)
     
     # Initialize a NumPy array to store the 4-tuple information
-    tuples = np.empty((numTuples), dtype=object)
+    tuples = np.empty((numPkts), dtype=object)
 
     # Extract the 4-tuple (source port, dest port, source IP, dest IP) for each packet
     pktNum = 0
@@ -83,13 +84,14 @@ def parse_pcap_file_np (
             elif pkt.haslayer('UDP'):
                 tuples[pktNum] = ('{}-{}-{}-{}' .format (pkt['UDP'].sport, pkt['UDP'].dport, pkt['IP'].src, pkt['IP'].dst))
                 pktNum += 1
-        if pktNum>=numTuples:
+        if pktNum>=numPkts:
             break
 
     # Apply the vectorized hash function to the tuple array
     hashArray = vectorizedHash(tuples)
 
-    print (f'tuples={tuples}hashArray={hashArray}\n')
+    np.savetxt(f'{tracePath}/{traceFileName}.txt', hashArray, fmt='%d')
+    print (f'Finished parsing {numPkts} packets. {genElapsedTimeStr (toc())}')
     # csvOutputFile   = open(f'{tracePath}/{traceFileName}.csv', 'w', newline='')
     # writer          = csv.writer (csvOutputFile)
     # pktNum          = 0
