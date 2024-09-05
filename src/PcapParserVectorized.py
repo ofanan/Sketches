@@ -16,12 +16,14 @@ Output: a csv file, where:
 # Vectorized function to apply mmh3.hash to each element in the array of the 4-tupes read from the .pcap file.
 vectorizedHash = np.vectorize(lambda t: mmh3.hash(t, signed=True), otypes=[np.int32])
 
-def parsePcapFile (
+def parsePcapFileVectorized (
         traceFileName     = 'equinix-nyc.dirB.20181220-140100.UTC.anon.pcap',      
         maxNumOfPkts     = INF_INT, # maximum number of pkts to be parsed, starting from the beginning of the trace
         maxTraceLenInSec = INF_INT, # maximum time length to be parsed, starting from the beginning of the trace 
     ):
     """
+    A vectorized version.
+    Unfortunately, this version uses too much run-time memory, and therefore may get stack.
     Parse a .pcap file. Write the parsed file to a .csv file. bearing the same fileName as the .pcap file, but with extension .csv instead of .pcap. 
     """
 
