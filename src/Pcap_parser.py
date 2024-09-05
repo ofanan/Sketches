@@ -16,42 +16,7 @@ Output: a csv file, where:
 # Vectorized function to apply mmh3.hash to each element in the array of the 4-tupes read from the .pcap file.
 vectorizedHash = np.vectorize(lambda t: mmh3.hash(t, signed=True), otypes=[np.int32])
 
-def parse_pcap_file (
-        traceFileName     = 'equinix-nyc.dirB.20181220-140100.UTC.anon.pcap',      
-        maxNumOfPkts     = INF_INT, # maximum number of pkts to be parsed, starting from the beginning of the trace
-        maxTraceLenInSec = INF_INT, # maximum time length to be parsed, starting from the beginning of the trace 
-    ):
-    """
-    Parse a .pcap file. Write the parsed file to a .csv file. bearing the same fileName as the .pcap file, but with extension .csv instead of .pcap. 
-    """
-
-    tracePath = getTracesPath() + 'Caida' 
-    relativePathToInputFile = f'{tracePath}/{traceFileName}'       
-    checkIfInputFileExists (relativePathToInputFile)    
-
-    csvOutputFile   = open(f'{tracePath}/{traceFileName}.csv', 'w', newline='')
-    writer          = csv.writer (csvOutputFile)
-    pktNum          = 0
-
-    print (f'Started parsing {traceFileName}')
-    tic ()
-    for pkt in PcapReader(relativePathToInputFile):
-        if IP not in pkt:
-            continue
-        if TCP in pkt:
-            writer.writerow ([mmh3.hash (pkt[IP].src + pkt[IP].dst + str(pkt[TCP].sport) + str(pkt[TCP].dport) + '0') % MAX_NUM_OF_FLOWS]) 
-            error (mmh3.hash (pkt[IP].src + pkt[IP].dst + str(pkt[TCP].sport) + str(pkt[TCP].dport) + '0') % MAX_NUM_OF_FLOWS)
-        elif UDP in pkt:
-            writer.writerow ([mmh3.hash (pkt[IP].src + pkt[IP].dst + str(pkt[UDP].sport) + str(pkt[UDP].dport) + '1') % MAX_NUM_OF_FLOWS])
-        else:
-            continue
-        pktNum += 1    
-        if pktNum >= maxNumOfPkts:
-            break
-
-    print (f'Finished parsing {pktNum} pkts. {genElapsedTimeStr (toc())}')
-
-def parse_pcap_file_np (
+def parsePcapFile (
         traceFileName     = 'equinix-nyc.dirB.20181220-140100.UTC.anon.pcap',      
         maxNumOfPkts     = INF_INT, # maximum number of pkts to be parsed, starting from the beginning of the trace
         maxTraceLenInSec = INF_INT, # maximum time length to be parsed, starting from the beginning of the trace 
@@ -88,14 +53,10 @@ def parse_pcap_file_np (
             break
 
     # Apply the vectorized hash function to the tuple array
-    hashArray = vectorizedHash(tuples)
+    hashArray = vectorizedHash(tuples[:pktNum])
 
     np.savetxt(f'{tracePath}/{traceFileName}.txt', hashArray, fmt='%d')
     print (f'Finished parsing {numPkts} packets. {genElapsedTimeStr (toc())}')
-    # csvOutputFile   = open(f'{tracePath}/{traceFileName}.csv', 'w', newline='')
-    # writer          = csv.writer (csvOutputFile)
-    # pktNum          = 0
-    # print (f'Finished {self.incNum+1} increments. {genElapsedTimeStr (toc())}')
 
-parse_pcap_file_np (traceFileName='Caida1_equinix-nyc.dirA.20181220-130000.UTC.anon.pcap', maxNumOfPkts=3)
-# parse_pcap_file (traceFileName='Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon.pcap', maxNumOfPkts=50000000)
+# parsePcapFile (traceFileName='Caida1_equinix-nyc.dirA.20181220-130000.UTC.anon.pcap', maxNumOfPkts=100000000)
+parsePcapFile (traceFileName='Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon.pcap', maxNumOfPkts=100000000)
