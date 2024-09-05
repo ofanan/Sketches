@@ -43,10 +43,11 @@ class CntrMaster (CEDAR.CntrMaster):
         prevCntrMaxVal   = self.cntrMaxVal 
         self.cntrMaxVal *= 2
         
+        deltaHi = 0.7 if self.cntrSize<8 else 0.4
         self.findMinDeltaByMaxVal (
             targetMaxVal    = self.cntrMaxVal,
             deltaLo         = 0.00001,
-            deltaHi         = 0.4
+            deltaHi         = deltaHi
         )                
                 
         if VERBOSE_DEBUG in self.verbose:
@@ -78,33 +79,3 @@ class CntrMaster (CEDAR.CntrMaster):
             for estimator in self.estimators:
                 printf (self.logFile, '{:.1f} ' .format(estimator)) 
         
-# def printAllVals(cntrSize=8, delta=None, cntrMaxVal=None, verbose=[]):
-#     """
-#     Loop over all the binary combinations of the given counter size.
-#     For each combination, print to file the respective counter, and its value.
-#     The prints are sorted in an increasing order of values.
-#     """
-#     listOfVals = []
-#     myCntrMaster = CntrMaster(cntrSize=cntrSize, delta=delta, cntrMaxVal=cntrMaxVal, numCntrs=1)
-#     for num in range(2 ** cntrSize):
-#         val = myCntrMaster.cntrInt2num(num)
-#         listOfVals.append ({'cntrVec' : np.binary_repr(num, cntrSize), 'val' : val})
-#
-#
-#     if settings.VERBOSE_RES in verbose:
-#         outputFile = open('../res/single_cntr_log_files/{}.res'.format(myCntrMaster.genSettingsStr()), 'w')
-#         for item in listOfVals:
-#             printf(outputFile, '{}={:.1f}\n'.format(item['cntrVec'], item['val']))
-
-# \frac{\left(\left(1+2\cdot \:\:x^2\right)^L-1\right)}{2x^2}\left(1+x^2\right)
-
-
-# myCntrMaster = CntrMaster (
-#     numCntrs    = 2**6,
-#     cntrSize    = 6, 
-#     cntrMaxVal  = 1000,
-#     verbose     = [VERBOSE_DEBUG]
-# ) 
-# logFile = open (f'../res/log_files/{myCntrMaster.genSettingsStr()}.log', 'w')
-# myCntrMaster.setLogFile (logFile)
-# myCntrMaster.upScale()

@@ -402,7 +402,7 @@ class ResFileParser (object):
             for mode in modes:
                 pointsToPrint = [point for point in pointsOfThisCntrSizeErType if point['mode'] == mode]
                 if pointsToPrint == []:
-                    warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}, width={width}, statType={statType}, rel_abs_n={rel_abs_n}')
+                    warning (f'In ResFilePerser.genErVsCntrSizeTable(). No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}, width={width}, statType={statType}, rel_abs_n={rel_abs_n}')
                     if mode!=modes[-1]:
                         printf (datOutputFile, ' & ')
                     continue
@@ -437,7 +437,8 @@ class ResFileParser (object):
             depth       : int  = 4,
             statType    : str  = 'normRmse',
             rel_abs_n   : bool = False, # When True, consider relative errors, Else, consider absolute errors.
-            maxValBy    : str  = 'F2P_li_h2_ds',
+            maxValBy    : str  = 'F2P_li_h2_ds', # the mode by which the counter's max value is determined. 
+            numIncs     : int  = 5000000, # number of increments
             ignoreModes : list = [],# List of modes to NOT include in the plot
         ):
         """
@@ -456,10 +457,11 @@ class ResFileParser (object):
                   point['statType']  == statType  and 
                   point['rel_abs_n'] == rel_abs_n and 
                   point['cntrSize']  == cntrSize  and
+                  point['numIncs']   == numIncs   and
                   point['maxValBy'].split('_ds')[0]  == maxValBy.split('_ds')[0]
                   ]
         if points == []:
-            warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, maxValBy={maxValBy}')
+            warning (f'In ResFileParser.genErVsMemSizePlotCms(). No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, maxValBy={maxValBy}')
             return
         modes = [point['mode'] for point in points]
         modes = [mode for mode in modes if mode not in ignoreModes]
@@ -1170,7 +1172,7 @@ def genErVsMemSizePlotCms (
             ignoreModes = ignoreModes,
             rel_abs_n   = False,
             maxValBy    = maxValBy,
-            cntrSize    = 8,
+            cntrSize    = 5,
         )
 
 def genErVsMemSizePlotSpaceSaving (

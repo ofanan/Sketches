@@ -182,18 +182,6 @@ class CntrMaster (Cntr.CntrMaster):
         """
         """
         if (self.cntrs[cntrIdx] == self.numEstimators-1): # reached the largest estimator --> cannot further inc
-            if self.allowDwnSmpl:
-                if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                    if self.numCntrs<10:
-                        printf (self.logFile, f'\nb4 upScaling:\n')
-                        self.printAllCntrs (self.logFile)
-                    else:
-                        printf (self.logFile, '\ncntrVal={:.1f}. upScaling:\n' .format (self.cntr2num(self.cntrs[cntrIdx])))
-                self.upScale ()
-                if VERBOSE_LOG_DWN_SMPL in self.verbose:
-                    if self.numCntrs<10:
-                        printf (self.logFile, f'\nafter upScaling:\n')
-                        self.printAllCntrs (self.logFile)
             return self.estimators[self.cntrs[cntrIdx]]
         if random.random() < 1/self.diffs[self.cntrs[cntrIdx]]:
             self.cntrs[cntrIdx] += 1
@@ -242,7 +230,7 @@ class CntrMaster (Cntr.CntrMaster):
         self.delta = deltaHi
         self.calcDiffsNSharedEstimators ()
         if (self.cntrMaxVal < targetMaxVal):
-            print (f'cannot reach maxVal={targetMaxVal} even with highest delta, deltaHi={deltaHi}. Skipping binary search')
+            error (f'cannot reach maxVal={targetMaxVal} even with highest delta, deltaHi={deltaHi}. Skipping binary search') #$$
             return
 
         while (True):
@@ -281,12 +269,6 @@ class CntrMaster (Cntr.CntrMaster):
         prevCntrMaxVal   = self.cntrMaxVal 
         self.cntrMaxVal *= 2
         
-        if self.cntrSize<8:
-            deltaHi = 0.63
-        else:
-            deltaHi = 0.4
-        
-        error (deltaHi) #$$$
         self.findMinDeltaByMaxVal (
             targetMaxVal    = self.cntrMaxVal,
             deltaLo         = 0.00001,
@@ -322,14 +304,6 @@ class CntrMaster (Cntr.CntrMaster):
             for estimator in self.estimators:
                 printf (self.logFile, '{:.1f} ' .format(estimator)) 
         
-    def setDwnSmpl (
-            self, 
-            dwnSmpl   : bool = False, # When True, use down-sampling 
-        ):
-        """
-        """
-        self.allowDwnSmpl = dwnSmpl
-
     def printCntrs (self, outputFile=None) -> None:
         """
         Format-print all the counters as a single the array, to the given file.
