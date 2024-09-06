@@ -88,44 +88,6 @@ def calcDenseTraceStat (
         interAppearanceVec  = interAppearanceVec
     )
         
-def calcSparseTraceStat (
-        traceFileName = None,
-        maxNumOfRows  = INF_INT,
-        numFlows      = 2000000
-        ):
-    """
-    Collect stat about the trace, and print it to a file.
-    The trace is merely a list of integers (keys), representing the flow to which each pkt belongs, in a .txt file.
-    The keys are sparse, namely, not necessarily sequential numbers.
-    """
-    relativePathToTraceFile = getRelativePathToTraceFile (f'{traceFileName}.txt')
-    checkIfInputFileExists (relativePathToTraceFile)
-    if numFlows==None:
-        error ('In TraceParser.calcSparseTraceStat(). Sorry, currently you must specify the num of flows for parsing the trace.')
-    traceFile = open (relativePathToTraceFile, 'r')
-    trace = np.fromfile(relativePathToTraceFile, count = maxNumOfRows, sep='\n', dtype='uint32')
-
-    flowKeyToId               = 
-    flowSizes                 = np.zeros (numFlows,     dtype=FLOW_TYPE)
-    interAppearanceVec        = np.zeros (maxNumOfRows, dtype=FLOW_TYPE)
-    last_appearance_of        = np.zeros (numFlows,     dtype=FLOW_TYPE)
-    idx_in_interAppearanceVec = 0
-    maxNumOfRows = min(maxNumOfRows, len(trace))
-    for rowNum in range(maxNumOfRows):
-        flowId = trace[rowNum]
-        flowSizes[flowId] += 1        
-        if last_appearance_of[flowId]>0: # This key has already appeared before 
-            interAppearanceVec[idx_in_interAppearanceVec] = rowNum-last_appearance_of[flowId]
-            idx_in_interAppearanceVec += 1 
-        last_appearance_of[flowId] = rowNum
-        
-    interAppearanceVec = interAppearanceVec[:idx_in_interAppearanceVec]
-    flowSizes = flowSizes[np.where(flowSizes>0)[0]].astype(FLOW_TYPE)
-    printTraceStatToFile (
-        traceFileName       = traceFileName, 
-        flowSizes           = flowSizes,
-        interAppearanceVec  = interAppearanceVec
-    )
         
 def printTraceStatToFile (
     interAppearanceVec  : np.array,
