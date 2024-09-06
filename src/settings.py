@@ -35,6 +35,7 @@ VERBOSE_LOG_SHORT       = 11
 VERBOSE_LOG_END_SIM     = 12
 VERBOSE_DETAILED_LOG    = 13
 VERBOSE_LOG_CNTRLINE    = 15  
+VERBOSE_LOG_TRACESTAT   = 16  
 VERBOSE_LOG_DWN_SMPL    = 20
 VERBOSE_LOG_DWN_SMPL_D  = 21 # Detailed dwn-smpl logging
 VERBOSE_PROGRESS        = 30 # Print periodical output notifying the progress. Used to control long runs.
