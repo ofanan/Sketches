@@ -20,6 +20,7 @@ def processPcapAndWriteHashes(
 
     tracePath = getTracesPath() + 'Caida' 
     relativePathToOutputFile = f'{tracePath}/{outputFileName}'
+    outputFile = open (relativePathToOutputFile, 'a+') 
     
     # Initialize counters
     totalPkts        = 0
@@ -34,7 +35,7 @@ def processPcapAndWriteHashes(
         tic ()
     
         # Open the pcap file for reading pkts one by one and the output file for writing hashes
-        with PcapReader(relativePathToInputFile) as pkts, open(relativePathToOutputFile, 'w') as outputFile:
+        with PcapReader(relativePathToInputFile) as pkts:
             
             # Loop through pkts one by one
             for pkt in pkts:
@@ -66,7 +67,7 @@ def processPcapAndWriteHashes(
                         srcIp, dstIp = '0.0.0.0', '0.0.0.0'
     
                     # Write the hash to the output file
-                    outputFile.write('{}\n' .format(
+                    printf (outputFile, '{}\n' .format(
                         mmh3.hash(f'{srcPort}-{dstPort}-{srcIp}-{dstIp}', signed=True)
                     ))
                     
@@ -86,8 +87,8 @@ def processPcapAndWriteHashes(
 maxNumOfPkts = 100000000
 processPcapAndWriteHashes (
     outputFileName  = 'Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon.txt', 
-    traceFileNames  = ['Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon.pcap',
-                       'Caida2_equinix-chicago.dirA.20160406-130500.UTC.anon.pcap',
-                       'Caida2_equinix-chicago.dirA.20160406-130800.UTC.anon.pcap'], 
+    pcapFileNames   = ['Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon.pcap',
+                       'Caida2_equinix-chicago.dirA.20160406-130100.UTC.anon.pcap',
+                       'Caida2_equinix-chicago.dirA.20160406-130200.UTC.anon.pcap'], 
     maxNumOfPkts    = maxNumOfPkts
 )
