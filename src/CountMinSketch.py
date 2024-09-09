@@ -470,7 +470,7 @@ def LaunchCmsSim (
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
             numOfExps               = 10,
-            maxNumIncs              = 5000000, #$$$
+            maxNumIncs              = 100000000, 
             verbose                 = [VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES, VERBOSE_PCL], 
         )
         cms.sim ()
@@ -498,8 +498,8 @@ def runMultiProcessSim ():
 if __name__ == '__main__':
     try:
         mode = 'F3P_li_h2_ds' #'F3P_li_h2_ds' 
-        for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: 
-            for width in [2**10, 2**15]: #[2**i for i in range (10, 19)]:   
+        for traceName in ['Caida2']: #, 'Caida2']: 
+            for width in [2**i for i in range (10, 19)]:   
                 LaunchCmsSim (
                     traceName   = traceName,
                     cntrSize    = 5,

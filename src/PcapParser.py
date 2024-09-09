@@ -82,13 +82,21 @@ def processPcapAndWriteHashes(
         print(f'{genElapsedTimeStr (toc())}. Finished parsing {filePktNum} pkts from file {pcapFileName}')
 
     # Output the final counts
-    print(f'{genElapsedTimeStr (toc())}. Finished parsing {totalPkts} pkts, from which {nonTcpUdpIpPkts} are IP but non-TCP/UDP, and {nonIpPkts} are non-IP.')
+    print(f'Finished parsing {totalPkts} pkts, from which {nonTcpUdpIpPkts} are IP but non-TCP/UDP, and {nonIpPkts} are non-IP.')
 
-maxNumOfPkts = 100000000
+# maxNumOfPkts = 100000000
+# processPcapAndWriteHashes (
+#     outputFileName  = 'Caida1_equinix-nyc.dirA.20181220-130000.UTC.anon.txt', 
+#     pcapFileNames   = ['Caida1_equinix-nyc.dirA.20181220-130000.UTC.anon.pcap',
+#                        'Caida1_equinix-nyc.dirA.20181220-130100.UTC.anon.pcap',
+#                        'Caida1_equinix-nyc.dirA.20181220-130200.UTC.anon.pcap'],
+#     maxNumOfPkts    = maxNumOfPkts
+# )
+maxNumOfPkts = 11000000
 processPcapAndWriteHashes (
     outputFileName  = 'Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon.txt', 
-    pcapFileNames   = ['Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon.pcap',
-                       'Caida2_equinix-chicago.dirA.20160406-130100.UTC.anon.pcap',
-                       'Caida2_equinix-chicago.dirA.20160406-130200.UTC.anon.pcap'], 
+    pcapFileNames   = ['Caida2_equinix-chicago.dirA.20160406-130300.UTC.anon.pcap'],
+                       # 'Caida2_equinix-chicago.dirA.20160406-130100.UTC.anon.pcap',
+                       # 'Caida2_equinix-chicago.dirA.20160406-130200.UTC.anon.pcap'],
     maxNumOfPkts    = maxNumOfPkts
 )
