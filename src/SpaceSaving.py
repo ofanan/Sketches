@@ -1,16 +1,16 @@
 import matplotlib 
 import matplotlib.pyplot as plt
-import math, random, os, pickle, mmh3, time, heapq
-import numpy as np
+import math, os, pickle, mmh3, time, numpy as np
 from datetime import datetime
-from collections import defaultdict
-import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
-from settings import * 
 from ttictoc import tic,toc
+# from _ast import Or
+#from collections import defaultdict
+import settings, PerfectCounter, Buckets, NiceBuckets, SEAD_stat, SEAD_dyn, F2P_li, F2P_si, Morris, CEDAR
+
+from settings import * 
 from printf import printf, printarFp 
 from SingleCntrSimulator import getCntrMaxValFromFxpStr, genCntrMasterFxp
 from CountMinSketch import CountMinSketch
-from _ast import Or
 
 class SpaceSaving (CountMinSketch):
     """

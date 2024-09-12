@@ -325,7 +325,7 @@ class CountMinSketch:
         else:
             traceHashes = np.zeros ([self.maxNumIncs, self.depth], dtype='uint32')            
         for depth in range(self.depth):
-            traceHashes[:,depth] = (self.trace + depth) % self.width
+            traceHashes[:,depth] = (self.traceKeys + depth) % self.width
         return traceHashes 
         
     def sim (
@@ -345,11 +345,20 @@ class CountMinSketch:
 
         if self.traceName=='Rand': # run synthetic, randomized trace
             rng = np.random.default_rng()
-            self.trace = rng.integers (self.numFlows, size=self.maxNumIncs, dtype='uint32')
+            self.traceFlowIds = rng.integers (self.numFlows, size=self.maxNumIncs, dtype='uint32')
+            self.traceKeys    = self.traceFlowIds # for rand sim, the trace keys are equal to the flow Ids. 
         else:
-            relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}.txt')
+            relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}_condensed.pcl')
             checkIfInputFileExists (relativePathToInputFile, exitError=True)
-            self.trace = np.fromfile(relativePathToInputFile, count = self.maxNumIncs, sep='\n', dtype='uint32')
+            with open (relativePathToInputFile, 'rb') as file:
+                self.traceFlowIds = np.array (pickle.load(file))
+            relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}_flowId2key.pcl')
+            checkIfInputFileExists (relativePathToInputFile, exitError=True)
+            with open (relativePathToInputFile, 'rb') as file:
+                flowId2key     = np.array (pickle.load(file))
+                self.traceKeys = [flowId2key[flowId] for flowId in self.traceFlowIds] #$$$
+            debugFile = open ('../res/debug.txt', 'w')
+            printf (debugFile, f'self.traceFlowIds={self.traceFlowIds}\nflowId2key={flowId2key}\ntraceKeys={self.traceKeys}') #$$$
         self.maxNumIncs = min (self.maxNumIncs, self.trace.shape[0]) 
         traceHashes = self.calcTraceHashes ()
 
@@ -362,7 +371,7 @@ class CountMinSketch:
             self.writeProgress () # log the beginning of the experiment; used to track the progress of long runs.
 
             for self.incNum in range(self.maxNumIncs):
-                flowId = self.trace[self.incNum]            
+                flowId = self.traceFlowIds[self.incNum]            
                 flowRealVal[flowId]     += 1
                 flowEstimatedVal = self.incNQueryFlow (hashes=traceHashes[self.incNum])
                 sqEr = (flowRealVal[flowId] - flowEstimatedVal)**2
@@ -498,7 +507,7 @@ def runMultiProcessSim ():
 if __name__ == '__main__':
     try:
         mode = 'F3P_li_h2_ds' #'F3P_li_h2_ds' 
-        for traceName in ['Caida2']: #, 'Caida2']: 
+        for traceName in ['Caida1']: #, 'Caida2']: 
             for width in [2**i for i in range (10, 19)]:   
                 LaunchCmsSim (
                     traceName   = traceName,

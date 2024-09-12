@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time, csv, numpy as np
 import itertools
 from datetime import datetime
+from collections import Counter 
 
 import settings
 from ttictoc import tic,toc
@@ -20,34 +21,38 @@ def condenseTrace (
     - print the trace's stat to a file.
     - print to file an compressed version of the trace, where each key is replaced by a unique flowId, allocated to each flow in sequential order of appearance in the trace. 
     """
-    relativePathToInputFile = getRelativePathToTraceFile (f'{traceFileName}.csv')
+    relativePathToInputFile = getRelativePathToTraceFile (f'{traceFileName}.txt')
     checkIfInputFileExists (relativePathToInputFile)
     trace           = np.fromfile(relativePathToInputFile, count = maxNumRows, sep='\n', dtype=FLOW_TYPE)
-    condensedTrace  = np.empty (maxNumRows, dtype=FLOW_TYPE)
-    listOfFlowKeys  = np.empty([0], dtype=FLOW_TYPE)
-    flowSizes       = np.empty([0], dtype=FLOW_TYPE)
+    traceLen        = np.shape(trace)[0]
+    condensedTrace  = np.empty (traceLen, dtype=FLOW_TYPE)
+    flowId2key      = np.empty ([0], dtype=FLOW_TYPE)
+    flowSizes       = np.empty ([0], dtype=FLOW_TYPE)
     
     tic ()
     pktNum = 0
-    print (f'Started parsing trace {traceFileName}.csv')        
+    print (f'Started parsing trace {traceFileName}.txt')        
     for flowKey in trace:
-        flowId = np.where(listOfFlowKeys==flowKey)[0]
+        flowId = np.where(flowId2key==flowKey)[0]
         if (len(flowId)==0): # first pkt of this flow
             flowId = len(flowSizes)
-            listOfFlowKeys = np.append (listOfFlowKeys, flowKey)
+            flowId2key = np.append (flowId2key, flowKey)
             flowSizes = np.append (flowSizes, 1) # the size of this flow is 1
-        elif (len(flowId)==2):
-            error (f'In TraceParser.condenseTrace(). FlowId {flowId} is duplicated in listOfFlowKeys')
+        elif (len(flowId)>1):
+            error (f'In TraceParser.condenseTrace(). FlowId {flowId} is duplicated in flowId2key')
         else: # the pkt belongs to a known flow 
             flowId = flowId[0]
             flowSizes[flowId] += 1
-            condensedTrace[pktNum] = flowId
+        condensedTrace[pktNum] = flowId
         pktNum += 1
             
+    pickle.dump(condensedTrace, open('{}_condensed.pcl' .format(relativePathToInputFile.split('.txt')[0]), 'ab+')) 
     relativePathToTraceOutputFile = relativePathToInputFile.split('.txt')[0] + '_condensed.txt'
     np.savetxt(relativePathToTraceOutputFile, condensedTrace[:pktNum], fmt='%d')
-    printf (traceOutputFile, f'{flowId}\n')
 
+    pickle.dump(flowId2key   , open('{}_flowId2key.pcl' .format(relativePathToInputFile.split('.txt')[0]), 'ab+'))
+    relativePathToTraceOutputFile = relativePathToInputFile.split('.txt')[0] + '_flowId2key.txt'
+    np.savetxt(relativePathToTraceOutputFile, flowId2key, fmt='%d')
     print (f'Finished parsing {traceFileName}.txt after {genElapsedTimeStr(toc())}. num of flows={flowSizes.shape[0]}')
 
 def calcDenseTraceStat (
@@ -109,12 +114,13 @@ def printTraceStatToFile (
         str         = 'flow sizes'        
     )
     
-calcDenseTraceStat (
-    traceFileName   = getTraceFullName('Caida1'),
-    maxNumOfRows    = 25000000,
-)
-
-# condenseTrace (
-#     traceFileName   = 'Caida2_equinix-nyc.dirA.20181220-130000.UTC.anon',
-#     maxNumRows      = 25000000 
+# calcDenseTraceStat (
+#     traceFileName   = getTraceFullName('Caida1'),
+#     maxNumOfRows    = 25000000,
 # )
+
+condenseTrace (
+    traceFileName   = 'Caida1_equinix-nyc.dirA.20181220-130000.UTC.anon',
+    # traceFileName   = 'Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon',
+    maxNumRows      = 10  
+)
