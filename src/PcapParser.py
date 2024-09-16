@@ -19,8 +19,7 @@ def processPcapAndWriteHashes(
     """
 
     tracePath = getTracesPath() + 'Caida' 
-    relativePathToOutputFile = f'{tracePath}/{outputFileName}'
-    outputFile = open (relativePathToOutputFile, 'a+') 
+    outputFile = open (f'{tracePath}/{outputFileName}', 'a+') 
     
     # Initialize counters
     totalPkts        = 0
@@ -92,11 +91,12 @@ def processPcapAndWriteHashes(
 #                        'Caida1_equinix-nyc.dirA.20181220-130200.UTC.anon.pcap'],
 #     maxNumOfPkts    = maxNumOfPkts
 # )
-maxNumOfPkts = 11000000
+maxNumOfPkts = 100000000
 processPcapAndWriteHashes (
     outputFileName  = 'Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon.txt', 
-    pcapFileNames   = ['Caida2_equinix-chicago.dirA.20160406-130300.UTC.anon.pcap'],
-                       # 'Caida2_equinix-chicago.dirA.20160406-130100.UTC.anon.pcap',
-                       # 'Caida2_equinix-chicago.dirA.20160406-130200.UTC.anon.pcap'],
+    pcapFileNames   = ['Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon.pcap',
+                        'Caida2_equinix-chicago.dirA.20160406-130100.UTC.anon.pcap',
+                        'Caida2_equinix-chicago.dirA.20160406-130200.UTC.anon.pcap',
+                        'Caida2_equinix-chicago.dirA.20160406-130300.UTC.anon.pcap'],
     maxNumOfPkts    = maxNumOfPkts
 )

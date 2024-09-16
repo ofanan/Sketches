@@ -13,6 +13,7 @@ from settings import *
 def condenseTrace (
         maxNumRows      = float('inf'), # overall number of increments (# of pkts in the trace) 
         traceFileName   = None,
+        verbose         = [VERBOSE_PCL]
     ):
     """
     Parse a trace. Collect stat about the trace.
@@ -46,13 +47,14 @@ def condenseTrace (
         condensedTrace[pktNum] = flowId
         pktNum += 1
             
-    pickle.dump(condensedTrace, open('{}_condensed.pcl' .format(relativePathToInputFile.split('.txt')[0]), 'ab+')) 
-    relativePathToTraceOutputFile = relativePathToInputFile.split('.txt')[0] + '_condensed.txt'
-    np.savetxt(relativePathToTraceOutputFile, condensedTrace[:pktNum], fmt='%d')
-
-    pickle.dump(flowId2key   , open('{}_flowId2key.pcl' .format(relativePathToInputFile.split('.txt')[0]), 'ab+'))
-    relativePathToTraceOutputFile = relativePathToInputFile.split('.txt')[0] + '_flowId2key.txt'
-    np.savetxt(relativePathToTraceOutputFile, flowId2key, fmt='%d')
+    if VERBOSE_PCL in verbose:
+        pickle.dump(condensedTrace, open('{}_flowIds.pcl' .format(relativePathToInputFile.split('.txt')[0]), 'ab+')) 
+        pickle.dump(flowId2key   , open('{}_flowId2key.pcl' .format(relativePathToInputFile.split('.txt')[0]), 'ab+'))
+    if VERBOSE_RES in verbose:
+        relativePathToTraceOutputFile = relativePathToInputFile.split('.txt')[0] + '_flowIds.txt'
+        np.savetxt(relativePathToTraceOutputFile, condensedTrace[:pktNum], fmt='%d')
+        relativePathToTraceOutputFile = relativePathToInputFile.split('.txt')[0] + '_flowId2key.txt'
+        np.savetxt(relativePathToTraceOutputFile, flowId2key, fmt='%d')
     print (f'Finished parsing {traceFileName}.txt after {genElapsedTimeStr(toc())}. num of flows={flowSizes.shape[0]}')
 
 def calcDenseTraceStat (
@@ -120,7 +122,7 @@ def printTraceStatToFile (
 # )
 
 condenseTrace (
-    traceFileName   = 'Caida1_equinix-nyc.dirA.20181220-130000.UTC.anon',
-    # traceFileName   = 'Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon',
-    maxNumRows      = 10  
+    # traceFileName   = 'Caida1_equinix-nyc.dirA.20181220-130000.UTC.anon',
+    traceFileName   = 'Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon',
+    maxNumRows      = 100000000,
 )

@@ -18,13 +18,12 @@ class CountMinSketch:
     mat2aridx  = lambda self, row, col       : self.width*row + col 
 
     # Generate a string that details the parameters' values.
-    genSettingsStr = lambda self : f'cms_{self.traceName}_{self.mode}_d{self.depth}_w{self.width}_f{self.numFlows}_bit{self.cntrSize}'
+    genSettingsStr = lambda self : f'cms_{self.traceName}_{self.mode}_d{self.depth}_w{self.width}_bit{self.cntrSize}'
     
     def __init__(self,
             width           = 2, # the number of counters per row.
             depth           = 2, # the number of rows or hash functions.
             numCntrsPerBkt  = 2,
-            numFlows        = 10, # the total number of flows to be estimated.
             mode            = 'PerfectCounter', # the counter mode (e.g., SEC, AEE, realCounter).
             cntrSize        = 8, # num of bits in each counter
             verbose         = [], # The chosen verbose options, detailed in settings.py, determine the output (e.g., to a .pcl, .res or .log file).
@@ -49,7 +48,7 @@ class CountMinSketch:
             error (f'CountMinSketch__init() was called with depth={depth}, width={width}, cntrSize={cntrSize}. All these parameters should be at least 1.')
         if depth<2 or width<2:
             warning (f'CountMinSketch__init() was called with depth={depth} and width={width}.')            
-        self.cntrSize, self.width, self.depth, self.numFlows = cntrSize, width, depth, numFlows
+        self.cntrSize, self.width, self.depth = cntrSize, width, depth
         self.maxNumIncs, self.numOfExps, = maxNumIncs, numOfExps
         if self.maxValBy==None: # By default, the maximal counter's value is the trace length 
             if self.traceName=='Rand':
@@ -330,6 +329,7 @@ class CountMinSketch:
         
     def sim (
         self, 
+        numFlows : int = 4, # number of flows when running a synthetic sim. When reading from a trace, the # of flows is found according to the trace. 
         ):
         """
         Simulate the count min sketch
@@ -337,31 +337,28 @@ class CountMinSketch:
         
         self.sumSqAbsEr  = np.zeros (self.numOfExps) # self.sumSqAbsEr[j] will hold the sum of the square absolute errors collected at experiment j. 
         self.sumSqRelEr  = np.zeros (self.numOfExps) # self.sumSqRelEr[j] will hold the sum of the square relative errors collected at experiment j.        
-        self.printSimMsg ('Started')
         self.openOutputFiles ()
-        tic ()
-        if self.numFlows==None:
-            error ('In CountMinSketch.runSimFromTrace(). Sorry, dynamically calculating the flowNum is not supported yet.')
 
         if self.traceName=='Rand': # run synthetic, randomized trace
             rng = np.random.default_rng()
             self.traceFlowIds = rng.integers (self.numFlows, size=self.maxNumIncs, dtype='uint32')
             self.traceKeys    = self.traceFlowIds # for rand sim, the trace keys are equal to the flow Ids. 
+            self.numFlows     = numFlows
         else:
-            relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}_condensed.pcl')
+            relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}_flowIds.pcl')
             checkIfInputFileExists (relativePathToInputFile, exitError=True)
             with open (relativePathToInputFile, 'rb') as file:
                 self.traceFlowIds = np.array (pickle.load(file))
+                self.numFlows     = self.traceFlowIds.shape[0]  
             relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}_flowId2key.pcl')
             checkIfInputFileExists (relativePathToInputFile, exitError=True)
             with open (relativePathToInputFile, 'rb') as file:
                 flowId2key     = np.array (pickle.load(file))
-                self.traceKeys = [flowId2key[flowId] for flowId in self.traceFlowIds] #$$$
-            debugFile = open ('../res/debug.txt', 'w')
-            printf (debugFile, f'self.traceFlowIds={self.traceFlowIds}\nflowId2key={flowId2key}\ntraceKeys={self.traceKeys}') #$$$
-        self.maxNumIncs = min (self.maxNumIncs, self.trace.shape[0]) 
+                self.traceKeys = np.array([flowId2key[flowId] for flowId in self.traceFlowIds]) 
+        self.maxNumIncs = min (self.maxNumIncs, self.traceKeys.shape[0]) 
         traceHashes = self.calcTraceHashes ()
-
+        self.printSimMsg ('Started')
+        tic ()
         for self.expNum in range (self.numOfExps):
             self.seed = self.expNum+1
             random.seed (self.seed) 
@@ -451,7 +448,6 @@ def LaunchCmsSim (
         cms = CountMinSketch (
             width           = 2, 
             depth           = 2,
-            numFlows        = 4,
             numCntrsPerBkt  = 2,
             mode            = mode, 
             traceName   = traceName,
@@ -464,13 +460,14 @@ def LaunchCmsSim (
             maxValBy                = 'int',
             cntrSize                = cntrSize, 
         )
-        cms.sim ()
+        cms.sim (
+            numFlows = 4,
+            )
     else:
         cms = CountMinSketch (
             maxValBy        = 'int',
             width           = width,
             depth           = depth,
-            numFlows        = getNumFlowsByTraceName (traceName), 
             mode            = mode,
             numCntrsPerBkt  = 1, #16
             cntrSize        = cntrSize, 
@@ -507,7 +504,7 @@ def runMultiProcessSim ():
 if __name__ == '__main__':
     try:
         mode = 'F3P_li_h2_ds' #'F3P_li_h2_ds' 
-        for traceName in ['Caida1']: #, 'Caida2']: 
+        for traceName in ['Caida2']: #, 'Caida2']: 
             for width in [2**i for i in range (10, 19)]:   
                 LaunchCmsSim (
                     traceName   = traceName,
