@@ -50,21 +50,19 @@ class CountMinSketch:
             warning (f'CountMinSketch__init() was called with depth={depth} and width={width}.')            
         self.cntrSize, self.width, self.depth = cntrSize, width, depth
         self.maxNumIncs, self.numOfExps, = maxNumIncs, numOfExps
-        if self.maxValBy==None: # By default, the maximal counter's value is the trace length 
-            if self.traceName=='Rand':
-                self.cntrMaxVal = self.maxNumIncs
-            else:
-                self.cntrMaxVal = getTraceLen(self.traceName)
+        if self.traceName=='Rand':
+            self.cntrMaxVal = self.maxNumIncs
         else:
-            if self.cntrSize==4: # tiny counters, used for development and debugging
-                self.cntrMaxVal = 30
+            if maxValBy=='int':
+                self.cntrMaxVal = 2**self.cntrSize - 1
+            elif maxValBy.startswith ('F2P') or maxValBy.startswith ('F3P'):
+                self.cntrMaxVal = getCntrMaxValFromFxpStr (
+                    cntrSize        = self.cntrSize, 
+                    fxpSettingStr   = self.maxValBy)
+            elif self.maxValBy==None: # By default, the maximal counter's value is the trace length 
+                self.cntrMaxVal = getTraceLen(self.traceName)
             else:
-                if maxValBy=='int':
-                    self.cntrMaxVal = 2**self.cntrSize - 1
-                else:
-                    self.cntrMaxVal = getCntrMaxValFromFxpStr (
-                        cntrSize        = self.cntrSize, 
-                        fxpSettingStr   = self.maxValBy)
+                error (f'In CountMinSketch.init(). the chosen maxValBy {maxValBy} is not supported.')
         random.seed (self.seed)
         self.numEpsilonStepsInRegBkt    = numEpsilonStepsInRegBkt
         self.numEpsilonStepsInXlBkt     = numEpsilonStepsInXlBkt
@@ -341,9 +339,9 @@ class CountMinSketch:
 
         if self.traceName=='Rand': # run synthetic, randomized trace
             rng = np.random.default_rng()
+            self.numFlows     = numFlows
             self.traceFlowIds = rng.integers (self.numFlows, size=self.maxNumIncs, dtype='uint32')
             self.traceKeys    = self.traceFlowIds # for rand sim, the trace keys are equal to the flow Ids. 
-            self.numFlows     = numFlows
         else:
             relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}_flowIds.pcl')
             checkIfInputFileExists (relativePathToInputFile, exitError=True)
@@ -375,13 +373,13 @@ class CountMinSketch:
                 self.sumSqAbsEr[self.expNum] += sqEr    
                 self.sumSqRelEr[self.expNum] += sqEr/(flowRealVal[flowId])**2                
                 if VERBOSE_LOG_SHORT in self.verbose: 
+                    printf (self.logFile, '\nincNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
+                        self.incNum, traceHashes[self.incNum], flowEstimatedVal, flowRealVal[flowId]))
                     self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=False)
-                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
-                        self.incNum, traceHashes[self.incNum], flowEstimatedVal, flowRealVal[flowId]))
                 elif VERBOSE_LOG in self.verbose: 
-                    self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=True)
-                    printf (self.logFile, 'incNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
+                    printf (self.logFile, '\nincNum={}, hashes={}, estimatedVal={:.0f} realVal={:.0f} \n' .format(
                         self.incNum, traceHashes[self.incNum], flowEstimatedVal, flowRealVal[flowId]))
+                    self.cntrMaster.printAllCntrs (self.logFile, printAlsoVec=True)
                 if VERBOSE_DETAILED_LOG in self.verbose and self.incNum>10000: #$$$
                     printf (self.logFile, 'incNum={}, realVal={}, estimated={:.1e}, sqAbsEr={:.1e}, sqRelEr={:.1e}, sumSqAbsEr={:.1e}, sumSqRelEr={:.1e}\n' .format (
                         self.incNum, flowRealVal[flowId], flowEstimatedVal, sqAbsEr, sqRelEr, self.sumSqAbsEr[self.expNum], self.sumSqRelEr[self.expNum]))
@@ -454,11 +452,11 @@ def LaunchCmsSim (
             numEpsilonStepsIceBkts  = 5, 
             numEpsilonStepsInRegBkt = 2,
             numEpsilonStepsInXlBkt  = 5,
-            verbose                 = [VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], #[VERBOSE_LOG_SHORT, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, VERBOSE_DETAILS
+            verbose                 = [VERBOSE_LOG, VERBOSE_LOG_DWN_SMPL], #, VERBOSE_LOG_END_SIM], #[VERBOSE_LOG_SHORT, VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM], # VERBOSE_LOG_DWN_SMPL, VERBOSE_LOG_END_SIM, VERBOSE_LOG_END_SIM, VERBOSE_LOG, VERBOSE_DETAILS
             numOfExps               = 2, 
             maxNumIncs              = 1000,
             maxValBy                = 'int',
-            cntrSize                = cntrSize, 
+            cntrSize                = 5, 
         )
         cms.sim (
             numFlows = 4,
@@ -476,7 +474,7 @@ def LaunchCmsSim (
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
             numOfExps               = 10,
-            maxNumIncs              = 100000000, 
+            maxNumIncs              = 97000000, 
             verbose                 = [VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES, VERBOSE_PCL], 
         )
         cms.sim ()
@@ -503,12 +501,12 @@ def runMultiProcessSim ():
   
 if __name__ == '__main__':
     try:
-        mode = 'F3P_li_h2_ds' #'F3P_li_h2_ds' 
-        for traceName in ['Caida2']: #, 'Caida2']: 
+        mode = 'F3P_li_h3_ds' 
+        for traceName in ['Caida2']: #['Caida2']: #, 'Caida2']: 
             for width in [2**i for i in range (10, 19)]:   
                 LaunchCmsSim (
                     traceName   = traceName,
-                    cntrSize    = 5,
+                    cntrSize    = 8,
                     mode        = mode,
                     width       = width,
                 )

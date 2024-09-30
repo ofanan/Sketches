@@ -91,12 +91,15 @@ def processPcapAndWriteHashes(
 #                        'Caida1_equinix-nyc.dirA.20181220-130200.UTC.anon.pcap'],
 #     maxNumOfPkts    = maxNumOfPkts
 # )
-maxNumOfPkts = 100000000
-processPcapAndWriteHashes (
-    outputFileName  = 'Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon.txt', 
-    pcapFileNames   = ['Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon.pcap',
-                        'Caida2_equinix-chicago.dirA.20160406-130100.UTC.anon.pcap',
-                        'Caida2_equinix-chicago.dirA.20160406-130200.UTC.anon.pcap',
-                        'Caida2_equinix-chicago.dirA.20160406-130300.UTC.anon.pcap'],
-    maxNumOfPkts    = maxNumOfPkts
-)
+# maxNumOfPkts = 100000000
+# processPcapAndWriteHashes (
+#     outputFileName  = 'Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon.txt', 
+#     pcapFileNames   = ['Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon.pcap',
+#                         'Caida2_equinix-chicago.dirA.20160406-130100.UTC.anon.pcap',
+#                         'Caida2_equinix-chicago.dirA.20160406-130200.UTC.anon.pcap',
+#                         'Caida2_equinix-chicago.dirA.20160406-130300.UTC.anon.pcap'],
+#     maxNumOfPkts    = maxNumOfPkts
+# )
+
+a = np.empty([0], dtype='int32')
+print (a)
