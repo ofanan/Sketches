@@ -352,9 +352,11 @@ class CountMinSketch:
             checkIfInputFileExists (relativePathToInputFile, exitError=True)
             with open (relativePathToInputFile, 'rb') as file:
                 flowId2key     = np.array (pickle.load(file))
-                self.traceKeys = np.array([flowId2key[flowId] for flowId in self.traceFlowIds]) 
-        self.maxNumIncs = min (self.maxNumIncs, self.traceKeys.shape[0]) 
+            self.traceKeys = np.array([flowId2key[flowId] for flowId in self.traceFlowIds])
+            self.maxNumIncs = min (self.maxNumIncs, self.traceKeys.shape[0])
+            self.traceKeys = self.traceKeys[:self.maxNumIncs] # If the trace is longer than the requested # of increments, trunc it to the desired size to save space.
         traceHashes = self.calcTraceHashes ()
+        print (f'len={self.traceKeys.shape[0]}') #$$$
         self.printSimMsg ('Started')
         tic ()
         for self.expNum in range (self.numOfExps):
@@ -474,7 +476,7 @@ def LaunchCmsSim (
             numEpsilonStepsInRegBkt = 5,
             numEpsilonStepsInXlBkt  = 7,
             numOfExps               = 10,
-            maxNumIncs              = 97000000, 
+            maxNumIncs              = 100000000, 
             verbose                 = [VERBOSE_LOG_END_SIM, VERBOSE_LOG_DWN_SMPL, VERBOSE_RES, VERBOSE_PCL], 
         )
         cms.sim ()
