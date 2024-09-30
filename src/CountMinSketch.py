@@ -356,7 +356,6 @@ class CountMinSketch:
             self.maxNumIncs = min (self.maxNumIncs, self.traceKeys.shape[0])
             self.traceKeys = self.traceKeys[:self.maxNumIncs] # If the trace is longer than the requested # of increments, trunc it to the desired size to save space.
         traceHashes = self.calcTraceHashes ()
-        print (f'len={self.traceKeys.shape[0]}') #$$$
         self.printSimMsg ('Started')
         tic ()
         for self.expNum in range (self.numOfExps):
