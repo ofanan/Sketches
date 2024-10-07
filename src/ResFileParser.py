@@ -438,7 +438,7 @@ class ResFileParser (object):
             statType    : str  = 'normRmse',
             rel_abs_n   : bool = False, # When True, consider relative errors, Else, consider absolute errors.
             maxValBy    : str  = 'F2P_li_h2_ds', # the mode by which the counter's max value is determined. 
-            numIncs     : int  = 5000000, # number of increments
+            numIncs     : int  = 100000000, # number of increments
             ignoreModes : list = [],# List of modes to NOT include in the plot
         ):
         """
@@ -461,7 +461,7 @@ class ResFileParser (object):
                   point['maxValBy'].split('_ds')[0]  == maxValBy.split('_ds')[0]
                   ]
         if points == []:
-            warning (f'In ResFileParser.genErVsMemSizePlotCms(). No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, maxValBy={maxValBy}')
+            warning (f'In ResFileParser.genErVsMemSizePlotCms(). No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, maxValBy={maxValBy}, numIncs={numIncs}, statType={statType}, rel_abs_n={rel_abs_n}')
             return
         modes = [point['mode'] for point in points]
         modes = [mode for mode in modes if mode not in ignoreModes]
@@ -1164,7 +1164,7 @@ def genErVsMemSizePlotCms (
     This function is used to show the results of CMS (Count Min Sketch) simulations.        
     """
     maxValByStr = maxValBy.split('_')[0]
-    for traceName in ['Caida1']:
+    for traceName in ['Caida2']:
         myResFileParser = ResFileParser ()
         myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC_by_{maxValBy}.pcl')
         myResFileParser.genErVsMemSizePlotCms (
@@ -1172,7 +1172,7 @@ def genErVsMemSizePlotCms (
             ignoreModes = ignoreModes,
             rel_abs_n   = False,
             maxValBy    = maxValBy,
-            cntrSize    = 5,
+            cntrSize    = 8,
         )
 
 def genErVsMemSizePlotSpaceSaving (
