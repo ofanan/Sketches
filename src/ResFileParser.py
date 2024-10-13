@@ -61,8 +61,10 @@ def colorOfMode (
     """
     Given a string defining a mode, return the color used when plotting the results of this mode.
     """
-    if modeStr.startswith('F3P'):
+    if modeStr.startswith('F3P_li_h2'):
         return PURPLE
+    elif modeStr.startswith('F3P'):
+        return BLACK
     elif modeStr=='SEAD_stat_e4':
         return 'black'
     elif modeStr.startswith('SEAD'):
