@@ -1,6 +1,6 @@
 b_*
 /src/b_*
-.project
+*project*
 /.vscode/*
 /old/*
 /src/_pycache_/*
@@ -17,3 +17,4 @@ build.xml
 /res/*
 !/res/res2publish/
 !/res/res2publish/*
+/src/sql*

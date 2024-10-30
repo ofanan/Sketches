@@ -1166,7 +1166,7 @@ def genErVsMemSizePlotCms (
     This function is used to show the results of CMS (Count Min Sketch) simulations.        
     """
     maxValByStr = maxValBy.split('_')[0]
-    for traceName in ['Caida2']:
+    for traceName in ['Caida1']:
         myResFileParser = ResFileParser ()
         myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC_by_{maxValBy}.pcl')
         myResFileParser.genErVsMemSizePlotCms (

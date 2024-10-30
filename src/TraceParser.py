@@ -1,3 +1,6 @@
+# Parse traces and gather statistics.
+# A "condensed" trace is a version of the trace where each key is replaced by a unique flowId, allocated to each flow in sequential order of appearance in the trace. 
+
 import matplotlib 
 import matplotlib.pyplot as plt
 import math, random, os, pickle, mmh3, time, csv, numpy as np
@@ -59,27 +62,36 @@ def condenseTrace (
 
 def calcDenseTraceStat (
         traceFileName = None,
-        maxNumOfRows  = INF_INT,
-        numFlows      = 2000000
+        maxNumRows  = INF_INT, #num of rows to parse. By default, the whole trace will be parsed.
         ):
     """
     Collect stat about the trace, and print it to a file.
     The trace is merely a list of integers (keys), representing the flow to which each pkt belongs, in a .txt file.
     The trace must be condensed, namely, the flowIds are 0, ..., flowId-1
     """
-    relativePathToTraceFile = getRelativePathToTraceFile (f'{traceFileName}.txt')
+    relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}_flowIds.pcl')
     checkIfInputFileExists (relativePathToTraceFile)
-    if numFlows==None:
-        error ('In TraceParser.calcDenseTraceStat(). Sorry, currently you must specify the num of flows for parsing the trace.')
-    traceFile = open (relativePathToTraceFile, 'r')
-    trace = np.fromfile(relativePathToTraceFile, count = maxNumOfRows, sep='\n', dtype='uint32')
+    with open (relativePathToInputFile, 'rb') as file:
+        trace = np.array (pickle.load(file))
+    file (close) 
+    maxNumRows = min (maxNumRows, self.traceKeys.shape[0])
+    trace = trace [:maxNumRows] # trim the unused lines in the end of the vector.   
+    
+    # Open the corresponding flowId2key file just to get the # of flows
+    relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}_flowId2key.pcl')
+    checkIfInputFileExists (relativePathToInputFile, exitError=True)
+    with open (relativePathToInputFile, 'rb') as file:
+        flowId2key     = np.array (pickle.load(file))
+    file (close) 
+    numFlows     = flowId2key.shape[0]
+    del flowId2key   
 
-    flowSizes                 = np.zeros (numFlows,     dtype=FLOW_TYPE)
-    interAppearanceVec        = np.zeros (maxNumOfRows, dtype=FLOW_TYPE)
-    last_appearance_of        = np.zeros (numFlows,     dtype=FLOW_TYPE)
+    flowSizes                 = np.zeros (numFlows,   dtype=FLOW_TYPE)
+    interAppearanceVec        = np.zeros (maxNumRows, dtype=FLOW_TYPE)
+    last_appearance_of        = np.zeros (numFlows,   dtype=FLOW_TYPE)
     idx_in_interAppearanceVec = 0
-    maxNumOfRows = min(maxNumOfRows, len(trace))
-    for rowNum in range(maxNumOfRows):
+    maxNumRows = min(maxNumRows, len(trace))
+    for rowNum in range(maxNumRows):
         flowId = trace[rowNum]
         flowSizes[flowId] += 1        
         if last_appearance_of[flowId]>0: # This key has already appeared before 
@@ -87,7 +99,7 @@ def calcDenseTraceStat (
             idx_in_interAppearanceVec += 1 
         last_appearance_of[flowId] = rowNum
         
-    interAppearanceVec = interAppearanceVec[:idx_in_interAppearanceVec]
+    interAppearanceVec = interAppearanceVec[:idx_in_interAppearanceVec] # trim the unused lines at the end of the vector.
     flowSizes = flowSizes[np.where(flowSizes>0)[0]].astype(FLOW_TYPE)
     printTraceStatToFile (
         traceFileName       = traceFileName, 
@@ -118,7 +130,7 @@ def printTraceStatToFile (
     
 # calcDenseTraceStat (
 #     traceFileName   = getTraceFullName('Caida1'),
-#     maxNumOfRows    = 25000000,
+#     maxNumRows    = 25000000,
 # )
 
 condenseTrace (

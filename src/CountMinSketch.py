@@ -347,11 +347,13 @@ class CountMinSketch:
             checkIfInputFileExists (relativePathToInputFile, exitError=True)
             with open (relativePathToInputFile, 'rb') as file:
                 self.traceFlowIds = np.array (pickle.load(file))
-                self.numFlows     = self.traceFlowIds.shape[0]  
+            close (file)
             relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}_flowId2key.pcl')
             checkIfInputFileExists (relativePathToInputFile, exitError=True)
             with open (relativePathToInputFile, 'rb') as file:
                 flowId2key     = np.array (pickle.load(file))
+            close (file)
+            self.numFlows     = flowId2key.shape[0]  
             self.traceKeys = np.array([flowId2key[flowId] for flowId in self.traceFlowIds])
             self.maxNumIncs = min (self.maxNumIncs, self.traceKeys.shape[0])
             self.traceKeys = self.traceKeys[:self.maxNumIncs] # If the trace is longer than the requested # of increments, trunc it to the desired size to save space.
@@ -503,8 +505,8 @@ def runMultiProcessSim ():
 if __name__ == '__main__':
     try:
         mode = 'F3P_li_h2_ds' 
-        for traceName in ['Caida2']: #['Caida2']: #, 'Caida2']: 
-            for width in [2**i for i in range (13, 19)]:   
+        for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: 
+            for width in [2**i for i in range (10, 19)]:   
                 LaunchCmsSim (
                     traceName   = traceName,
                     cntrSize    = 8,
