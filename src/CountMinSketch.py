@@ -413,10 +413,6 @@ class CountMinSketch:
         """
         Close the output files
         """
-    def openOutputFiles (self) -> None:
-        """
-        Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
-        """      
         if VERBOSE_PCL in self.verbose:
             self.pclOutputFile.close ()
 
@@ -524,12 +520,12 @@ def runMultiProcessSim ():
   
 if __name__ == '__main__':
     try:
-        mode = 'F3P_li_h2_ds' 
+        mode = 'AEE_ds' 
         for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: 
             for width in [2**i for i in range (10, 19)]:   
                 LaunchCmsSim (
                     traceName   = traceName,
-                    cntrSize    = 8,
+                    cntrSize    = 6,
                     mode        = mode,
                     width       = width,
                 )

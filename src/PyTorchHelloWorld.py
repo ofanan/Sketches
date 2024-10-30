@@ -8,6 +8,9 @@ import os, scipy, pickle, numpy as np
 import Quantizer, settings
 
 def preprocessImage(imagePath):
+    """
+    pre-process images before entering them to the ML model. 
+    """
     # Define the transformations to be applied to the input image
     transform = transforms.Compose([
         transforms.Resize((255, 255)),
@@ -22,7 +25,7 @@ def preprocessImage(imagePath):
 
 def quantizeByPyTorch (model):
     """
-    Quantized the model using PyTorach's quantize_dynamic function
+    Quantize the given model using PyTorach's quantize_dynamic function
     """
     quantizedModel = torch.ao.quantization.quantize_dynamic(
     model,  # the original model  # a set of layers to dynamically quantize
@@ -30,6 +33,9 @@ def quantizeByPyTorch (model):
     return quantizedModel
 
 def testModel (model, filesToTest):
+    """
+    Test the given model using the given input fileToTest.
+    """
     preds = []
     runner = 0
     for f in filesToTest:
@@ -53,24 +59,14 @@ def testModel (model, filesToTest):
 
 def quantizeModel (model):
     """
-    Quanitze the model using my quantization function
+    Quantize the model using my quantization function
     """
-    # weights = resnet18.layer4[0].bn1.running_var[:settings.VECTOR_SIZE] # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
     vec2quantize = model.layer1[0].bn1.running_var[:settings.VECTOR_SIZE] # Get the weights for a specific layer (e.g., layer 3) 
     cntrSize=8
     grid = np.array ([item for item in range (-2**(cntrSize-1)+1, 2**(cntrSize-1))])
     [quantizedVec, scale] = Quantizer.quantize(vec=vec2quantize, grid=grid)                
     dequantizedVec = Quantizer.dequantize(vec=quantizedVec, scale=scale)
-
-    
-    # print (weights)
     return model
 
 model = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1)
 quantizeModel(model)
-# resnet18 = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1)
-# weights = resnet18.layer4[0].bn1.running_var[:settings.VECTOR_SIZE] # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights. 
-
-
-# img = Image.open("dog.jpg")
-# model.eval ()
