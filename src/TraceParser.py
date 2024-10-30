@@ -61,28 +61,29 @@ def condenseTrace (
     print (f'Finished parsing {traceFileName}.txt after {genElapsedTimeStr(toc())}. num of flows={flowSizes.shape[0]}')
 
 def calcDenseTraceStat (
-        traceFileName = None,
-        maxNumRows  = INF_INT, #num of rows to parse. By default, the whole trace will be parsed.
+        traceName  = None,
+        maxNumRows = INF_INT, #num of rows to parse. By default, the whole trace will be parsed.
         ):
     """
     Collect stat about the trace, and print it to a file.
     The trace is merely a list of integers (keys), representing the flow to which each pkt belongs, in a .txt file.
     The trace must be condensed, namely, the flowIds are 0, ..., flowId-1
     """
-    relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}_flowIds.pcl')
-    checkIfInputFileExists (relativePathToTraceFile)
+    traceFileName = getTraceFullName(traceName)
+    relativePathToInputFile = getRelativePathToTraceFile (f'{traceFileName}_flowIds.pcl')
+    checkIfInputFileExists (relativePathToInputFile)
     with open (relativePathToInputFile, 'rb') as file:
         trace = np.array (pickle.load(file))
-    file (close) 
-    maxNumRows = min (maxNumRows, self.traceKeys.shape[0])
+    file.close() 
+    maxNumRows = min (maxNumRows, trace.shape[0])
     trace = trace [:maxNumRows] # trim the unused lines in the end of the vector.   
     
     # Open the corresponding flowId2key file just to get the # of flows
-    relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}_flowId2key.pcl')
+    relativePathToInputFile = getRelativePathToTraceFile (f'{traceFileName}_flowId2key.pcl')
     checkIfInputFileExists (relativePathToInputFile, exitError=True)
     with open (relativePathToInputFile, 'rb') as file:
         flowId2key     = np.array (pickle.load(file))
-    file (close) 
+    file.close() 
     numFlows     = flowId2key.shape[0]
     del flowId2key   
 
@@ -127,14 +128,18 @@ def printTraceStatToFile (
         vec         = flowSizes,
         str         = 'flow sizes'        
     )
+    statFile.close() 
     
-# calcDenseTraceStat (
-#     traceFileName   = getTraceFullName('Caida1'),
-#     maxNumRows    = 25000000,
+# condenseTrace (
+#     # traceFileName   = 'Caida1_equinix-nyc.dirA.20181220-130000.UTC.anon',
+#     traceFileName   = 'Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon',
+#     maxNumRows      = 100000000,
 # )
 
-condenseTrace (
-    # traceFileName   = 'Caida1_equinix-nyc.dirA.20181220-130000.UTC.anon',
-    traceFileName   = 'Caida2_equinix-chicago.dirA.20160406-130000.UTC.anon',
-    maxNumRows      = 100000000,
+calcDenseTraceStat (
+    traceName  = 'Caida1',
 )
+calcDenseTraceStat (
+    traceName  = 'Caida2',
+)
+

@@ -347,12 +347,12 @@ class CountMinSketch:
             checkIfInputFileExists (relativePathToInputFile, exitError=True)
             with open (relativePathToInputFile, 'rb') as file:
                 self.traceFlowIds = np.array (pickle.load(file))
-            close (file)
+            file.close ()
             relativePathToInputFile = getRelativePathToTraceFile (f'{getTraceFullName(self.traceName)}_flowId2key.pcl')
             checkIfInputFileExists (relativePathToInputFile, exitError=True)
             with open (relativePathToInputFile, 'rb') as file:
                 flowId2key     = np.array (pickle.load(file))
-            close (file)
+            file.close ()
             self.numFlows     = flowId2key.shape[0]  
             self.traceKeys = np.array([flowId2key[flowId] for flowId in self.traceFlowIds])
             self.maxNumIncs = min (self.maxNumIncs, self.traceKeys.shape[0])
@@ -407,7 +407,27 @@ class CountMinSketch:
                 if VERBOSE_RES in self.verbose:
                     printf (self.resFile, f'{dict}\n\n') 
         print (f'Finished {self.incNum+1} increments. {genElapsedTimeStr (toc())}')
+        self.closeOutputFiles ()
 
+    def closeOutputFiles (self):
+        """
+        Close the output files
+        """
+    def openOutputFiles (self) -> None:
+        """
+        Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
+        """      
+        if VERBOSE_PCL in self.verbose:
+            self.pclOutputFile.close ()
+
+        if (VERBOSE_RES in self.verbose):
+            self.resFile.close ()
+            
+        if (VERBOSE_FULL_RES in self.verbose):
+            self.fullResFile.close ()
+
+        if self.logFile!=None:
+            self.logFile.close ()
                 
     def writeProgress (self, infoStr=None):
         """
