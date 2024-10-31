@@ -470,8 +470,6 @@ class ResFileParser (object):
         minY, maxY = float('inf'), 0 
         for mode in modes:
             pointsOfMode = [point for point in points if point['mode'] == mode]
-            # if mode=='AEE_ds': #$$$
-            #     error (f'pointsOfMode[AEE]={pointsOfMode}')
             widths = [point['width'] for point in pointsOfMode]
             minMemSizeInKB  = 10**0
             minMemSize      = minMemSizeInKB * KB  
@@ -500,7 +498,7 @@ class ResFileParser (object):
                 ) 
                 minY = min (minY, point['Avg'])
                 maxY = max (maxY, point['Avg'])
-            memSizesInKb = [depth*w/KB for w in widths] # Memory size in KB = width * depth / 1024. 
+            memSizesInKb = [depth*w*(cntrSize/8)/KB for w in widths] # Memory size in KB = width * depth / 1024. 
             ax.plot (
                 [m for m in memSizesInKb], 
                 y, 
@@ -1174,7 +1172,7 @@ def genErVsMemSizePlotCms (
             ignoreModes = ignoreModes,
             rel_abs_n   = False,
             maxValBy    = maxValBy,
-            cntrSize    = 8,
+            cntrSize    = 6,
         )
 
 def genErVsMemSizePlotSpaceSaving (

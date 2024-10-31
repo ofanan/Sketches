@@ -42,7 +42,7 @@ def testModel (model, filesToTest):
         try:
             runner += 1
             with torch.no_grad():
-                inputImage = self.preprocess_image(f)
+                inputImage = self.preprocessImage(f)
                 output = model(inputImage)
                 probabilities = torch.nn.functional.softmax(output[0], dim=0)
             classIdx = torch.argmax(probabilities).item()
