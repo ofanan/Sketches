@@ -53,14 +53,14 @@ class CountMinSketch:
         if self.traceName=='Rand':
             self.cntrMaxVal = self.maxNumIncs
         else:
-            if maxValBy=='int':
+            if self.maxValBy==None: # By default, the maximal counter's value is the trace length 
+                self.cntrMaxVal = getTraceLen(self.traceName)
+            elif maxValBy=='int':
                 self.cntrMaxVal = 2**self.cntrSize - 1
             elif maxValBy.startswith ('F2P') or maxValBy.startswith ('F3P'):
                 self.cntrMaxVal = getCntrMaxValFromFxpStr (
                     cntrSize        = self.cntrSize, 
                     fxpSettingStr   = self.maxValBy)
-            elif self.maxValBy==None: # By default, the maximal counter's value is the trace length 
-                self.cntrMaxVal = getTraceLen(self.traceName)
             else:
                 error (f'In CountMinSketch.init(). the chosen maxValBy {maxValBy} is not supported.')
         random.seed (self.seed)
@@ -267,7 +267,10 @@ class CountMinSketch:
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
         """      
         if VERBOSE_PCL in self.verbose:
-            maxValByStr = self.maxValBy.split('_')[0]          
+            if self.maxValBy==None:
+                maxValByStr = 'None'          
+            else:
+                maxValByStr = self.maxValBy.split('_')[0]          
             self.pclOutputFile = open(f'../res/pcl_files/cms_{self.traceName}_{getMachineStr()}_by_{maxValByStr}.pcl', 'ab+')
 
         if (VERBOSE_RES in self.verbose):
@@ -482,7 +485,7 @@ def LaunchCmsSim (
             )
     else:
         cms = CountMinSketch (
-            maxValBy        = 'int',
+            maxValBy        = None, 
             width           = width,
             depth           = depth,
             mode            = mode,
@@ -520,12 +523,12 @@ def runMultiProcessSim ():
   
 if __name__ == '__main__':
     try:
-        mode = 'F3P_li_h2_ds' 
+        mode = 'CEDAR' 
         for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: 
-            for width in [2**i for i in range (11, 19)]:   
+            for width in [2**i for i in range (10, 19)]:   
                 LaunchCmsSim (
                     traceName   = traceName,
-                    cntrSize    = 6,
+                    cntrSize    = 8,
                     mode        = mode,
                     width       = width,
                 )

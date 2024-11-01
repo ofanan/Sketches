@@ -101,7 +101,6 @@ def calcDenseTraceStat (
         last_appearance_of[flowId] = rowNum
         
     interAppearanceVec = interAppearanceVec[:idx_in_interAppearanceVec] # trim the unused lines at the end of the vector.
-    flowSizes = flowSizes[np.where(flowSizes>0)[0]].astype(FLOW_TYPE)
     printTraceStatToFile (
         traceFileName       = traceFileName, 
         flowSizes           = flowSizes,

@@ -467,7 +467,7 @@ class ResFileParser (object):
             return
         modes = [point['mode'] for point in points]
         modes = [mode for mode in modes if mode not in ignoreModes]
-        minY, maxY = float('inf'), 0 
+        minY, maxY = float('inf'), 0 #lowest, highest Y-axis values; to be used for defining the plot's scaling
         for mode in modes:
             pointsOfMode = [point for point in points if point['mode'] == mode]
             widths = [point['width'] for point in pointsOfMode]
@@ -484,8 +484,8 @@ class ResFileParser (object):
                         printfDict (dupsFile, point)
                 point = pointsToPlot[0]
                 y.append(point['Avg'])
-                x = depth*width/KB
-                ax.plot (
+                x = depth*width*(cntrSize/8)/KB # memory consumption, in KB
+                ax.plot ( # Plot the confidence-interval of this point
                     (x, x), 
                     (point['Lo'], point['Hi']),
                     color       = colorOfMode(mode),
@@ -496,10 +496,10 @@ class ResFileParser (object):
                     # mfc         ='none',
                     # linestyle   ='None'
                 ) 
-                minY = min (minY, point['Avg'])
-                maxY = max (maxY, point['Avg'])
+                minY = min (minY, point['Avg']) # lowest Y-axis value; to be used for defining the plot's scaling
+                maxY = max (maxY, point['Avg']) # highest Y-axis value; to be used for defining the plot's scaling
             memSizesInKb = [depth*w*(cntrSize/8)/KB for w in widths] # Memory size in KB = width * depth / 1024. 
-            ax.plot (
+            ax.plot ( # Plot the averages values
                 [m for m in memSizesInKb], 
                 y, 
                 color       = colorOfMode(mode),
@@ -1170,7 +1170,7 @@ def genErVsMemSizePlotCms (
         myResFileParser.genErVsMemSizePlotCms (
             traceName   = traceName,
             ignoreModes = ignoreModes,
-            rel_abs_n   = False,
+            rel_abs_n   = True,
             maxValBy    = maxValBy,
             cntrSize    = 6,
         )
