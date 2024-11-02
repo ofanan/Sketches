@@ -267,10 +267,7 @@ class CountMinSketch:
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
         """      
         if VERBOSE_PCL in self.verbose:
-            if self.maxValBy==None:
-                maxValByStr = 'None'          
-            else:
-                maxValByStr = self.maxValBy.split('_')[0]          
+            maxValByStr = getMaxValByStr (self.maxValBy)          
             self.pclOutputFile = open(f'../res/pcl_files/cms_{self.traceName}_{getMachineStr()}_by_{maxValByStr}.pcl', 'ab+')
 
         if (VERBOSE_RES in self.verbose):

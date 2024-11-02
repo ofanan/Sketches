@@ -78,6 +78,16 @@ Confs = [{'cntrSize' : 3,  'cntrMaxVal' : 10,       'hyperSize' : 2, 'hyperMaxSi
 # Calculate the confidence interval of an array of values ar, given its avg. Based on 
 # https://stackoverflow.com/questions/15033511/compute-a-confidence-interval-from-sample-data
 confInterval = lambda ar, avg, confLvl=0.95 : st.t.interval (confLvl, len(ar)-1, loc=avg, scale=st.sem(ar)) if np.std(ar)>0 else [avg, avg]
+
+def getMaxValByStr (maxValBy : str 
+                    ):
+    """
+    Given maxValBy, which is an identifier of the counter by which the maximum value was calculated, return a identifyin string, to be used for naming the corresponding file/variable.
+    """
+    if maxValBy==None:
+        return 'None'          
+    return maxValBy.split('_')[0]          
+    
    
 def getDf (distStr : str) -> float:
     """

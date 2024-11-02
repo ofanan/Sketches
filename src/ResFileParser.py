@@ -439,7 +439,7 @@ class ResFileParser (object):
             depth       : int  = 4,
             statType    : str  = 'normRmse',
             rel_abs_n   : bool = False, # When True, consider relative errors, Else, consider absolute errors.
-            maxValBy    : str  = 'F2P_li_h2_ds', # the mode by which the counter's max value is determined. 
+            maxValByStr : str  = 'F2P_li_h2', # The mode by which the counter's max value is determined. 
             numIncs     : int  = 100000000, # number of increments
             ignoreModes : list = [],# List of modes to NOT include in the plot
         ):
@@ -453,17 +453,16 @@ class ResFileParser (object):
         foundDups = False
         self.setPltParams ()  # set the plot's parameters (formats of lines, markers, legends etc.).
         _, ax = plt.subplots()
-
         points = [point for point in self.points if 
                   point['numOfExps'] == numOfExps and 
                   point['statType']  == statType  and 
                   point['rel_abs_n'] == rel_abs_n and 
                   point['cntrSize']  == cntrSize  and
-                  point['numIncs']   == numIncs   and
-                  point['maxValBy'].split('_ds')[0]  == maxValBy.split('_ds')[0]
+                  point['numIncs']   == numIncs   #and
+                  # point['maxValBy'].split('_ds')[0]  == maxValByStr #$$$
                   ]
         if points == []:
-            warning (f'In ResFileParser.genErVsMemSizePlotCms(). No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, maxValBy={maxValBy}, numIncs={numIncs}, statType={statType}, rel_abs_n={rel_abs_n}')
+            warning (f'In ResFileParser.genErVsMemSizePlotCms(). No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, maxValBy={maxValByStr}, numIncs={numIncs}, statType={statType}, rel_abs_n={rel_abs_n}')
             return
         modes = [point['mode'] for point in points]
         modes = [mode for mode in modes if mode not in ignoreModes]
@@ -520,7 +519,6 @@ class ResFileParser (object):
         # plt.ylim ([0.98*minY, 1.02*maxY]) #$$
         # plt.yscale ('log') #$$$          
         plt.xscale ('log')
-        maxValByStr = maxValBy.split('_')[0]          
         outputFileName = 'cms_{}_n{}_{}_by_{}' .format (traceName, cntrSize, 'rel' if rel_abs_n else 'abs', maxValByStr) 
         if not(USE_FRAME):
             seaborn.despine(left=True, bottom=True, right=True)
@@ -1156,23 +1154,22 @@ def genUniqPcl (
         pickle.dump(point, pclOutputFile) 
 
 def genErVsMemSizePlotCms (
-        maxValBy    : str, # the mode by which the maximum value of a counter is set.
+        maxValByStr : str, # the mode by which the maximum value of a counter is set.
         ignoreModes : list = [],# List of modes to NOT include in the plot
     ):
     """
     Read the relevant .pcl files, and generate plots showing the error as a function of the overall memory size.
     This function is used to show the results of CMS (Count Min Sketch) simulations.        
     """
-    maxValByStr = maxValBy.split('_')[0]
     for traceName in ['Caida1']:
         myResFileParser = ResFileParser ()
-        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC_by_{maxValBy}.pcl')
+        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC_by_{maxValByStr}.pcl')
         myResFileParser.genErVsMemSizePlotCms (
             traceName   = traceName,
             ignoreModes = ignoreModes,
             rel_abs_n   = True,
-            maxValBy    = maxValBy,
-            cntrSize    = 6,
+            maxValByStr = maxValByStr,
+            cntrSize    = 8,
         )
 
 def genErVsMemSizePlotSpaceSaving (
@@ -1203,7 +1200,7 @@ if __name__ == '__main__':
         # tmp ()
         # genResolutionPlot ()
         genErVsMemSizePlotCms (
-            maxValBy    = 'int',
+            maxValByStr    = 'None',
             ignoreModes = []#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
         )
         # genUniqPcl (pclFileName='cms_Caida2_PC.pcl')
