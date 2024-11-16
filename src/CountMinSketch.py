@@ -266,8 +266,8 @@ class CountMinSketch:
         """
         Open the output files (.res, .log, .pcl), as defined by the verbose level requested.
         """      
+        maxValByStr = getMaxValByStr (self.maxValBy)          
         if VERBOSE_PCL in self.verbose:
-            maxValByStr = getMaxValByStr (self.maxValBy)          
             self.pclOutputFile = open(f'../res/pcl_files/cms_{self.traceName}_{getMachineStr()}_by_{maxValByStr}.pcl', 'ab+')
 
         if (VERBOSE_RES in self.verbose):
@@ -283,7 +283,7 @@ class CountMinSketch:
            VERBOSE_PROGRESS in self.verbose or \
            VERBOSE_LOG_END_SIM in self.verbose or \
            VERBOSE_LOG_DWN_SMPL in self.verbose:
-           self.logFile = open (f'../res/log_files/{self.genSettingsStr()}.log', 'w')
+           self.logFile = open (f'../res/log_files/{self.genSettingsStr()}_by_{maxValByStr}.log', 'w')
             
     def printSimMsg (self, str):
         """
@@ -520,9 +520,9 @@ def runMultiProcessSim ():
   
 if __name__ == '__main__':
     try:
-        mode = 'CEDAR' 
-        for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: 
-            for width in [2**i for i in range (10, 19)]:   
+        mode = 'Morris' 
+        for traceName in ['Caida2']: #['Caida2']: #, 'Caida2']: 
+            for width in [2**i for i in range (14, 19)]:   
                 LaunchCmsSim (
                     traceName   = traceName,
                     cntrSize    = 8,

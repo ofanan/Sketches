@@ -1164,6 +1164,7 @@ def genErVsMemSizePlotCms (
     for traceName in ['Caida1']:
         myResFileParser = ResFileParser ()
         myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC_by_{maxValByStr}.pcl')
+        myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC_by_{maxValByStr}.pcl')
         myResFileParser.genErVsMemSizePlotCms (
             traceName   = traceName,
             ignoreModes = ignoreModes,
