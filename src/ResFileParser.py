@@ -431,6 +431,57 @@ class ResFileParser (object):
                     printf (datOutputFile, ' & ')
             printf (datOutputFile, ' \\\\\n')
     
+    def rmvDuplicatedPoints (
+            self,
+            pclFileName : str  = None,
+            verbose     : list = []            
+        ):
+        """
+        Remove duplicated points from the results. 
+        Save the results while leaving only a single example of each setting.
+        """
+        self.rdPcl (pclFileName)
+
+        pclFileNameWoExtension = pclFileName.split('.pcl')[0]
+
+        i = 0
+        while i < len(self.points):
+            point = self.points[i]
+            j = i + 1
+            while j < len(self.points):
+                suspectedPoint = self.points[j]
+                if point['statType']  == suspectedPoint['statType']  and \
+                   point['confLvl']   == suspectedPoint['confLvl']   and  \
+                   point['numOfExps'] == suspectedPoint['numOfExps'] and \
+                   point['numIncs']   == suspectedPoint['numIncs']   and \
+                   point['mode']      == suspectedPoint['mode']      and \
+                   point['cntrSize']  == suspectedPoint['cntrSize']  and \
+                   point['depth']     == suspectedPoint['depth']     and \
+                   point['width']     == suspectedPoint['width']     and \
+                   point['numFlows']  == suspectedPoint['numFlows']  and \
+                   point['seed']      == suspectedPoint['seed']      and \
+                   point['maxValBy']  == suspectedPoint['maxValBy']  and \
+                   point['dwnSmpl']   == suspectedPoint['dwnSmpl']   and \
+                   point['rel_abs_n'] == suspectedPoint['rel_abs_n']:
+                   self.points.pop(j)
+                else:
+                   j += 1
+            i += 1
+ 
+        pclOutputFile = open (f'../res/pcl_files/{pclFileNameWoExtension}_.pcl', 'wb+')
+        for point in self.points:
+            pickle.dump(point, pclOutputFile) 
+        
+        # pclOutputFile = open (f'../res/pcl_files/{pclFileNameWoExtension}_.pcl', 'wb+')
+        # for point in self.points:
+        #     pickle.dump(point, pclOutputFile) 
+        # if VERBOSE_RES in verbose:
+        #     resFile = open (f'../res/{pclFileNameWoExtension}_.res', 'w')
+        #     for point in self.points:
+        #         printf (resFile, f'{point}\n')
+        
+    
+    
     def genErVsMemSizePlotCms (
             self,
             traceName   : str  = 'Caida1',
@@ -465,9 +516,9 @@ class ResFileParser (object):
             warning (f'In ResFileParser.genErVsMemSizePlotCms(). No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, maxValBy={maxValByStr}, numIncs={numIncs}, statType={statType}, rel_abs_n={rel_abs_n}')
             return
         modes = [point['mode'] for point in points]
-        modes = [mode for mode in modes if mode not in ignoreModes]
+        modes = list(set([mode for mode in modes if mode not in ignoreModes])) # uniquify and filter-out undesired modes 
         minY, maxY = float('inf'), 0 #lowest, highest Y-axis values; to be used for defining the plot's scaling
-        for mode in modes:
+        for mode in modes: 
             pointsOfMode = [point for point in points if point['mode'] == mode]
             widths = [point['width'] for point in pointsOfMode]
             minMemSizeInKB  = 10**0
@@ -509,7 +560,7 @@ class ResFileParser (object):
                 mfc         ='none',
                 # linestyle   ='None'
             ) 
-        
+
         plt.xlabel('Memory [KB]')
         plt.ylabel('Normalized RMSE')
         handles, labels = plt.gca().get_legend_handles_labels()
@@ -525,7 +576,7 @@ class ResFileParser (object):
         plt.savefig (f'../res/{outputFileName}.pdf', bbox_inches='tight')        
         dupsFile.close()
         if not(foundDups) and os.path.isfile (f'../res/{dupsFileName}'):
-            os.remove(f'../res/{dupsFileName}')            
+            os.remove(f'../res/{dupsFileName}') 
                 
     def genErVsMemSizePlotSpaceSaving (
             self,
@@ -1161,7 +1212,7 @@ def genErVsMemSizePlotCms (
     Read the relevant .pcl files, and generate plots showing the error as a function of the overall memory size.
     This function is used to show the results of CMS (Count Min Sketch) simulations.        
     """
-    for traceName in ['Caida1']:
+    for traceName in ['Caida2']:
         myResFileParser = ResFileParser ()
         myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC_by_{maxValByStr}.pcl')
         myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC_by_{maxValByStr}.pcl')
@@ -1191,14 +1242,21 @@ def genErVsMemSizePlotSpaceSaving (
             cntrSize    = 8,
         )
 
-def tmp ():
-    pclOutputFile = open(f'../res/pcl_files/cms_Caida1_PC_by_V3P.pcl', 'ab+')
-    dict = {'Avg': 0.00015852620616635594, 'Lo': 0.00014553717011662004, 'Hi': 0.00017151524221609184, 'statType': 'normRmse', 'maxMinRelDiff': 0.370999769482765, 'warning': True, 'confLvl': 0.95, 'numOfExps': 10, 'numIncs': 25000000, 'mode': 'AEE_ds', 'cntrSize': 8, 'depth': 4, 'width': 8192, 'numFlows': 1801150, 'seed': 10, 'maxValBy': 'F3P_li_h3_ds', 'dwnSmpl': True, 'rel_abs_n': False}
-    pickle.dump(dict, pclOutputFile) 
-    
+
+def rmvDuplicatedPoints (
+    ):
+    """
+    Remove duplicated points from the results. 
+    Save the results while leaving only a single example of each setting.
+    """
+    myResFileParser = ResFileParser()
+    myResFileParser.rmvDuplicatedPoints (
+        pclFileName = 'cms_Caida2_HPC_by_None.pcl',
+    )
+
 if __name__ == '__main__':
     try:
-        # tmp ()
+        # rmvDuplicatedPoints ()
         # genResolutionPlot ()
         genErVsMemSizePlotCms (
             maxValByStr    = 'None',
