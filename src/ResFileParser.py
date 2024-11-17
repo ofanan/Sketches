@@ -509,8 +509,7 @@ class ResFileParser (object):
                   point['statType']  == statType  and 
                   point['rel_abs_n'] == rel_abs_n and 
                   point['cntrSize']  == cntrSize  and
-                  point['numIncs']   == numIncs   #and
-                  # point['maxValBy'].split('_ds')[0]  == maxValByStr #$$$
+                  point['numIncs']   == numIncs   
                   ]
         if points == []:
             warning (f'In ResFileParser.genErVsMemSizePlotCms(). No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, maxValBy={maxValByStr}, numIncs={numIncs}, statType={statType}, rel_abs_n={rel_abs_n}')
@@ -518,13 +517,17 @@ class ResFileParser (object):
         modes = [point['mode'] for point in points]
         modes = list(set([mode for mode in modes if mode not in ignoreModes])) # uniquify and filter-out undesired modes 
         minY, maxY = float('inf'), 0 #lowest, highest Y-axis values; to be used for defining the plot's scaling
-        for mode in modes: 
+        
+        warning (f'modes={modes}')
+        for modeNum in range(len(modes)):
+            mode = modes[modeNum]     
             pointsOfMode = [point for point in points if point['mode'] == mode]
             widths = [point['width'] for point in pointsOfMode]
             minMemSizeInKB  = 10**0
             minMemSize      = minMemSizeInKB * KB  
             widths = [w for w in widths if w>=(minMemSize/4)]
-            y = []
+            y    = []
+            xVec = []
             for width in widths:
                 pointsToPlot = [point for point in pointsOfMode if point['width']==width]
                 if len(pointsToPlot)>1:
@@ -545,30 +548,32 @@ class ResFileParser (object):
                     # label       = labelOfMode(point['mode']), 
                     # mfc         ='none',
                     # linestyle   ='None'
-                ) 
+                )
+                xVec.append (x) 
                 minY = min (minY, point['Avg']) # lowest Y-axis value; to be used for defining the plot's scaling
                 maxY = max (maxY, point['Avg']) # highest Y-axis value; to be used for defining the plot's scaling
-            memSizesInKb = [depth*w*(cntrSize/8)/KB for w in widths] # Memory size in KB = width * depth / 1024. 
+            memSizesInKb = [depth*w*(cntrSize/8)/KB for w in widths] # Memory size in KB = width * depth / 1024.
             ax.plot ( # Plot the averages values
-                [m for m in memSizesInKb], 
-                y, 
+                xVec,
+                y,
                 color       = colorOfMode(mode),
-                # marker      = '+', 
-                # markersize  = MARKER_SIZE, 
                 linewidth   = LINE_WIDTH, 
                 label       = labelOfMode(point['mode']), 
                 mfc         ='none',
+                # marker      = '+', 
+                # markersize  = MARKER_SIZE, 
                 # linestyle   ='None'
             ) 
 
         plt.xlabel('Memory [KB]')
-        plt.ylabel('Normalized RMSE')
+        if statType=='normRmse':
+            plt.ylabel('Normalized RMSE')
+        else:
+            plt.ylabel(statType)
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
         plt.legend (by_label.values(), by_label.keys(), fontsize=LEGEND_FONT_SIZE, frameon=False)
         plt.xlim ([0.95*min(memSizesInKb), 10**3])       
-        # plt.ylim ([0.98*minY, 1.02*maxY]) #$$
-        # plt.yscale ('log') #$$$          
         plt.xscale ('log')
         outputFileName = 'cms_{}_n{}_{}_by_{}' .format (traceName, cntrSize, 'rel' if rel_abs_n else 'abs', maxValByStr) 
         if not(USE_FRAME):
@@ -1251,7 +1256,7 @@ def rmvDuplicatedPoints (
     """
     myResFileParser = ResFileParser()
     myResFileParser.rmvDuplicatedPoints (
-        pclFileName = 'cms_Caida2_HPC_by_None.pcl',
+        pclFileName = 'cms_Caida1_HPC_by_None.pcl',
     )
 
 if __name__ == '__main__':
@@ -1259,7 +1264,7 @@ if __name__ == '__main__':
         # rmvDuplicatedPoints ()
         # genResolutionPlot ()
         genErVsMemSizePlotCms (
-            maxValByStr    = 'None',
+            maxValByStr = 'None',
             ignoreModes = []#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
         )
         # genUniqPcl (pclFileName='cms_Caida2_PC.pcl')
