@@ -520,9 +520,9 @@ def runMultiProcessSim ():
   
 if __name__ == '__main__':
     try:
-        mode = 'F2P_li_h2' 
-        for traceName in ['Caida2']: #['Caida2']: #, 'Caida2']: 
-            for width in [2**i for i in range (10, 15)]:   
+        mode = 'Morris' 
+        for traceName in ['Caida1']: #['Caida2']: #, 'Caida2']: 
+            for width in [2**i for i in range (15, 19)]:   
                 LaunchCmsSim (
                     traceName   = traceName,
                     cntrSize    = 8,
