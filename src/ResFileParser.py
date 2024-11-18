@@ -518,9 +518,7 @@ class ResFileParser (object):
         modes = list(set([mode for mode in modes if mode not in ignoreModes])) # uniquify and filter-out undesired modes 
         minY, maxY = float('inf'), 0 #lowest, highest Y-axis values; to be used for defining the plot's scaling
         
-        warning (f'modes={modes}')
-        for modeNum in range(len(modes)):
-            mode = modes[modeNum]     
+        for mode in modes:
             pointsOfMode = [point for point in points if point['mode'] == mode]
             widths = [point['width'] for point in pointsOfMode]
             minMemSizeInKB  = 10**0
@@ -612,11 +610,10 @@ class ResFileParser (object):
             warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}')
             return
         modes = [point['mode'] for point in points]
-        modes = [mode for mode in modes if mode not in ignoreModes]
+        modes = list(set([mode for mode in modes if mode not in ignoreModes]))
         minY, maxY = float('inf'), 0 
         for mode in modes:
             pointsOfMode = [point for point in points if point['mode'] == mode]
-            # error (f'pointsOfMode={pointsOfMode}')
             memSizes = [point['cacheSize'] for point in pointsOfMode]
             minMemSizeInKB  = 10**0
             minMemSize      = minMemSizeInKB * KB  
@@ -624,6 +621,7 @@ class ResFileParser (object):
             if len(memSizes)==0:
                 warning (f'No points found for numOfExps={numOfExps}, cntrSize={cntrSize}, mode={mode}')
             y = []
+            xVec = []
             for memSize in memSizes:
                 pointsToPlot = [point for point in pointsOfMode if point['cacheSize']==memSize]
                 if len(pointsToPlot)>1:
@@ -633,6 +631,7 @@ class ResFileParser (object):
                         printfDict (dupsFile, point)
                 point = pointsToPlot[0]
                 y.append(point['Avg'])
+                xVec.append (x) 
                 ax.plot (
                     (memSize, memSize), 
                     (point['Lo'], point['Hi']),
@@ -642,7 +641,7 @@ class ResFileParser (object):
                 maxY = max (maxY, point['Avg'])
             memSizesInKb = [memSize/KB for memSize in memSizes] # Memory size in KB = width * depth / 1024. 
             ax.plot (
-                [m for m in memSizesInKb], 
+                xVec, 
                 y, 
                 color       = colorOfMode(mode),
                 linewidth   = LINE_WIDTH, 
