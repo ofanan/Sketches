@@ -523,7 +523,7 @@ class ResFileParser (object):
             widths = [point['width'] for point in pointsOfMode]
             minMemSizeInKB  = 10**0
             minMemSize      = minMemSizeInKB * KB  
-            widths = [w for w in widths if w>=(minMemSize/4)]
+            widths = sorted(list(set([w for w in widths if w>=(minMemSize/4)])))
             y    = []
             xVec = []
             for width in widths:
@@ -1255,7 +1255,7 @@ def rmvDuplicatedPoints (
     """
     myResFileParser = ResFileParser()
     myResFileParser.rmvDuplicatedPoints (
-        pclFileName = 'cms_Caida1_HPC_by_None.pcl',
+        pclFileName = 'cms_Caida2_HPC_by_None.pcl',
     )
 
 if __name__ == '__main__':
