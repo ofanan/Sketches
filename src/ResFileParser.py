@@ -1216,7 +1216,7 @@ def genErVsMemSizePlotCms (
     Read the relevant .pcl files, and generate plots showing the error as a function of the overall memory size.
     This function is used to show the results of CMS (Count Min Sketch) simulations.        
     """
-    for traceName in ['Caida2']:
+    for traceName in ['Caida1', 'Caida2']:
         myResFileParser = ResFileParser ()
         myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_PC_by_{maxValByStr}.pcl')
         myResFileParser.rdPcl (pclFileName=f'cms_{traceName}_HPC_by_{maxValByStr}.pcl')
