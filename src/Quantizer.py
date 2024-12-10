@@ -117,7 +117,7 @@ def calcErr (
         return resRecord
 
     if weightDist!='norm':
-        settings.error (f'In FPQuantization.calcErr(). Sorry, the distribution {dist} you chose is not supported.')
+        error (f'In FPQuantization.calcErr(). Sorry, the distribution {dist} you chose is not supported.')
     pdfVec = [scipy.stats.norm(0, stdev).pdf(orgVec[i]) for i in range(len(orgVec))]
     weightedAbsMseVec      = np.dot (pdfVec, absSqErrVec) 
     weightedRelMseVec      = np.empty(len([item for item in orgVec if item!=0]))
@@ -128,7 +128,7 @@ def calcErr (
         weightedRelMseVec[idxInweightedRelMseVec] = scipy.stats.norm(0, stdev).pdf(orgVec[i])*((orgVec[i]-changedVec[i])/orgVec[i])**2 
         idxInweightedRelMseVec += 1
 
-    if settings.VERBOSE_LOG in verbose:
+    if VERBOSE_LOG in verbose:
         printf (logFile, f'// mode={mode}\n')
         for i in range (10):
              printf (logFile, f'i={i}, org={orgVec[i]}, changed={changedVec[i]}, PDF={scipy.stats.norm(0, stdev).pdf(orgVec[i])}, weightedAbsMse={weightedAbsMseVec[i]}\n')
@@ -164,7 +164,7 @@ def quantize (vec  : np.array, # The vector to quantize
     lowerBnd    = vec[0] # The lower bound is the largest absolute value in the vector to quantize.
     scaledVec   = clamp (vec, lowerBnd, upperBnd)
     if (any([vec[i]!=scaledVec[i] for i in range(len(vec))])):
-        settings.error ('in Quantizer.quantize(). vec!=clamped vec.')
+        error ('in Quantizer.quantize(). vec!=clamped vec.')
     grid        = np.sort (grid)
     scale       = (vec[-1]-vec[0]) / (max(grid)-min(grid))
     z           = -vec[0]/scale
@@ -202,14 +202,14 @@ def genVec2Quantize (dist       : str   = 'uniform',  # distribution from which 
     if dist=='uniform':
         vec = [(lowerBnd + i*(upperBnd-lowerBnd)/(numPts-1)) for i in range(numPts)] #$$$ change to np-style to boost perf'
     elif dist=='norm':
-        rng = np.random.default_rng(settings.SEED)
+        rng = np.random.default_rng(SEED)
         vec = np.sort (rng.standard_normal(numPts) * stdev)
     elif dist.startswith('t_'):
-        vec = np.sort (np.random.standard_t(df=settings.getDf(dist), size=numPts) * stdev)
+        vec = np.sort (np.random.standard_t(df=getDf(dist), size=numPts) * stdev)
     elif dist=='int': # vector of integers in the range
         vec = np.arange (lowerBnd, upperBnd+1) 
     else:
-        settings.error (f'In Quantization.genVec2Quantize(). Sorry. The distribution {dist} you chose is not supported.')
+        error (f'In Quantization.genVec2Quantize(). Sorry. The distribution {dist} you chose is not supported.')
     if outLier==None:
         return np.array (vec)
     return np.array ([-outLier] + vec + [outLier])
@@ -229,15 +229,17 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
     """
     Simulate the required configurations, and calculate the rounding quantization errors. Output the results (the quantization rounding errors) as defined by the verbose.
     """
-    np.random.seed (settings.SEED)
-    if settings.VERBOSE_DEBUG in verbose:
+    np.random.seed (SEED)
+    if VERBOSE_DEBUG in verbose:
         numPts = 64
+    else:
+        numPts = min (numPts, vec2quantize.shape[0])
     if VERBOSE_RES in verbose:
         resFile = open (f'../res/{genRndErrFileName(cntrSize)}.res', 'a+')
         printf (resFile, f'// dist={dist}, stdev={stdev}, numPts={numPts}\n')
         if dist!='norm' and (not(dist.startswith('t_'))): 
             printf (resFile, f'// vecLowerBnd={vecLowerBnd}, vecUpperBnd={vecUpperBnd}, outLier={outLier}\n')
-    if settings.VERBOSE_LOG in verbose:
+    if VERBOSE_LOG in verbose:
         logFile = open (f'../res/quant_n{cntrSize}.log', 'w')
     else:        
         logFile = None
@@ -259,7 +261,7 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
     weightDist = None
     resRecords = []
     for mode in modes:
-        if settings.VERBOSE_DEBUG in verbose:
+        if VERBOSE_DEBUG in verbose:
             debugFile = open ('../res/debug.txt', 'a+')
             printf (debugFile, f'// mode={mode}\n')
         if mode.startswith('FP'):
@@ -279,13 +281,9 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
                     )
                 
         elif (mode.startswith('F2P') or mode.startswith('F3P')):
-            numSettings = getFxpSettings (mode)
-            flavor    = numSettings['flavor']
             grid = getAllValsFxp (
-                nSystem     = numSettings['nSystem'],
-                flavor      = numSettings['flavor'], 
+                fxpSettingStr = mode,
                 cntrSize    = cntrSize, 
-                hyperSize   = numSettings['hyperSize'], 
                 verbose     = [], 
                 signed      = signed
             )
@@ -364,14 +362,14 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
 
         resRecord['mode']  = mode
         
-        if settings.VERBOSE_DEBUG in verbose:
+        if VERBOSE_DEBUG in verbose:
             debugFile = open ('../res/debug.txt', 'a+')
             for i in range(len(vec2quantize)):
                 printf (debugFile, f'i={i}, vec[i]={vec2quantize[i]}, quantizedVec[i]={quantizedVec[i]}, dequantizedVec={dequantizedVec[i]}\n')
             printf (debugFile, '\n')
             exit ()
 
-        if settings.VERBOSE_COUT_CNTRLINE in verbose:
+        if VERBOSE_COUT_CNTRLINE in verbose:
             print (resRecord)
         
         if VERBOSE_RES in verbose:
@@ -385,7 +383,7 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
         resRecord['stdev']  = stdev
         if VERBOSE_PCL in verbose:
             pickle.dump(resRecord, pclOutputFile)        
-        if settings.VERBOSE_PLOT in verbose:
+        if VERBOSE_PLOT in verbose:
             resRecords.append (resRecord)
 
 def plotGrids (
@@ -514,7 +512,7 @@ if __name__ == '__main__':
                              vecLowerBnd    = -stdev, 
                              vecUpperBnd    = stdev,
                              # outLier        = 100*stdev,
-                             verbose = verbose) #[VERBOSE_RES, settings.VERBOSE_PLOT])  
+                             verbose = verbose) #[VERBOSE_RES, VERBOSE_PLOT])  
 
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

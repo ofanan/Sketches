@@ -47,20 +47,21 @@ def calcQuantRoundErrOfModel (
             verbose         = verbose,
         )  
 
-def ModelsQuantRoundErr (modelStrs=[]):
+def ModelsQuantRoundErr (
+        modelStrs=[], 
+        vec2quantLen = INF_INT):
     """
     calculate the quantization round error obtained by several models and counter sizes. 
     """
     # weights = get_weight("MobileNet_V3_Large_QuantizedWeights.DEFAULT")
     # model    = MobileNet_V3 (weights=ResNet50_Weights.IMAGENET1K_V2),
     # settings.error (weights)
-    verbose = [VERBOSE_RES, VERBOSE_PCL] #[VERBOSE_RES, VERBOSE_PCL]
+    verbose = [VERBOSE_RES] #$$$$, VERBOSE_PCL] #[VERBOSE_RES, VERBOSE_PCL]
     for modelStr in modelStrs:
         model = None
         if modelStr=='Resnet18':
             model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1)
             vec2quantize = extractWeightsOfResnetModel (model, verbose=verbose)
-            weights  = extractWeightsOfResnetModel(model)
         elif modelStr=='Resnet50':
             model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V2)
             vec2quantize = extractWeightsOfResnetModel (model, verbose=verbose)
@@ -77,6 +78,7 @@ def ModelsQuantRoundErr (modelStrs=[]):
                     vec2quantize = np.append (vec2quantize, np.array (model.layers[layerNum].weights[i]).flatten()) 
         else:
             print ('In TestQauntModels.ModelsQuantRoundErr(). Sorry, the model {modelStr} you choose is not support yet.')
+        vec2quantize = vec2quantize[:vec2quantLen]
         calcQuantRoundErrOfModel (
             vec2quantize = vec2quantize,
             modelStr     = modelStr,
@@ -85,7 +87,9 @@ def ModelsQuantRoundErr (modelStrs=[]):
 
 if __name__ == '__main__':
     try:
-        ModelsQuantRoundErr (['MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50']) #'MobileNet_V2', 'Resnet18', 'Resnet50'])
+        ModelsQuantRoundErr (
+            ['MobileNet_V2'], #, 'MobileNet_V3', 'Resnet18', 'Resnet50'],
+            vec2quantLen = 100) #'MobileNet_V2', 'Resnet18', 'Resnet50'])
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 
