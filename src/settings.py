@@ -494,4 +494,3 @@ def writeVecStatToFile (
     if minVec<0:
         warning ('in settings.writeVecStatToFile(). The minimal value in vector {} is {:.2f}' .format
                  (str, minVec))
-    

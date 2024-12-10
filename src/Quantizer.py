@@ -73,7 +73,10 @@ def setPltParams (size : str = 'large') -> None:
     })
 
 
-def clamp (vec: np.array, lowerBnd: float, upperBnd: float) -> np.array:
+def clamp (
+        vec      : np.array, 
+        lowerBnd : float, 
+        upperBnd : float) -> np.array:
     """
     Clamp a the input vector vec, as follows.
     For each item in vec:
@@ -120,7 +123,7 @@ def calcErr (
         error (f'In FPQuantization.calcErr(). Sorry, the distribution {dist} you chose is not supported.')
     pdfVec = [scipy.stats.norm(0, stdev).pdf(orgVec[i]) for i in range(len(orgVec))]
     weightedAbsMseVec      = np.dot (pdfVec, absSqErrVec) 
-    weightedRelMseVec      = np.empty(len([item for item in orgVec if item!=0]))
+    weightedRelMseVec      = np.empty((len(orgVec[orgVec!=0])))
     idxInweightedRelMseVec = 0
     for i in range(len(orgVec)):
         if orgVec[i]==0:
@@ -163,12 +166,12 @@ def quantize (vec  : np.array, # The vector to quantize
     upperBnd    = vec[-1] # The upper bound is the largest absolute value in the vector to quantize.
     lowerBnd    = vec[0] # The lower bound is the largest absolute value in the vector to quantize.
     scaledVec   = clamp (vec, lowerBnd, upperBnd)
-    if (any([vec[i]!=scaledVec[i] for i in range(len(vec))])):
+    if np.any(vec!=scaledVec):
         error ('in Quantizer.quantize(). vec!=clamped vec.')
     grid        = np.sort (grid)
     scale       = (vec[-1]-vec[0]) / (max(grid)-min(grid))
     z           = -vec[0]/scale
-    scaledVec   = [item/scale + z for item in vec] # The vector after scaling and clamping (still w/o rounding)  
+    scaledVec   = vec/scale + z # The vector after scaling and clamping (still w/o rounding)  
     quantVec    = np.empty (len(vec)) # The quantized vector (after rounding scaledVec) 
     idxInGrid = int(0)
     for idxInVec in range(len(scaledVec)):
@@ -301,9 +304,9 @@ def calcQuantRoundErr (modes          : list  = [], # modes to be simulated, e.g
             
         elif mode.startswith('int'):
             if signed: 
-                grid = np.array ([item for item in range (-2**(cntrSize-1)+1, 2**(cntrSize-1))])
+                grid = np.array (range(-2**(cntrSize-1)+1, 2**(cntrSize-1), 1))
             else:
-                grid = np.array ([item for item in range (0, 2**cntrSize-1)])
+                grid = np.array (range(2**cntrSize))
             [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
             resRecord = calcErr(
@@ -453,8 +456,8 @@ def plotGrids (
     for i in range(len(resRecords)): 
         resRecord = resRecords[i]     
         curLine, = ax.plot (
-            resRecord['grid'], 
-            [i for item in range(lenGrid)], # len(resRecords)-i # Write the y index in reverse order, so that the legends' order will correspond the order of the plots. 
+            resRecord['grid'],
+            np.array(range(lenGrid)), # Write the y index in reverse order, so that the legends' order will correspond the order of the plots. 
             color      = colorOfMode [resRecord['mode']], 
             linestyle  = 'None', 
             marker     = 'o',
