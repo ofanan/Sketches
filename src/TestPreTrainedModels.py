@@ -187,12 +187,11 @@ def ModelsQuantRoundErr (
             case _:
                 print ('In TestQauntModels.ModelsQuantRoundErr(). Sorry, the model {modelStr} you choose is not support yet.')
         vec2quantize = np.array(vec2quantize[:vec2quantLen])
-        error (f'vec2quantize={vec2quantize}\nshape={vec2quantize.shape}')
         calcQuantRoundErrOfModel (
             vec2quantize = vec2quantize,
             modelStr     = modelStr,
             verbose      = verbose, 
-            )   
+        )   
 
 if __name__ == '__main__':
     try:

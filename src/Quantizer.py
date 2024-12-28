@@ -272,7 +272,7 @@ def calcQuantRoundErr (
         outputFileName = genRndErrFileName (cntrSize)
         pclOutputFile = open(f'../res/pcl_files/{outputFileName}.pcl', 'ab+')
     
-    if vec2quantize==[]: # No given vector to quanitze - generate it yourself
+    if vec2quantize.shape==np.array([]).shape: # No given vector to quanitze - generate it yourself
         vec2quantize = genVec2Quantize (
             dist        = dist, 
             lowerBnd    = vecLowerBnd,   # lower bound for the generated points  
