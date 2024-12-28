@@ -171,17 +171,13 @@ def quantize (
       - If the quantization is assymetric, add to the vector an offset. 
       - Rounding the vector to the nearest values in the grid.
     """
-    vec         = np.sort (vec)
     if clampOutliers:
         if lowerBnd==None or upperBnd==None:
             error ('In Quantizer.quantize(). Clamp where requested, but lowerBnd or upperBnd was not specified.') 
         vec   = clamp (vec, lowerBnd, upperBnd)
-    grid        = np.sort (grid)
-    if VERBOSE_DEBUG in verbose: 
-        print (f'vec[-1]-vec[0]={vec[-1]-vec[0]}, grid[-1]-grid[0]={grid[-1]-grid[0]}') 
-    scale       = (vec[-1]-vec[0]) / (grid[-1]-grid[0])
+    scale       = (max(vec)-min(vec)) / (max(grid)-min(grid))
     if useAsymmetricQuant:
-        if grid[0]!=0:
+        if min(grid)!=0:
             error ('In Quantizeer.quant(). Asymmetric quantization is supported only for unsigned grid.')
         error ('In Quantizeer.quant(). Sorry, but asymmetric quantization is currently not supported') 
     scaledVec   = vec/scale # The vector after scaling and clamping (still w/o rounding)  
@@ -189,6 +185,8 @@ def quantize (
         print (f'scaledVec={scaledVec}') 
     if str(grid.dtype).startswith('int'):
         return [scaledVec.astype('int'), scale, 0]
+    vec         = np.sort (vec)
+    grid        = np.sort (grid)
     quantVec    = np.empty (len(vec)) # The quantized vector (after rounding scaledVec) 
     idxInGrid = int(0)
     for idxInVec in range(len(scaledVec)):
@@ -555,26 +553,27 @@ def testQuantization (
     # Test signed int grid
     grid = np.array (range(-2**(cntrSize-1)+1, 2**(cntrSize-1), 1), dtype='int')
     [quantizedVec, scale, z] = quantize (vec=vec2quantize, grid=grid) 
-    dequantizedVec = dequantize (vec2quantize, scale, z) 
+    dequantizedVec = dequantize (quantizedVec, scale, z) 
     if VERBOSE_PRINT_SCREEN in verbose:
         print (f'\ngrid={grid}\nquantizedVec={quantizedVec}, scale={scale}, z={z}\ndequantizedVec={dequantizedVec}\n')
     if VERBOSE_DEBUG in verbose:
         printf (debugFile, f'\ngrid={grid}\nquantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}\n')
         
     # Test f2p_li_h2 grid
-    grid = getAllValsFxp (
+    grid = np.array(getAllValsFxp (
         fxpSettingStr = 'F2P_li_h2',
         cntrSize    = cntrSize, 
         verbose     = [], 
         signed      = True
-    )
+    ))
     [quantizedVec, scale, z] = quantize (vec=vec2quantize, grid=grid) 
-    dequantizedVec = dequantize (vec2quantize, scale, z) 
+    dequantizedVec = dequantize (quantizedVec, scale, z) 
     if VERBOSE_PRINT_SCREEN in verbose:
         print (f'grid={grid}\nquantizedVec={quantizedVec}, scale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
     if VERBOSE_DEBUG in verbose:
         printf (debugFile, f'grid={grid}\nvec2quantize={vec2quantize}\nquantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
         debugFile.close ()
+        
 if __name__ == '__main__':
     try:
         testQuantization (verbose=[VERBOSE_DEBUG])
