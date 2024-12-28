@@ -173,18 +173,21 @@ def ModelsQuantRoundErr (
                 vec2quantize = extractWeightsOfModel (model, verbose=verbose)
             case 'MobileNet_V2':
                 model = tf.keras.applications.mobilenet_v2.MobileNetV2()
-                vec2quantize = np.array (model.layers[1].weights).flatten() # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
-                for i in range(2, 100): #133): # 100: 374720 weights. 133: 1040064 weights
-                    vec2quantize = np.append (vec2quantize, np.array (model.layers[i].weights).flatten()) 
+                vec2quantize = extractWeightsOfModel (model, verbose=verbose)
+                # vec2quantize = np.array (model.layers[1].weights).flatten() # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
+                # for i in range(2, 100): #133): # 100: 374720 weights. 133: 1040064 weights
+                #     vec2quantize = np.append (vec2quantize, np.array (model.layers[i].weights).flatten()) 
             case 'MobileNet_V3':
                 model = tf.keras.applications.MobileNetV3Large()
-                vec2quantize = np.array (model.layers[2].weights).flatten()
-                for layerNum in range (100): # 100: 112976 weights
-                    for i in range(len(model.layers[layerNum].weights)):
-                        vec2quantize = np.append (vec2quantize, np.array (model.layers[layerNum].weights[i]).flatten()) 
+                vec2quantize = extractWeightsOfModel (model, verbose=verbose)
+                # vec2quantize = np.array (model.layers[2].weights).flatten()
+                # for layerNum in range (100): # 100: 112976 weights
+                #     for i in range(len(model.layers[layerNum].weights)):
+                #         vec2quantize = np.append (vec2quantize, np.array (model.layers[layerNum].weights[i]).flatten()) 
             case _:
                 print ('In TestQauntModels.ModelsQuantRoundErr(). Sorry, the model {modelStr} you choose is not support yet.')
         vec2quantize = np.array(vec2quantize[:vec2quantLen])
+        error (f'vec2quantize={vec2quantize}\nshape={vec2quantize.shape}')
         calcQuantRoundErrOfModel (
             vec2quantize = vec2quantize,
             modelStr     = modelStr,
