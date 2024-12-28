@@ -89,7 +89,7 @@ if __name__ == '__main__':
     try:
         ModelsQuantRoundErr (
             ['MobileNet_V2'], #, 'MobileNet_V3', 'Resnet18', 'Resnet50'],
-            vec2quantLen = 100) #'MobileNet_V2', 'Resnet18', 'Resnet50'])
+            vec2quantLen = 10) #'MobileNet_V2', 'Resnet18', 'Resnet50'])
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 

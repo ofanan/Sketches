@@ -2,11 +2,12 @@
 # import math, random, os, pandas as pd
 import os, math, itertools, numpy as np, scipy.stats as st 
 from printf import printf, printarFp
-np.set_printoptions(precision=1)
+# np.set_printoptions(precision=1)
 
 SEED    = 42
 INF_INT = 999999999
 MAX_NUM_OF_FLOWS = 2**32
+NP_PRINT_PRECISION = 4 # num of digits to print right to the point at np.vecs.
 
 # Colors for print-out messages
 STDOUT_FAIL     = '\033[91m'
@@ -24,6 +25,7 @@ STDOUT_ENDC     = '\033[0m'
    
 VERBOSE_COUT_CONF       = 0 # print to stdout details about the configuration, e.g., cntrSize, hyperSize, Vmax, bias.
 VERBOSE_COUT_CNTRLINE   = 1 # print to stdout details about the concrete counter and its fields.
+VERBOSE_PRINT_SCREEN    = 2
 VERBOSE_RES             = 3 # print output to a .res file in the directory ../res
 VERBOSE_DETAILED_RES    = 4
 VERBOSE_FULL_RES        = 5

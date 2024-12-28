@@ -6,7 +6,6 @@ import os, numpy as np, pandas as pd
 from pandas._libs.tslibs import period
 from printf import printf, printfDict
 from nltk.corpus.reader import lin
-np.set_printoptions(precision=1)
 
 import settings, SingleCntrSimulator
 from settings import * 
