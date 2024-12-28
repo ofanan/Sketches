@@ -333,7 +333,6 @@ def calcQuantRoundErr (
                 grid = np.array (range(2**cntrSize), dtype='int')
             [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
-            error (f'vec2quantize={vec2quantize}\ndequantizedVec={dequantizedVec}') #$$$ 
             resRecord = calcErr(
                     orgVec      = vec2quantize, 
                     changedVec  = dequantizedVec, 
