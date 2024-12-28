@@ -114,45 +114,46 @@ def calcQuantRoundErrOfModel (
 
 def ModelsQuantRoundErr (
         modelStrs=[], 
-        vec2quantLen = None):
+        vec2quantLen = None
+    ):
     """
     calculate the quantization round error obtained by several models and counter sizes. 
     """
     # model    = MobileNet_V3 (weights=ResNet50_Weights.IMAGENET1K_V2),
-    # verbose = [VERBOSE_RES] #$$$$, VERBOSE_PCL] #[VERBOSE_RES, VERBOSE_PCL]
-    # for modelStr in modelStrs:
-    #     model = None
-    #     match modelStr:
-    #         gamad = 9
-    #         case 'Resnet18':
-    #             model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1)
-    #             vec2quantize = extractWeightsOfModel (model, vec2quantLen=vec2quantLen, verbose=verbose)
-    #         case 'Resnet50':
-    #             model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V2)
-    #             vec2quantize = extractWeightsOfModel (model, verbose=verbose)
-    #         case 'MobileNet_V2':
-    #             model = tf.keras.applications.mobilenet_v2.MobileNetV2()
-    #             vec2quantize = np.array (model.layers[1].weights).flatten() # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
-    #             for i in range(2, 100): #133): # 100: 374720 weights. 133: 1040064 weights
-    #                 vec2quantize = np.append (vec2quantize, np.array (model.layers[i].weights).flatten()) 
-    #         case 'MobileNet_V3':
-    #             model = tf.keras.applications.MobileNetV3Large()
-    #             vec2quantize = np.array (model.layers[2].weights).flatten()
-    #             for layerNum in range (100): # 100: 112976 weights
-    #                 for i in range(len(model.layers[layerNum].weights)):
-    #                     vec2quantize = np.append (vec2quantize, np.array (model.layers[layerNum].weights[i]).flatten()) 
-    #         case _:
-    #             print ('In TestQauntModels.ModelsQuantRoundErr(). Sorry, the model {modelStr} you choose is not support yet.')
-    #     vec2quantize = vec2quantize[:vec2quantLen]
-    #     calcQuantRoundErrOfModel (
-    #         vec2quantize = vec2quantize,
-    #         modelStr     = modelStr,
-    #         verbose      = verbose, 
-    #         )   
+    verbose = [VERBOSE_RES] #$$$$, VERBOSE_PCL] #[VERBOSE_RES, VERBOSE_PCL]
+    for modelStr in modelStrs:
+        model = None
+        match modelStr:
+            case 'Resnet18':
+                model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1)
+                vec2quantize = extractWeightsOfModel (model, vec2quantLen=vec2quantLen, verbose=verbose)
+            case 'Resnet50':
+                model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V2)
+                vec2quantize = extractWeightsOfModel (model, verbose=verbose)
+            case 'MobileNet_V2':
+                model = tf.keras.applications.mobilenet_v2.MobileNetV2()
+                vec2quantize = np.array (model.layers[1].weights).flatten() # Get the weights for a specific layer (e.g., layer 3) # Get 1K weights.
+                for i in range(2, 100): #133): # 100: 374720 weights. 133: 1040064 weights
+                    vec2quantize = np.append (vec2quantize, np.array (model.layers[i].weights).flatten()) 
+            case 'MobileNet_V3':
+                model = tf.keras.applications.MobileNetV3Large()
+                vec2quantize = np.array (model.layers[2].weights).flatten()
+                for layerNum in range (100): # 100: 112976 weights
+                    for i in range(len(model.layers[layerNum].weights)):
+                        vec2quantize = np.append (vec2quantize, np.array (model.layers[layerNum].weights[i]).flatten()) 
+            case _:
+                print ('In TestQauntModels.ModelsQuantRoundErr(). Sorry, the model {modelStr} you choose is not support yet.')
+        vec2quantize = vec2quantize[:vec2quantLen]
+        return #$$$$$
+        calcQuantRoundErrOfModel (
+            vec2quantize = vec2quantize,
+            modelStr     = modelStr,
+            verbose      = verbose, 
+            )   
 
 if __name__ == '__main__':
     try:
-        ModelsQuantRoundErr (
+         ModelsQuantRoundErr (
             ['Resnet18'], #, 'MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50'],
             vec2quantLen = 10) 
     except KeyboardInterrupt:
