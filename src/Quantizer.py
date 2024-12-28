@@ -181,14 +181,19 @@ def quantize (
     if useAsymmetricQuant:
         if min(grid)!=0:
             error ('In Quantizeer.quant(). Asymmetric quantization is supported only for unsigned grid.')
-        error ('In Quantizeer.quant(). Sorry, but asymmetric quantization is currently not supported') 
-    scaledVec   = vec/scale # The vector after scaling and clamping (still w/o rounding)  
+        error ('In Quantizeer.quant(). Sorry, but asymmetric quantization is currently not supported')
+    else:
+        z = 0
+    scaledVec   = vec/scale + z# The vector after scaling and clamping (still w/o rounding)  
     if VERBOSE_DEBUG in verbose: 
         print (f'scaledVec={scaledVec}') 
     if str(grid.dtype).startswith('int'):
-        return [scaledVec.astype('int'), scale, 0]
-    vec         = np.sort (vec)
+        return [scaledVec.astype('int'), scale, z]
+    scaledVec   = np.sort (scaledVec)
     grid        = np.sort (grid)
+
+    sorted_indices = np.argsort(scaledVec) # Get the indices that would sort the array
+    sclaedVec      = sorted_array = scaledVec[sorted_indices] # sort sclaedVec
     quantVec    = np.empty (len(vec)) # The quantized vector (after rounding scaledVec) 
     idxInGrid = int(0)
     for idxInVec in range(len(scaledVec)):
@@ -207,7 +212,7 @@ def quantize (
                idxInGrid -= 1
                quantVec[idxInVec] = grid[idxInGrid]
                break
-    return [quantVec, scale, z]
+    return [quantVec[sorted_indices], scale, z]
 
 def genVec2Quantize (
         dist       : str   = 'uniform',  # distribution from which points are drawn  
@@ -563,7 +568,7 @@ def testQuantization (
         
     # Test f2p_li_h2 grid
     grid = getAllValsFxp (
-        fxpSettingStr = 'F2P_li_h2',
+        fxpSettingStr = 'F2P_lr_h2',
         cntrSize    = cntrSize, 
         verbose     = [], 
         signed      = True
