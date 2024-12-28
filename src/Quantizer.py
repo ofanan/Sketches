@@ -168,7 +168,7 @@ def quantize (
     - Quantizing the vector, namely:
       - Clamping (if requested).
       - Scaling the vector. The scaling method is minMax.
-      - If the quantization is assymetric, add to the vector an offset. 
+      - If the quantization is asymmetric, calculate an offest, add add it to the vector (not supproted yet). 
       - Rounding the vector to the nearest values in the grid.
     """
     grid = np.array (grid)
@@ -546,9 +546,8 @@ def testQuantization (
         verbose : list = [],
     ):
     """
-    Basic vec of the quantization
+    Basic test of the quantization
     """
-    # vec2quantize = np.array([-0.0748, -0.0104, -0.0061, -0.0018,  0.0748,  0.0566])
     vec2quantize = np.array([-0.08, -0.01, 0.08,  0.05])
     cntrSize = 8
     if VERBOSE_PRINT_SCREEN in verbose:
