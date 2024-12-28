@@ -25,26 +25,67 @@ def extractWeightsOfModel(
     """
     Extracts, flattens, and optionally clamps weights from a PyTorch model.
     """
-    if not isinstance(model, torch.nn.Module):
-        error ("In TestPreTrainedModels.extract_and_flatten_weights(). Input model is not a torch.nn.Module.")
 
     all_weights = []
-    for module in model.modules():  # Iterate through all modules
-        if isinstance(module, (torch.nn.Conv2d, torch.nn.Linear, torch.nn.Embedding)):
-            try:
-                all_weights.append(module.weight.detach().cpu().numpy().flatten())
-                if module.bias is not None:
+
+    if isinstance(model, torch.nn.Module):  # PyTorch model
+        for module in model.modules():
+            if isinstance(module, (torch.nn.Conv2d, torch.nn.Linear, torch.nn.Embedding)):
+                try:
+                    all_weights.append(module.weight.detach().cpu().numpy().flatten())
+                    if module.bias is not None:
+                        all_weights.append(module.bias.detach().cpu().numpy().flatten())
+                except AttributeError:
+                    pass
+            elif isinstance(module, torch.nn.BatchNorm2d):
+                try:
+                    all_weights.append(module.weight.detach().cpu().numpy().flatten())
                     all_weights.append(module.bias.detach().cpu().numpy().flatten())
-            except AttributeError:
-                pass
-        elif isinstance(module, torch.nn.BatchNorm2d):
-            try:
-                all_weights.append(module.weight.detach().cpu().numpy().flatten())
-                all_weights.append(module.bias.detach().cpu().numpy().flatten())
-                all_weights.append(module.running_mean.detach().cpu().numpy().flatten())
-                all_weights.append(module.running_var.detach().cpu().numpy().flatten())
-            except AttributeError:
-                pass
+                    all_weights.append(module.running_mean.detach().cpu().numpy().flatten())
+                    all_weights.append(module.running_var.detach().cpu().numpy().flatten())
+                except AttributeError:
+                    pass
+    elif isinstance(model, tf.keras.Model):  # TensorFlow/Keras model
+        for layer in model.layers:
+            if hasattr(layer, 'weights'):  # Check if the layer has weights
+                for weight in layer.weights:
+                    all_weights.append(weight.numpy().flatten())
+    else:
+        print("Error: Input model must be a torch.nn.Module or a tf.keras.Model.")
+        return None
+    
+    if all_weights:
+        flattened_weights = np.concatenate(all_weights)
+    else:
+        return np.array([])
+
+    return flattened_weights
+    
+    
+    
+    # for module in model.modules():  # Iterate through all modules
+    #     if isinstance(module, (torch.nn.Conv2d, torch.nn.Linear, torch.nn.Embedding)):
+    #         try:
+    #             all_weights.append(module.weight.detach().cpu().numpy().flatten())
+    #             if module.bias is not None:
+    #                 all_weights.append(module.bias.detach().cpu().numpy().flatten())
+    #         except AttributeError:
+    #             pass
+    #     elif isinstance(model, tf.keras.Model):  # TensorFlow/Keras model
+    #         for layer in model.layers:
+    #             if hasattr(layer, 'weights'):  # Check if the layer has weights
+    #                 for weight in layer.weights:
+    #                     all_weights.append(weight.numpy().flatten())        
+    #     elif isinstance(module, torch.nn.BatchNorm2d):
+    #         try:
+    #             all_weights.append(module.weight.detach().cpu().numpy().flatten())
+    #             all_weights.append(module.bias.detach().cpu().numpy().flatten())
+    #             all_weights.append(module.running_mean.detach().cpu().numpy().flatten())
+    #             all_weights.append(module.running_var.detach().cpu().numpy().flatten())
+    #         except AttributeError:
+    #             pass
+    #     else:
+    #         error ("In TestPreTrainedModels.extract_and_flatten_weights(). Input model is not a torch.nn.Module.")
 
     # Concatenate all flattened arrays into a single 1D array
     if all_weights:
@@ -143,8 +184,7 @@ def ModelsQuantRoundErr (
                         vec2quantize = np.append (vec2quantize, np.array (model.layers[layerNum].weights[i]).flatten()) 
             case _:
                 print ('In TestQauntModels.ModelsQuantRoundErr(). Sorry, the model {modelStr} you choose is not support yet.')
-        vec2quantize = vec2quantize[:vec2quantLen]
-        return #$$$$$
+        vec2quantize = np.array(vec2quantize[:vec2quantLen])
         calcQuantRoundErrOfModel (
             vec2quantize = vec2quantize,
             modelStr     = modelStr,
@@ -154,7 +194,7 @@ def ModelsQuantRoundErr (
 if __name__ == '__main__':
     try:
          ModelsQuantRoundErr (
-            ['Resnet18'], #, 'MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50'],
+            ['MobileNet_V3'], #, 'MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50'],
             vec2quantLen = 10) 
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
