@@ -171,6 +171,8 @@ def quantize (
       - If the quantization is assymetric, add to the vector an offset. 
       - Rounding the vector to the nearest values in the grid.
     """
+    grid = np.array (grid)
+    vec  = np.array (vec)
     if clampOutliers:
         if lowerBnd==None or upperBnd==None:
             error ('In Quantizer.quantize(). Clamp where requested, but lowerBnd or upperBnd was not specified.') 
@@ -560,12 +562,12 @@ def testQuantization (
         printf (debugFile, f'\ngrid={grid}\nquantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}\n')
         
     # Test f2p_li_h2 grid
-    grid = np.array(getAllValsFxp (
+    grid = getAllValsFxp (
         fxpSettingStr = 'F2P_li_h2',
         cntrSize    = cntrSize, 
         verbose     = [], 
         signed      = True
-    ))
+    )
     [quantizedVec, scale, z] = quantize (vec=vec2quantize, grid=grid) 
     dequantizedVec = dequantize (quantizedVec, scale, z) 
     if VERBOSE_PRINT_SCREEN in verbose:
