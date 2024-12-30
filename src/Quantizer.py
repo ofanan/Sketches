@@ -246,7 +246,8 @@ def calcQuantRoundErr (
         cntrSize       : int   = 8,  # of bits, including the sign bit
         modes          : list  = [], # modes to be simulated, e.g. FP, F2P_sr. 
         signed         : bool  = False, # When True, consider a signed counter
-        vec2quantize   : np.array  = None, # The vector quantize.  
+        vec2quantize   : np.array  = None, # The vector quantize.
+        inputFrom      : str = None, # A string that details the origin of the vector to quantize  
         verbose        : list  = [],  # level of verbose, as defined in settings.py.
     ):
     """
@@ -309,11 +310,12 @@ def calcQuantRoundErr (
             changedVec  = dequantizedVec, 
             scale       = scale,
             logFile     = logFile,
-            weightDist  = weightDist,
             verbose     = verbose
         )
-        resRecord['mode']   = mode
-        resRecord['numPts'] = len (vec2quantize)
+        resRecord['mode']       = mode
+        resRecord['signed']  = signed
+        resRecord['numPts']     = len (vec2quantize)
+        resRecord['inputFrom']  = inputFrom
         
         if VERBOSE_DEBUG in verbose:
             debugFile = open ('../res/debug.txt', 'a+')
@@ -326,10 +328,11 @@ def calcQuantRoundErr (
             print (resRecord)
         
         if VERBOSE_RES in verbose:
-            for key, value in resRecord.items():
-                if not key.endswith('Vec'):
-                    printf (resFile, f'{key} : {value}\n')
-            printf (resFile, '\n')
+            printf (resFile, f'{resRecord}\n')
+            # for key, value in resRecord.items():
+            #     if not key.endswith('Vec'):
+            #         printf (resFile, f'{key} : {value}\n')
+            # printf (resFile, '\n')
         
         if VERBOSE_PCL in verbose:
             pickle.dump(resRecord, pclOutputFile)        

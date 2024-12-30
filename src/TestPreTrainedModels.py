@@ -57,25 +57,6 @@ def extractWeightsOfModel(
     
     error ("In TestPrestrainedModels.extractWeightsOfModel(). Failed to extract weights from the model.")
 
-def calcQuantRoundErrOfModel (
-        modelStr, # a string defining the model
-        vec2quantize,
-        verbose   # enum detailing which outputs to write. The enums are defined at settings.py
-        ):
-    """
-    calculate the quantization round error obtained for the given model.
-    Output the results as detailed in verbose. 
-    """
-
-    for cntrSize in [8, 16, 19]:
-        Quantizer.calcQuantRoundErr(
-            cntrSize        = cntrSize,
-            signed          = False,
-            dist            = modelStr,
-            modes           = settings.modesOfCntrSize(cntrSize),
-            vec2quantize    = vec2quantize,  
-            verbose         = verbose,
-        )  
 
 def ModelsQuantRoundErr (
         modelStrs=[], 
@@ -102,11 +83,16 @@ def ModelsQuantRoundErr (
                 vec2quantize = extractWeightsOfModel (model, verbose=verbose)
             case _:
                 print ('In TestQauntModels.ModelsQuantRoundErr(). Sorry, the model {modelStr} you choose is not support yet.')
-        calcQuantRoundErrOfModel (
-            vec2quantize = np.array(vec2quantize[:vec2quantLen]),
-            modelStr     = modelStr,
-            verbose      = verbose, 
-        )   
+                
+        for cntrSize in [8]: #$$$$, 16, 19]:
+            Quantizer.calcQuantRoundErr(
+                cntrSize        = cntrSize,
+                signed          = True,
+                modes           = settings.modesOfCntrSize(cntrSize),
+                vec2quantize    = vec2quantize,  
+                inputFrom       = modelStr,       
+                verbose         = verbose,
+            )  
 
 if __name__ == '__main__':
     try:
