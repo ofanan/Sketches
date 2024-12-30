@@ -272,8 +272,6 @@ def calcQuantRoundErr (
         if mode.startswith('FP'):
             expSize = int(mode.split ('_e')[1])
             grid                     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=signed)
-            [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
-            dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
                 
         elif (mode.startswith('F2P') or mode.startswith('F3P')):
             grid = getAllValsFxp (
@@ -282,35 +280,31 @@ def calcQuantRoundErr (
                 verbose     = [], 
                 signed      = signed
             )
-            [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
-            dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
             
         elif mode.startswith('int'):
             if signed: 
                 grid = np.array (range(-2**(cntrSize-1)+1, 2**(cntrSize-1), 1), dtype='int')
             else:
                 grid = np.array (range(2**cntrSize), dtype='int')
-            [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
-            dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
         
         elif mode.startswith ('SEAD_stat'):
             expSize = int(mode.split('_e')[1].split('_')[0])
             myCntrMaster = SEAD_stat.CntrMaster (cntrSize=cntrSize, expSize=expSize, verbose=verbose)            
             grid = myCntrMaster.getAllVals ()
-            [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
-            dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
 
         elif mode.startswith ('SEAD_dyn'):
             myCntrMaster = SEAD_dyn.CntrMaster (cntrSize=cntrSize, verbose=verbose)            
             grid = myCntrMaster.getAllVals ()
-            [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
-            dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
 
         else:
             print (f'In Quantizer.calcQuantRoundErr(). Sorry, the requested mode {mode} is not supported.')
             continue
 
-        resRecord = calcErr(
+        [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
+        dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
+        
+        # Analyze the results of this experiment and insert them into resRecord 
+        resRecord = calcErr( 
             orgVec      = vec2quantize, 
             changedVec  = dequantizedVec, 
             scale       = scale,
@@ -318,7 +312,8 @@ def calcQuantRoundErr (
             weightDist  = weightDist,
             verbose     = verbose
         )
-        resRecord['mode']  = mode
+        resRecord['mode']   = mode
+        resRecord['numPts'] = len (vec2quantize)
         
         if VERBOSE_DEBUG in verbose:
             debugFile = open ('../res/debug.txt', 'a+')
@@ -336,7 +331,6 @@ def calcQuantRoundErr (
                     printf (resFile, f'{key} : {value}\n')
             printf (resFile, '\n')
         
-        resRecord['numPts'] = len (vec2quantize)
         if VERBOSE_PCL in verbose:
             pickle.dump(resRecord, pclOutputFile)        
         if VERBOSE_PLOT in verbose:
