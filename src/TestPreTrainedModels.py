@@ -71,7 +71,7 @@ def ModelsQuantRoundErr (
         match modelStr:
             case 'Resnet18':
                 model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1)
-                vec2quantize = extractWeightsOfModel (model, vec2quantLen=vec2quantLen, verbose=verbose)
+                vec2quantize = extractWeightsOfModel (model, verbose=verbose)
             case 'Resnet50':
                 model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V2)
                 vec2quantize = extractWeightsOfModel (model, verbose=verbose)
@@ -89,7 +89,7 @@ def ModelsQuantRoundErr (
                 cntrSize        = cntrSize,
                 signed          = True,
                 modes           = settings.modesOfCntrSize(cntrSize),
-                vec2quantize    = vec2quantize,  
+                vec2quantize    = vec2quantize[:vec2quantLen],  
                 inputFrom       = modelStr,       
                 verbose         = verbose,
             )  
