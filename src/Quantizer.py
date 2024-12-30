@@ -92,7 +92,7 @@ def calcErr (
         orgVec         : np.array, # vector before quantization 
         changedVec     : np.array, # vector after quantization+dequantization
         weightDist     : str = None, # distribution by which the MSE is weighted; when None, do not calculate the weighted MSE
-        stdev          : float = 0.01,       # standard variation of the distribution; the expected value is 0.
+        stdev          : float = None,       # standard variation of the distribution; the expected value is 0.
         scale          : float = None,       # the scale by which orgVec was quantized
         logFile        = None, # object for the logFile; to be used if the verbose requests for logFile
         recordErrVecs  = False, # When True, add the error vector (and not only their means) to the returned resRecord.
@@ -122,6 +122,8 @@ def calcErr (
 
     if weightDist!='norm':
         error (f'In FPQuantization.calcErr(). Sorry, the distribution {dist} you chose is not supported.')
+    if stdev==None:
+        error (f'In FPQuantization.calcErr(). Please specify stdev.')        
     pdfVec = [scipy.stats.norm(0, stdev).pdf(orgVec[i]) for i in range(len(orgVec))]
     weightedAbsMseVec      = np.dot (pdfVec, absSqErrVec) 
     weightedRelMseVec      = np.empty((len(orgVec[orgVec!=0])))
@@ -214,28 +216,28 @@ def quantize (
                break
     return [quantVec[sorted_indices], scale, z]
 
-def genVec2Quantize (
-        dist       : str   = 'uniform',  # distribution from which points are drawn  
-        lowerBnd   : float = 0,   # lower bound for the generated points  
-        upperBnd   : float = 10,   # upper bound for the generated points
-        stdev      : float = 1,   # standard variation when generating a Gaussian dist' points
-        numPts     : int   = 1000, # Num of points in the generated vector
-        outLier    : float = None,
+def genRandVec2Quantize (
+        dist         : str   = 'uniform',  # distribution from which points are drawn  
+        lowerBnd     : float = 0,   # lower bound for the generated points  
+        upperBnd     : float = 10,   # upper bound for the generated points
+        stdev        : float = 1,   # standard variation when generating a Gaussian dist' points
+        vec2quantLen : int   = 1000, # Num of points in the generated vector
+        outLier      : float = None,
     ) -> np.array:
     """
-    Generate a vector to be quantized, using the requested distribution.
+    Generate an np.array to be quantized, using the requested distribution.
     """
     if dist=='uniform':
-        vec = [(lowerBnd + i*(upperBnd-lowerBnd)/(numPts-1)) for i in range(numPts)] #$$$ change to np-style to boost perf'
+        vec = [(lowerBnd + i*(upperBnd-lowerBnd)/(vec2quantLen-1)) for i in range(vec2quantLen)] #$$$ change to np-style to boost perf'
     elif dist=='norm':
         rng = np.random.default_rng(SEED)
-        vec = np.sort (rng.standard_normal(numPts) * stdev)
+        vec = np.sort (rng.standard_normal(vec2quantLen) * stdev)
     elif dist.startswith('t_'):
-        vec = np.sort (np.random.standard_t(df=getDf(dist), size=numPts) * stdev)
+        vec = np.sort (np.random.standard_t(df=getDf(dist), size=vec2quantLen) * stdev)
     elif dist=='int': # vector of integers in the range
         vec = np.arange (lowerBnd, upperBnd+1) 
     else:
-        error (f'In Quantization.genVec2Quantize(). Sorry. The distribution {dist} you chose is not supported.')
+        error (f'In Quantization.genRandVec2Quantize(). Sorry. The distribution {dist} you chose is not supported.')
     if outLier==None:
         return np.array (vec)
     return np.array ([-outLier] + vec + [outLier])
@@ -244,13 +246,7 @@ def calcQuantRoundErr (
         cntrSize       : int   = 8,  # of bits, including the sign bit
         modes          : list  = [], # modes to be simulated, e.g. FP, F2P_sr. 
         signed         : bool  = False, # When True, consider a signed counter
-        vec2quantize   : list  = [], # The vector quantize. When None, randomly-generate the vector, where the distribution is drawn as specified by other input parameters. 
-        dist           : str   = 'norm', # distribution of the points to simulate  
-        numPts         : int   = 1000, # num of points in the quantized vec
-        stdev          : float = 1,   # standard variation of the vector to quantize, when drawn from a Gaussian dist'
-        vecLowerBnd    : float = -float('inf'), # lower Bnd of the generated vector to quantize, if drawn from a uniform dist'  
-        vecUpperBnd    : float = float('inf'),   # upper Bnd of the generated vector to quantize, if drawn from a uniform dist'
-        outLier        : float = None, # Outlier value, to be added to the generated vector
+        vec2quantize   : np.array  = None, # The vector quantize.  
         verbose        : list  = [],  # level of verbose, as defined in settings.py.
     ):
     """
@@ -259,35 +255,16 @@ def calcQuantRoundErr (
     np.random.seed (SEED)
     if VERBOSE_RES in verbose:
         resFile = open (f'../res/{genRndErrFileName(cntrSize)}.res', 'a+')
-        printf (resFile, f'// dist={dist}, stdev={stdev}, numPts={numPts}\n')
-        if dist!='norm' and (not(dist.startswith('t_'))): 
-            printf (resFile, f'// vecLowerBnd={vecLowerBnd}, vecUpperBnd={vecUpperBnd}, outLier={outLier}\n')
     if VERBOSE_LOG in verbose:
         logFile = open (f'../res/quant_n{cntrSize}.log', 'w')
     else:        
         logFile = None
 
     if VERBOSE_PCL in verbose:
-
         outputFileName = genRndErrFileName (cntrSize)
         pclOutputFile = open(f'../res/pcl_files/{outputFileName}.pcl', 'ab+')
     
-    if vec2quantize.shape==np.array([]).shape: # No given vector to quanitze - generate it yourself
-        vec2quantize = genVec2Quantize (
-            dist        = dist, 
-            lowerBnd    = vecLowerBnd,   # lower bound for the generated points  
-            upperBnd    = vecUpperBnd,   # upper bound for the generated points
-            stdev       = stdev, 
-            outLier     = outLier,
-            numPts      = numPts)
-    if VERBOSE_DEBUG in verbose:
-        numPts = 64
-    else:
-        numPts = min (numPts, vec2quantize.shape[0])
-    vec2quantize = np.sort (vec2quantize)
-    weightDist = None
     resRecords = []
-    modes = ['int']
     for mode in modes:
         if VERBOSE_DEBUG in verbose:
             debugFile = open ('../res/debug.txt', 'a+')
@@ -297,15 +274,6 @@ def calcQuantRoundErr (
             grid                     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=signed)
             [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
-            resRecord = calcErr(
-                    orgVec      = vec2quantize, 
-                    changedVec  = dequantizedVec, 
-                    stdev       = stdev,
-                    scale       = scale,
-                    logFile     = logFile,
-                    weightDist  = weightDist,
-                    verbose     = verbose
-                    )
                 
         elif (mode.startswith('F2P') or mode.startswith('F3P')):
             grid = getAllValsFxp (
@@ -316,15 +284,6 @@ def calcQuantRoundErr (
             )
             [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
-            resRecord = calcErr(
-                    orgVec      = vec2quantize, 
-                    changedVec  = dequantizedVec, 
-                    scale       = scale,
-                    stdev       = stdev,
-                    logFile     = logFile,
-                    weightDist  = weightDist,
-                    verbose     = verbose
-                    )
             
         elif mode.startswith('int'):
             if signed: 
@@ -333,15 +292,6 @@ def calcQuantRoundErr (
                 grid = np.array (range(2**cntrSize), dtype='int')
             [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
-            resRecord = calcErr(
-                    orgVec      = vec2quantize, 
-                    changedVec  = dequantizedVec, 
-                    scale       = scale,
-                    stdev       = stdev,
-                    logFile     = logFile,
-                    weightDist  = weightDist,
-                    verbose     = verbose
-                    )
         
         elif mode.startswith ('SEAD_stat'):
             expSize = int(mode.split('_e')[1].split('_')[0])
@@ -349,44 +299,25 @@ def calcQuantRoundErr (
             grid = myCntrMaster.getAllVals ()
             [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
-            resRecord = calcErr(
-                    orgVec      = vec2quantize, 
-                    changedVec  = dequantizedVec, 
-                    scale       = scale,
-                    stdev       = stdev,
-                    logFile     = logFile,
-                    weightDist  = weightDist,
-                    verbose     = verbose
-                    )
 
         elif mode.startswith ('SEAD_dyn'):
             myCntrMaster = SEAD_dyn.CntrMaster (cntrSize=cntrSize, verbose=verbose)            
             grid = myCntrMaster.getAllVals ()
             [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
             dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
-            resRecord = calcErr(
-                    orgVec      = vec2quantize, 
-                    changedVec  = dequantizedVec, 
-                    scale       = scale,
-                    stdev       = stdev,
-                    logFile     = logFile,
-                    weightDist  = weightDist,
-                    verbose     = verbose
-                    )
 
-        elif mode=='shortTest':
-            grid = np.arange (-10, 11)
-            vec2quantize = np.array([-100, -95, -7, 99, 100])
-            [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
-            dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
-            resRecord = calcErr(
-                    orgVec      = vec2quantize, 
-                    changedVec  = dequantizedVec, 
-                    )
         else:
             print (f'In Quantizer.calcQuantRoundErr(). Sorry, the requested mode {mode} is not supported.')
             continue
 
+        resRecord = calcErr(
+            orgVec      = vec2quantize, 
+            changedVec  = dequantizedVec, 
+            scale       = scale,
+            logFile     = logFile,
+            weightDist  = weightDist,
+            verbose     = verbose
+        )
         resRecord['mode']  = mode
         
         if VERBOSE_DEBUG in verbose:
@@ -405,9 +336,7 @@ def calcQuantRoundErr (
                     printf (resFile, f'{key} : {value}\n')
             printf (resFile, '\n')
         
-        resRecord['dist']   = dist
         resRecord['numPts'] = len (vec2quantize)
-        resRecord['stdev']  = stdev
         if VERBOSE_PCL in verbose:
             pickle.dump(resRecord, pclOutputFile)        
         if VERBOSE_PLOT in verbose:
@@ -518,7 +447,9 @@ def npExperiments ():
     # print (f'shape={mat.shape}, type={mat.dtype}')
     print (vec[5:-5])
 
-def runCalcQuantRoundErr ():
+def testRandVecQuantRoundErr ():
+
+    error ('In Quantizer.testRandVecQuantRoundErr(). Sorry, this function is not implemented yet.')
     verbose = [VERBOSE_PCL, VERBOSE_RES]
     stdev   = 1
     for cntrSize in np.array([8, 16, 19], dtype='uint8'):
@@ -526,18 +457,21 @@ def runCalcQuantRoundErr ():
             pclOutputFileName = f'{genRndErrFileName(cntrSize)}.pcl'
             # if os.path.exists(f'../res/pcl_files/{pclOutputFileName}'):
             #     os.remove(f'../res/pcl_files/{pclOutputFileName}')
+
         for distStr in ['uniform', 'norm', 't_5', 't_8']:
+            ### To fully implement the func: 
+            ### Call vec2quant = genRandVec2Quantize () 
+            # Also, should open and write to .res file data about the distribution etc. 
+            # if VERBOSE_RES in verbose:
+            #     resFile = open (f'../res/{genRndErrFileName(cntrSize)}.res', 'a+')
+            #     printf (resFile, f'// dist={dist}, stdev={stdev}, vec2quantLen={vec2quantLen}\n')
+            #     if dist!='norm' and (not(dist.startswith('t_'))): 
+            #         printf (resFile, f'// vecLowerBnd={vecLowerBnd}, vecUpperBnd={vecUpperBnd}, outLier={outLier}\n')
         # for distStr in ['uniform', 'norm', 't_5', 't_8', 't_2', 't_10', 't_4', 't_6', 't_8']:
             calcQuantRoundErr (
                 cntrSize       = cntrSize, 
                 modes          = settings.modesOfCntrSize(cntrSize), 
-                numPts         = 1000000, 
-                stdev          = stdev,
-                dist           = distStr, 
-                vecLowerBnd    = -stdev, 
-                vecUpperBnd    = stdev,
                 verbose = verbose
-                # outLier        = 100*stdev,
             )   
 
 
