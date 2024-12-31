@@ -65,7 +65,7 @@ def ModelsQuantRoundErr (
     """
     calculate the quantization round error obtained by several models and counter sizes. 
     """
-    verbose = [VERBOSE_RES] # [VERBOSE_RES, VERBOSE_PCL]
+    verbose = [VERBOSE_DEBUG] # [VERBOSE_RES, VERBOSE_PCL]
     for modelStr in modelStrs:
         model = None
         match modelStr:
@@ -88,7 +88,7 @@ def ModelsQuantRoundErr (
             Quantizer.calcQuantRoundErr(
                 cntrSize        = cntrSize,
                 signed          = True,
-                modes           = settings.modesOfCntrSize(cntrSize),
+                modes           = ['F3P_sr_h2'], #$$$ settings.modesOfCntrSize(cntrSize),
                 vec2quantize    = vec2quantize[:vec2quantLen],  
                 inputFrom       = modelStr,       
                 verbose         = verbose,

@@ -497,7 +497,7 @@ def testQuantization (
         
     # Test f2p_li_h2 grid
     grid = getAllValsFxp (
-        fxpSettingStr = 'F2P_lr_h2',
+        fxpSettingStr = 'F3P_sr_h2',
         cntrSize    = cntrSize, 
         verbose     = [], 
         signed      = True
