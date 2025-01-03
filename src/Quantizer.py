@@ -187,8 +187,6 @@ def quantize (
     else:
         z = 0
     scaledVec   = vec/scale + z# The vector after scaling and clamping (still w/o rounding)  
-    if VERBOSE_DEBUG in verbose: 
-        print (f'scaledVec={scaledVec}') 
     if str(grid.dtype).startswith('int'):
         return [scaledVec.astype('int'), scale, z]
     grid        = np.sort (grid)
@@ -483,8 +481,10 @@ def testQuantOfSingleVec (
     dequantizedVec = dequantize (quantizedVec, scale, z) 
     if VERBOSE_PRINT_SCREEN in verbose:
         print (f'quantizedVec={quantizedVec}, scale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
+    if VERBOSE_DEBUG_DETAILS in verbose:
+        printf (debugFile, f'grid={grid}\n')
     if VERBOSE_DEBUG in verbose:
-        printf (debugFile, f'grid={grid}\nvec2quantize={vec2quantize}\nquantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
+        printf (debugFile, f'vec2quantize={vec2quantize}\nquantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
 
 def testQuantization (
         verbose : list = [],
@@ -494,7 +494,7 @@ def testQuantization (
     """
     vec2quantize = np.array([-0.08, -0.01, 0.08,  0.05])
     cntrSize = 8
-    if VERBOSE_DEBUG in verbose:
+    if VERBOSE_DEBUG in verbose or VERBOSE_DEBUG_DETAILS in verbose:
         debugFile = open ('../res/debug.txt', 'w')
         printf (debugFile, f'vec2quantize={vec2quantize}')
     else:
@@ -514,7 +514,7 @@ def testQuantization (
         
 if __name__ == '__main__':
     try:
-        testQuantization (verbose=[VERBOSE_PRINT_SCREEN])
+        testQuantization (verbose=[VERBOSE_DEBUG])
         # runCalcQuantRoundErr ()
         # plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_li_h2', 'F2P_si_h2', 'FP_e5', 'FP_e2', 'int'], scale=False)
 
