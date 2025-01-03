@@ -488,7 +488,9 @@ def testQuantOfSingleVec (
     if VERBOSE_DEBUG in verbose:
         printf (debugFile, f'vec2quantize={vec2quantize}\n')
     [quantizedVec, scale, z] = quantize (vec=vec2quantize, grid=grid, verbose=verbose, debugFile=debugFile) 
-    dequantizedVec = dequantize (quantizedVec, scale, z) 
+    dequantizedVec           = dequantize (quantizedVec, scale, z)
+    diff = np.absolute(np.divide (vec2quantize - dequantizedVec, vec2quantize))
+    print ('max rel quant err={:.3f}, avg rel quant err={:.3f}' .format(np.max(diff), np.average(diff))) 
     if VERBOSE_PRINT_SCREEN in verbose:
         print (f'quantizedVec={quantizedVec}, scale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
     if VERBOSE_DEBUG_DETAILS in verbose:
@@ -527,7 +529,7 @@ def testQuantization (
         
 if __name__ == '__main__':
     try:
-        testQuantization (verbose=[VERBOSE_DEBUG], vecLen=5)
+        testQuantization (verbose=[], vecLen=100)
         # runCalcQuantRoundErr ()
         # plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_li_h2', 'F2P_si_h2', 'FP_e5', 'FP_e2', 'int'], scale=False)
 
