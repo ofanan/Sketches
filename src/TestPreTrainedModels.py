@@ -88,7 +88,7 @@ def ModelsQuantRoundErr (
             Quantizer.calcQuantRoundErr(
                 cntrSize        = cntrSize,
                 signed          = True,
-                modes           = ['F3P_sr_h2'], #$$$ settings.modesOfCntrSize(cntrSize),
+                modes           = settings.modesOfCntrSize(cntrSize),
                 vec2quantize    = vec2quantize[:vec2quantLen],  
                 inputFrom       = modelStr,       
                 verbose         = verbose,
@@ -98,7 +98,7 @@ if __name__ == '__main__':
     try:
         ModelsQuantRoundErr (
             ['MobileNet_V3'], #, 'MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50'],
-            vec2quantLen = 10) 
+            vec2quantLen = INF_INT) 
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 
