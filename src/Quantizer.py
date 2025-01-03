@@ -485,7 +485,7 @@ def testQuantOfSingleVec (
     """
     Test the quantization of a single vector and print the results as requested by verbose. 
     """
-    if VERBOSE_DEBUG in verbose:
+    if debugFile!=None:
         printf (debugFile, f'vec2quantize={vec2quantize}\n')
     [quantizedVec, scale, z] = quantize (vec=vec2quantize, grid=grid, verbose=verbose, debugFile=debugFile) 
     dequantizedVec           = dequantize (quantizedVec, scale, z)
@@ -495,7 +495,7 @@ def testQuantOfSingleVec (
         print (f'quantizedVec={quantizedVec}, scale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
     if VERBOSE_DEBUG_DETAILS in verbose:
         printf (debugFile, f'grid={grid}\n')
-    if VERBOSE_DEBUG in verbose:
+    if debugFile!=None:
         printf (debugFile, f'quantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
 
 def testQuantization (
@@ -524,12 +524,12 @@ def testQuantization (
         signed      = True
     )
     testQuantOfSingleVec(vec2quantize=vec2quantize, grid=grid, verbose=verbose, debugFile=debugFile)
-    if VERBOSE_DEBUG in verbose:
+    if debugFile!=None:
         debugFile.close ()
         
 if __name__ == '__main__':
     try:
-        testQuantization (verbose=[], vecLen=100)
+        testQuantization (verbose=[VERBOSE_DEBUG], vecLen=10)
         # runCalcQuantRoundErr ()
         # plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_li_h2', 'F2P_si_h2', 'FP_e5', 'FP_e2', 'int'], scale=False)
 
