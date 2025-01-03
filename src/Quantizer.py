@@ -193,11 +193,9 @@ def quantize (
         return [scaledVec.astype('int'), scale, z]
     grid        = np.sort (grid)
 
-    if VERBOSE_PRINT_SCREEN in verbose:
-        print (f'scaledVec={scaledVec}')
     sorted_indices = np.argsort(scaledVec) # Get the indices that would sort the array
-    sclaedVec      = sorted_array = scaledVec[sorted_indices] # sort sclaedVec
-    quantVec    = np.empty (len(vec)) # The quantized vector (after rounding scaledVec) 
+    scaledVec      = scaledVec[sorted_indices] # sort sclaedVec
+    quantVec        = np.empty (len(vec)) # The quantized vector (after rounding scaledVec) 
     idxInGrid = int(0)
     for idxInVec in range(len(scaledVec)):
         if idxInGrid==len(grid): # already reached the max grid val --> all next items in q should be the last item in the grid 
@@ -215,8 +213,6 @@ def quantize (
                idxInGrid -= 1
                quantVec[idxInVec] = grid[idxInGrid]
                break
-    if VERBOSE_PRINT_SCREEN in verbose:
-        print (f'sorted_indices={sorted_indices}\nquantVec={quantVec}\nreordered quantvec={quantVec[sorted_indices]}')
     return [quantVec[sorted_indices], scale, z]
 
 def genRandVec2Quantize (
