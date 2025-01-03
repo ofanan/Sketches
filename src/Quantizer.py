@@ -482,6 +482,8 @@ def testQuantOfSingleVec (
     """
     Test the quantization of a single vector and print the results as requested by verbose. 
     """
+    if VERBOSE_DEBUG in verbose:
+        printf (debugFile, f'vec2quantize={vec2quantize}\n')
     [quantizedVec, scale, z] = quantize (vec=vec2quantize, grid=grid, verbose=verbose, debugFile=debugFile) 
     dequantizedVec = dequantize (quantizedVec, scale, z) 
     if VERBOSE_PRINT_SCREEN in verbose:
@@ -489,7 +491,7 @@ def testQuantOfSingleVec (
     if VERBOSE_DEBUG_DETAILS in verbose:
         printf (debugFile, f'grid={grid}\n')
     if VERBOSE_DEBUG in verbose:
-        printf (debugFile, f'vec2quantize={vec2quantize}\nquantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
+        printf (debugFile, f'quantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
 
 def testQuantization (
         verbose : list = [],
