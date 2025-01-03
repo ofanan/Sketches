@@ -193,8 +193,9 @@ def quantize (
     grid        = np.sort (grid)
 
     if VERBOSE_DEBUG in verbose:
-        printf (debugFile, f'scaledVec={scaledVec}\n')
-    sorted_indices = np.argsort(scaledVec) # Get the indices that would sort the array
+        printf (debugFile, f'scale={scale}\nscaledVec={scaledVec}\n')
+    sorted_indices    = np.argsort(scaledVec) # Get the indices that would sort the array
+    undo_sort_indices = np.argsort(sorted_indices)
     scaledVec      = scaledVec[sorted_indices] # sort sclaedVec
     if VERBOSE_DEBUG in verbose:
         printf (debugFile, f'sorted_indices={sorted_indices}\nsorted scaledVec={scaledVec}\n')
@@ -216,7 +217,9 @@ def quantize (
                idxInGrid -= 1
                quantVec[idxInVec] = grid[idxInGrid]
                break
-    return [quantVec[sorted_indices], scale, z]
+    if VERBOSE_DEBUG in verbose:
+        printf (debugFile, f'undo_sort_indices={undo_sort_indices}\nsorted quantized vec={quantVec}\n')
+    return [quantVec[undo_sort_indices], scale, z]
 
 def genRandVec2Quantize (
         dist         : str   = 'uniform',  # distribution from which points are drawn  
@@ -494,12 +497,13 @@ def testQuantOfSingleVec (
         printf (debugFile, f'quantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
 
 def testQuantization (
+        vecLen  : 5, # length of the vector to test
         verbose : list = [],
     ):
     """
     Basic test of the quantization
     """
-    vec2quantize = 2 * np.random.rand(10) - 1
+    vec2quantize = 2 * np.random.rand(vecLen) - 1
     cntrSize = 8
     if VERBOSE_DEBUG in verbose or VERBOSE_DEBUG_DETAILS in verbose:
         debugFile = open ('../res/debug.txt', 'w')
@@ -508,8 +512,11 @@ def testQuantization (
      
     # grid = np.array (range(-2**(cntrSize-1)+1, 2**(cntrSize-1), 1), dtype='int')
     # testQuantOfSingleVec(vec2quantize=vec2quantize, grid=grid, verbose=verbose, debugFile=debugFile)
+    fxpSettingStr = 'F3P_sr_h2'
+    if VERBOSE_DEBUG in verbose or VERBOSE_DEBUG_DETAILS in verbose:
+        printf (debugFile, f'// {fxpSettingStr}\n')
     grid = getAllValsFxp (
-        fxpSettingStr = 'F3P_sr_h2',
+        fxpSettingStr = fxpSettingStr,
         cntrSize    = cntrSize, 
         verbose     = [], 
         signed      = True
@@ -520,7 +527,7 @@ def testQuantization (
         
 if __name__ == '__main__':
     try:
-        testQuantization (verbose=[VERBOSE_DEBUG])
+        testQuantization (verbose=[VERBOSE_DEBUG], vecLen=5)
         # runCalcQuantRoundErr ()
         # plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_li_h2', 'F2P_si_h2', 'FP_e5', 'FP_e2', 'int'], scale=False)
 

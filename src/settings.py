@@ -7,7 +7,7 @@ from printf import printf, printarFp
 SEED    = 42
 INF_INT = 999999999
 MAX_NUM_OF_FLOWS = 2**32
-NP_PRINT_PRECISION = 4 # num of digits to print right to the point at np.vecs.
+NP_PRINT_PRECISION = 3 # num of digits to print right to the point at np.vecs.
 
 # Colors for print-out messages
 STDOUT_FAIL     = '\033[91m'
