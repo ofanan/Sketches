@@ -191,7 +191,6 @@ def quantize (
         print (f'scaledVec={scaledVec}') 
     if str(grid.dtype).startswith('int'):
         return [scaledVec.astype('int'), scale, z]
-    scaledVec   = np.sort (scaledVec)
     grid        = np.sort (grid)
 
     if VERBOSE_PRINT_SCREEN in verbose:
