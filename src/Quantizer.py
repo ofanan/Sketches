@@ -162,7 +162,8 @@ def quantize (
     lowerBnd           : float = None,
     upperBnd           : float = None,
     useAsymmetricQuant : bool = False, # When True, use asymmetric quantization
-    verbose            : list = [] # verobse method, defined at settings.py
+    verbose            : list = [], # verobse method, defined at settings.py
+    debugFile           = None
     ) -> [np.array, float]: # [the_quantized_vector, the scale_factor (by which the vector was divided)] 
     """
     Quantize an input vector, using Min-max quantization. 
@@ -191,8 +192,12 @@ def quantize (
         return [scaledVec.astype('int'), scale, z]
     grid        = np.sort (grid)
 
+    if VERBOSE_DEBUG in verbose:
+        printf (debugFile, f'scaledVec={scaledVec}\n')
     sorted_indices = np.argsort(scaledVec) # Get the indices that would sort the array
     scaledVec      = scaledVec[sorted_indices] # sort sclaedVec
+    if VERBOSE_DEBUG in verbose:
+        printf (debugFile, f'sorted_indices={sorted_indices}\nsorted scaledVec={scaledVec}\n')
     quantVec        = np.empty (len(vec)) # The quantized vector (after rounding scaledVec) 
     idxInGrid = int(0)
     for idxInVec in range(len(scaledVec)):
@@ -477,7 +482,7 @@ def testQuantOfSingleVec (
     """
     Test the quantization of a single vector and print the results as requested by verbose. 
     """
-    [quantizedVec, scale, z] = quantize (vec=vec2quantize, grid=grid, verbose=verbose) 
+    [quantizedVec, scale, z] = quantize (vec=vec2quantize, grid=grid, verbose=verbose, debugFile=debugFile) 
     dequantizedVec = dequantize (quantizedVec, scale, z) 
     if VERBOSE_PRINT_SCREEN in verbose:
         print (f'quantizedVec={quantizedVec}, scale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
@@ -492,11 +497,10 @@ def testQuantization (
     """
     Basic test of the quantization
     """
-    vec2quantize = np.array([-0.08, -0.01, 0.08,  0.05])
+    vec2quantize = 2 * np.random.rand(10) - 1
     cntrSize = 8
     if VERBOSE_DEBUG in verbose or VERBOSE_DEBUG_DETAILS in verbose:
         debugFile = open ('../res/debug.txt', 'w')
-        printf (debugFile, f'vec2quantize={vec2quantize}')
     else:
         debugFile = None
      
