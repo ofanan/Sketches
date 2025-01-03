@@ -194,6 +194,8 @@ def quantize (
     scaledVec   = np.sort (scaledVec)
     grid        = np.sort (grid)
 
+    if VERBOSE_PRINT_SCREEN in verbose:
+        print (f'scaledVec={scaledVec}')
     sorted_indices = np.argsort(scaledVec) # Get the indices that would sort the array
     sclaedVec      = sorted_array = scaledVec[sorted_indices] # sort sclaedVec
     quantVec    = np.empty (len(vec)) # The quantized vector (after rounding scaledVec) 
@@ -214,6 +216,8 @@ def quantize (
                idxInGrid -= 1
                quantVec[idxInVec] = grid[idxInGrid]
                break
+    if VERBOSE_PRINT_SCREEN in verbose:
+        print (f'sorted_indices={sorted_indices}\nquantVec={quantVec}\nreordered quantvec={quantVec[sorted_indices]}')
     return [quantVec[sorted_indices], scale, z]
 
 def genRandVec2Quantize (
@@ -471,6 +475,21 @@ def testRandVecQuantRoundErr ():
                 verbose = verbose
             )   
 
+def testQuantOfSingleVec (
+        vec2quantize    : np.array,
+        grid            : np.array,
+        verbose         : list,
+        debugFile       = None,
+    ):
+    """
+    Test the quantization of a single vector and print the results as requested by verbose. 
+    """
+    [quantizedVec, scale, z] = quantize (vec=vec2quantize, grid=grid, verbose=verbose) 
+    dequantizedVec = dequantize (quantizedVec, scale, z) 
+    if VERBOSE_PRINT_SCREEN in verbose:
+        print (f'quantizedVec={quantizedVec}, scale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
+    if VERBOSE_DEBUG in verbose:
+        printf (debugFile, f'grid={grid}\nvec2quantize={vec2quantize}\nquantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
 
 def testQuantization (
         verbose : list = [],
@@ -480,39 +499,27 @@ def testQuantization (
     """
     vec2quantize = np.array([-0.08, -0.01, 0.08,  0.05])
     cntrSize = 8
-    if VERBOSE_PRINT_SCREEN in verbose:
-        print (f'vec2quantize={vec2quantize}')
     if VERBOSE_DEBUG in verbose:
         debugFile = open ('../res/debug.txt', 'w')
         printf (debugFile, f'vec2quantize={vec2quantize}')
-
-    # Test signed int grid
-    grid = np.array (range(-2**(cntrSize-1)+1, 2**(cntrSize-1), 1), dtype='int')
-    [quantizedVec, scale, z] = quantize (vec=vec2quantize, grid=grid) 
-    dequantizedVec = dequantize (quantizedVec, scale, z) 
-    if VERBOSE_PRINT_SCREEN in verbose:
-        print (f'\ngrid={grid}\nquantizedVec={quantizedVec}, scale={scale}, z={z}\ndequantizedVec={dequantizedVec}\n')
-    if VERBOSE_DEBUG in verbose:
-        printf (debugFile, f'\ngrid={grid}\nquantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}\n')
-        
-    # Test f2p_li_h2 grid
+    else:
+        debugFile = None
+     
+    # grid = np.array (range(-2**(cntrSize-1)+1, 2**(cntrSize-1), 1), dtype='int')
+    # testQuantOfSingleVec(vec2quantize=vec2quantize, grid=grid, verbose=verbose, debugFile=debugFile)
     grid = getAllValsFxp (
         fxpSettingStr = 'F3P_sr_h2',
         cntrSize    = cntrSize, 
         verbose     = [], 
         signed      = True
     )
-    [quantizedVec, scale, z] = quantize (vec=vec2quantize, grid=grid) 
-    dequantizedVec = dequantize (quantizedVec, scale, z) 
-    if VERBOSE_PRINT_SCREEN in verbose:
-        print (f'grid={grid}\nquantizedVec={quantizedVec}, scale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
+    testQuantOfSingleVec(vec2quantize=vec2quantize, grid=grid, verbose=verbose, debugFile=debugFile)
     if VERBOSE_DEBUG in verbose:
-        printf (debugFile, f'grid={grid}\nvec2quantize={vec2quantize}\nquantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
         debugFile.close ()
         
 if __name__ == '__main__':
     try:
-        testQuantization (verbose=[VERBOSE_DEBUG])
+        testQuantization (verbose=[VERBOSE_PRINT_SCREEN])
         # runCalcQuantRoundErr ()
         # plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_li_h2', 'F2P_si_h2', 'FP_e5', 'FP_e2', 'int'], scale=False)
 
