@@ -982,10 +982,11 @@ class ResFileParser (object):
 
         points = [point for point in self.points if point['mode'] in modes]
         
-        for dist in distStrs:
-            pointsOfThisDist = [point for point in points if point['dist']==dist]
+        dists = sorted(list(set([point['inputFrom'] for point in self.points])))
+        for dist in dists: #['uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: #'MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50']:#, 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: 
+            pointsOfThisDist = [point for point in points if point['inputFrom']==dist]
             if len(pointsOfThisDist)==0:
-                settings.error (f'In ResFileParser.optModeOfDist(). No points found for cntrSize={cntrSize}, errType={errType}, dist={dist}')
+                settings.error (f'In ResFileParser.(). No points found for cntrSize={cntrSize}, errType={errType}, dist={dist}')
             minErr = min ([point[errType] for point in pointsOfThisDist])
             printf (resFile, f'\t\t{labelOfDist(dist)} & ') 
             for mode in modes:
@@ -1070,12 +1071,12 @@ def genQuantErrTable ():
     Print a formatted table detailing the quantization's rounding  errors.
     """
     resFile = open ('../res/errTable.dat', 'a+')
-    for cntrSize in [8, 16, 19]:
+    for cntrSize in [8]: #, 16, 19]:
         errType = 'absMse'
         printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
         myResFileParser = ResFileParser ()
         myResFileParser.printRndErrTableRow (
-            distStrs = ['Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
+            # distStrs = ['Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
             # distStrs = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
             cntrSize = cntrSize,
             resFile  = resFile,
@@ -1094,7 +1095,8 @@ def printAllOptModes ():
         # for errType in ['relMse']:
         errType = 'absMse'
         printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
-        for distStr in ['uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: #'MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50']:#, 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: 
+        dists = sort(list(set([point['inputFrom'] for point in self.points])))
+        for distStr in dists: #['uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: #'MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50']:#, 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: 
             bestF2PPoint    = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=True,  onlyNonF2P=False)
             bestNonF2PPoint = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=False, onlyNonF2P=True)
             if bestF2PPoint==None or bestNonF2PPoint==None:
@@ -1106,7 +1108,8 @@ def printAllOptModes ():
             ignoreModes=['FP_e10']
         printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
         printf (resFile, f'// Ignoring modes {ignoreModes}\n')
-        for distStr in ['MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50']:#, 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: 
+        dists = sort(list(set([point['inputFrom'] for point in self.points])))
+        for distStr in dists: #['uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: #'MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50']:#, 'uniform', 'norm', 't_5', 't_8', 't_2', 't_4', 't_6', 't_10']: 
             bestF2PPoint    = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=True,  onlyNonF2P=False)
             bestNonF2PPoint = myResFileParser.optModeOfDist (cntrSize=cntrSize, distStr=distStr, errType=errType, onlyF2P=False, onlyNonF2P=True, ignoreModes=ignoreModes)
             if bestF2PPoint==None or bestNonF2PPoint==None:
@@ -1261,15 +1264,15 @@ if __name__ == '__main__':
     try:
         # rmvDuplicatedPoints ()
         # genResolutionPlot ()
-        genErVsMemSizePlotCms (
-            maxValByStr = 'None',
-            ignoreModes = []#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
-        )
+        # genErVsMemSizePlotCms (
+        #     maxValByStr = 'None',
+        #     ignoreModes = []#, 'SEAD_stat_e3', 'SEAD_stat_e4', 'F2P_li_h2'] #, 'F3P_li_h3']
+        # )
         # genUniqPcl (pclFileName='cms_Caida2_PC.pcl')
         # genErVsCntrSizeSingleCntr ()
         # genErVsCntrSizeTableTrace ()
         # plotErVsCntrSize ()
         # rmvFromPcl ()
-        # genQuantErrTable ()
+        genQuantErrTable ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

@@ -638,12 +638,13 @@ def main ():
 
 if __name__ == '__main__':
     try:
-        getAllValsFxp (
-            fxpSettingStr   = 'F3P_sr_h2',
-            cntrSize        = 8, # size of the counter, WITHOUT the sign bit (if exists).  
-            signed          = False,
-            verbose         = [VERBOSE_RES] #verbose level. See py for details.
-        )
+        for fxpSettingStr in F3Pmodes:
+            getAllValsFxp (
+                fxpSettingStr   = fxpSettingStr,
+                cntrSize        = 8, # size of the counter, WITHOUT the sign bit (if exists).  
+                signed          = False,
+                verbose         = [VERBOSE_RES] #verbose level. See py for details.
+            )
         # main ()
     except KeyboardInterrupt:
         print('Keyboard interrupt.')

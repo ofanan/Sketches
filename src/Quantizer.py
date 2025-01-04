@@ -192,12 +192,12 @@ def quantize (
         return [scaledVec.astype('int'), scale, z]
     grid        = np.sort (grid)
 
-    if VERBOSE_DEBUG in verbose:
+    if debugFile!=None:
         printf (debugFile, f'scale={scale}\nscaledVec={scaledVec}\n')
     sorted_indices    = np.argsort(scaledVec) # Get the indices that would sort the array
     undo_sort_indices = np.argsort(sorted_indices)
     scaledVec      = scaledVec[sorted_indices] # sort sclaedVec
-    if VERBOSE_DEBUG in verbose:
+    if debugFile!=None:
         printf (debugFile, f'sorted_indices={sorted_indices}\nsorted scaledVec={scaledVec}\n')
     quantVec        = np.empty (len(vec)) # The quantized vector (after rounding scaledVec) 
     idxInGrid = int(0)
@@ -217,7 +217,7 @@ def quantize (
                idxInGrid -= 1
                quantVec[idxInVec] = grid[idxInGrid]
                break
-    if VERBOSE_DEBUG in verbose:
+    if debugFile!=None:
         printf (debugFile, f'undo_sort_indices={undo_sort_indices}\nsorted quantized vec={quantVec}\n')
     return [quantVec[undo_sort_indices], scale, z]
 
@@ -310,6 +310,17 @@ def calcQuantRoundErr (
         dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
         
         # Analyze the results of this experiment and insert them into resRecord 
+        if VERBOSE_DEBUG in verbose:
+            VEC_LEN = 1000
+            printf (debugFile, f'grid={grid}\nmax(vec2quantize)={max(vec2quantize)}\nmax(dequantizedVec)={max(dequantizedVec)}\n')
+            printf (debugFile, f'vec2quantize={vec2quantize[:VEC_LEN]}\ndequantizedVec={dequantizedVec[:VEC_LEN]}\n')
+            if any(vec2quantize==0):
+                warning ('I cannot measure the relative error, as some elecments of the vector to quantizer equal 0.')
+            else:
+                diff = np.absolute(np.divide (vec2quantize - dequantizedVec, vec2quantize))
+                if debugFile!=None:
+                    printf (debugFile, 'max rel quant err={:.3f}, avg rel quant err={:.3f}\n' .format(np.max(diff), np.average(diff))) 
+            exit ()
         resRecord = calcErr( 
             orgVec      = vec2quantize, 
             changedVec  = dequantizedVec, 
@@ -322,13 +333,6 @@ def calcQuantRoundErr (
         resRecord['numPts']     = len (vec2quantize)
         resRecord['inputFrom']  = inputFrom
         
-        if VERBOSE_DEBUG in verbose:
-            debugFile = open ('../res/debug.txt', 'a+')
-            for i in range(len(vec2quantize)):
-                printf (debugFile, f'i={i}, vec[i]={vec2quantize[i]}, quantizedVec[i]={quantizedVec[i]}, dequantizedVec={dequantizedVec[i]}\n')
-            printf (debugFile, '\n')
-            exit ()
-
         if VERBOSE_COUT_CNTRLINE in verbose:
             print (resRecord)
         
@@ -487,20 +491,20 @@ def testQuantOfSingleVec (
     """
     if debugFile!=None:
         printf (debugFile, f'vec2quantize={vec2quantize}\n')
-    [quantizedVec, scale, z] = quantize (vec=vec2quantize, grid=grid, verbose=verbose, debugFile=debugFile) 
+    [quantizedVec, scale, z] = quantize (vec=vec2quantize, grid=grid, verbose=verbose, debugFile=None) # Call with debugFile to throttle additional writes to debugFile, which make it too detailed and undreadable. 
     dequantizedVec           = dequantize (quantizedVec, scale, z)
 
+    if debugFile!=None:
+        printf (debugFile, f'grid={grid}\nquantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}\n')
     if any(vec2quantize==0):
         warning ('I cannot measure the relative error, as some elecments of the vector to quantizer equal 0.')
     else:
         diff = np.absolute(np.divide (vec2quantize - dequantizedVec, vec2quantize))
-        print ('max rel quant err={:.3f}, avg rel quant err={:.3f}' .format(np.max(diff), np.average(diff))) 
+        if debugFile!=None:
+            argmax = np.argmax(diff)
+            printf (debugFile, 'max rel quant err={:.3f}, where org={}, deqVec={}\navg rel quant err={:.3f}\n' .format(diff[argmax], vec2quantize[argmax], dequantizedVec[argmax], np.average(diff))) 
         if VERBOSE_PRINT_SCREEN in verbose:
             print (f'quantizedVec={quantizedVec}, scale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
-    if VERBOSE_DEBUG_DETAILS in verbose:
-        printf (debugFile, f'grid={grid}\n')
-    if debugFile!=None:
-        printf (debugFile, f'quantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}')
 
 def testQuantization (
         vecLen  : 5, # length of the vector to test
@@ -518,7 +522,7 @@ def testQuantization (
      
     # grid = np.array (range(-2**(cntrSize-1)+1, 2**(cntrSize-1), 1), dtype='int')
     # testQuantOfSingleVec(vec2quantize=vec2quantize, grid=grid, verbose=verbose, debugFile=debugFile)
-    fxpSettingStr = 'F3P_sr_h2'
+    fxpSettingStr = 'F3P_sr_h1'
     if VERBOSE_DEBUG in verbose or VERBOSE_DEBUG_DETAILS in verbose:
         printf (debugFile, f'// {fxpSettingStr}\n')
     grid = getAllValsFxp (
@@ -533,7 +537,7 @@ def testQuantization (
         
 if __name__ == '__main__':
     try:
-        testQuantization (verbose=[VERBOSE_DEBUG], vecLen=10)
+        testQuantization (verbose=[VERBOSE_DEBUG], vecLen=1000)
         # runCalcQuantRoundErr ()
         # plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_li_h2', 'F2P_si_h2', 'FP_e5', 'FP_e2', 'int'], scale=False)
 
