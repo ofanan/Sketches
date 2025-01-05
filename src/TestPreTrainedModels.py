@@ -65,7 +65,7 @@ def ModelsQuantRoundErr (
     """
     calculate the quantization round error obtained by several models and counter sizes. 
     """
-    verbose = [VERBOSE_LOG] #$$ [VERBOSE_RES, VERBOSE_PCL]
+    verbose = [VERBOSE_RES, VERBOSE_PCL]
     for modelStr in modelStrs:
         model = None
         match modelStr:
@@ -97,8 +97,8 @@ def ModelsQuantRoundErr (
 if __name__ == '__main__':
     try:
         ModelsQuantRoundErr (
-            ['MobileNet_V3'], #$$ #'MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50'],
-            vec2quantLen = 5) #$$ #INF_INT) 
+            ['MobileNet_V3', 'MobileNet_V2', 'MobileNet_V3', 'Resnet18', 'Resnet50'],
+            vec2quantLen = INF_INT) 
     except KeyboardInterrupt:
         print('Keyboard interrupt.')
 

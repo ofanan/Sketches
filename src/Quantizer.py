@@ -228,7 +228,7 @@ def genRandVec2Quantize (
     Generate an np.array to be quantized, using the requested distribution.
     """
     if dist=='uniform':
-        vec = [(lowerBnd + i*(upperBnd-lowerBnd)/(vec2quantLen-1)) for i in range(vec2quantLen)] #$$$ change to np-style to boost perf'
+        vec = [(lowerBnd + i*(upperBnd-lowerBnd)/(vec2quantLen-1)) for i in range(vec2quantLen)] # change to np-style to boost perf'
     elif dist=='norm':
         rng = np.random.default_rng(SEED)
         vec = np.sort (rng.standard_normal(vec2quantLen) * stdev)

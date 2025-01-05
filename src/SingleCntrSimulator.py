@@ -537,7 +537,7 @@ def getCntrsMaxValsFxp (
     for cntrSize in cntrSizeRange:
         for hyperSize in range (1,cntrSize-2) if hyperSizeRange==None else hyperSizeRange:
             myCntrMaster = genCntrMasterFxp (
-                fxpSettingStr = f'{nSystem}_{flavor}_h{hyperSize}', #$$$
+                fxpSettingStr = f'{nSystem}_{flavor}_h{hyperSize}', 
                 cntrSize    = cntrSize, 
             )
             if not(myCntrMaster.isFeasible):
