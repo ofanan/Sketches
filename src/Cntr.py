@@ -142,17 +142,25 @@ class CntrMaster (object):
     
         settings ('Sorry. Cntr.incCntr() is currently implemented only as incCntrBy1.')
     
-    def getAllVals (self, verbose=[]):
+    def getAllVals (
+            self,
+            signed : bool = False, # When True, return all the values assuming that the MSB is a sign bit.  
+            verbose=[]
+        ):
         """
         Loop over all the binary combinations of the given counter size. 
         For each combination, calculate the respective counter, and its value. 
         Returns a vector of these values, sorted in an increasing order of the counters' values. 
         """
+        if signed:  
+            cntrSize -= 1 # reserve a single bit for the sign 
         listOfVals = []
         for i in self.getAllCombinations (self.cntrSize):
             cntr = np.binary_repr(i, self.cntrSize) 
             listOfVals.append ({'cntrVec' : cntr, 'val' : self.cntr2num(cntr)})
         listOfVals = sorted (listOfVals, key=lambda item : item['val'])
+        if signed:
+            listOfVals = makeSymmetricVec (listOfVals)
     
         if settings.VERBOSE_RES in verbose:
             outputFile    = open ('../res/log_files/{}.res' .format (self.genSettingsStr()), 'w')

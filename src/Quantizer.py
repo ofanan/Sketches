@@ -134,11 +134,6 @@ def calcErr (
         weightedRelMseVec[idxInweightedRelMseVec] = scipy.stats.norm(0, stdev).pdf(orgVec[i])*((orgVec[i]-changedVec[i])/orgVec[i])**2 
         idxInweightedRelMseVec += 1
 
-    if VERBOSE_LOG in verbose:
-        printf (logFile, f'// mode={mode}\n')
-        for i in range (10):
-             printf (logFile, f'i={i}, org={orgVec[i]}, changed={changedVec[i]}, PDF={scipy.stats.norm(0, stdev).pdf(orgVec[i])}, weightedAbsMse={weightedAbsMseVec[i]}\n')
-    
     resRecord['avgWeightedAbsMse'] = np.mean (weightedAbsMseVec)
     resRecord['avgWeightedRelMse'] = np.mean (weightedRelMseVec)
     if recordErrVecs:
@@ -270,14 +265,19 @@ def calcQuantRoundErr (
         outputFileName = genRndErrFileName (cntrSize)
         pclOutputFile = open(f'../res/pcl_files/{outputFileName}.pcl', 'ab+')
     
+    if VERBOSE_DEBUG in verbose:
+        debugFile = open ('../res/debug.txt', 'a+')
+    else:
+        debugFile = None
+
     resRecords = []
     for mode in modes:
-        if VERBOSE_DEBUG in verbose:
-            debugFile = open ('../res/debug.txt', 'a+')
+
+        if debugFile!=None:
             printf (debugFile, f'// mode={mode}\n')
         if mode.startswith('FP'):
             expSize = int(mode.split ('_e')[1])
-            grid                     = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=signed)
+            grid    = getAllValsFP(cntrSize=cntrSize, expSize=expSize, verbose=[], signed=signed)
                 
         elif (mode.startswith('F2P') or mode.startswith('F3P')):
             grid = getAllValsFxp (
@@ -296,21 +296,29 @@ def calcQuantRoundErr (
         elif mode.startswith ('SEAD_stat'):
             expSize = int(mode.split('_e')[1].split('_')[0])
             myCntrMaster = SEAD_stat.CntrMaster (cntrSize=cntrSize, expSize=expSize, verbose=verbose)            
-            grid = myCntrMaster.getAllVals ()
+            grid = myCntrMaster.getAllVals (signed=signed)
 
         elif mode.startswith ('SEAD_dyn'):
             myCntrMaster = SEAD_dyn.CntrMaster (cntrSize=cntrSize, verbose=verbose)            
-            grid = myCntrMaster.getAllVals ()
+            grid = myCntrMaster.getAllVals (signed=signed)
 
         else:
             print (f'In Quantizer.calcQuantRoundErr(). Sorry, the requested mode {mode} is not supported.')
             continue
 
+        if logFile!=None:
+            printf (logFile, f'// mode={mode}\ngrid={grid}\n')
+            continue
+        
+    if logFile!=None:
+        return
+
         [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
         dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)
         
         # Analyze the results of this experiment and insert them into resRecord 
-        if VERBOSE_DEBUG in verbose:
+        if debugFile!=None:
+            printf (debugFile, f'// mode={mode}\n')
             VEC_LEN = 1000
             printf (debugFile, f'grid={grid}\nmax(vec2quantize)={max(vec2quantize)}\nmax(dequantizedVec)={max(dequantizedVec)}\n')
             printf (debugFile, f'vec2quantize={vec2quantize[:VEC_LEN]}\ndequantizedVec={dequantizedVec[:VEC_LEN]}\n')
@@ -318,8 +326,7 @@ def calcQuantRoundErr (
                 warning ('I cannot measure the relative error, as some elecments of the vector to quantizer equal 0.')
             else:
                 diff = np.absolute(np.divide (vec2quantize - dequantizedVec, vec2quantize))
-                if debugFile!=None:
-                    printf (debugFile, 'max rel quant err={:.3f}, avg rel quant err={:.3f}\n' .format(np.max(diff), np.average(diff))) 
+                printf (debugFile, 'max rel quant err={:.3f}, avg rel quant err={:.3f}\n' .format(np.max(diff), np.average(diff))) 
             exit ()
         resRecord = calcErr( 
             orgVec      = vec2quantize, 

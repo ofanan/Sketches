@@ -486,8 +486,8 @@ def getAllValsFxp (
     If the verbose include VERBOSE_RES, print to an output file the list of cntrVecs and respective values. 
     Return the (sorted) list of values.
     """
-    if signed: 
-        cntrSize -= 1 
+    if signed:  
+        cntrSize -= 1 # reserve a single bit for the sign 
     cntrSettings = getFxpSettings (fxpSettingStr)
     hyperSize   = cntrSettings['hyperSize']
     flavor      = cntrSettings['flavor']
