@@ -103,9 +103,9 @@ def labelOfDist (dist : str) -> str:
         nu = int(dist.split('_')[1])
         return f't, $\\nu={nu}$'
     elif dist=='MobileNet_V2':
-        return 'MNet\_V2'
+        return 'MNet\\_V2'
     elif dist=='MobileNet_V3':
-        return 'MNet\_V3'
+        return 'MNet\\_V3'
     else:
         return dist
 
@@ -966,7 +966,6 @@ class ResFileParser (object):
     def printRndErrTableRow (
             self,
             resFile,
-            distStrs : list = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
             cntrSize : int  = 8,
             errType  : str  = 'absMse'
             ):
@@ -1071,13 +1070,11 @@ def genQuantErrTable ():
     Print a formatted table detailing the quantization's rounding  errors.
     """
     resFile = open ('../res/errTable.dat', 'a+')
-    for cntrSize in [8]: #, 16, 19]:
+    for cntrSize in [8, 16, 19]:
         errType = 'absMse'
         printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
         myResFileParser = ResFileParser ()
         myResFileParser.printRndErrTableRow (
-            # distStrs = ['Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
-            # distStrs = ['uniform', 'norm', 't_5', 't_8', 'Resnet18', 'Resnet50', 'MobileNet_V2', 'MobileNet_V3'],
             cntrSize = cntrSize,
             resFile  = resFile,
             errType  = errType,
