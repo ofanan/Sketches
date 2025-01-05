@@ -153,12 +153,10 @@ class CntrMaster (object):
         Returns a vector of these values, sorted in an increasing order of the counters' values. 
         """
         if signed:  
-            cntrSize = self.cntrSize-1 # reserve a single bit for the sign
-        else: 
-            cntrSize = self.cntrSize 
+            self.cntrSize-=1 # reserve a single bit for the sign 
         listOfVals = []
-        for i in self.getAllCombinations (cntrSize):
-            cntr = np.binary_repr(i, cntrSize) 
+        for i in self.getAllCombinations (self.cntrSize):
+            cntr = np.binary_repr(i, self.cntrSize) 
             listOfVals.append ({'cntrVec' : cntr, 'val' : self.cntr2num(cntr)})
         listOfVals = sorted (listOfVals, key=lambda item : item['val'])
         if signed:
