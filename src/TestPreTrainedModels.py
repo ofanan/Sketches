@@ -60,12 +60,12 @@ def extractWeightsOfModel(
 
 def ModelsQuantRoundErr (
         modelStrs=[], 
-        vec2quantLen : int  = None, # Maximum number of elements in the output vector (clamping). If None, all weights are kept.
+        vec2quantLen : INF_INT  = None, # Maximum number of elements in the output vector (clamping). If None, all weights are kept.
     ):
     """
     calculate the quantization round error obtained by several models and counter sizes. 
     """
-    verbose = [VERBOSE_DEBUG] #[VERBOSE_RES, VERBOSE_PCL]
+    verbose = [VERBOSE_RES, VERBOSE_PCL]
     for modelStr in modelStrs:
         model = None
         match modelStr:
