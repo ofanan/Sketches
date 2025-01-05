@@ -71,20 +71,17 @@ def ModelsQuantRoundErr (
         match modelStr:
             case 'Resnet18':
                 model    = resnet18 (weights=ResNet18_Weights.IMAGENET1K_V1)
-                vec2quantize = extractWeightsOfModel (model, verbose=verbose)
             case 'Resnet50':
                 model    = resnet50 (weights=ResNet50_Weights.IMAGENET1K_V2)
-                vec2quantize = extractWeightsOfModel (model, verbose=verbose)
             case 'MobileNet_V2':
                 model = tf.keras.applications.mobilenet_v2.MobileNetV2()
-                vec2quantize = extractWeightsOfModel (model, verbose=verbose)
             case 'MobileNet_V3':
                 model = tf.keras.applications.MobileNetV3Large()
-                vec2quantize = extractWeightsOfModel (model, verbose=verbose)
             case _:
                 print ('In TestQauntModels.ModelsQuantRoundErr(). Sorry, the model {modelStr} you choose is not support yet.')
                 
-        for cntrSize in [8]: #, 16, 19]:
+        vec2quantize = extractWeightsOfModel (model, verbose=verbose)
+        for cntrSize in [8, 16, 19]:
             Quantizer.calcQuantRoundErr(
                 cntrSize        = cntrSize,
                 signed          = True,
