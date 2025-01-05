@@ -159,14 +159,17 @@ class CntrMaster (object):
             cntr = np.binary_repr(i, self.cntrSize) 
             listOfVals.append ({'cntrVec' : cntr, 'val' : self.cntr2num(cntr)})
         listOfVals = sorted (listOfVals, key=lambda item : item['val'])
-        if signed:
-            listOfVals = makeSymmetricVec (listOfVals)
     
         if settings.VERBOSE_RES in verbose:
             outputFile    = open ('../res/log_files/{}.res' .format (self.genSettingsStr()), 'w')
             for item in listOfVals:
                 printf (outputFile, '{}={}\n' .format (item['cntrVec'], item['val']))
-        return [item['val'] for item in listOfVals]
+        
+        # From now and on, we need only the counters' values, not their binary representations. 
+        listOfVals = [item['val'] for item in listOfVals]
+        if signed:
+            listOfVals = makeSymmetricVec (listOfVals)
+        return listOfVals
 
     def setDwnSmpl (
             self, 
