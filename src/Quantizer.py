@@ -175,14 +175,26 @@ def quantize (
         if lowerBnd==None or upperBnd==None:
             error ('In Quantizer.quantize(). Clamp where requested, but lowerBnd or upperBnd was not specified.') 
         vec   = clamp (vec, lowerBnd, upperBnd)
-    scale       = (max(vec)-min(vec)) / (max(grid)-min(grid))
+    try:    
+        scale       = (np.max(vec)-np.min(vec)) / (np.max(grid)-np.min(grid))
+    except OverflowError:
+        error (f'OF occurred. max(vec)={max(vec)}, min(vec)={min(vec)}, max(grid)={max(grid)}, min(grid)={min(grid)}')
+    except Exception as e: # Catch other potential exceptions (e.g., if input is not numeric)
+        error (f"An unexpected error occurred: {e}")
+        
     if useAsymmetricQuant:
         if min(grid)!=0:
             error ('In Quantizeer.quant(). Asymmetric quantization is supported only for unsigned grid.')
         error ('In Quantizeer.quant(). Sorry, but asymmetric quantization is currently not supported')
     else:
         z = 0
-    scaledVec   = vec/scale + z# The vector after scaling and clamping (still w/o rounding)  
+    try:    
+        scaledVec   = vec/scale + z# The vector after scaling and clamping (still w/o rounding)  
+    except OverflowError:
+        error (f'OF occurred. scale={scale}, max(vec)={max(vec)}, min(vec)={min(vec)}\ngrid={grid}')
+    except Exception as e: # Catch other potential exceptions (e.g., if input is not numeric)
+        error (f"An unexpected error occurred: {e}")
+
     if str(grid.dtype).startswith('int'):
         return [scaledVec.astype('int'), scale, z]
     grid        = np.sort (grid)
@@ -310,8 +322,8 @@ def calcQuantRoundErr (
             printf (logFile, f'// mode={mode}\ngrid={grid}\n')
             continue
         
-    if logFile!=None:
-        return
+        if logFile!=None:
+            return
 
         [quantizedVec, scale, z] = quantize(vec=vec2quantize, grid=grid)
         dequantizedVec           = dequantize(vec=quantizedVec, scale=scale, z=z)

@@ -966,7 +966,8 @@ class ResFileParser (object):
     def printRndErrTableRow (
             self,
             resFile,
-            cntrSize : int  = 8,
+            cntrSize     : int  = 8,
+            ignoreModes  : str = None,
             errType  : str  = 'absMse'
             ):
         """
@@ -975,6 +976,8 @@ class ResFileParser (object):
         
         self.rdPcl (f'{genRndErrFileName(cntrSize)}.pcl')
         modes = settings.modesOfCntrSize(cntrSize)
+        if ignoreModes!=None:
+            modes = [mode for mode in modes if not(mode.startswith(ignoreModes))]
         for mode in modes:
             printf (resFile, f'{mode} \t\t&') 
         printf (resFile, '\n')
@@ -1075,9 +1078,10 @@ def genQuantErrTable ():
         printf (resFile, f'// cntrSize={cntrSize}, errType={errType}\n')
         myResFileParser = ResFileParser ()
         myResFileParser.printRndErrTableRow (
-            cntrSize = cntrSize,
-            resFile  = resFile,
-            errType  = errType,
+            cntrSize    = cntrSize,
+            resFile     = resFile,
+            errType     = errType,
+            ignoreModes = 'F3P'
             )
         printf (resFile, '\n')
 

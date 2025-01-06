@@ -65,7 +65,7 @@ def ModelsQuantRoundErr (
     """
     calculate the quantization round error obtained by several models and counter sizes. 
     """
-    verbose = [VERBOSE_RES, VERBOSE_PCL]
+    verbose = [] #$$ [VERBOSE_RES, VERBOSE_PCL]
     for modelStr in modelStrs:
         model = None
         match modelStr:
@@ -81,7 +81,7 @@ def ModelsQuantRoundErr (
                 print ('In TestQauntModels.ModelsQuantRoundErr(). Sorry, the model {modelStr} you choose is not support yet.')
                 
         vec2quantize = extractWeightsOfModel (model, verbose=verbose)
-        for cntrSize in [8, 16, 19]:
+        for cntrSize in [16]: #$ [8, 16, 19]:
             Quantizer.calcQuantRoundErr(
                 cntrSize        = cntrSize,
                 signed          = True,
