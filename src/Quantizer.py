@@ -508,15 +508,14 @@ def testQuantOfSingleVec (
     """
     Test the quantization of a single vector and print the results as requested by verbose. 
     """
-    if debugFile!=None:
-        printf (debugFile, f'vec2quantize={vec2quantize}\n')
+    vec2quantize = np.array (vec2quantize)
     [quantizedVec, scale, z] = quantize (vec=vec2quantize, grid=grid, verbose=verbose, debugFile=None) # Call with debugFile to throttle additional writes to debugFile, which make it too detailed and undreadable. 
     dequantizedVec           = dequantize (quantizedVec, scale, z)
 
     if debugFile!=None:
-        printf (debugFile, f'grid={grid}\nquantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}\n')
+        printf (debugFile, f'grid={grid}\nvec2quantize={vec2quantize}\nquantizedVec={quantizedVec}\nscale={scale}, z={z}\ndequantizedVec={dequantizedVec}\n')
     if any(vec2quantize==0):
-        warning ('I cannot measure the relative error, as some elecments of the vector to quantizer equal 0.')
+        printf (debugFile, f'Cannot measure the relative error, as some elements of the vector to quantizer equal 0.\n')
     else:
         diff = np.absolute(np.divide (vec2quantize - dequantizedVec, vec2quantize))
         if debugFile!=None:
@@ -532,8 +531,11 @@ def testQuantization (
     """
     Basic test of the quantization
     """
-    vec2quantize = 2 * np.random.rand(vecLen) - 1
-    cntrSize = 8
+    # vec2quantize=[-100., 0., 0.00001, 0.00002, 100.]
+    vec2quantize=[-100., -99.9999, -99.9998, -20.25, -5.75, 0., 0.00001, 0.00002, 0.5, 1., 5.5, 8.125, 70.825, 77.9999, 100.]
+
+# 2 * np.random.rand(vecLen) - 1
+    cntrSize = 16
     if VERBOSE_DEBUG in verbose or VERBOSE_DEBUG_DETAILS in verbose:
         debugFile = open ('../res/debug.txt', 'w')
     else:
@@ -541,14 +543,14 @@ def testQuantization (
      
     # grid = np.array (range(-2**(cntrSize-1)+1, 2**(cntrSize-1), 1), dtype='int')
     # testQuantOfSingleVec(vec2quantize=vec2quantize, grid=grid, verbose=verbose, debugFile=debugFile)
-    fxpSettingStr = 'F3P_sr_h1'
+    fxpSettingStr = 'F2P_li_h2'  #'F3P_sr_h1'
     if VERBOSE_DEBUG in verbose or VERBOSE_DEBUG_DETAILS in verbose:
         printf (debugFile, f'// {fxpSettingStr}\n')
     grid = getAllValsFxp (
         fxpSettingStr = fxpSettingStr,
         cntrSize    = cntrSize, 
         verbose     = [], 
-        signed      = True
+        signed      = False
     )
     testQuantOfSingleVec(vec2quantize=vec2quantize, grid=grid, verbose=verbose, debugFile=debugFile)
     if debugFile!=None:
@@ -556,7 +558,7 @@ def testQuantization (
         
 if __name__ == '__main__':
     try:
-        testQuantization (verbose=[VERBOSE_DEBUG], vecLen=1000)
+        testQuantization (verbose=[VERBOSE_DEBUG_DETAILS], vecLen=1000)
         # runCalcQuantRoundErr ()
         # plotGrids (zoomXlim=None, cntrSize=7, modes=['F2P_li_h2', 'F2P_si_h2', 'FP_e5', 'FP_e2', 'int'], scale=False)
 
