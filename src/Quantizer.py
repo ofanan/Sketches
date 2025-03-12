@@ -182,9 +182,7 @@ def quantize (
     except Exception as e: # Catch other potential exceptions (e.g., if input is not numeric)
         error (f"An unexpected error occurred: {e}")
         
-    if useAsymmetricQuant:
-        if min(grid)!=0:
-            error ('In Quantizeer.quant(). Asymmetric quantization is supported only for unsigned grid.')
+    if useAsymmetricQuant or min(grid)==0:
         error ('In Quantizeer.quant(). Sorry, but asymmetric quantization is currently not supported')
     else:
         z = 0
@@ -532,29 +530,32 @@ def testQuantization (
     Basic test of the quantization
     """
     # vec2quantize=[-100., 0., 0.00001, 0.00002, 100.]
-    vec2quantize=[-100., -99.9999, -99.9998, -20.25, -5.75, 0., 0.00001, 0.00002, 0.5, 1., 5.5, 8.125, 70.825, 77.9999, 100.]
-
+    # vec2quantize=[-100., -99.9999, -99.9998, -20.25, -5.75, 0., 0.00001, 0.00002, 0.5, 1., 5.5, 8.125, 70.825, 77.9999, 100.]
+    vec2quantize=[-0.254, -0.173, -0.116, -0.104, 0.054, 0.081, 0.108, 0.181]
+ 
 # 2 * np.random.rand(vecLen) - 1
-    cntrSize = 16
+    cntrSize = 8
     if VERBOSE_DEBUG in verbose or VERBOSE_DEBUG_DETAILS in verbose:
         debugFile = open ('../res/debug.txt', 'w')
     else:
         debugFile = None
      
     # grid = np.array (range(-2**(cntrSize-1)+1, 2**(cntrSize-1), 1), dtype='int')
-    # testQuantOfSingleVec(vec2quantize=vec2quantize, grid=grid, verbose=verbose, debugFile=debugFile)
-    fxpSettingStr = 'F2P_li_h2'  #'F3P_sr_h1'
-    if VERBOSE_DEBUG in verbose or VERBOSE_DEBUG_DETAILS in verbose:
-        printf (debugFile, f'// {fxpSettingStr}\n')
-    grid = getAllValsFxp (
-        fxpSettingStr = fxpSettingStr,
-        cntrSize    = cntrSize, 
-        verbose     = [], 
-        signed      = False
-    )
+    grid = np.array (range(0, 2**cntrSize-1, 1), dtype='int')
     testQuantOfSingleVec(vec2quantize=vec2quantize, grid=grid, verbose=verbose, debugFile=debugFile)
-    if debugFile!=None:
-        debugFile.close ()
+    # fxpSettingStr = 'F2P_li_h2'  #'F3P_sr_h1'
+    # if VERBOSE_DEBUG in verbose or VERBOSE_DEBUG_DETAILS in verbose:
+    #     printf (debugFile, f'// {fxpSettingStr}\n')
+    # grid = getAllValsFxp (
+    #     fxpSettingStr = fxpSettingStr,
+    #     cntrSize    = cntrSize, 
+    #     verbose     = [], 
+    #     signed      = False
+    # )
+    # grid = np.array (range(0, 2**cntrSize-1, 1), dtype='int')
+    # testQuantOfSingleVec(vec2quantize=vec2quantize, grid=grid, verbose=verbose, debugFile=debugFile)
+    # if debugFile!=None:
+    #     debugFile.close ()
         
 if __name__ == '__main__':
     try:
